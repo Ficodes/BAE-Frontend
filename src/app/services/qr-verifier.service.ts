@@ -64,7 +64,7 @@ export class QrVerifierService {
     const systemZoom = width / window.screen.availWidth;
     const left = (width - w) / 2 / systemZoom + dualScreenLeft
     const top = (height - h) / 2 / systemZoom + dualScreenTop
-    const newWindow = window.open(url, title,
+    /*const newWindow = window.open(url, title,
       `
       popup=yes,
       scrollbars=yes,
@@ -73,7 +73,8 @@ export class QrVerifierService {
       top=${top},
       left=${left}
       `
-    )
+    )*/
+    const newWindow = window.open(url, '_blank')
     newWindow?.focus()
     return newWindow;
   }
