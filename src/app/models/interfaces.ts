@@ -30,6 +30,11 @@ export interface LoginInfo {
   logged_as: string
 }
 
+export interface CookieInfo {
+  allowed: boolean,
+  expire: number
+}
+
 export interface productSpecCharacteristicValueCart {
     characteristic: ProductSpecificationCharacteristic,
     value?: CharacteristicValueSpecification

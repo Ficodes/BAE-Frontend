@@ -2,7 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import { initFlowbite } from 'flowbite';
 import { TranslateService } from '@ngx-translate/core';
 import {LocalStorageService} from "./services/local-storage.service";
-import {Category} from "./models/interfaces";
+import {Category, CookieInfo} from "./models/interfaces";
 import {EventMessageService} from "./services/event-message.service";
 import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
@@ -20,6 +20,7 @@ import * as moment from 'moment';
 export class AppComponent implements OnInit {
   title = 'YUMKET deployed by the DOME Project';
   showPanel = false;
+  cookiesAllowed:boolean=false;
 
   constructor(private translate: TranslateService,
               private localStorage: LocalStorageService,
@@ -64,6 +65,12 @@ export class AppComponent implements OnInit {
 
         //this.refreshApi.startInterval(3000, ev.value);
       }
+      if(ev.type=='CookiesAllowed'){
+        this.cookiesAllowed=true;
+      }
+      if(ev.type=='CookiesDisabled'){
+        this.cookiesAllowed=false;
+      }
     })
     let aux =this.localStorage.getObject('login_items') as LoginInfo;
     if(JSON.stringify(aux) === '{}'){
@@ -76,6 +83,10 @@ export class AppComponent implements OnInit {
       this.refreshApi.startInterval(((aux.expire - moment().unix())-4)*1000, aux);
       console.log('token')
       console.log(aux.token)
+    }
+    let cookieInfo = this.localStorage.getObject('cookie_info') as CookieInfo;
+    if(cookieInfo.allowed==true){
+      this.cookiesAllowed=true;
     }
   }
 

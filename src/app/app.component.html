@@ -4,4 +4,7 @@
     <router-outlet></router-outlet>
 </main>
 <app-chatbot-widget class="relative"></app-chatbot-widget>
+@if(!cookiesAllowed){
+    <cookie-card class="relative"></cookie-card>
+}
 <bae-footer class="hidden md:block"></bae-footer>

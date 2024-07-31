@@ -38,5 +38,7 @@ export const environment = {
     TICKETING_SYSTEM_URL: "",
     KNOWLEDGE_BASE_URL: "",
     SEARCH_ENABLED: true,
-    PURCHASE_ENABLED: false
+    PURCHASE_ENABLED: false,
+    //Cookie lasting time in milis - set to 15 days
+    COOKIE_INTERVAL: 1296000000
 };

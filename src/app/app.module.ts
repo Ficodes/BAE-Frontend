@@ -67,6 +67,7 @@ import { CategoriesComponent } from './pages/admin/categories/categories.compone
 import { CreateCategoryComponent } from './pages/admin/categories/create-category/create-category.component';
 import { UpdateCategoryComponent } from './pages/admin/categories/update-category/update-category.component';
 import { CategoriesRecursionListComponent } from './shared/categories-recursion-list/categories-recursion-list.component';
+import { CookieCardComponent } from './shared/cookie-card/cookie-card.component';
 import { ContactUsComponent } from './offerings/contact-us/contact-us.component';
 import { provideMatomo } from 'ngx-matomo-client';
 import { withRouter } from 'ngx-matomo-client'
@@ -128,7 +129,8 @@ import { appConfigFactory } from './app-config-factory';
     CreateCategoryComponent,
     UpdateCategoryComponent,
     CategoriesRecursionListComponent,
-    ContactUsComponent
+    ContactUsComponent,
+    CookieCardComponent
   ],
   imports: [
     BrowserModule,

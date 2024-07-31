@@ -8,7 +8,7 @@ export interface EventMessage {
   'SellerProductSpec' | 'SellerCreateProductSpec' | 'SellerServiceSpec' | 'SellerCreateServiceSpec' | 'SellerResourceSpec' | 'SellerCreateResourceSpec' |
   'SellerOffer' | 'SellerCreateOffer' | 'SellerUpdateProductSpec' | 'SellerUpdateServiceSpec' | 'SellerUpdateResourceSpec' | 'SellerUpdateOffer' |
   'SellerCatalog' | 'SellerCatalogCreate' | 'SellerCatalogUpdate' | 'CategoryAdded' | 'CategoryRemoved' | 'ChangedSession' | 'CloseCartCard'|
-  'AdminCategories' | 'CreateCategory' | 'UpdateCategory' | 'ShowCartToast' | 'HideCartToast' | 'CloseContact';
+  'AdminCategories' | 'CreateCategory' | 'UpdateCategory' | 'ShowCartToast' | 'HideCartToast' | 'CloseContact' | 'CookiesAllowed' | 'CookiesDisabled';
   text?: string,
   value?: object | boolean
 }
@@ -156,5 +156,13 @@ export class EventMessageService {
 
   emitCloseContact(close:boolean){
     this.eventMessageSubject.next({type: 'CloseContact', value: close})
+  }
+
+  emitCookiesAllowed(){
+    this.eventMessageSubject.next({type: 'CookiesAllowed', value: true})
+  }
+
+  emitCookiesDisabled(){
+    this.eventMessageSubject.next({type: 'CookiesDisabled', value: true})
   }
 }
