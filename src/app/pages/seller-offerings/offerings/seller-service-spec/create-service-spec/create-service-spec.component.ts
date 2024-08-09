@@ -116,6 +116,7 @@ export class CreateServiceSpecComponent implements OnInit {
     this.selectStep('general-info','general-circle');
     this.showGeneral=true;
     this.showChars=false;
+    this.showSummary=false;
     this.showPreview=false;
   }
 
@@ -123,6 +124,7 @@ export class CreateServiceSpecComponent implements OnInit {
     this.selectStep('chars','chars-circle');
     this.showGeneral=false;
     this.showChars=true;
+    this.showSummary=false;
     this.showPreview=false;
   }
 

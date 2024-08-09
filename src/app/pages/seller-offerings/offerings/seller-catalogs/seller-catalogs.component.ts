@@ -9,6 +9,7 @@ import { ApiServiceService } from 'src/app/services/product-service.service';
 import {LocalStorageService} from "src/app/services/local-storage.service";
 import { LoginInfo } from 'src/app/models/interfaces';
 import {EventMessageService} from "src/app/services/event-message.service";
+import { PaginationService } from 'src/app/services/pagination.service';
 import { initFlowbite } from 'flowbite';
 
 @Component({
@@ -24,6 +25,7 @@ export class SellerCatalogsComponent {
 
   searchField = new FormControl();
   catalogs:Catalog[]=[];
+  nextCatalogs:Catalog[]=[];
   page:number=0;
   CATALOG_LIMIT: number = environment.CATALOG_LIMIT;
   loading: boolean = false;
@@ -39,6 +41,7 @@ export class SellerCatalogsComponent {
     private cdr: ChangeDetectorRef,
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
+    private paginationService: PaginationService
   ) {
     this.eventMessage.messages$.subscribe(ev => {
       if(ev.type === 'ChangedSession') {
@@ -62,6 +65,7 @@ export class SellerCatalogsComponent {
   initCatalogs(){
     this.loading=true;
     this.catalogs=[];
+    this.nextCatalogs=[];
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
     if(aux.logged_as==aux.id){
       this.partyId = aux.partyId;
@@ -70,7 +74,7 @@ export class SellerCatalogsComponent {
       this.partyId = loggedOrg.partyId
     }
 
-    this.getCatalogs();
+    this.getCatalogs(false);
     let input = document.querySelector('[type=search]')
     if(input!=undefined){
       input.addEventListener('input', e => {
@@ -78,7 +82,7 @@ export class SellerCatalogsComponent {
         console.log(`Input updated`)
         if(this.searchField.value==''){
           this.filter=undefined;
-          this.getCatalogs();
+          this.getCatalogs(false);
         }
       });
     }
@@ -89,31 +93,35 @@ export class SellerCatalogsComponent {
     initFlowbite();
   }
 
-  getCatalogs(){    
-    this.api.getCatalogsByUser(this.page,this.filter,this.partyId,this.status).then(data => {
-      if(data.length<this.CATALOG_LIMIT){
-        this.page_check=false;
-        this.cdr.detectChanges();
-      }else{
-        this.page_check=true;
-        this.cdr.detectChanges();
-      }
-      for(let i=0; i < data.length; i++){
-        this.catalogs.push(data[i])
-      }
+  async getCatalogs(next:boolean){
+    if(next==false){
+      this.loading=true;
+    }
+
+    //async getItemsPaginated(page:number, pageSize:any, next:boolean, items:any[], nextItems:any[], options:any
+    let options = {
+      "keywords": this.filter,
+      "filters": this.status,
+      "partyId": this.partyId
+    }
+
+    this.paginationService.getItemsPaginated(this.page, this.CATALOG_LIMIT, next, this.catalogs, this.nextCatalogs, options,
+      this.api.getCatalogsByUser.bind(this.api)).then(data => {
+      this.page_check=data.page_check;      
+      this.catalogs=data.items;
+      this.nextCatalogs=data.nextItems;
+      this.page=data.page;
       this.loading=false;
       this.loading_more=false;
-      console.log('--- CATALOGS')
-      console.log(this.catalogs)
     })
   }
 
   async next(){
-    this.loading_more=true;
+    //this.loading_more=true;
     this.page=this.page+this.CATALOG_LIMIT;
     this.cdr.detectChanges;
     console.log(this.page)
-    await this.getCatalogs();
+    await this.getCatalogs(true);
   }
 
   filterInventoryByKeywords(){
@@ -134,6 +142,7 @@ export class SellerCatalogsComponent {
     this.loading=true;
     this.page=0;
     this.catalogs=[];
-    this.getCatalogs();
+    this.nextCatalogs=[];
+    this.getCatalogs(false);
   }
 }

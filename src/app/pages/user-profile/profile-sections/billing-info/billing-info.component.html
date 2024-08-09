@@ -34,13 +34,13 @@
                 <tbody>
                     @for (bill of billing_accounts; track bill.id) {
                         <tr (click)="selectBill(bill)" class="border-b hover:bg-gray-200 dark:border-gray-700 dark:hover:bg-secondary-200" [ngClass]="bill.selected == true ? 'bg-primary-30 dark:bg-secondary-200' : 'bg-white dark:bg-secondary-300'">
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 text-wrap break-all">
                                 {{bill.name}}
                             </td>
-                            <td class="px-6 py-4 hidden lg:table-cell">
+                            <td class="px-6 py-4 hidden lg:table-cell text-wrap break-all">
                                 {{bill.email}}
                             </td>
-                            <td class="px-6 py-4 hidden md:table-cell">
+                            <td class="px-6 py-4 hidden md:table-cell text-wrap break-all">
                                 {{bill.postalAddress.street}}, {{bill.postalAddress.postCode}} ({{bill.postalAddress.city}}) {{bill.postalAddress.stateOrProvince}}
                             </td>
                             <td class="px-6 py-4 hidden lg:table-cell">
@@ -121,7 +121,7 @@
                 </svg>                
                 
                 <p class="mb-4 text-gray-500 dark:text-white">{{ 'BILLING._confirm_delete' | translate }}</p>
-                <p class="mb-4 text-gray-500 dark:text-white"><b>{{billToDelete.name}}</b>: {{billToDelete.postalAddress.street}}, {{billToDelete.postalAddress.city}}, {{billToDelete.postalAddress.country}}.</p>
+                <p class="mb-4 text-gray-500 dark:text-white text-wrap break-all"><b>{{billToDelete.name}}</b>: {{billToDelete.postalAddress.street}}, {{billToDelete.postalAddress.city}}, {{billToDelete.postalAddress.country}}.</p>
                 <div class="flex justify-center items-center space-x-4">
                     <button (click)="deleteBill=false;$event.stopPropagation();" type="button" class="py-2 px-3 text-sm font-medium text-gray-500 dark:text-white bg-white dark:bg-primary-100 rounded-lg border border-gray-200 dark:border-secondary-300 hover:bg-gray-100 dark:hover:bg-secondary-200 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10">
                         {{ 'BILLING._cancel' | translate }}

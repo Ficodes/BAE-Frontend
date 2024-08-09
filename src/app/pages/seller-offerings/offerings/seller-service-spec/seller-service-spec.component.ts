@@ -6,6 +6,7 @@ import {components} from "src/app/models/product-catalog";
 import { environment } from 'src/environments/environment';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { ServiceSpecServiceService } from 'src/app/services/service-spec-service.service';
+import { PaginationService } from 'src/app/services/pagination.service';
 import {LocalStorageService} from "src/app/services/local-storage.service";
 import {EventMessageService} from "src/app/services/event-message.service";
 import { LoginInfo } from 'src/app/models/interfaces';
@@ -24,6 +25,7 @@ export class SellerServiceSpecComponent implements OnInit {
   searchField = new FormControl();
 
   servSpecs:any[]=[];
+  nextServSpecs:any[]=[];
   page:number=0;
   SERV_SPEC_LIMIT: number = environment.SERV_SPEC_LIMIT;
   loading: boolean = false;
@@ -40,7 +42,8 @@ export class SellerServiceSpecComponent implements OnInit {
     private servSpecService: ServiceSpecServiceService,
     private cdr: ChangeDetectorRef,
     private localStorage: LocalStorageService,
-    private eventMessage: EventMessageService
+    private eventMessage: EventMessageService,
+    private paginationService: PaginationService
   ) {
     this.eventMessage.messages$.subscribe(ev => {
       if(ev.type === 'ChangedSession') {
@@ -64,7 +67,7 @@ export class SellerServiceSpecComponent implements OnInit {
       this.partyId = loggedOrg.partyId
     }
 
-    this.getServSpecs();
+    this.getServSpecs(false);
     let input = document.querySelector('[type=search]')
     if(input!=undefined){
       input.addEventListener('input', e => {
@@ -72,7 +75,7 @@ export class SellerServiceSpecComponent implements OnInit {
         console.log(`Input updated`)
         if(this.searchField.value==''){
           this.filter=undefined;
-          this.getServSpecs();
+          this.getServSpecs(false);
         }
       });
     }
@@ -91,22 +94,25 @@ export class SellerServiceSpecComponent implements OnInit {
     this.eventMessage.emitSellerUpdateServiceSpec(serv);
   }
 
-  getServSpecs(){    
-    this.servSpecService.getServiceSpecByUser(this.page,this.status,this.partyId,this.sort).then(data => {
-      if(data.length<this.SERV_SPEC_LIMIT){
-        this.page_check=false;
-        this.cdr.detectChanges();
-      }else{
-        this.page_check=true;
-        this.cdr.detectChanges();
-      }
-      for(let i=0; i < data.length; i++){
-        this.servSpecs.push(data[i])
-      }
+  async getServSpecs(next:boolean){
+    if(next==false){
+      this.loading=true;
+    }
+    
+    let options = {
+      "filters": this.status,
+      "partyId": this.partyId,
+      "sort": this.sort
+    }
+    
+    this.paginationService.getItemsPaginated(this.page, this.SERV_SPEC_LIMIT, next, this.servSpecs,this.nextServSpecs, options,
+      this.servSpecService.getServiceSpecByUser.bind(this.servSpecService)).then(data => {
+      this.page_check=data.page_check;      
+      this.servSpecs=data.items;
+      this.nextServSpecs=data.nextItems;
+      this.page=data.page;
       this.loading=false;
       this.loading_more=false;
-      console.log('--- servSpecs')
-      console.log(this.servSpecs)
     })
   }
 
@@ -125,18 +131,11 @@ export class SellerServiceSpecComponent implements OnInit {
       console.log(this.status)
       this.status.push(filter)
     }
-    this.loading=true;
-    this.page=0;
-    this.servSpecs=[];
-    this.getServSpecs();
+    this.getServSpecs(false);
   }
 
   async next(){
-    this.loading_more=true;
-    this.page=this.page+this.SERV_SPEC_LIMIT;
-    this.cdr.detectChanges;
-    console.log(this.page)
-    await this.getServSpecs();
+    await this.getServSpecs(true);
   }
 
   onSortChange(event: any) {
@@ -145,9 +144,6 @@ export class SellerServiceSpecComponent implements OnInit {
     }else{
       this.sort=undefined
     }
-    this.loading=true;
-    this.page=0;
-    this.servSpecs=[];
-    this.getServSpecs();
+    this.getServSpecs(false);
   }
 }

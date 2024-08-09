@@ -47,7 +47,7 @@
             
             <div id="dropdown" class="z-20 hidden w-fit md:w-1/5 p-3 bg-white rounded-lg shadow dark:bg-secondary-200">
             <h6 class="mb-3 text-sm font-medium text-gray-900 dark:text-white">
-                {{ 'OFFERINGS._state' | translate }}
+                {{ 'OFFERINGS._status' | translate }}
             </h6>
             <ul class="space-y-2 text-sm" aria-labelledby="dropdownDefault">
   
@@ -185,7 +185,7 @@
         @if (!loading_more) {
             @if (page_check) {
             <div class="flex pt-6 pb-2 justify-center align-middle">
-                <button (click)="next()" class="flex cursor-pointer shadow-lg items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700">
+                <button (click)="next()" class="flex cursor-pointer shadow-lg items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 dark:text-white bg-white dark:bg-primary-100 dark:hover:bg-secondary-100 border border-gray-300 dark:border-secondary-200 rounded-lg hover:bg-gray-200">
                 Load more
                 <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>

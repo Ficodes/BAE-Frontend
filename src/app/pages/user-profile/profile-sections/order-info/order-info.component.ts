@@ -4,6 +4,7 @@ import { ApiServiceService } from 'src/app/services/product-service.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
 import {LocalStorageService} from "src/app/services/local-storage.service";
 import { ProductOrderService } from 'src/app/services/product-order-service.service';
+import { PaginationService } from 'src/app/services/pagination.service';
 import { FastAverageColor } from 'fast-average-color';
 import {components} from "src/app/models/product-catalog";
 import { FormGroup, FormControl, Validators } from '@angular/forms';
@@ -24,6 +25,7 @@ import { environment } from 'src/environments/environment';
 export class OrderInfoComponent implements OnInit {
   loading: boolean = false;
   orders:any[]=[];
+  nextOrders:any[]=[];
   profile:any;
   partyId:any='';
   showOrderDetails:boolean=false;
@@ -45,7 +47,8 @@ export class OrderInfoComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private accountService: AccountServiceService,
     private orderService: ProductOrderService,
-    private eventMessage: EventMessageService
+    private eventMessage: EventMessageService,
+    private paginationService: PaginationService
   ) {
     this.eventMessage.messages$.subscribe(ev => {
       if(ev.type === 'ChangedSession') {
@@ -68,6 +71,7 @@ export class OrderInfoComponent implements OnInit {
     let today = new Date();
     today.setMonth(today.getMonth()-1);
     this.selectedDate = today.toISOString();
+    this.dateRange.setValue('month');
     this.initPartyInfo();
   }
 
@@ -83,7 +87,7 @@ export class OrderInfoComponent implements OnInit {
       //this.partyId = aux.partyId;
       this.page=0;
       this.orders=[];
-      this.getOrders(0);
+      this.getOrders(false);
     }
     initFlowbite();
   }
@@ -101,96 +105,34 @@ export class OrderInfoComponent implements OnInit {
     return images.length > 0 ? images?.at(0)?.url : 'https://placehold.co/600x400/svg';
   }
 
-  getOrders(size:number){        
-    if(this.partyId!=''){
-      this.orderService.getProductOrders(this.partyId,this.page,this.filters,this.selectedDate).then(orders=> {
-        if(orders.length<this.ORDER_LIMIT){
-          this.page_check=false;
-          this.cdr.detectChanges();
-        }else{
-          this.page_check=true;
-          this.cdr.detectChanges();
-        }
-        if(orders.length==0){
-          this.loading=false;
-        }
-        //this.orders=[];
-        for(let i=0;i<orders.length;i++){          
-          this.orders.push(orders[i]);
-        }
-        for(let i=size;i<this.orders.length;i++){
-          let items:any[] = [];
-          this.accountService.getBillingAccountById(this.orders[i].billingAccount.id).then(bill => {
-            for(let j=0;j<this.orders[i].productOrderItem.length;j++){
-              this.api.getProductById(this.orders[i].productOrderItem[j].id).then(item => {
-                this.api.getProductSpecification(item.productSpecification.id).then(spec => {
-                  if(item.productOfferingPrice == undefined ||  item.productOfferingPrice.length == 0){
-                    items.push({
-                      id: item.id,
-                      name: item.name,
-                      category: item.category,
-                      description: item.description,
-                      lastUpdate: item.lastUpdate,
-                      attachment: spec.attachment,
-                      /*productOfferingPrice: {
-                        "price": prodprice.price.value,
-                        "unit": prodprice.price.unit,
-                        "priceType": prodprice.priceType,
-                        "text": prodprice.unitOfMeasure != undefined ? '/'+prodprice.unitOfMeasure.units : prodprice.recurringChargePeriodType
-                      },*/
-                      productSpecification: item.productSpecification,
-                      productOfferingTerm: item.productOfferingTerm,
-                      version: item.version
-                    })
-                  } else {
-                    this.api.getProductPrice(item.productOfferingPrice[0].id).then(prodprice => {
-                      items.push({
-                        id: item.id,
-                        name: item.name,
-                        category: item.category,
-                        description: item.description,
-                        lastUpdate: item.lastUpdate,
-                        attachment: spec.attachment,
-                        productOfferingPrice: {
-                          "price": prodprice.price.value,
-                          "unit": prodprice.price.unit,
-                          "priceType": prodprice.priceType,
-                          "text": prodprice.unitOfMeasure != undefined ? '/'+prodprice.unitOfMeasure.units : prodprice.recurringChargePeriodType
-                        },
-                        productSpecification: item.productSpecification,
-                        productOfferingTerm: item.productOfferingTerm,
-                        version: item.version
-                      })
-                      this.loading=false;
-                      this.loading_more=false;
-                    })
-                  }
-                })
-              })
-            }
-            this.orders[i]['billingAccount']=bill;
-            this.orders[i].productOrderItem=items;
-          })
-          
-        }
-        console.log('--- ORDERS ---')
-        console.log(this.orders)
-      })
+  async getOrders(next:boolean){
+    if(next==false){
+      this.loading=true;
+    }
+    
+    let options = {
+      "filters": this.filters,
+      "partyId": this.partyId,
+      "selectedDate": this.selectedDate,
+      "orders": this.orders
     }
 
-    //this.loading=false;    
-    //this.loading_more=false; 
-    this.cdr.detectChanges();
+    this.paginationService.getItemsPaginated(this.page, this.ORDER_LIMIT, next, this.orders,this.nextOrders, options,
+      this.paginationService.getOrders.bind(this.paginationService)).then(data => {
+        console.log('--pag')
+        console.log(data)
+        console.log(this.orders)
+      this.page_check=data.page_check;      
+      this.orders=data.items;
+      this.nextOrders=data.nextItems;
+      this.page=data.page;
+      this.loading=false;
+      this.loading_more=false;
+    })
   }
 
   async next(){
-    this.loading=true;
-    let existingOrderSize=this.orders.length;
-    this.loading_more=true;
-    this.page=this.page+this.ORDER_LIMIT;
-    this.cdr.detectChanges;
-    console.log(this.page)
-    await this.getOrders(existingOrderSize);
+    await this.getOrders(true);
   }
 
   onStateFilterChange(filter:string){
@@ -204,10 +146,7 @@ export class OrderInfoComponent implements OnInit {
       this.filters.push(filter)
       console.log(this.filters)
     }
-    this.loading=true;
-    this.page=0;
-    this.orders=[];
-    this.getOrders(0);
+    this.getOrders(false);
   }
 
   isFilterSelected(filter:any){
@@ -239,10 +178,7 @@ export class OrderInfoComponent implements OnInit {
     } else {
       this.selectedDate = undefined
     }
-    console.log(this.selectedDate)
-    this.page=0;
-    this.orders=[];
-    this.getOrders(0);
+    this.getOrders(false);
   }
 
   getTotalPrice(items:any[]){

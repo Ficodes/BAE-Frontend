@@ -6,6 +6,7 @@ import {components} from "src/app/models/product-catalog";
 import { environment } from 'src/environments/environment';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { ResourceSpecServiceService } from 'src/app/services/resource-spec-service.service';
+import { PaginationService } from 'src/app/services/pagination.service';
 import {LocalStorageService} from "src/app/services/local-storage.service";
 import { LoginInfo } from 'src/app/models/interfaces';
 import {EventMessageService} from "src/app/services/event-message.service";
@@ -24,6 +25,7 @@ export class SellerResourceSpecComponent implements OnInit {
   searchField = new FormControl();
 
   resSpecs:any[]=[];
+  nextResSpecs:any[]=[];
   page:number=0;
   RES_SPEC_LIMIT: number = environment.RES_SPEC_LIMIT;
   loading: boolean = false;
@@ -40,7 +42,8 @@ export class SellerResourceSpecComponent implements OnInit {
     private resSpecService: ResourceSpecServiceService,
     private cdr: ChangeDetectorRef,
     private localStorage: LocalStorageService,
-    private eventMessage: EventMessageService
+    private eventMessage: EventMessageService,
+    private paginationService: PaginationService
   ) {
     this.eventMessage.messages$.subscribe(ev => {
       if(ev.type === 'ChangedSession') {
@@ -64,7 +67,7 @@ export class SellerResourceSpecComponent implements OnInit {
       this.partyId = loggedOrg.partyId
     }
 
-    this.getResSpecs();
+    this.getResSpecs(false);
     let input = document.querySelector('[type=search]')
     if(input!=undefined){
       input.addEventListener('input', e => {
@@ -72,7 +75,7 @@ export class SellerResourceSpecComponent implements OnInit {
         console.log(`Input updated`)
         if(this.searchField.value==''){
           this.filter=undefined;
-          this.getResSpecs();
+          this.getResSpecs(false);
         }
       });
     }
@@ -92,31 +95,30 @@ export class SellerResourceSpecComponent implements OnInit {
     this.eventMessage.emitSellerUpdateResourceSpec(res);
   }
 
-  getResSpecs(){    
-    this.resSpecService.getResourceSpecByUser(this.page,this.status,this.partyId,this.sort).then(data => {
-      if(data.length<this.RES_SPEC_LIMIT){
-        this.page_check=false;
-        this.cdr.detectChanges();
-      }else{
-        this.page_check=true;
-        this.cdr.detectChanges();
-      }
-      for(let i=0; i < data.length; i++){
-        this.resSpecs.push(data[i])
-      }
+  async getResSpecs(next:boolean){
+    if(next==false){
+      this.loading=true;
+    }
+    
+    let options = {
+      "filters": this.status,
+      "partyId": this.partyId,
+      "sort": this.sort
+    }
+    
+    this.paginationService.getItemsPaginated(this.page, this.RES_SPEC_LIMIT, next, this.resSpecs,this.nextResSpecs, options,
+      this.resSpecService.getResourceSpecByUser.bind(this.resSpecService)).then(data => {
+      this.page_check=data.page_check;      
+      this.resSpecs=data.items;
+      this.nextResSpecs=data.nextItems;
+      this.page=data.page;
       this.loading=false;
       this.loading_more=false;
-      console.log('--- resSpecs')
-      console.log(this.resSpecs)
     })
   }
 
   async next(){
-    this.loading_more=true;
-    this.page=this.page+this.RES_SPEC_LIMIT;
-    this.cdr.detectChanges;
-    console.log(this.page)
-    await this.getResSpecs();
+    await this.getResSpecs(true);
   }
 
   filterInventoryByKeywords(){
@@ -134,10 +136,7 @@ export class SellerResourceSpecComponent implements OnInit {
       console.log(this.status)
       this.status.push(filter)
     }
-    this.loading=true;
-    this.page=0;
-    this.resSpecs=[];
-    this.getResSpecs();
+    this.getResSpecs(false);
   }
 
   onSortChange(event: any) {
@@ -146,9 +145,6 @@ export class SellerResourceSpecComponent implements OnInit {
     }else{
       this.sort=undefined
     }
-    this.loading=true;
-    this.page=0;
-    this.resSpecs=[];
-    this.getResSpecs();
+    this.getResSpecs(false);
   }
 }

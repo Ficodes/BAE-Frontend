@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ApiServiceService } from 'src/app/services/product-service.service';
+import { PaginationService } from 'src/app/services/pagination.service';
 import { Router } from '@angular/router';
 import {components} from "../../models/product-catalog";
 type Catalog = components["schemas"]["Catalog"];
@@ -13,6 +14,7 @@ import { FormControl } from '@angular/forms';
 })
 export class CatalogsComponent implements OnInit{
   catalogs:Catalog[]=[];
+  nextCatalogs:Catalog[]=[];
   page:number=0;
   CATALOG_LIMIT: number = environment.CATALOG_LIMIT;
   loading: boolean = false;
@@ -24,13 +26,14 @@ export class CatalogsComponent implements OnInit{
   constructor(
     private router: Router,
     private api: ApiServiceService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private paginationService: PaginationService
   ) {
   }
 
   ngOnInit() {
     this.loading=true;
-    this.getCatalogs();
+    this.getCatalogs(false);
     let input = document.querySelector('[type=search]')
     if(input!=undefined){
       input.addEventListener('input', e => {
@@ -38,36 +41,37 @@ export class CatalogsComponent implements OnInit{
         console.log(`Input updated`)
         if(this.searchField.value==''){
           this.filter=undefined;
-          this.getCatalogs();
+          this.getCatalogs(false);
         }
       });
     }
 
   }
 
-  getCatalogs(){
-    this.catalogs=[];
-    this.api.getCatalogs(this.page,this.filter).then(data => {
-      if(data.length<this.CATALOG_LIMIT){
-        this.page_check=false;
-        this.cdr.detectChanges();
-      }else{
-        this.page_check=true;
-        this.cdr.detectChanges();
-      }
-      for(let i=0; i < data.length; i++){
-        this.catalogs.push(data[i])
-      }
+  async getCatalogs(next:boolean){
+    if(next==false){
+      this.loading=true;
+    }    
+
+    let options = {
+      "keywords": this.filter
+    }
+
+    this.paginationService.getItemsPaginated(this.page,this.CATALOG_LIMIT,next,this.catalogs,this.nextCatalogs, options,
+      this.api.getCatalogs.bind(this.api)).then(data => {
+      this.page_check=data.page_check;      
+      this.catalogs=data.items;
+      this.nextCatalogs=data.nextItems;
+      this.page=data.page;
       this.loading=false;
-      console.log('--- CATALOGS')
-      console.log(this.catalogs)
+      this.loading_more=false;
     })
   }
 
   filterCatalogs(){
     this.filter=this.searchField.value;
     this.page=0;
-    this.getCatalogs();
+    this.getCatalogs(false);
   }
 
   goToCatalogSearch(id:any) {
@@ -75,24 +79,7 @@ export class CatalogsComponent implements OnInit{
   }
 
   async next(){
-    this.loading_more=true;
-    this.page=this.page+this.CATALOG_LIMIT;
-    this.cdr.detectChanges;
-    console.log(this.page)
-    await this.api.getCatalogs(this.page,this.filter).then(data => {
-      if(data.length<this.CATALOG_LIMIT){
-        this.page_check=false;
-        this.cdr.detectChanges();
-      }else{
-        this.page_check=true;
-        this.cdr.detectChanges();
-      }
-      for(let i=0; i < data.length; i++){
-        this.catalogs.push(data[i])
-      }
-      this.loading_more=false;
-    })
-    console.log(this.catalogs)
+    await this.getCatalogs(true);
   }
 
 }

@@ -17,6 +17,7 @@ import {EventMessageService} from "../../services/event-message.service";
 import { jwtDecode } from "jwt-decode";
 import * as moment from 'moment';
 import { environment } from 'src/environments/environment';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-product-details',
@@ -94,6 +95,7 @@ export class ProductDetailsComponent implements OnInit {
     private localStorage: LocalStorageService,
     private cartService: ShoppingCartServiceService,
     private eventMessage: EventMessageService,
+    private location: Location
   ) {
     this.showTermsMore=false;
     this.eventMessage.messages$.subscribe(ev => {
@@ -527,6 +529,10 @@ export class ProductDetailsComponent implements OnInit {
 
   goTo(path:string) {
     this.router.navigate([path]);
+  }
+
+  back(){
+    this.location.back();
   }
 
   getProductImage() {

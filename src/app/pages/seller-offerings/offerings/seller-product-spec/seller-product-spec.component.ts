@@ -6,6 +6,7 @@ import {components} from "src/app/models/product-catalog";
 import { environment } from 'src/environments/environment';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { ProductSpecServiceService } from 'src/app/services/product-spec-service.service';
+import { PaginationService } from 'src/app/services/pagination.service';
 import {LocalStorageService} from "src/app/services/local-storage.service";
 import {EventMessageService} from "src/app/services/event-message.service";
 import { LoginInfo } from 'src/app/models/interfaces';
@@ -25,6 +26,7 @@ export class SellerProductSpecComponent implements OnInit{
   searchField = new FormControl();
 
   prodSpecs:any[]=[];
+  nextProdSpecs:any[]=[];
   page:number=0;
   PROD_SPEC_LIMIT: number = environment.PROD_SPEC_LIMIT;
   loading: boolean = false;
@@ -42,7 +44,8 @@ export class SellerProductSpecComponent implements OnInit{
     private prodSpecService: ProductSpecServiceService,
     private cdr: ChangeDetectorRef,
     private localStorage: LocalStorageService,
-    private eventMessage: EventMessageService
+    private eventMessage: EventMessageService,
+    private paginationService: PaginationService
   ) {
     this.eventMessage.messages$.subscribe(ev => {
       if(ev.type === 'ChangedSession') {
@@ -66,7 +69,7 @@ export class SellerProductSpecComponent implements OnInit{
       this.partyId = loggedOrg.partyId
     }
 
-    this.getProdSpecs();
+    this.getProdSpecs(false);
     let input = document.querySelector('[type=search]')
     if(input!=undefined){
       input.addEventListener('input', e => {
@@ -74,7 +77,7 @@ export class SellerProductSpecComponent implements OnInit{
         console.log(`Input updated`)
         if(this.searchField.value==''){
           this.filter=undefined;
-          this.getProdSpecs();
+          this.getProdSpecs(false);
         }
       });
     }
@@ -93,31 +96,31 @@ export class SellerProductSpecComponent implements OnInit{
     this.eventMessage.emitSellerUpdateProductSpec(prod);
   }
 
-  getProdSpecs(){    
-    this.prodSpecService.getProdSpecByUser(this.page,this.status,this.partyId,this.sort,this.isBundle).then(data => {
-      if(data.length<this.PROD_SPEC_LIMIT){
-        this.page_check=false;
-        this.cdr.detectChanges();
-      }else{
-        this.page_check=true;
-        this.cdr.detectChanges();
-      }
-      for(let i=0; i < data.length; i++){
-        this.prodSpecs.push(data[i])
-      }
+  async getProdSpecs(next:boolean){
+    if(next==false){
+      this.loading=true;
+    }
+    
+    let options = {
+      "filters": this.status,
+      "partyId": this.partyId,
+      "sort": this.sort,
+      "isBundle": this.isBundle
+    }
+
+    this.paginationService.getItemsPaginated(this.page, this.PROD_SPEC_LIMIT, next, this.prodSpecs, this.nextProdSpecs, options,
+      this.prodSpecService.getProdSpecByUser.bind(this.prodSpecService)).then(data => {
+      this.page_check=data.page_check;      
+      this.prodSpecs=data.items;
+      this.nextProdSpecs=data.nextItems;
+      this.page=data.page;
       this.loading=false;
       this.loading_more=false;
-      console.log('--- prodSpecs')
-      console.log(this.prodSpecs)
     })
   }
 
   async next(){
-    this.loading_more=true;
-    this.page=this.page+this.PROD_SPEC_LIMIT;
-    this.cdr.detectChanges;
-    console.log(this.page)
-    await this.getProdSpecs();
+    await this.getProdSpecs(true);
   }
 
   filterInventoryByKeywords(){
@@ -135,10 +138,7 @@ export class SellerProductSpecComponent implements OnInit{
       console.log(this.status)
       this.status.push(filter)
     }
-    this.loading=true;
-    this.page=0;
-    this.prodSpecs=[];
-    this.getProdSpecs();
+    this.getProdSpecs(false);
   }
 
   onSortChange(event: any) {
@@ -147,10 +147,7 @@ export class SellerProductSpecComponent implements OnInit{
     }else{
       this.sort=undefined
     }
-    this.loading=true;
-    this.page=0;
-    this.prodSpecs=[];
-    this.getProdSpecs();
+    this.getProdSpecs(false);
   }
 
   onTypeChange(event: any) {
@@ -161,9 +158,6 @@ export class SellerProductSpecComponent implements OnInit{
     }else{
       this.isBundle=undefined
     }
-    this.loading=true;
-    this.page=0;
-    this.prodSpecs=[];
-    this.getProdSpecs();
+    this.getProdSpecs(false);
   }
 }

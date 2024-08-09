@@ -380,7 +380,7 @@
                                 <tbody>
                                     @for (prod of prodSpecs; track prod.id) {
                                         <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                            <td class="px-6 py-4">
+                                            <td class="px-6 py-4 text-wrap break-all">
                                                 {{prod.name}}
                                             </td>
                                             <td class="hidden md:table-cell px-6 py-4">
@@ -520,10 +520,10 @@
                             <tbody>
                                 @for (sel of selectedISOS; track sel.name; let idx = $index) {
                                     <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                        <td class="px-6 py-4">
+                                        <td class="px-6 py-4 text-wrap break-all">
                                             {{sel.name}}
                                         </td>
-                                        <td class="px-6 py-4">
+                                        <td class="px-6 py-4 text-wrap break-all">
                                             {{sel.url}}                                      
                                         </td>
                                         <td class="px-6 py-4 inline-flex">
@@ -875,7 +875,7 @@
                         @if (!loadingResourceSpec_more) {
                             @if (resourceSpecPageCheck) {
                             <div class="flex pt-6 pb-2 justify-center align-middle">
-                                <button (click)="nextServ()" class="flex cursor-pointer shadow-lg items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 dark:text-white bg-white dark:bg-primary-100 dark:hover:bg-secondary-100 border border-gray-300 dark:border-secondary-200 rounded-lg hover:bg-gray-200">
+                                <button (click)="nextRes()" class="flex cursor-pointer shadow-lg items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 dark:text-white bg-white dark:bg-primary-100 dark:hover:bg-secondary-100 border border-gray-300 dark:border-secondary-200 rounded-lg hover:bg-gray-200">
                                 {{ 'UPDATE_PROD_SPEC._load_more' | translate }}
                                 <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
@@ -945,7 +945,7 @@
                             <tbody>
                                 @for (serv of serviceSpecs; track serv.id) {
                                     <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                        <td class="px-6 py-4">
+                                        <td class="px-6 py-4 text-wrap break-all">
                                             {{serv.name}}
                                         </td>
                                         <td class="hidden md:table-cell px-6 py-4">
@@ -1289,7 +1289,7 @@
                                             @for (rel of prodSpecRels; track rel) {
                                                 <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200" (click)="selectRelationship(rel)" 
                                                     [ngClass]="rel.id == selectedProdSpec.id ? 'bg-gray-300 dark:bg-secondary-200' : 'bg-white dark:bg-secondary-300'">
-                                                    <td class="px-6 py-4">
+                                                    <td class="px-6 py-4 text-wrap break-all">
                                                         {{rel.name}}
                                                     </td>
                                                     <td class="hidden md:table-cell px-6 py-4">

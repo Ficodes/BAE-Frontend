@@ -31,7 +31,7 @@
       </a>
       </div>
       <a (click)="goToProductDetails(productOff)" class="cursor-pointer">
-        <h5 class="text-xl font-semibold tracking-tight text-primary-100 dark:text-white">{{productOff?.name}}</h5>
+        <h5 class="text-xl font-semibold tracking-tight text-primary-100 dark:text-white text-wrap break-all">{{productOff?.name}}</h5>
       </a>
       <markdown class="min-h-19 h-19 line-clamp-2 text-gray-600 dark:text-gray-400" [data]="productOff?.description"></markdown>
       <!--<div class="flex w-full justify-between mt-2.5 mb-5 text-gray-500 font-mono">
@@ -98,7 +98,7 @@
             <div class="w-full h-[200px] mb-4 rounded-t-lg grid grid-cols-80/20 lg:grid-cols-60/40">
 
               <div class="grid grid-rows-4 p-4 h-[200px]">
-                  <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-primary-100 dark:text-primary-50">{{productOff?.name}}</h5>
+                  <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-primary-100 dark:text-primary-50 text-wrap break-all">{{productOff?.name}}</h5>
                   <div class="grid grid-cols-2">
                       <div class="min-h-19 pt-2 text-gray-500 dark:text-gray-400">V: {{productOff?.version || 'latest'}}</div>
                       <!--<div class="flex items-center justify-end">

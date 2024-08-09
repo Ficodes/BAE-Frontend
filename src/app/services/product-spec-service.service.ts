@@ -20,7 +20,7 @@ export class ProductSpecServiceService {
 
   constructor(private http: HttpClient,private localStorage: LocalStorageService) { }
 
-  getProdSpecByUser(page:any,status:any[],partyId:any,sort:any,isBundle:any) {
+  getProdSpecByUser(page:any,status:any[],partyId:any,sort?:any,isBundle?:any) {
     let url = `${ProductSpecServiceService.BASE_URL}${ProductSpecServiceService.API_PRODUCT_CATALOG}${ProductSpecServiceService.API_PRODUCT_SPEC}?limit=${ProductSpecServiceService.PROD_SPEC_LIMIT}&offset=${page}&relatedParty.id=${partyId}`;    
 
     if(sort!=undefined){
@@ -30,6 +30,7 @@ export class ProductSpecServiceService {
       url=url+'&isBundle='+isBundle
     }
     let lifeStatus=''
+    if(status)
     if(status.length>0){
       for(let i=0; i < status.length; i++){
         if(i==status.length-1){

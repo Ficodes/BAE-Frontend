@@ -816,7 +816,7 @@
         "_res_spec": "Resource Specifications",
         "_search": "Search",
         "_add_new_serv": "Add new service",
-        "_filter_state": "Filter by state",
+        "_filter_state": "Filter by status",
         "_state": "State",
         "_order_by": "Order by...",
         "_last_update": "Last update",
@@ -845,7 +845,7 @@
     },
     "ADMIN":{
         "_admin": "Administration",
-        "_filter_state": "Filter by state",
+        "_filter_state": "Filter by status",
         "_state": "State",
         "_order_by": "Order by...",
         "_last_update": "Last update",

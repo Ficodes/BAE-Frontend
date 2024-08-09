@@ -9,6 +9,7 @@ import {EventMessageService} from "src/app/services/event-message.service";
 import {AttachmentServiceService} from "src/app/services/attachment-service.service";
 import { ServiceSpecServiceService } from 'src/app/services/service-spec-service.service';
 import { ResourceSpecServiceService } from 'src/app/services/resource-spec-service.service';
+import { PaginationService } from 'src/app/services/pagination.service';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
@@ -97,6 +98,7 @@ export class CreateProductSpecComponent implements OnInit {
   loadingBundle:boolean=false;
   loadingBundle_more:boolean=false;
   prodSpecs:any[]=[];
+  nextProdSpecs:any[]=[];
   //final selected products inside bundle
   prodSpecsBundle:BundledProductSpecification[]=[];
 
@@ -114,6 +116,7 @@ export class CreateProductSpecComponent implements OnInit {
   loadingServiceSpec:boolean=false;
   loadingServiceSpec_more:boolean=false;
   serviceSpecs:any[]=[];
+  nextServiceSpecs:any[]=[];
   selectedServiceSpecs:ServiceSpecificationRef[]=[];
 
   //RESOURCE INFO:
@@ -122,6 +125,7 @@ export class CreateProductSpecComponent implements OnInit {
   loadingResourceSpec:boolean=false;
   loadingResourceSpec_more:boolean=false;
   resourceSpecs:any[]=[];
+  nextResourceSpecs:any[]=[];
   selectedResourceSpecs:ResourceSpecificationRef[]=[];
 
   //RELATIONSHIPS INFO:
@@ -133,6 +137,7 @@ export class CreateProductSpecComponent implements OnInit {
   loadingprodSpecRel:boolean=false;
   loadingprodSpecRel_more:boolean=false;
   prodSpecRels:any[]=[];
+  nextProdSpecRels:any[]=[];
   selectedProdSpec:any={id:''};
   selectedRelType:any='migration';
 
@@ -160,6 +165,7 @@ export class CreateProductSpecComponent implements OnInit {
     private attachmentService: AttachmentServiceService,
     private servSpecService: ServiceSpecServiceService,
     private resSpecService: ResourceSpecServiceService,
+    private paginationService: PaginationService
   ) {
     for(let i=0; i<certifications.length; i++){
       this.availableISOS.push(certifications[i])
@@ -255,37 +261,37 @@ export class CreateProductSpecComponent implements OnInit {
     this.bundleChecked=!this.bundleChecked;
     if(this.bundleChecked==true){
       this.loadingBundle=true;
-      this.getProdSpecs();
+      this.getProdSpecs(false);
     } else {
       this.prodSpecsBundle=[];
     }
   }
 
-  getProdSpecs(){    
-    this.prodSpecService.getProdSpecByUser(this.bundlePage,['Active','Launched'],this.partyId,undefined,false).then(data => {
-      if(data.length<this.PROD_SPEC_LIMIT){
-        this.bundlePageCheck=false;
-        this.cdr.detectChanges();
-      }else{
-        this.bundlePageCheck=true;
-        this.cdr.detectChanges();
-      }
-      for(let i=0; i < data.length; i++){
-        this.prodSpecs.push(data[i])
-      }
+  async getProdSpecs(next:boolean){
+    if(next==false){
+      this.loadingBundle=true;
+    }
+    
+    let options = {
+      "filters": ['Active','Launched'],
+      "partyId": this.partyId,
+      //"sort": undefined,
+      //"isBundle": false
+    }
+
+    this.paginationService.getItemsPaginated(this.bundlePage, this.PROD_SPEC_LIMIT, next, this.prodSpecs,this.nextProdSpecs, options,
+      this.prodSpecService.getProdSpecByUser.bind(this.prodSpecService)).then(data => {
+      this.bundlePageCheck=data.page_check;      
+      this.prodSpecs=data.items;
+      this.nextProdSpecs=data.nextItems;
+      this.bundlePage=data.page;
       this.loadingBundle=false;
       this.loadingBundle_more=false;
-      console.log('--- prodSpecs')
-      console.log(this.prodSpecs)
     })
   }
 
   async nextBundle(){
-    this.loadingBundle_more=true;
-    this.bundlePage=this.bundlePage+this.PROD_SPEC_LIMIT;
-    this.cdr.detectChanges;
-    console.log(this.bundlePage)
-    await this.getProdSpecs();
+    await this.getProdSpecs(true);
   }
 
   addProdToBundle(prod:any){
@@ -508,7 +514,7 @@ export class CreateProductSpecComponent implements OnInit {
     this.loadingResourceSpec=true;
     this.resourceSpecs=[];
     this.resourceSpecPage=0;
-    this.getResSpecs();
+    this.getResSpecs(false);
     this.selectStep('resource','resource-circle');
     this.showBundle=false;
     this.showGeneral=false;
@@ -522,31 +528,31 @@ export class CreateProductSpecComponent implements OnInit {
     this.showPreview=false;
   }
 
-  getResSpecs(){    
-    this.resSpecService.getResourceSpecByUser(this.resourceSpecPage,[],this.partyId,undefined).then(data => {
-      if(data.length<this.RES_SPEC_LIMIT){
-        this.resourceSpecPageCheck=false;
-        this.cdr.detectChanges();
-      }else{
-        this.resourceSpecPageCheck=true;
-        this.cdr.detectChanges();
-      }
-      for(let i=0; i < data.length; i++){
-        this.resourceSpecs.push(data[i])
-      }
+  async getResSpecs(next:boolean){
+    if(next==false){
+      this.loadingResourceSpec=true;
+    }
+    
+    let options = {
+      "filters": [],
+      "partyId": this.partyId,
+      //"sort": undefined,
+      //"isBundle": false
+    }
+
+    this.paginationService.getItemsPaginated(this.resourceSpecPage, this.RES_SPEC_LIMIT, next, this.resourceSpecs,this.nextResourceSpecs, options,
+      this.resSpecService.getResourceSpecByUser.bind(this.resSpecService)).then(data => {
+      this.resourceSpecPageCheck=data.page_check;      
+      this.resourceSpecs=data.items;
+      this.nextResourceSpecs=data.nextItems;
+      this.resourceSpecPage=data.page;
       this.loadingResourceSpec=false;
       this.loadingResourceSpec_more=false;
-      console.log('--- resourceSpecs')
-      console.log(this.resourceSpecs)
     })
   }
 
   async nextRes(){
-    this.loadingResourceSpec_more=true;
-    this.resourceSpecPage=this.resourceSpecPage+this.RES_SPEC_LIMIT;
-    this.cdr.detectChanges;
-    console.log(this.resourceSpecPage)
-    await this.getResSpecs();
+    await this.getResSpecs(true);
   }
 
   addResToSelected(res:any){
@@ -579,7 +585,7 @@ export class CreateProductSpecComponent implements OnInit {
     this.loadingServiceSpec=true;
     this.serviceSpecs=[];
     this.serviceSpecPage=0;
-    this.getServSpecs();
+    this.getServSpecs(false);
     this.selectStep('service','service-circle');
     this.showBundle=false;
     this.showGeneral=false;
@@ -593,31 +599,31 @@ export class CreateProductSpecComponent implements OnInit {
     this.showPreview=false;
   }
 
-  getServSpecs(){    
-    this.servSpecService.getServiceSpecByUser(this.serviceSpecPage,[],this.partyId,undefined).then(data => {
-      if(data.length<this.SERV_SPEC_LIMIT){
-        this.serviceSpecPageCheck=false;
-        this.cdr.detectChanges();
-      }else{
-        this.serviceSpecPageCheck=true;
-        this.cdr.detectChanges();
-      }
-      for(let i=0; i < data.length; i++){
-        this.serviceSpecs.push(data[i])
-      }
+  async getServSpecs(next:boolean){
+    if(next==false){
+      this.loadingServiceSpec=true;
+    }
+    
+    let options = {
+      "filters": [],
+      "partyId": this.partyId,
+      //"sort": undefined,
+      //"isBundle": false
+    }
+
+    this.paginationService.getItemsPaginated(this.serviceSpecPage, this.SERV_SPEC_LIMIT, next, this.serviceSpecs,this.nextServiceSpecs, options,
+      this.servSpecService.getServiceSpecByUser.bind(this.servSpecService)).then(data => {
+      this.serviceSpecPageCheck=data.page_check;      
+      this.serviceSpecs=data.items;
+      this.nextServiceSpecs=data.nextItems;
+      this.serviceSpecPage=data.page;
       this.loadingServiceSpec=false;
       this.loadingServiceSpec_more=false;
-      console.log('--- servSpecs')
-      console.log(this.serviceSpecs)
     })
   }
 
   async nextServ(){
-    this.loadingServiceSpec_more=true;
-    this.serviceSpecPage=this.serviceSpecPage+this.SERV_SPEC_LIMIT;
-    this.cdr.detectChanges;
-    console.log(this.serviceSpecPage)
-    await this.getServSpecs();
+    await this.getServSpecs(true);
   }
 
   addServToSelected(serv:any){
@@ -717,7 +723,7 @@ export class CreateProductSpecComponent implements OnInit {
     this.prodSpecRelPage=0;
     this.showCreateRel=false;
     this.loadingprodSpecRel=true;
-    this.getProdSpecsRel();
+    this.getProdSpecsRel(false);
     this.selectStep('relationships','relationships-circle');
     this.showBundle=false;
     this.showGeneral=false;
@@ -731,22 +737,26 @@ export class CreateProductSpecComponent implements OnInit {
     this.showPreview=false;
   }
 
-  getProdSpecsRel(){
-    this.prodSpecService.getProdSpecByUser(this.prodSpecRelPage,['Active','Launched'],this.partyId,undefined,false).then(data => {
-      if(data.length<this.PROD_SPEC_LIMIT){
-        this.prodSpecRelPageCheck=false;
-        this.cdr.detectChanges();
-      }else{
-        this.prodSpecRelPageCheck=true;
-        this.cdr.detectChanges();
-      }
-      for(let i=0; i < data.length; i++){
-        this.prodSpecRels.push(data[i])
-      }
+  async getProdSpecsRel(next:boolean){
+    if(next==false){
+      this.loadingprodSpecRel=true;
+    }
+    
+    let options = {
+      "filters": ['Active','Launched'],
+      "partyId": this.partyId,
+      //"sort": undefined,
+      //"isBundle": false
+    }
+
+    this.paginationService.getItemsPaginated(this.prodSpecRelPage, this.PROD_SPEC_LIMIT, next, this.prodSpecRels, this.nextProdSpecRels, options,
+      this.prodSpecService.getProdSpecByUser.bind(this.prodSpecService)).then(data => {
+      this.prodSpecRelPageCheck=data.page_check;      
+      this.prodSpecRels=data.items;
+      this.nextProdSpecRels=data.nextItems;
+      this.prodSpecRelPage=data.page;
       this.loadingprodSpecRel=false;
       this.loadingprodSpecRel_more=false;
-      console.log('--- prodSpecs')
-      console.log(this.prodSpecRels)
     })
   }
 
@@ -755,11 +765,7 @@ export class CreateProductSpecComponent implements OnInit {
   }
 
   async nextProdSpecsRel(){
-    this.loadingprodSpecRel_more=true;
-    this.prodSpecRelPage=this.prodSpecRelPage+this.SERV_SPEC_LIMIT;
-    this.cdr.detectChanges;
-    console.log(this.prodSpecRelPage)
-    await this.getProdSpecsRel();
+    await this.getProdSpecsRel(true);
   }
 
   onRelChange(event: any) {

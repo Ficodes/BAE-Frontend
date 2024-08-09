@@ -371,7 +371,7 @@
                             <tbody>
                                 @for (prod of bundledOffers; track prod.id) {
                                     <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                        <td class="px-6 py-4">
+                                        <td class="px-6 py-4 text-wrap break-all">
                                             {{prod.name}}
                                         </td>
                                         <td class="hidden md:table-cell px-6 py-4">
@@ -481,7 +481,7 @@
                                     @for (prod of prodSpecs; track prod) {
                                         <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200"
                                             [ngClass]="prod.id == selectedProdSpec.id ? 'bg-gray-300 dark:bg-secondary-200' : 'bg-white dark:bg-secondary-300'">
-                                            <td class="px-6 py-4">
+                                            <td class="px-6 py-4 text-wrap break-all">
                                                 {{prod.name}}
                                             </td>
                                             <td class="px-6 py-4">
@@ -573,7 +573,7 @@
                                 @for (cat of catalogs; track cat) {
                                     <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200" (click)="selectCatalog(cat)" 
                                         [ngClass]="cat.id == selectedCatalog.id ? 'bg-gray-300 dark:bg-secondary-200' : 'bg-white dark:bg-secondary-300'">
-                                        <td class="px-6 py-4">
+                                        <td class="px-6 py-4 text-wrap break-all">
                                             {{cat.name}}
                                         </td>
                                         <td class="px-6 py-4">
@@ -598,7 +598,7 @@
                     @if (!loadingCatalog_more) {
                         @if (catalogPageCheck) {
                         <div class="flex pt-6 pb-2 justify-center align-middle">
-                            <button (click)="nextProdSpec()" class="flex cursor-pointer shadow-lg items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 dark:text-white bg-white dark:bg-primary-100 dark:hover:bg-secondary-100 border border-gray-300 dark:border-secondary-200 rounded-lg hover:bg-gray-200">
+                            <button (click)="nextCatalog()" class="flex cursor-pointer shadow-lg items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 dark:text-white bg-white dark:bg-primary-100 dark:hover:bg-secondary-100 border border-gray-300 dark:border-secondary-200 rounded-lg hover:bg-gray-200">
                                 {{ 'CREATE_PROD_SPEC._load_more' | translate }}
                             <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
@@ -668,7 +668,7 @@
                             <tbody>
                                 @for (cat of categories; track cat.id;let idx = $index) {
                                     <tr class="flex border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200 w-full justify-between">
-                                        <td class="flex px-6 py-4 w-3/5">
+                                        <td class="flex px-6 py-4 w-3/5 text-wrap break-all">
                                             <b>{{cat.name}}</b>
                                         </td>
                                         <td class="hidden md:table-cell flex px-6 py-4 w-fit">
@@ -821,11 +821,8 @@
                                 </div>
                             </form>
                             <div class="flex w-full justify-items-center justify-center ml-4 mt-4">
-                                <button type="button" (click)="freeLicenseSelected=!freeLicenseSelected" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
-                                    {{ 'UPDATE_OFFER._cancel' | translate }}
-                                    <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">                                        
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"/>  
-                                    </svg>                         
+                                <button type="button" (click)="clearLicense()" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                                    {{ 'UPDATE_OFFER._cancel' | translate }}                      
                                 </button>
                             </div>
                         </div>
@@ -891,7 +888,7 @@
                                             <td class="px-6 py-4">
                                                 {{sla.type}}
                                             </td>
-                                            <td class="px-6 py-4">
+                                            <td class="px-6 py-4 text-wrap break-all">
                                                 {{sla.description}}
                                             </td>
                                             <td class="px-6 py-4">
@@ -1397,7 +1394,7 @@
                                 <tbody>
                                     @for (bun of offersBundle; track bun) {
                                         <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                            <td class="px-6 py-4">
+                                            <td class="px-6 py-4 text-wrap break-all">
                                                 {{bun.name}}
                                             </td>
                                             <td class="px-6 py-4">
@@ -1435,7 +1432,7 @@
                             <tbody>
                                 @for (cat of selectedCategories; track cat.id) {
                                     <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                        <td class="px-6 py-4">
+                                        <td class="px-6 py-4 text-wrap break-all">
                                             {{cat.name}}
                                         </td>
                                         <td class="hidden md:table-cell px-6 py-4">
@@ -1520,7 +1517,7 @@
                                         <td class="px-6 py-4">
                                             {{sla.type}}
                                         </td>
-                                        <td class="hidden xl:table-cell px-6 py-4">
+                                        <td class="hidden xl:table-cell px-6 py-4 text-wrap break-all">
                                             {{sla.description}}
                                         </td>
                                         <td class="hidden md:table-cell px-6 py-4">
@@ -1535,17 +1532,19 @@
                         </table>
                     </div>
                 }
-                @if(!freeLicenseSelected){
+                @if(!freeLicenseSelected && createdLicense.treatment!==''){
                     <h2 class="font-bold text-lg dark:text-white">{{ 'UPDATE_OFFER._license' | translate }}</h2>
                     <div>
                         <label for="treatment" class="font-bold text-base dark:text-white">{{ 'UPDATE_OFFER._treatment' | translate }}</label>
                         <label class="mb-2 bg-gray-50 text-wrap break-all dark:bg-secondary-300 dark:border-secondary-200 dark:text-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                             {{createdLicense.treatment}}
                         </label>
-                        <label class="font-bold text-base dark:text-white">{{ 'UPDATE_OFFER._description' | translate }}</label>
-                        <div class="px-4 py-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white rounded-lg p-4">                            
-                            <markdown class="bg-gray-50 dark:bg-secondary-300 dark:text-white text-gray-900 text-wrap break-all" [data]="createdLicense.description"></markdown>
-                        </div>
+                        @if(createdLicense.description!==''){
+                            <label class="font-bold text-base dark:text-white">{{ 'UPDATE_OFFER._description' | translate }}</label>
+                            <div class="px-4 py-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white rounded-lg p-4">                            
+                                <markdown class="bg-gray-50 dark:bg-secondary-300 dark:text-white text-gray-900 text-wrap break-all" [data]="createdLicense.description"></markdown>
+                            </div>
+                        }
                     </div>
                 }
                 <div class="flex w-full justify-items-end justify-end m-4">

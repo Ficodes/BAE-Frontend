@@ -20,7 +20,7 @@ export class ResourceSpecServiceService {
 
   constructor(private http: HttpClient,private localStorage: LocalStorageService) { }
 
-  getResourceSpecByUser(page:any,status:any[],partyId:any,sort:any) {
+  getResourceSpecByUser(page:any,status:any[],partyId:any,sort?:any) {
     let url = `${ResourceSpecServiceService.BASE_URL}${ResourceSpecServiceService.RESOURCE}${ResourceSpecServiceService.API_RESOURCE_SPEC}?limit=${ResourceSpecServiceService.RES_SPEC_LIMIT}&offset=${page}&relatedParty.id=${partyId}`;    
 
     if(sort!=undefined){

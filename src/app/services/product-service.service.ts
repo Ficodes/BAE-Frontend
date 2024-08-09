@@ -164,18 +164,21 @@ export class ApiServiceService {
     return this.http.patch<any>(url, category);
   }
 
-  getCatalogs(page:any,filter:any) {
+  getCatalogs(page:any,filter:any): Promise<any> {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog?limit=${ApiServiceService.CATALOG_LIMIT}&offset=${page}&lifecycleStatus=Launched`;    
     if(filter!=undefined){
       url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog?limit=${ApiServiceService.CATALOG_LIMIT}&offset=${page}&lifecycleStatus=Launched&body=${filter}`;
     }
+    console.log('getcatalogs')
+    console.log(this)
 
     return lastValueFrom(this.http.get<any>(url));
   }
 
-  getCatalogsByUser(page:any,filter:any,partyId:any,status:any[]) {
+  getCatalogsByUser(page:any,filter:any,status:any[],partyId:any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog?limit=${ApiServiceService.CATALOG_LIMIT}&offset=${page}&relatedParty.id=${partyId}`;
     let lifeStatus=''
+    if(status)
     if(status.length>0){
       for(let i=0; i < status.length; i++){
         if(i==status.length-1){

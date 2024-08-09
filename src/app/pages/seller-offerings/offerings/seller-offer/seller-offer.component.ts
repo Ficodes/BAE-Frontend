@@ -5,6 +5,7 @@ import {faIdCard, faSort, faSwatchbook, faSparkles} from "@fortawesome/pro-solid
 import {components} from "src/app/models/product-catalog";
 import { environment } from 'src/environments/environment';
 import { ApiServiceService } from 'src/app/services/product-service.service';
+import { PaginationService } from 'src/app/services/pagination.service';
 import {LocalStorageService} from "src/app/services/local-storage.service";
 import { LoginInfo } from 'src/app/models/interfaces';
 import {EventMessageService} from "src/app/services/event-message.service";
@@ -24,6 +25,7 @@ export class SellerOfferComponent implements OnInit{
   searchField = new FormControl();
 
   offers:any[]=[];
+  nextOffers:any[]=[];
   page:number=0;
   PROD_SPEC_LIMIT: number = environment.PROD_SPEC_LIMIT;
   loading: boolean = false;
@@ -40,7 +42,8 @@ export class SellerOfferComponent implements OnInit{
     private api: ApiServiceService,
     private cdr: ChangeDetectorRef,
     private localStorage: LocalStorageService,
-    private eventMessage: EventMessageService
+    private eventMessage: EventMessageService,
+    private paginationService: PaginationService
   ) {
     this.eventMessage.messages$.subscribe(ev => {
       if(ev.type === 'ChangedSession') {
@@ -63,7 +66,8 @@ export class SellerOfferComponent implements OnInit{
       this.partyId = loggedOrg.partyId
     }
     this.offers=[];
-    this.getOffers();
+    this.nextOffers=[];
+    this.getOffers(false);
     let input = document.querySelector('[type=search]')
     if(input!=undefined){
       input.addEventListener('input', e => {
@@ -71,7 +75,7 @@ export class SellerOfferComponent implements OnInit{
         console.log(`Input updated`)
         if(this.searchField.value==''){
           this.filter=undefined;
-          this.getOffers();
+          this.getOffers(false);
         }
       });
     }
@@ -90,31 +94,31 @@ export class SellerOfferComponent implements OnInit{
     this.eventMessage.emitSellerUpdateOffer(offer);
   }
 
-  getOffers(){
-    this.api.getProductOfferByOwner(this.page,this.status,this.partyId,this.sort,this.isBundle).then(data => {
-      if(data.length<this.PROD_SPEC_LIMIT){
-        this.page_check=false;
-        this.cdr.detectChanges();
-      }else{
-        this.page_check=true;
-        this.cdr.detectChanges();
-      }
-      for(let i=0; i < data.length; i++){
-        this.offers.push(data[i])
-      }
+  async getOffers(next:boolean){
+    if(next==false){
+      this.loading=true;
+    }
+    
+    let options = {
+      "filters": this.status,
+      "partyId": this.partyId,
+      "sort": this.sort,
+      "isBundle": this.isBundle
+    }
+    
+    this.paginationService.getItemsPaginated(this.page, this.PROD_SPEC_LIMIT, next, this.offers,this.nextOffers, options,
+      this.api.getProductOfferByOwner.bind(this.api)).then(data => {
+      this.page_check=data.page_check;      
+      this.offers=data.items;
+      this.nextOffers=data.nextItems;
+      this.page=data.page;
       this.loading=false;
       this.loading_more=false;
-      console.log('--- offers')
-      console.log(this.offers)
     })
   }
 
   async next(){
-    this.loading_more=true;
-    this.page=this.page+this.PROD_SPEC_LIMIT;
-    this.cdr.detectChanges;
-    console.log(this.page)
-    await this.getOffers();
+    await this.getOffers(true);
   }
 
   onStateFilterChange(filter:string){
@@ -128,10 +132,7 @@ export class SellerOfferComponent implements OnInit{
       console.log(this.status)
       this.status.push(filter)
     }
-    this.loading=true;
-    this.page=0;
-    this.offers=[];
-    this.getOffers();
+    this.getOffers(false);
   }
 
   onSortChange(event: any) {
@@ -140,10 +141,7 @@ export class SellerOfferComponent implements OnInit{
     }else{
       this.sort=undefined
     }
-    this.loading=true;
-    this.page=0;
-    this.offers=[];
-    this.getOffers();
+    this.getOffers(false);
   }
 
   onTypeChange(event: any) {
@@ -154,10 +152,7 @@ export class SellerOfferComponent implements OnInit{
     }else{
       this.isBundle=undefined
     }
-    this.loading=true;
-    this.page=0;
-    this.offers=[];
-    this.getOffers();
+    this.getOffers(false);
   }
 
 
