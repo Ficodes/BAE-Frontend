@@ -286,21 +286,22 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   }
 
   changeSession(idx:number,exitOrgLogin:boolean){
+    let aux = this.localStorage.getObject('login_items') as LoginInfo;
     if(exitOrgLogin){
-      this.loginInfo = {"id": this.loginInfo.id,
-      "user": this.loginInfo.user,
-      "email": this.loginInfo.email,
-      "token": this.loginInfo.token,
-      "expire": this.loginInfo.expire,
-      "partyId": this.loginInfo.partyId,
-      "roles": this.loginInfo.roles,
-      "organizations": this.loginInfo.organizations,
-      "logged_as": this.loginInfo.id};
+      this.loginInfo = {"id": aux.id,
+      "user": aux.user,
+      "email": aux.email,
+      "token": aux.token,
+      "expire": aux.expire,
+      "partyId": aux.partyId,
+      "roles": aux.roles,
+      "organizations": aux.organizations,
+      "logged_as": aux.id};
       this.localStorage.setObject('login_items',this.loginInfo);
       this.loggedAsOrg=false;
-      this.username=this.loginInfo.user;
+      this.username=aux.user;
       this.usercharacters=(this.loginInfo.user.slice(0, 2)).toUpperCase();
-      this.email=this.loginInfo.email;
+      this.email=aux.email;
       this.roles=[];
       for(let i=0;i<this.loginInfo.roles.length;i++){
         this.roles.push(this.loginInfo.roles[i].name)
@@ -308,14 +309,14 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
       this.eventMessage.emitChangedSession(this.loginInfo)
       this.cdr.detectChanges();
     } else {
-      this.loginInfo = {"id": this.loginInfo.id,
-      "user": this.loginInfo.user,
-      "email": this.loginInfo.email,
-      "token": this.loginInfo.token,
-      "expire": this.loginInfo.expire,
-      "partyId": this.loginInfo.partyId,
-      "roles": this.loginInfo.roles,
-      "organizations": this.loginInfo.organizations,
+      this.loginInfo = {"id": aux.id,
+      "user": aux.user,
+      "email": aux.email,
+      "token": aux.token,
+      "expire": aux.expire,
+      "partyId": aux.partyId,
+      "roles": aux.roles,
+      "organizations": aux.organizations,
       "logged_as": this.orgs[idx].id };
       this.localStorage.setObject('login_items',this.loginInfo);
       this.loggedAsOrg=true;
