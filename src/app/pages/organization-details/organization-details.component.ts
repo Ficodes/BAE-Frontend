@@ -50,6 +50,9 @@ export class OrganizationDetailsComponent implements OnInit {
           this.description=this.orgInfo.partyCharacteristic[i].value
         }
       }
+      if(this.logo==undefined){
+        this.logo='https://placehold.co/600x400/svg';
+      }
     })
   }
 
