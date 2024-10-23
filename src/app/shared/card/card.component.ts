@@ -37,6 +37,7 @@ export class CardComponent implements OnInit, AfterViewInit {
   @Input() productOff: Product | undefined;
   category: string = 'none';
   categories: any[] | undefined  = [];
+  categoriesMore: any[] | undefined  = [];
   price: any = {price:0,priceType:'X'};
   images: AttachmentRefOrValue[]  = [];
   bgColor: string = '';
@@ -61,6 +62,8 @@ export class CardComponent implements OnInit, AfterViewInit {
   check_logged:boolean=false;
   protected readonly faAtom = faAtom;
   PURCHASE_ENABLED: boolean = environment.PURCHASE_ENABLED;
+  checkMoreCats:boolean=false;
+  loadMoreCats:boolean=false;
 
   errorMessage:any='';
   showError:boolean=false;
@@ -110,6 +113,8 @@ export class CardComponent implements OnInit, AfterViewInit {
   onClick() {
     if(this.showModal==true){
       this.showModal=false;
+      this.loadMoreCats=false;
+      this.checkMoreCats=true;
       this.cdr.detectChanges();
     }
     if(this.cartSelection==true){
@@ -136,7 +141,14 @@ export class CardComponent implements OnInit, AfterViewInit {
     }
 
     this.category = this.productOff?.category?.at(0)?.name ?? 'none';
-    this.categories = this.productOff?.category;
+    if(this.productOff?.category!=undefined&&this.productOff?.category.length>5){
+      this.categories = this.productOff?.category.slice(0, 5);
+      this.categoriesMore = this.productOff?.category.slice(5);
+      this.checkMoreCats=true;
+    } else {
+      this.categories = this.productOff?.category;
+      this.checkMoreCats=false;
+    }    
     //this.price = this.productOff?.productOfferingPrice?.at(0)?.price?.value + ' ' +
     //  this.productOff?.productOfferingPrice?.at(0)?.price?.unit ?? 'n/a';
     let profile = this.productOff?.attachment?.filter(item => item.name === 'Profile Picture') ?? [];
@@ -213,6 +225,11 @@ export class CardComponent implements OnInit, AfterViewInit {
 
   getProductImage() {
     return this.images.length > 0 ? this.images?.at(0)?.url : 'https://placehold.co/600x400/svg';
+  }
+
+  loadMoreCategories(){
+    this.loadMoreCats=!this.loadMoreCats;
+    this.checkMoreCats=false;
   }
 
   ngAfterViewInit() {
@@ -432,6 +449,8 @@ export class CardComponent implements OnInit, AfterViewInit {
 
   hideModal() {
     this.showModal=false;
+    this.loadMoreCats=false;
+    this.checkMoreCats=true;
     this.cdr.detectChanges();
     /*this.targetModal = document.getElementById('details-modal');
     this.modal = new Modal(this.targetModal);

@@ -24,7 +24,13 @@ export class DashboardComponent implements OnInit {
   showContact:boolean=false;
   searchField = new FormControl();
   searchEnabled = environment.SEARCH_ENABLED;
+  domePublish: string = environment.DOME_PUBLISH_LINK
+  services: string[] = ['Utility Suppliers', 'Automotive', 'Social', 'Blockchain (DLT)']
+  publishers: string[] = ['Elliot Cloud', 'Golem', 'European Dinamigcs']
   categories:any[]=[];
+  currentIndexServ: number = 0;
+  currentIndexPub: number = 0;
+  delay: number = 2000;
   //loginSubscription: Subscription = new Subscription();;
   constructor(private localStorage: LocalStorageService,
               private eventMessage: EventMessageService,
@@ -52,7 +58,15 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  startTagTransition() {
+    setInterval(() => {
+      this.currentIndexServ = (this.currentIndexServ + 1) % this.services.length;
+      this.currentIndexPub = (this.currentIndexPub + 1) % this.publishers.length;
+    }, this.delay);
+  }
+
   async ngOnInit() {
+    this.startTagTransition();
     this.isFilterPanelShown = JSON.parse(this.localStorage.getItem('is_filter_panel_shown') as string);
     //this.route.snapshot.paramMap.get('id');
     console.log('--- route data')
@@ -123,6 +137,10 @@ export class DashboardComponent implements OnInit {
     if(this.searchField.value!='' && this.searchField.value != null){
       this.router.navigate(['/search', {keywords: this.searchField.value}]);
     }    
+  }
+
+  goTo(path:string) {
+    this.router.navigate([path]);
   }
   
 }

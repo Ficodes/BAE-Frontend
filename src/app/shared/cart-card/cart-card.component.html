@@ -58,9 +58,9 @@ class="flex justify-center overflow-y-auto overflow-x-hidden fixed top-0 right-0
                                 <div class="bg-green-500 rounded-t-lg w-full">
                                     <h5 class="flex justify-center mb-2 p-6 text-2xl font-bold tracking-tight text-gray-900 w-full">{{price.name}}</h5>
                                 </div>
-                                <p class="flex justify-center font-normal text-gray-700"> <b class="text-xl mr-2">{{price.price?.value}}</b> {{price.price?.unit}}</p>
-                                <p class="flex justify-center font-normal text-gray-700">/{{price.recurringChargePeriodType}}</p>
-                                <p class="flex justify-center mb-2 font-normal text-gray-700 text-wrap break-all p-4">{{price.description}}</p>
+                                <div class="pl-4 pr-4">
+                                    <markdown class="w-full p-4 text-wrap break-all" [data]="price?.description"></markdown>
+                                </div>
                               </div>
 
                             </label>
@@ -75,9 +75,9 @@ class="flex justify-center overflow-y-auto overflow-x-hidden fixed top-0 right-0
                                   <div class="bg-yellow-300 rounded-t-lg w-full">
                                       <h5 class="flex justify-center mb-2 p-6 text-2xl font-bold tracking-tight text-gray-900">{{price.name}}</h5>
                                   </div>
-                                  <p class="flex justify-center font-normal text-gray-700"> <b class="text-xl mr-2">{{price.price?.value}}</b> {{price.price?.unit}}</p>
-                                  <p class="flex justify-center font-normal text-gray-700">/{{price.unitOfMeasure?.units}}</p>
-                                  <p class="flex justify-center mb-2 font-normal text-gray-700 text-wrap break-all p-4">{{price.description}}</p>
+                                  <div class="pl-4 pr-4">
+                                    <markdown class="w-full p-4 text-wrap break-all" [data]="price?.description"></markdown>
+                                </div>
                               </div>
                             </label>
                           </div>
@@ -103,8 +103,9 @@ class="flex justify-center overflow-y-auto overflow-x-hidden fixed top-0 right-0
                                 <div class="bg-blue-500 rounded-t-lg w-full">
                                     <h5 class="flex justify-center mb-2 p-6 text-2xl font-bold tracking-tight text-gray-900">{{price.name}}</h5>
                                 </div>
-                                <p class="flex justify-center font-normal text-gray-700"> <b class="text-xl mr-2">{{price.price?.value}}</b> {{price.price?.unit}}</p>
-                                <p class="flex justify-center mb-2 font-normal text-gray-700 text-wrap break-all p-4">{{price.description}}</p>
+                                <div class="pl-4 pr-4">
+                                    <markdown class="w-full p-4 text-wrap break-all" [data]="price?.description"></markdown>
+                                </div>
                             </div>
                           </label>
                         </div>

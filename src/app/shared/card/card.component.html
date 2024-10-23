@@ -15,10 +15,7 @@
   <div class="flex-1 h-full bg-cover bg-right-bottom bg-opacity-25 rounded-lg" style="background-image: url(assets/logos/dome-logo-element-colour.png)">
     <div class="flex-1 h-full px-5 py-5 bg-secondary-50/95 dark:bg-secondary-100/95 rounded-lg">
       <div class="overflow-y-hidden">
-      @for (cat of categories; track cat.id) {
-        <bae-badge class="mr-2" [category]=cat></bae-badge>
-      }
-      <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2"
+      <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2 mr-2"
       [ngClass]="complianceLevel == 1 ? 'bg-red-200 text-red-700' : complianceLevel == 2 ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
       <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel == 1 ? 'text-red-700' : complianceLevel == 2 ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
           @if(complianceLevel==1){
@@ -29,6 +26,14 @@
               Level 3
           }
       </a>
+      @for (cat of categories; track cat.id) {
+        <bae-badge class="mr-2" [category]=cat></bae-badge>
+      }
+      @if(checkMoreCats){
+        <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2 mr-2">        
+          ...
+        </a>
+      }
       </div>
       <a (click)="goToProductDetails(productOff)" class="cursor-pointer">
         <h5 class="text-xl font-semibold tracking-tight text-primary-100 dark:text-white text-wrap break-all">{{productOff?.name}}</h5>
@@ -124,20 +129,30 @@
 
                   </div>
                   <div>
+                    <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2 mr-2"
+                    [ngClass]="complianceLevel==1 ? 'bg-red-200 text-red-700' : complianceLevel==2 ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
+                    <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel==1 ? 'text-red-700' : complianceLevel==2 ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
+                        @if(complianceLevel==1){
+                            Level 1
+                        } @else if(complianceLevel==2) {
+                            Level 2
+                        } @else {
+                            Level 3
+                        }
+                    </a>
                       @for (cat of categories; track cat.id) {
                           <bae-badge class="mr-2" [category]=cat></bae-badge>
                       }
-                      <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2"
-                      [ngClass]="complianceLevel==1 ? 'bg-red-200 text-red-700' : complianceLevel==2 ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
-                      <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel==1 ? 'text-red-700' : complianceLevel==2 ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
-                          @if(complianceLevel==1){
-                              Level 1
-                          } @else if(complianceLevel==2) {
-                              Level 2
-                          } @else {
-                              Level 3
-                          }
-                      </a>                      
+                      @if(loadMoreCats){
+                        @for (cat of categoriesMore; track cat.id) {
+                          <bae-badge class="mr-2" [category]=cat></bae-badge>
+                        }
+                      }
+                      @if(checkMoreCats){
+                        <a (click)="loadMoreCategories()" class="cursor-pointer text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2">        
+                          ...
+                        </a>
+                      }               
                   </div>
               </div>
 

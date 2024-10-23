@@ -38,6 +38,15 @@ module.exports = {
         '2500': '2500ms',
         '3000': '3000ms',
       },
+      keyframes: {
+        fadeInOut: {
+          '0%, 100%': { opacity: 0 },
+          '50%': { opacity: 1 },
+        },
+      },
+      animation: {
+        fadeInOut: 'fadeInOut 5s ease-in-out infinite',
+      },
       gridTemplateColumns:
       {
         '60/40': '60% 40%',
