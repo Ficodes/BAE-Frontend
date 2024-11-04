@@ -1,16 +1,19 @@
-<div class="relative"> 
-<nav class="text-white border-gray-200 h-[75px] bg-primary-100 dark:bg-secondary-100 dark:border-gray-700">
+<div class="relative">
+<nav class="text-blue-800 border-gray-200 h-[75px] bg-white dark:bg-secondary-100 dark:border-gray-700">
   <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
     <a (click)="goTo('/dashboard')" class="flex items-center cursor-pointer">
-      <img src="assets/logos/DOME_Icon_White.svg" class="h-4 lg:h-8 mr-3" alt="DOME Marketplace Logo" />
-      <span class="self-center text-lg lg:text-2xl font-semibold whitespace-nowrap dark:text-white">{{ 'HEADER._marketplace' | translate }}</span>
+      <img src="assets/logos/idom-marketplace.svg" class="h-4 lg:h-8 mr-3 block dark:hidden" alt="IDOM Marketplace Logo" />
+      <img src="assets/logos/idom-marketplace-white.svg" class="h-4 lg:h-8 mr-3 hidden dark:block" alt="IDOM Marketplace Logo" />
+      @if(showLogoText){
+        <span class="self-center text-lg lg:text-2xl font-semibold whitespace-nowrap dark:text-white">{{ 'HEADER._marketplace' | translate }}</span>
+      }
     </a>
 
-    <div class="hidden w-full lg:block lg:w-auto bg-primary-100 dark:bg-secondary-100 rounded-lg">
-      <ul class="flex flex-col font-medium p-4 lg:p-0 rounded-lg lg:text-white lg:flex-row lg:space-x-8 lg:mt-0 lg:border-0">
-        
+    <div class="hidden w-full lg:block lg:w-auto bg-primary-50 dark:bg-secondary-100 rounded-lg">
+      <ul class="flex flex-col font-medium p-4 lg:p-0 rounded-lg lg:text-primary-100 lg:flex-row lg:space-x-8 lg:mt-0 lg:border-0">
+
         <li>
-          <a id="verifyDropdown" data-dropdown-toggle="verifyDropdownMenu" class="block cursor-pointer py-2 pl-3 pr-4 text-white rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">{{ 'HEADER._verify' | translate }}</a>
+          <a id="verifyDropdown" data-dropdown-toggle="verifyDropdownMenu" class="block cursor-pointer py-2 pl-3 pr-4 text-primary-100 rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">{{ 'HEADER._verify' | translate }}</a>
         </li>
         <!-- Dropdown menu -->
         <div id="verifyDropdownMenu" class="z-10 hidden bg-secondary-50 divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
@@ -27,14 +30,14 @@
               </li>
           </ul>
         </div>
-        
+
         <li>
-          <a id="searchDropdown" data-dropdown-toggle="searchDropdownMenu" class="block cursor-pointer py-2 pl-3 pr-4 text-white rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">{{ 'HEADER._browse' | translate }}</a>
+          <a id="searchDropdown" data-dropdown-toggle="searchDropdownMenu" class="block cursor-pointer py-2 pl-3 pr-4 text-primary-100 rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">{{ 'HEADER._browse' | translate }}</a>
         </li>
 
         <!-- Dropdown menu -->
         <div id="searchDropdownMenu" class="z-10 hidden bg-secondary-50 divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-          <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="searchDropdown">           
+          <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="searchDropdown">
               <li>
                 <button (click)="goTo('/search')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                   {{ 'HEADER._services' | translate }}
@@ -49,36 +52,36 @@
         </div>
 
         <li>
-          <a href="{{domeAbout}}" target="_blank" class="block py-2 pl-3 pr-4 text-white rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent">{{ 'HEADER._about' | translate }}</a>
+          <a href="{{domeAbout}}" target="_blank" class="block py-2 pl-3 pr-4 text-primary-100 rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent">{{ 'HEADER._about' | translate }}</a>
         </li>
 
         <!--<li>
           <button data-dropdown-toggle="support-dropdown" data-dropdown-placement="bottom-end" class="block py-2 pl-3 pr-4 text-white rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">{{ 'HEADER._support' | translate }}</button>
         </li>-->
         <li>
-          <a href="{{domeRegister}}" class="sm:block lg:hidden cursor-pointer py-2 pl-3 pr-4 text-white rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">{{ 'HEADER._register' | translate }}</a>
+          <a href="{{domeRegister}}" class="sm:block lg:hidden cursor-pointer py-2 pl-3 pr-4 text-primary-100 rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">{{ 'HEADER._register' | translate }}</a>
         </li>
         <li>
-          <a (click)="onLoginClick()" class="sm:block lg:hidden cursor-pointer py-2 pl-3 pr-4 text-white rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">Login</a>
-        </li>        
+          <a (click)="onLoginClick()" class="sm:block lg:hidden cursor-pointer py-2 pl-3 pr-4 text-primary-100 rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">Login</a>
+        </li>
       </ul>
     </div>
 
     <div class="flex flex-cols">
       <div class="flex flex-cols">
-        <a href="{{ knowledge }}" target="_blank" class="w-10 mr-2 hidden lg:block text-white dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5">
+        <a href="{{ knowledge }}" target="_blank" class="w-10 mr-2 hidden lg:block text-primary-100 dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5">
 
           <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.529 9.988a2.502 2.502 0 1 1 5 .191A2.441 2.441 0 0 1 12 12.582V14m-.01 3.008H12M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
           </svg>
-          
+
         </a>
-        <button id="theme-toggle" (click)="toggleDarkMode()" type="button" class="w-10 mr-2 text-white dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5">
+        <button id="theme-toggle" (click)="toggleDarkMode()" type="button" class="w-10 mr-2 text-primary-100 dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5">
           <svg class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" #theme_toggle_dark_icon><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
           <svg class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" #theme_toggle_light_icon><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
         </button>
         @if(is_logged){
-          <button (click)="toggleCartDrawer();$event.stopPropagation();"  class="hidden lg:block mr-2 text-white dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5"><fa-icon [icon]="faCartShopping"></fa-icon></button>
+          <button (click)="toggleCartDrawer();$event.stopPropagation();"  class="hidden lg:block mr-2 text-primary-100 dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5"><fa-icon [icon]="faCartShopping"></fa-icon></button>
         }
       </div>
       <!-- LANG SWITCHER
@@ -86,7 +89,7 @@
         <div class="flex inline-flex items-center align-middle cursor-pointer" data-dropdown-toggle="flagDropdown" data-dropdown-placement="bottom-end">
             <img class="w-10 h-10" src="assets/flags/{{ defaultLang }}.svg" alt="{{ defaultLang }}"/>
         </div>
-        
+
         <div id="flagDropdown" class="hidden z-50 bg-secondary-50 divide-y divide-primary-100/50 rounded-lg shadow w-fit dark:bg-gray-700 dark:divide-gray-600 " >
           @for(country of langs; track country){
             <ul class="p-2 cursor-pointer text-sm text-gray-700 dark:text-gray-200">
@@ -104,8 +107,8 @@
         <span class="font-medium text-gray-600 dark:text-gray-300">{{usercharacters}}</span>
       </div>
       } @else {
-        <a href="{{domeRegister}}" target="_blank" type="button" class="hidden lg:block w-full mr-2 text-white dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5 text-center" aria-current="page">{{ 'HEADER._register' | translate }}</a>
-        <button (click)="onLoginClick()" type="button" class="w-full mr-2 text-white dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5">
+        <a href="{{domeRegister}}" target="_blank" type="button" class="hidden lg:block w-full mr-2 text-primary-100 dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5 text-center" aria-current="page">{{ 'HEADER._register' | translate }}</a>
+        <button (click)="onLoginClick()" type="button" class="w-full mr-2 text-primary-100 dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5">
           Login
         </button>
       }
@@ -115,7 +118,7 @@
         <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
         </svg>
-      </button>      
+      </button>
     </div>
 
     @if(isNavBarOpen){
@@ -139,7 +142,7 @@
         <li>
           <a href="{{domeRegister}}" target="_blank" type="button" class="block py-2 pl-3 pr-4 text-white rounded hover:bg-secondary-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">{{ 'HEADER._register' | translate }}</a>
         </li>
-        
+
         <!--<li>
           <button data-dropdown-toggle="support-dropdown" data-dropdown-placement="bottom-end" class="block py-2 pl-3 pr-4 text-white rounded hover:bg-secondary-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">{{ 'HEADER._support' | translate }}</button>
         </li>-->
@@ -215,5 +218,5 @@
 @if (showCart) {
   <div class="flex h-screen w-full backdrop-blur-sm absolute top-0 right-0 z-40">
     <app-cart-drawer (click)="$event.stopPropagation();" class="absolute top-0 right-0 z-40 h-screen p-4 overflow-y-auto transition-transform bg-white w-1/3 dark:bg-gray-800"></app-cart-drawer>
-  </div>  
+  </div>
 }

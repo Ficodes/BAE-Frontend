@@ -14,9 +14,11 @@ module.exports = {
       colors: {
         primary: {
           //Primary light
-          50: '#00add3',
+          //50: '#00add3',
+          50: '#ffffff',
           //Primary dark
-          100: '#2d58a7',
+          //100: '#2d58a7',
+          100: '#10069F',
         },
         secondary: {
           //Secondary light
@@ -71,6 +73,7 @@ module.exports = {
   plugins: [
     require('flowbite/plugin')
   ],
-  darkMode: 'class'
+  darkMode: 'class',
+  variants: { extend: { display: ['dark'], } }
 }
 
