@@ -30,7 +30,7 @@
         <bae-badge class="mr-2" [category]=cat></bae-badge>
       }
       @if(checkMoreCats){
-        <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2 mr-2">        
+        <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2 mr-2">
           <fa-icon [icon]="faEllipsis" class="text-secondary-50 dark:text-primary-100"></fa-icon>
         </a>
       }
@@ -63,8 +63,8 @@
 
       <div class="flex sticky top-[100vh] items-center justify-center align-items-bottom rounded-lg mt-4">
 
-        <button (click)="toggleDetailsModal();$event.stopPropagation();"  type="button" class="flex items-center align-items-bottom text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-100 dark:hover:bg-primary-50 dark:focus:ring-primary-100 mr-1">
-          <svg class="w-[18px] h-[18px] text-white mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
+        <button (click)="toggleDetailsModal();$event.stopPropagation();"  type="button" class="flex items-center align-items-bottom hover:text-white text-primary-100 hover:bg-primary-100 bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-100 dark:hover:bg-primary-50 dark:focus:ring-primary-100 mr-1">
+          <svg class="w-[18px] h-[18px] mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
             <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
               <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
               <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>
@@ -129,15 +129,15 @@
                         }
                       }
                       @if(checkMoreCats){
-                        <a (click)="loadMoreCategories()" class="cursor-pointer text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2">        
+                        <a (click)="loadMoreCategories()" class="cursor-pointer text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2">
                           <fa-icon [icon]="faEllipsis" class="text-secondary-50 dark:text-primary-100"></fa-icon>
                         </a>
                       }
                       @if(closeCats){
                         <a (click)="closeCategories()" class="cursor-pointer text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2">
-                          <fa-icon [icon]="faClose" class="text-secondary-50 dark:text-primary-100"></fa-icon>                                                   
-                        </a>                        
-                      }         
+                          <fa-icon [icon]="faClose" class="text-secondary-50 dark:text-primary-100"></fa-icon>
+                        </a>
+                      }
                   </div>
               </div>
 
@@ -146,12 +146,12 @@
                 <img class="rounded-r-lg h-5/6 w-5/6 object-contain z-10" src="{{getProductImage()}}" alt="product image" />
               </div>
 
-              
+
               <!--<div [ngClass]="closeCats ? 'object-contain' : 'h-[200px]'" class="relative min-h-[200px] overflow-hidden flex justify-center items-center border border-1 border-gray-200 dark:border-gray-700 rounded-tr-lg">
                 <div class="absolute inset-0 bg-cover bg-center opacity-75" style="background-image: url({{getProductImage()}});filter: blur(20px);"></div>
                 <img class="rounded-r-lg h-5/6 w-5/6 object-contain z-10" src="{{getProductImage()}}" alt="product image" />
               </div>-->
-            
+
               <hr class="h-px border-gray-200 border-1 dark:border-gray-700">
           </div>
 
