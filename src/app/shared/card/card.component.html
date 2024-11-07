@@ -1,4 +1,4 @@
-<div class="flex flex-col w-full h-full bg-secondary-50 dark:bg-secondary-100 rounded-lg dark:border-secondary-100 border-secondary-50 border">
+<div class="flex flex-col w-full h-full bg-secondary-50 dark:bg-slate-700 rounded-lg dark:border-secondary-100 border-secondary-50 border">
 
 
   <div (click)="goToProductDetails(productOff)" class="rounded overflow-hidden cursor-pointer">
@@ -13,7 +13,7 @@
   </div>
 
   <div class="flex-1 h-full bg-cover bg-right-bottom bg-opacity-25 rounded-lg" style="background-image: url(assets/logos/dome-logo-element-colour.png)">
-    <div class="flex-1 h-full px-5 py-5 bg-secondary-50/95 dark:bg-secondary-100/95 rounded-lg">
+    <div class="flex-1 h-full px-5 py-5 bg-secondary-50/95 dark:bg-slate-700/95 rounded-lg">
       <div class="overflow-y-hidden">
       <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2 mr-2"
       [ngClass]="complianceLevel == 1 ? 'bg-red-200 text-red-700' : complianceLevel == 2 ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
@@ -87,7 +87,7 @@
   <div id="details-modal" [ngClass]="showModal ? 'backdrop-blur-sm': ''" tabindex="-1" aria-hidden="true" class="flex justify-center overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-40 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full rounded-lg shadow-2xl">
     <div class="relative w-full max-w-7xl max-h-full rounded-t-lg">
         <!-- Modal content -->
-        <div class="relative sm:m-8 bg-white rounded-lg shadow dark:border-gray-600 dark:bg-secondary-100 bg-cover bg-right-bottom rounded-lg" (click)="$event.stopPropagation();">
+        <div class="relative sm:m-8 bg-white rounded-lg shadow dark:border-gray-600 dark:bg-slate-700 bg-cover bg-right-bottom rounded-lg" (click)="$event.stopPropagation();">
             <!--
             <div class="flex items-center justify-between pr-2 pt-2 bg-secondary-50 rounded-t-lg dark:bg-white dark:border-gray-700 border-secondary-50">
               <button (click)="hideModal()" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="details-modal">

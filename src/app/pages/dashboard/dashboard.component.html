@@ -1,13 +1,13 @@
 
-<div class="dark:bg-secondary-200">
+<div class="dark:bg-slate-800">
   <!-- Jumbo section -->
   <section id="jumbo" class="w-full">
-      <div class="pt-8 pb-8 px-4 w-full text-left lg:pt-16 lg:px-12 bg-cover bg-right-bottom items-center justify-between" style="background-image: url(assets/images/idom_back1.jpg)">
+      <div class="pt-8 pb-8 px-4 w-full text-left lg:pt-16 lg:px-12 bg-cover bg-right-bottom items-center justify-between dark:brightness-75" style="background-image: url(assets/images/idom_back1.jpg)">
           <!--<a href="#" class="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm rounded-full bg-gray-800 text-white hover:bg-gray-700" role="alert">
             <span class="text-xs bg-primary-100 rounded-full text-white px-4 py-1.5 mr-3">{{ 'DASHBOARD._new' | translate }}</span> <span class="text-sm font-medium">{{ 'DASHBOARD._title' | translate }}</span>
             <svg class="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
           </a>-->
-          <div class="flex flex-col md:flex-row justify-between p-8 mx-auto max-w-screen-xl backdrop-blur-sm bg-blue-800/50">
+          <div class="flex flex-col md:flex-row justify-between p-8 mx-auto max-w-screen-xl backdrop-blur-sm bg-slate-900/50 dark:brightness-100">
             <div>
               <h1 class="mb-4 text-left text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl text-secondary-50">{{ 'DASHBOARD._header' | translate }}</h1>
               <p class="text-left mb-8 text-lg font-normal lg:text-xl text-secondary-50">{{ 'DASHBOARD._subheader' | translate }}</p>
@@ -17,12 +17,9 @@
               {{ 'DASHBOARD._browse_serv' | translate }}
               </button>
             </div>
-
           </div>
-
-
       </div>
-    </section>
+  </section>
     <!-- End Jumbo section -->
     @if(searchEnabled){
       <section class="content mx-auto pt-8 pb-5 px-4 mx-auto max-w-screen-xl lg:pb-5 lg:pt-16 w-full flex items-center" [ngClass]="isFilterPanelShown ? 'sticky top-[118px] backdrop-blur-sm z-20': 'sticky top-[72px] backdrop-blur-sm z-20'">
