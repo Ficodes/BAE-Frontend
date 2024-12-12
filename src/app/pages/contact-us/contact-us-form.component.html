@@ -21,38 +21,45 @@
             <div>
                 <label for="email" class="font-bold text-lg dark:text-white">Email</label>
                 <input formControlName="email" type="text" id="email"
-                class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />        
+                [ngClass]="(contactForm.get('email')?.invalid == true && contactForm.value.email!='') || (contactForm.get('email')?.touched && contactForm.value.email=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"
+                class="mb-2 bg-gray-50 dark:bg-secondary-300 border dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />        
             </div>
             <div>
-                <label for="name" class="font-bold text-lg dark:text-white">Name</label>
-                <input formControlName="name" type="text" id="name"
-                class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />        
+                <label for="name" class="font-bold text-lg dark:text-white">First name</label>
+                <input formControlName="name" type="text" id="name" maxLength="100"
+                [ngClass]="(contactForm.get('name')?.invalid == true && contactForm.value.name!='') || (contactForm.get('name')?.touched && contactForm.value.name=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"
+                class="mb-2 bg-gray-50 dark:bg-secondary-300 border dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />        
             </div>
             <div>
                 <label for="lastname" class="font-bold text-lg dark:text-white">Last name</label>
-                <input formControlName="lastname" type="text" id="lastname"
+                <input formControlName="lastname" type="text" id="lastname" maxLength="100"
+                [ngClass]="(contactForm.get('lastname')?.invalid == true && contactForm.value.lastname!='') || (contactForm.get('lastname')?.touched && contactForm.value.lastname=='') ? 'border-red-600' : 'border-gray-300'"
                 class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />        
             </div>
         </div>
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <label for="organization" class="font-bold text-lg dark:text-white">Organization</label>
-                <input formControlName="organization" type="text" id="organization"
-                class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />        
+                <input formControlName="organization" type="text" id="organization" maxLength="100"
+                [ngClass]="(contactForm.get('organization')?.invalid == true && contactForm.value.organization!='') || (contactForm.get('organization')?.touched && contactForm.value.organization=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"
+                class="mb-2 bg-gray-50 dark:bg-secondary-300 border dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />        
             </div>
             <div>
                 <label for="role" class="font-bold text-lg dark:text-white">Role in organization</label>
-                <input formControlName="role" type="text" id="role"
-                class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />        
+                <input formControlName="role" type="text" id="role" maxLength="100"
+                [ngClass]="(contactForm.get('role')?.invalid == true && contactForm.value.role!='') || (contactForm.get('role')?.touched && contactForm.value.role=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"
+                class="mb-2 bg-gray-50 dark:bg-secondary-300 border dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />        
             </div>
         </div>
         <div>
             <label for="organization" class="font-bold text-lg dark:text-white">Message</label>
-            <textarea id="editor" formControlName="message" rows="8" class="block w-full min-h-fit rounded-lg mb-4 px-2 text-sm text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-secondary-200 bg-white dark:bg-secondary-300" placeholder="Add product description..." ></textarea>
+            <textarea id="editor" formControlName="message" rows="8" 
+            [ngClass]="(contactForm.get('message')?.invalid == true && contactForm.value.message!='') || (contactForm.get('message')?.touched && contactForm.value.message=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"
+            class="block w-full min-h-fit rounded-lg mb-4 px-2 text-sm text-gray-800 dark:text-gray-200 border bg-white dark:bg-secondary-300" placeholder="Add product description..." ></textarea>
         </div>
-        <a type="submit" href="mailto:info@dome-marketplace.eu?body={{contactForm.value.message}}" class="py-2 px-3 text-sm font-medium text-center text-white bg-primary-100 hover:bg-primary-50 rounded-lg focus:ring-4 focus:outline-none focus:ring-primary-50">
+        <button type="submit" [disabled]="!contactForm.valid" [ngClass]="!contactForm.valid ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="sendMail()" class="py-2 px-3 text-sm font-medium text-center text-white bg-primary-100 hover:bg-primary-50 rounded-lg focus:ring-4 focus:outline-none focus:ring-primary-50">
             Submit
-        </a>       
+        </button>       
 
     </form>
     

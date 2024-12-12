@@ -26,6 +26,7 @@ export class DashboardComponent implements OnInit {
   searchField = new FormControl();
   searchEnabled = environment.SEARCH_ENABLED;
   domePublish: string = environment.DOME_PUBLISH_LINK
+  domeRegister: string = environment.DOME_REGISTER_LINK
   services: string[] = []
   publishers: string[] = []
   categories:any[]=[];
