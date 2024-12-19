@@ -121,12 +121,11 @@ export class DashboardComponent implements OnInit {
         console.log(aux['expire'] - moment().unix() <= 5)
       }
     }
-    this.api.getLaunchedCategories().then(data => {
-      for(let i=0; i < data.length; i++){
-        if(data[i].isRoot==true){
-          this.categories.push(data[i])
-        }        
-      }
+    this.api.getDefaultCatalog().then(data => {
+      // default catalog contains all the categories that are launched and created by the system
+      const dft_catalog = data[0]
+      const cat_attr= "category"
+      this.categories = dft_catalog === undefined ? [] : dft_catalog["category"]
       initFlowbite();
       this.cdr.detectChanges();
     })

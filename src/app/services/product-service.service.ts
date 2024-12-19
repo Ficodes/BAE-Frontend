@@ -164,6 +164,12 @@ export class ApiServiceService {
     return this.http.patch<any>(url, category);
   }
 
+  getDefaultCatalog() {
+    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog?name=default&lifecycleStatus=Launched`;
+
+    return lastValueFrom(this.http.get<any[]>(url));
+  }
+
   getCatalogs(page:any,filter:any): Promise<any> {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog?limit=${ApiServiceService.CATALOG_LIMIT}&offset=${page}&lifecycleStatus=Launched`;    
     if(filter!=undefined){
