@@ -30,6 +30,7 @@ export class SearchComponent implements OnInit {
   page_check:boolean = true;
   page: number=0;
   PRODUCT_LIMIT: number = environment.PRODUCT_LIMIT;
+  DFT_CATALOG: String = environment.DFT_CATALOG_ID;
   showDrawer:boolean=false;
   searchEnabled = environment.SEARCH_ENABLED;
   keywords:any=undefined;

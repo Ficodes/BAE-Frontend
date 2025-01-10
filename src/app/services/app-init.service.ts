@@ -26,6 +26,7 @@ export class AppInitService {
                 environment.DOME_REGISTER_LINK = config.domeRegister;
                 environment.DOME_PUBLISH_LINK = config.domePublish;
                 environment.PURCHASE_ENABLED = config.purchaseEnabled;
+                environment.DFT_CATALOG_ID = config.defaultId;
                 resolve(config);
             }),
             error: (error) => {

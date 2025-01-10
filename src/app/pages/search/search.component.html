@@ -8,10 +8,10 @@
          </svg>
          <span class="sr-only">Close menu</span>
       </button>
-      <bae-categories-filter></bae-categories-filter>
+      <bae-categories-filter [catalogId]="DFT_CATALOG"></bae-categories-filter>
     </div>
   } @else {
-    <bae-categories-filter class="hidden md:block w-1/5 md:w-2/4 lg:w-1/4"></bae-categories-filter>
+    <bae-categories-filter [catalogId]="DFT_CATALOG" class="hidden md:block w-1/5 md:w-2/4 lg:w-1/4"></bae-categories-filter>
   }
   
   <div class="flex flex-col w-full md:w-4/5 lg:w-3/4">
