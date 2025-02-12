@@ -14,7 +14,11 @@
             <div>
                 <span class="font-bold dark:text-white">{{ 'PROFILE._name' | translate }}</span>
                 <input type="text" formControlName="name" id="name"
-                class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />    
+                class="mb-2 bg-gray-50 text-gray-900 dark:bg-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                [ngClass]="(profileForm.get('name')?.invalid == true && profileForm.value.name!='') || (profileForm.get('name')?.touched && profileForm.value.name=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'" />
+                @if(profileForm.get('name')?.invalid && profileForm.get('name')?.errors?.['required'] && (profileForm.get('name')?.touched && profileForm.value.name=='')){
+                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">This field is mandatory.</span></p>
+                } 
             </div>
             <div>
                 <span class="font-bold dark:text-white">{{ 'PROFILE._website' | translate }}</span>
@@ -245,35 +249,40 @@
             @if(emailSelected){
                 <div class="col-span-2">
                     <label class="font-bold text-lg dark:text-white">{{ 'PROFILE._email' | translate }}</label>
-                    <input formControlName="email" type="text" id="prod-name"
-                    [ngClass]="mediumForm.get('email')?.invalid == true && mediumForm.value.email!='' ? 'border-red-600' : 'border-gray-300'"
-                    class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />                    
+                    <input formControlName="email" type="text" id="prod-name"                    
+                    class="mb-2 bg-gray-50 dark:bg-secondary-300 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    [ngClass]="(mediumForm.get('email')?.invalid == true && mediumForm.value.email!='') || (mediumForm.get('email')?.touched == true && mediumForm.value.email=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"/>              
                 </div>
             } @else if(addressSelected){
                 <div>
                     <label for="address.country" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._country' | translate }}</label>
                     <input id="address.country" formControlName="country" name="address.country" type="text"
-                    class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    class="mb-2 bg-gray-50 text-gray-900 dark:bg-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    [ngClass]="(mediumForm.get('country')?.invalid == true && mediumForm.value.country!='') || (mediumForm.get('country')?.touched && mediumForm.value.country=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'">
                 </div>
                 <div>
                     <label for="address.city" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._city' | translate }}</label>
                     <input id="address.city" formControlName="city" name="address.city" type="text"
-                    class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    class="mb-2 bg-gray-50 text-gray-900 dark:bg-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    [ngClass]="(mediumForm.get('city')?.invalid == true && mediumForm.value.city!='') || (mediumForm.get('city')?.touched && mediumForm.value.city=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'">
                 </div>
                 <div>
                     <label for="address.state" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._state' | translate }}</label>
                     <input id="address.state" formControlName="stateOrProvince" name="address.state" type="text"
-                    class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    class="mb-2 bg-gray-50 text-gray-900 dark:bg-secondary-300  dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    [ngClass]="(mediumForm.get('stateOrProvince')?.invalid == true && mediumForm.value.stateOrProvince!='') || (mediumForm.get('stateOrProvince')?.touched && mediumForm.value.stateOrProvince=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'">
                 </div>
                 <div>
                     <label for="address.zip" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._post_code' | translate }}</label>
                     <input id="address.zip" formControlName="postCode" name="address.zip" type="text"
-                    class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    class="mb-2 bg-gray-50 text-gray-900 dark:bg-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    [ngClass]="(mediumForm.get('postCode')?.invalid == true && mediumForm.value.postCode!='') || (mediumForm.get('postCode')?.touched && mediumForm.value.postCode=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'">
                 </div>
                 <div class="col-span-2">
                     <label for="address.street_address" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._street' | translate }}</label>
                     <textarea id="address.street_address" formControlName="street" name="address.street_address"
-                    class="mb-2 min-h-fit bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" rows="4"></textarea>
+                    class="mb-2 min-h-fit bg-gray-50 text-gray-900 dark:bg-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" rows="4"
+                    [ngClass]="(mediumForm.get('street')?.invalid == true && mediumForm.value.street!='') || (mediumForm.get('street')?.touched && mediumForm.value.street=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"></textarea>
                 </div>   
             } @else {
                 <div class="col-span-2 lg:col-span-1">
@@ -311,7 +320,8 @@
                                     </ul>
                                 </div>
                             }
-                            <input id="phoneNumber" formControlName="telephoneNumber" name="phoneNumber" type="number" [ngClass]="mediumForm.get('telephoneNumber')?.errors?.['invalidPhoneNumber'] == true ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"
+                            <input id="phoneNumber" formControlName="telephoneNumber" name="phoneNumber" type="number"
+                            [ngClass]="mediumForm.get('telephoneNumber')?.errors?.['invalidPhoneNumber'] == true ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"
                             class="mb-2 bg-gray-50 border text-gray-900 text-sm rounded-r-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-secondary-300 dark:text-white">
                         </div>
                     </div>
@@ -319,15 +329,15 @@
             }
         </form>
         <div class="flex w-full justify-items-center justify-center m-2 p-2">
-            <button type="button" (click)="saveMedium()" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+            <button type="button" [disabled]="!mediumForm.valid" [ngClass]="!mediumForm.valid ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="saveMedium()" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                 {{ 'PROFILE._save' | translate }}
                 <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M11 16h2m6.707-9.293-2.414-2.414A1 1 0 0 0 16.586 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.414a1 1 0 0 0-.293-.707ZM16 20v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v6h8ZM9 4h6v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4Z"/>
                 </svg>                         
-            </button> 
+            </button>
         </div>
         <div class="flex w-full justify-end">
-            <button type="button"  (click)="updateProfile()" class="m-2 flex w-fit justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-900">
+            <button type="button" [disabled]="!profileForm.valid" [ngClass]="!profileForm.valid ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"  (click)="updateProfile()" class="m-2 flex w-fit justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-900">
                 {{ 'PROFILE._update' | translate }}
             </button>
         </div>

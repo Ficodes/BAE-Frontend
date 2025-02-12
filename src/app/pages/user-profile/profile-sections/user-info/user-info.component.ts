@@ -22,8 +22,8 @@ export class UserInfoComponent implements OnInit {
   token:string='';
   email:string='';
   userProfileForm = new FormGroup({
-    name: new FormControl(''),
-    lastname: new FormControl(''),
+    name: new FormControl('', [Validators.required]),
+    lastname: new FormControl('', [Validators.required]),
     treatment: new FormControl(''),
     maritalstatus: new FormControl(''),
     gender: new FormControl(''),

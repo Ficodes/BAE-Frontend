@@ -29,7 +29,11 @@
             <div>
                 <label for="user-name" class="font-bold dark:text-white">{{ 'PROFILE._name' | translate }}</label>
                 <input formControlName="name" type="text" id="user-name"
-                class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                class="mb-2 bg-gray-50 text-gray-900 dark:bg-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                [ngClass]="(userProfileForm.get('name')?.invalid == true && userProfileForm.value.name!='') || (userProfileForm.get('name')?.touched && userProfileForm.value.name=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'" />
+                @if(userProfileForm.get('name')?.invalid && userProfileForm.get('name')?.errors?.['required'] && (userProfileForm.get('name')?.touched && userProfileForm.value.name=='')){
+                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">This field is mandatory.</span></p>
+                } 
                 <label for="treatment" class="font-bold dark:text-white">{{ 'PROFILE._treatment' | translate }}</label>
                 <select id="treatment" formControlName="treatment"
                 class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
@@ -51,7 +55,11 @@
             <div>
                 <label for="lastname" class="font-bold dark:text-white">{{ 'PROFILE._lastname' | translate }}</label>
                 <input type="text" formControlName="lastname" id="lastname"
-                class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                class="mb-2 bg-gray-50 text-gray-900 dark:bg-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                [ngClass]="(userProfileForm.get('lastname')?.invalid == true && userProfileForm.value.lastname!='') || (userProfileForm.get('lastname')?.touched && userProfileForm.value.lastname=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'" />
+                @if(userProfileForm.get('lastname')?.invalid && userProfileForm.get('lastname')?.errors?.['required'] && (userProfileForm.get('lastname')?.touched && userProfileForm.value.lastname=='')){
+                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">This field is mandatory.</span></p>
+                } 
                 <label for="marital-status" class="font-bold dark:text-white">{{ 'PROFILE._marital_status' | translate }}</label>
                 <select id="marital-status" formControlName="maritalstatus"
                 class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
@@ -91,7 +99,7 @@
             </div>
         </form>
         <div class="flex w-full justify-end">
-            <button type="button"  (click)="updateProfile()"class="m-2 flex w-fit justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-900">
+            <button type="button" [disabled]="!userProfileForm.valid" [ngClass]="!userProfileForm.valid ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"  (click)="updateProfile()"class="m-2 flex w-fit justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-900">
                 {{ 'PROFILE._update' | translate }}
             </button>
         </div>
