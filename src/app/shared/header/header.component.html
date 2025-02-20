@@ -105,7 +105,7 @@
       </div>
       } @else {
         <a href="{{domeRegister}}" target="_blank" type="button" class="hidden lg:block w-full mr-2 text-white dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5 text-center" aria-current="page">{{ 'HEADER._register' | translate }}</a>
-        <button (click)="onLoginClick()" type="button" class="w-full mr-2 text-white dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5">
+        <button data-cy="login" (click)="onLoginClick()" type="button" class="w-full mr-2 text-white dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5">
           Login
         </button>
       }
