@@ -33,10 +33,10 @@
            </svg>
            <span class="sr-only">Close menu</span>
         </button>
-        <bae-categories-filter [catalogId]="catalog.id"></bae-categories-filter>
+        <bae-categories-filter [catalogId]="DFT_CATALOG"></bae-categories-filter>
       </div>
     } @else {
-     <bae-categories-filter [catalogId]="catalog.id" class="hidden md:block w-1/2 md:2/5 lg:w-1/3 xl:1/4"></bae-categories-filter>
+     <bae-categories-filter [catalogId]="DFT_CATALOG" class="hidden md:block w-1/2 md:2/5 lg:w-1/3 xl:1/4"></bae-categories-filter>
     }
     <div class="flex flex-col w-full md:w-4/5 lg:w-3/4">
       <section class="md:pl-5 content pb-5 px-4 flex items-center">

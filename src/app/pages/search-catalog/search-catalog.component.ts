@@ -18,6 +18,8 @@ import { Router } from '@angular/router';
   styleUrl: './search-catalog.component.css'
 })
 export class SearchCatalogComponent implements OnInit{
+  DFT_CATALOG: String = environment.DFT_CATALOG_ID;
+
   constructor(
     private route: ActivatedRoute,
     private api: ApiServiceService,
