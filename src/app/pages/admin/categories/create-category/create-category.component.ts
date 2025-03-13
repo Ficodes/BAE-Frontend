@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import {LocalStorageService} from "src/app/services/local-storage.service";
 import {EventMessageService} from "src/app/services/event-message.service";
+import { environment } from 'src/environments/environment';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
@@ -17,6 +18,8 @@ type Category_Create = components["schemas"]["Category_Create"];
   styleUrl: './create-category.component.css'
 })
 export class CreateCategoryComponent implements OnInit {
+  DFT_CATALOG: String = environment.DFT_CATALOG_ID;
+
   partyId:any='';
   categoryToCreate:Category_Create | undefined;
 
@@ -100,15 +103,28 @@ export class CreateCategoryComponent implements OnInit {
 
   getCategories(){
     console.log('Getting categories...')
-    this.api.getLaunchedCategories().then(data => {      
-      for(let i=0; i < data.length; i++){
-        this.findChildren(data[i],data);
-        this.unformattedCategories.push(data[i]);
+    this.api.getCatalog(this.DFT_CATALOG).then(data => {
+      if(data.category){
+        for (let i=0; i<data.category.length; i++){
+          this.api.getCategoryById(data.category[i].id).then(categoryInfo => {
+            this.findChildrenByParent(categoryInfo);
+          })
+        }
+        this.loading=false;
+        this.cdr.detectChanges();
+        initFlowbite();
+      } else {
+        this.api.getLaunchedCategories().then(data => {      
+          for(let i=0; i < data.length; i++){
+            this.findChildren(data[i],data);
+            this.unformattedCategories.push(data[i]);
+          }
+          this.loading=false;
+          this.cdr.detectChanges();
+          initFlowbite();
+        })
       }
-      this.loading=false;
-      this.cdr.detectChanges();
-      initFlowbite();
-    }) 
+    })
   }
 
   findChildren(parent:any,data:any[]){

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import {LocalStorageService} from "src/app/services/local-storage.service";
 import {EventMessageService} from "src/app/services/event-message.service";
+import { environment } from 'src/environments/environment';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
@@ -17,6 +18,8 @@ type Category_Update = components["schemas"]["Category_Update"];
   styleUrl: './update-category.component.css'
 })
 export class UpdateCategoryComponent implements OnInit {
+  DFT_CATALOG: String = environment.DFT_CATALOG_ID;
+
   @Input() category: any;
 
   partyId:any='';
@@ -120,25 +123,49 @@ export class UpdateCategoryComponent implements OnInit {
     this.eventMessage.emitAdminCategories(true);
   }
 
-  getCategories(){
-    console.log('Getting categories...')
-    this.api.getLaunchedCategories().then(data => {      
-      for(let i=0; i < data.length; i++){
-        this.findChildren(data[i],data);
-        this.unformattedCategories.push(data[i]);
-      }
-      this.loading=false;
-      if(this.category.isRoot==false){
+
+
+  async getCategories() {
+    console.log('Getting categories...');
+  
+    const setIndex = () => {
+      this.loading = false;
+      if (this.category.isRoot === false) {
         const index = this.categories.findIndex(item => item.id === this.category.parentId);
         if (index !== -1) {
-          this.selectedCategory=this.categories[index]
-          this.selected=[]
-          this.selected.push(this.selectedCategory)
+          this.selectedCategory = this.categories[index];
+          this.selected = [];
+          this.selected.push(this.selectedCategory);
         }
       }
       this.cdr.detectChanges();
       initFlowbite();
-    }) 
+    };
+  
+    try {
+      let data = await this.api.getCatalog(this.DFT_CATALOG);
+      
+      if (data.category) {
+        await Promise.all(
+          data.category.map(async (cat: any) => {
+            let categoryInfo = await this.api.getCategoryById(cat.id);
+            await this.findChildrenByParent(categoryInfo);
+          })
+        );
+        setIndex();
+      } else {
+        let launchedCategories = await this.api.getLaunchedCategories();
+
+        for(let i=0; i < launchedCategories.length; i++){
+          this.findChildren(launchedCategories[i], launchedCategories);
+          this.unformattedCategories.push(launchedCategories[i]);
+        }
+
+        setIndex();
+      }
+    } catch (error) {
+      console.error("Error loading categories:", error);
+    }
   }
 
   findChildren(parent:any,data:any[]){
@@ -156,38 +183,38 @@ export class UpdateCategoryComponent implements OnInit {
     }
   }
 
-  findChildrenByParent(parent:any){
-    let childs: any[] = []
-    this.api.getCategoriesByParentId(parent.id).then(c => {
-      childs=c;
+  async findChildrenByParent(parent: any): Promise<void> {
+    try {
+      let childs: any[] = await this.api.getCategoriesByParentId(parent.id);
+  
       parent["children"] = childs;
-      if(parent.isRoot == true){
-        this.categories.push(parent)
+      if (parent.isRoot == true) {
+        this.categories.push(parent);
       } else {
-        this.saveChildren(this.categories,parent)
+        this.saveChildren(this.categories, parent);
       }
-      if(childs.length != 0){
-        for(let i=0; i < childs.length; i++){
-          this.findChildrenByParent(childs[i])
-        }
-      }
+  
+      // Recursively process child categories
+      await Promise.all(childs.map(child => this.findChildrenByParent(child)));
+  
       initFlowbite();
-    })
-
+    } catch (error) {
+      console.error("Error fetching child categories:", error);
+    }
   }
 
   saveChildren(superCategories:any[],parent:any){
     for(let i=0; i < superCategories.length; i++){
       let children = superCategories[i].children;
       if (children != undefined){
-        let check = children.find((element: { id: any; }) => element.id == parent.id) 
+        let check = children.find((element: { id: any; }) => element.id == parent.id)
         if (check != undefined) {
           let idx = children.findIndex((element: { id: any; }) => element.id == parent.id)
           children[idx] = parent
-          superCategories[i].children = children         
+          superCategories[i].children = children
         }
         this.saveChildren(children,parent)
-      }          
+      }
     }
   }
 
@@ -203,7 +230,6 @@ export class UpdateCategoryComponent implements OnInit {
     this.parentSelectionCheck=!this.parentSelectionCheck;
     this.cdr.detectChanges();
   }
-
 
   addCategory(cat:any){
     if(this.selectedCategory==undefined){

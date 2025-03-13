@@ -75,6 +75,7 @@ export class CategoriesFilterComponent implements OnInit {
             })
           }
           initFlowbite();
+
         } else {
           this.api.getLaunchedCategories().then(data => {
             for(let i=0; i < data.length; i++){

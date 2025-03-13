@@ -17,6 +17,8 @@ import { initFlowbite } from 'flowbite';
   styleUrl: './categories.component.css'
 })
 export class CategoriesComponent {
+  DFT_CATALOG: String = environment.DFT_CATALOG_ID;
+
   protected readonly faIdCard = faIdCard;
   protected readonly faSort = faSort;
   protected readonly faSwatchbook = faSwatchbook;
@@ -72,37 +74,32 @@ export class CategoriesComponent {
   }
 
   getCategories(){
-    /*this.api.getCatalog(this.selectedCatalog.id).then(data => {
+    this.api.getCatalog(this.DFT_CATALOG).then(data => {
       if(data.category){
         for (let i=0; i<data.category.length; i++){
           this.api.getCategoryById(data.category[i].id).then(categoryInfo => {
             this.findChildrenByParent(categoryInfo);
           })
         }
+        this.loading=false;
+        this.cdr.detectChanges();
         initFlowbite();
       } else {
-        this.api.getCategories().then(data => {
+
+        this.api.getCategories(this.status).then(data => {      
           for(let i=0; i < data.length; i++){
-            this.findChildren(data[i],data)
+            this.findChildren(data[i],data);
+            this.unformattedCategories.push(data[i]);
           }
+          this.loading=false;
           this.cdr.detectChanges();
           initFlowbite();
-        })           
+        })
       }
-    })*/
-    console.log('Getting categories...')
-    this.api.getCategories(this.status).then(data => {      
-      for(let i=0; i < data.length; i++){
-        this.findChildren(data[i],data);
-        this.unformattedCategories.push(data[i]);
-      }
-      this.loading=false;
-      this.cdr.detectChanges();
-      initFlowbite();
-    }) 
+    })
   }
 
-  findChildren(parent:any,data:any[]){
+  findChildren(parent:any, data:any[]){
     let childs = data.filter((p => p.parentId === parent.id));
     parent["children"] = childs;
     if(parent.isRoot == true){
