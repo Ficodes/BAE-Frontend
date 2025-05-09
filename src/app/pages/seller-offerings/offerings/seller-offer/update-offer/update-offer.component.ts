@@ -125,7 +125,9 @@ export class UpdateOfferComponent implements OnInit{
   editPrice:boolean=false;
   priceToUpdate:any;
   selectedPriceType:any='CUSTOM';
-  currencies=currencies;
+  //currencies=currencies;
+  //Only allowing EUR for the moment
+  currencies=[currencies[2]];
   createdPrices:ProductOfferingPrice_DTO[]=[];
   oldPrices:any[]=[];
   creatingPrice:any;

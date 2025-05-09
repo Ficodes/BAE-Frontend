@@ -102,8 +102,10 @@
         }         
       } @else if (currentStep === 6) {
         @if(this.formType=='update'){
-          <app-replication-visibility></app-replication-visibility>
+          <!--<app-replication-visibility></app-replication-visibility>-->
+          <app-offer-summary [productOfferForm]="productOfferForm"></app-offer-summary>
         }@else{
+          <!--<app-replication-visibility></app-replication-visibility>-->
           <app-procurement-mode [data]="offer" 
             [formType]="formType" 
             [form]="productOfferForm.controls['procurementMode']"
@@ -111,12 +113,11 @@
           </app-procurement-mode>
         }
       } @else if(currentStep === 7) {
-        @if(this.formType=='update'){
+        <!--@if(this.formType=='update'){
           <app-offer-summary [productOfferForm]="productOfferForm"></app-offer-summary>
         }@else{
           <app-replication-visibility></app-replication-visibility>
-        }
-      } @else if(currentStep === 8) {
+        }-->
         <app-offer-summary [productOfferForm]="productOfferForm"></app-offer-summary>
       }
     </div>
@@ -152,7 +153,7 @@
                 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/>
         </svg>
       </button>
-      @if(formType === 'create' && currentStep === 8 || formType === 'update'){
+      @if(formType === 'create' && currentStep === 7 || formType === 'update'){
         <button (click)="submitForm()"
         [disabled]="!productOfferForm.controls['generalInfo'].valid"
         [ngClass]="formType === 'update' && !productOfferForm.controls['generalInfo'].valid ? 'opacity-50' : 'hover:bg-primary-50'"

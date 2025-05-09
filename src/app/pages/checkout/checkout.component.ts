@@ -568,4 +568,8 @@ export class CheckoutComponent implements OnInit {
       console.log('------------------')
     })
   }
+
+  goToProdDetails(product: cartProduct){
+    this.router.navigate(['/search/', product.id]);
+  }
 }

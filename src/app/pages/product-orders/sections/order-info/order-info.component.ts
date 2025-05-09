@@ -311,10 +311,9 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
         console.log(data)
         console.log(this.orders)
       this.page_check=data.page_check;
-      //this.orders=data.items;
-      this.orders=[{
+      this.orders=data.items;
+      /*this.orders=[{
         id: '12345',
-        /** @description Quantity ordered */
         quantity: 1,
         action: 'add',
         //billingAccount?: components["schemas"]["BillingAccountRef"];
@@ -327,7 +326,7 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
         productOrderItem: [],
         productOrderItemRelationship: [],
         state: 'acknowledged'
-    }]
+    }]*/
       this.nextOrders=data.nextItems;
       this.page=data.page;
       this.loading=false;

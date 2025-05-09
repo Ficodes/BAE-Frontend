@@ -26,7 +26,9 @@ import {ProductOfferingPrice_DTO} from 'src/app/models/interfaces';
 })
 export class UpdatePricePlanComponent implements OnInit {
 
-  currencies=currencies;
+  //currencies=currencies;
+  //Only allowing EUR for the moment
+  currencies=[currencies[2]];
   partyId:any='';
   oneTimeSelected:boolean=true;
   recurringSelected:boolean=false;

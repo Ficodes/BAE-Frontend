@@ -50,6 +50,7 @@ export class OfferComponent implements OnInit, OnDestroy{
 
   productOfferForm: FormGroup;
   currentStep = 0;
+  highestStep = 0;
   steps = [
     'General Info',
     'Product Specification',
@@ -58,7 +59,7 @@ export class OfferComponent implements OnInit, OnDestroy{
     'License',
     'Price Plans',
     'Procurement Mode',
-    'Replication & Visibility',
+    //'Replication & Visibility',
     'Summary'
   ];
   isFormValid = false;
@@ -130,6 +131,9 @@ export class OfferComponent implements OnInit, OnDestroy{
     }
     
     this.currentStep = index;
+    if(this.currentStep>this.highestStep){
+      this.highestStep=this.currentStep
+    }
   }
 
   validateCurrentStep(): boolean {
@@ -148,8 +152,8 @@ export class OfferComponent implements OnInit, OnDestroy{
         return true;
       case 6: // Procurement Mode
         return this.productOfferForm.get('procurementMode')?.valid || false;
-      case 7: // Replication & Visibility
-        return this.productOfferForm.get('replicationMode')?.valid || false;
+      /*case 7: // Replication & Visibility
+        return this.productOfferForm.get('replicationMode')?.valid || false;*/
       default:
         return true;
     }
@@ -157,7 +161,7 @@ export class OfferComponent implements OnInit, OnDestroy{
 
   canNavigate(index: number) {
     if(this.formType == 'create'){
-      return this.productOfferForm.get('generalInfo')?.valid &&  (index <= this.currentStep);
+      return (this.productOfferForm.get('generalInfo')?.valid &&  (index <= this.currentStep)) || (this.productOfferForm.get('generalInfo')?.valid &&  (index <= this.highestStep));
     } else {
       return this.productOfferForm.get('generalInfo')?.valid
     }
@@ -194,7 +198,7 @@ export class OfferComponent implements OnInit, OnDestroy{
         'License',
         'Price Plans',
         'Procurement Mode',
-        'Replication & Visibility',
+        //'Replication & Visibility',
         'Summary'
       ];
       await this.loadOfferData();

@@ -389,24 +389,24 @@
         </div>
         <!-- Modal body -->
         <div class="w-full h-full">
-            <div class="mr-8">
+            <!--<div class="mr-8">
                 <select id="type" value="{{selectedMediumType}}" (change)="onTypeChange($event)"
                 class="m-4 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full">
                     <option value="email">Email</option>
                     <option value="address">Postal Address</option>
                     <option value="phone">Phone Number</option>
                 </select>
-            </div>
+            </div>-->
 
             <form class="grid h-full grid-cols-2 gap-5 m-4" [formGroup]="mediumForm">
-                @if(emailSelected){
+                @if(selectedMedium.mediumType=='Email'){
                     <div class="col-span-2">
                         <label class="font-bold text-lg dark:text-white">Email</label>
                         <input formControlName="email" type="text" id="prod-name"
                         [ngClass]="mediumForm.get('email')?.invalid == true && mediumForm.value.email!='' ? 'border-red-600' : 'border-gray-300'"
                         class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />                    
                     </div>
-                } @else if(addressSelected){
+                } @else if(selectedMedium.mediumType=='PostalAddress'){
                     <div>
                         <label for="address.country" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._country' | translate }}</label>
                         <input id="address.country" formControlName="country" name="address.country" type="text"

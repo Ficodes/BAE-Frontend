@@ -387,34 +387,17 @@ export class OrgInfoComponent {
   }
 
   editMedium(){
-    console.log(this.phoneSelected)
-    if(this.phoneSelected){
-      const phoneNumber = parsePhoneNumber(this.phonePrefix.code + this.mediumForm.value.telephoneNumber);
-      if (phoneNumber) {
-        if (!phoneNumber.isValid()) {
-          console.log('NUMERO INVALIDO')
-          this.mediumForm.controls['telephoneNumber'].setErrors({'invalidPhoneNumber': true});
-          this.toastVisibility = true;
-          setTimeout(() => {
-            this.toastVisibility = false
-          }, 2000);
-          return;
-        } else {
-          this.mediumForm.controls['telephoneNumber'].setErrors(null);
-          this.toastVisibility = false;
-        }
-      }
-    }
-    if (this.mediumForm.invalid) {
-      this.toastVisibility = true;
-      setTimeout(() => {
-        this.toastVisibility = false
-      }, 2000);
-      return;
-    } else {
-      const index = this.contactmediums.findIndex(item => item.id === this.selectedMedium.id);
+
+    const index = this.contactmediums.findIndex(item => item.id === this.selectedMedium.id);
       if (index !== -1) {
-        if(this.emailSelected){
+        if(this.selectedMedium.mediumType=='Email'){
+          if (this.mediumForm.get('email')?.invalid) {
+            this.toastVisibility = true;
+            setTimeout(() => {
+              this.toastVisibility = false
+            }, 2000);
+            return;
+          }
           this.contactmediums[index]={
             id: this.contactmediums[index].id,
             mediumType: 'Email',
@@ -424,7 +407,19 @@ export class OrgInfoComponent {
               emailAddress: this.mediumForm.value.email
             }
           }
-        } else if(this.addressSelected){
+        } else if(this.selectedMedium.mediumType=='PostalAddress'){
+          let fieldsToCheck = ['country', 'city', 'stateOrProvince', 'street'];
+
+          fieldsToCheck.forEach(fieldName => {
+            const control = this.mediumForm.get(fieldName);
+            if (control?.invalid) {
+              this.toastVisibility = true;
+              setTimeout(() => {
+                this.toastVisibility = false
+              }, 2000);
+              return;
+            }
+          });
           this.contactmediums[index]={
             id: this.contactmediums[index].id,
             mediumType: 'PostalAddress',
@@ -439,6 +434,21 @@ export class OrgInfoComponent {
             }
           }
         } else {
+          const phoneNumber = parsePhoneNumber(this.phonePrefix.code + this.mediumForm.value.telephoneNumber);
+          if (phoneNumber) {
+            if (!phoneNumber.isValid()) {
+              console.log('NUMERO INVALIDO')
+              this.mediumForm.controls['telephoneNumber'].setErrors({'invalidPhoneNumber': true});
+              this.toastVisibility = true;
+              setTimeout(() => {
+                this.toastVisibility = false
+              }, 2000);
+              return;
+            } else {
+              this.mediumForm.controls['telephoneNumber'].setErrors(null);
+              this.toastVisibility = false;
+            }
+          }
           this.contactmediums[index]={
             id: this.contactmediums[index].id,
             mediumType: 'TelephoneNumber',
@@ -452,7 +462,6 @@ export class OrgInfoComponent {
         this.mediumForm.reset();
         this.showEditMedium=false;
       }
-    }
   }
 
   showEdit(medium:any){
@@ -460,9 +469,6 @@ export class OrgInfoComponent {
     if(this.selectedMedium.mediumType=='Email'){
       this.selectedMediumType='email';
       this.mediumForm.controls['email'].setValue(this.selectedMedium.characteristic.emailAddress);
-      this.emailSelected=true;
-      this.addressSelected=false;
-      this.phoneSelected=false;
     } else if(this.selectedMedium.mediumType=='PostalAddress'){
       this.selectedMediumType='address';
       this.mediumForm.controls['country'].setValue(this.selectedMedium.characteristic.country);
@@ -470,9 +476,6 @@ export class OrgInfoComponent {
       this.mediumForm.controls['stateOrProvince'].setValue(this.selectedMedium.characteristic.stateOrProvince);
       this.mediumForm.controls['postCode'].setValue(this.selectedMedium.characteristic.postCode);
       this.mediumForm.controls['street'].setValue(this.selectedMedium.characteristic.street1);
-      this.emailSelected=false;
-      this.addressSelected=true;
-      this.phoneSelected=false;
     } else {
       this.selectedMediumType='phone';
       const phoneNumber = parsePhoneNumber(this.selectedMedium.characteristic.phoneNumber)
@@ -483,10 +486,7 @@ export class OrgInfoComponent {
         }
         this.mediumForm.controls['telephoneNumber'].setValue(phoneNumber.nationalNumber);
       }
-      this.mediumForm.controls['telephoneType'].setValue(this.selectedMedium.characteristic.contactType);
-      this.emailSelected=false;
-      this.addressSelected=false;
-      this.phoneSelected=true;      
+      this.mediumForm.controls['telephoneType'].setValue(this.selectedMedium.characteristic.contactType);     
     }
     this.showEditMedium=true;
   }

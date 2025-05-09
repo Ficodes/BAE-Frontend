@@ -41,7 +41,9 @@ export class PricePlanDrawerComponent implements OnInit {
   showPriceComponentDrawer = false;
   showConfigurationDrawer = false;
   editingComponent: any = null;
-  protected readonly currencies = currencies;
+  //protected readonly currencies = currencies;
+  //Only allowing EUR for the moment
+  protected readonly  currencies=[currencies[2]];
 
   constructor(private fb: FormBuilder) {}
 
