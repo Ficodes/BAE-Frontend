@@ -150,20 +150,30 @@ export class BillingAccountFormComponent implements OnInit {
   createBilling() {
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
 
-    const phoneNumber = parsePhoneNumber(this.phonePrefix.code + this.billingForm.value.telephoneNumber);
-    if (phoneNumber) {
-      if (!phoneNumber.isValid()) {
-        console.log('NUMERO INVALIDO')
+    try{
+        const phoneNumber = parsePhoneNumber(this.phonePrefix.code + this.billingForm.value.telephoneNumber);
+        if (phoneNumber) {
+        if (!phoneNumber.isValid()) {
+            console.log('NUMERO INVALIDO')
+            this.billingForm.controls['telephoneNumber'].setErrors({'invalidPhoneNumber': true});
+            this.toastVisibility = true;
+            setTimeout(() => {
+            this.toastVisibility = false
+            }, 2000);
+            return;
+        } else {
+            this.billingForm.controls['telephoneNumber'].setErrors(null);
+            this.toastVisibility = false;
+        }
+        }
+    }
+    catch (error){
         this.billingForm.controls['telephoneNumber'].setErrors({'invalidPhoneNumber': true});
         this.toastVisibility = true;
         setTimeout(() => {
-          this.toastVisibility = false
+        this.toastVisibility = false
         }, 2000);
         return;
-      } else {
-        this.billingForm.controls['telephoneNumber'].setErrors(null);
-        this.toastVisibility = false;
-      }
     }
 
     if (this.billingForm.invalid) {
@@ -234,20 +244,29 @@ export class BillingAccountFormComponent implements OnInit {
 
   updateBilling() {
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
-    const phoneNumber = parsePhoneNumber(this.phonePrefix.code + this.billingForm.value.telephoneNumber);
-    if (phoneNumber) {
-      if (!phoneNumber.isValid()) {
-        console.log('NUMERO INVALIDO')
+    try{
+        const phoneNumber = parsePhoneNumber(this.phonePrefix.code + this.billingForm.value.telephoneNumber);
+        if (phoneNumber) {
+          if (!phoneNumber.isValid()) {
+            console.log('NUMERO INVALIDO')
+            this.billingForm.controls['telephoneNumber'].setErrors({'invalidPhoneNumber': true});
+            this.toastVisibility = true;
+            setTimeout(() => {
+              this.toastVisibility = false
+            }, 2000);
+            return;
+          } else {
+            this.billingForm.controls['telephoneNumber'].setErrors(null);
+            this.toastVisibility = false;
+          }
+        }
+    }catch (error){
         this.billingForm.controls['telephoneNumber'].setErrors({'invalidPhoneNumber': true});
         this.toastVisibility = true;
         setTimeout(() => {
-          this.toastVisibility = false
+            this.toastVisibility = false
         }, 2000);
         return;
-      } else {
-        this.billingForm.controls['telephoneNumber'].setErrors(null);
-        this.toastVisibility = false;
-      }
     }
     if (this.billingForm.invalid) {
       if (this.billingForm.get('email')?.invalid == true) {
