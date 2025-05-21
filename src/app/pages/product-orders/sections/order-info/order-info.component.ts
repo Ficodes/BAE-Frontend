@@ -426,7 +426,7 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
   }
 
   toggleShowDetails(order:any){
-    // console.log(order)
+    //console.log(order)
     this.showOrderDetails=true;
     this.orderToShow=order;
     this.customerName$ = from(this.getCustomerName());

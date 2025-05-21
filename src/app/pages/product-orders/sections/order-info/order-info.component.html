@@ -169,7 +169,7 @@
                                                     <span class="bg-blue-100 dark:bg-secondary-300 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{order.state}}</span>
                                                 }@else if(order.state === 'acknowledged'){
                                                     <span class="bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{order.state}}</span>
-                                                }@else if(order.state === 'cancelled' || order.state === 'rejected') {
+                                                }@else if(order.state === 'cancelled' || order.state === 'cancelled') {
                                                     <span class="bg-blue-100 dark:bg-secondary-300 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{order.state}}</span>
                                                 } @else {
                                                   <span class="bg-amber-500 dark:bg-amber-900 text-amber-900 dark:text-amber-100 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-amber-950">Unchecked</span>
@@ -278,7 +278,7 @@
                                     <span class="bg-blue-100 dark:bg-secondary-100 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{orderToShow.state}}</span>
                                 }@else if(orderToShow.state === 'acknowledged'){
                                     <span class="bg-blue-100 dark:bg-secondary-100 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{orderToShow.state}}</span>
-                                }@else if(orderToShow.state === 'cancelled' || orderToShow.state === 'rejected') {
+                                }@else if(orderToShow.state === 'cancelled' || orderToShow.state === 'cancelled') {
                                     <span class="bg-blue-100 dark:bg-secondary-100 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{orderToShow.state}}</span>
                                 } @else {
                                   <span class="bg-amber-500 dark:bg-amber-900 text-amber-900 dark:text-amber-100 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-amber-950">Unchecked</span>
@@ -362,7 +362,17 @@
                                                     </td>
                                                 } @else {
                                                     <td class="px-6 py-4 text-center align-middle">
-                                                        {{item?.productOfferingPrice?.price}} {{item?.productOfferingPrice?.unit}} {{item?.productOfferingPrice?.text}}
+                                                        @if(item?.productOfferingPrice?.bundledPopRelationship?.length > 1){
+                                                            Bundled price plan: {{item?.productOfferingPrice?.name}}
+                                                        } @else {
+                                                          {{item?.productOfferingPrice?.price?.value}} {{item?.productOfferingPrice?.price?.unit}} 
+                                                          @if(item?.productOfferingPrice?.unitOfMeasure){
+                                                              / {{item?.productOfferingPrice?.unitOfMeasure?.units}}
+                                                          }
+                                                          @if(item?.productOfferingPrice?.recurringChargePeriodType){
+                                                            / {{item?.productOfferingPrice?.recurringChargePeriodType}}
+                                                          }
+                                                        }
                                                     </td>
                                                 }
                                             } @else {
@@ -381,7 +391,7 @@
                                               <span class="bg-blue-100 dark:bg-secondary-100 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{item.productOrderItem.state}}</span>
                                             }@else if(item.productOrderItem.state === 'acknowledged'){
                                               <span class="bg-blue-100 dark:bg-secondary-100 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{item.productOrderItem.state}}</span>
-                                            }@else if(item.productOrderItem.state === 'cancelled' || item.productOrderItem.state === 'rejected') {
+                                            }@else if(item.productOrderItem.state === 'cancelled' || item.productOrderItem.state === 'cancelled') {
                                               <span class="bg-blue-100 dark:bg-secondary-100 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{item.productOrderItem.state}}</span>
                                             } @else {
                                               <span class="bg-amber-500 dark:bg-amber-900 text-amber-900 dark:text-amber-100 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-amber-950">Unchecked</span>
@@ -402,7 +412,7 @@
 
                                                 <button type="button" title="Reject the order item"
                                                         class="text-red-950 bg-red-500 hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2"
-                                                        (click)="openModal('rejected', item)">
+                                                        (click)="openModal('cancelled', item)">
                                                   <svg class="w-[18px] h-[18px] text-white stroke-white fill-white stroke-2" stroke="currentColor"
                                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
                                                     <path d="M96 80c0-26.5 21.5-48 48-48l288 0c26.5 0 48 21.5 48 48l0 304L96 384 96 80zm145 47c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47z"/>
@@ -434,7 +444,9 @@
                                                       </button>
                                                     }
                                                   } @else {
-                                                    n/a
+                                                    <td class="px-6 py-4 text-center align-middle flex justify-center">
+                                                      n/a
+                                                    </td>
                                                   }
                                               }
                                             }

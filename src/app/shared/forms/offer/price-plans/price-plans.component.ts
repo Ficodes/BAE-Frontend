@@ -533,7 +533,9 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
 
   closeDrawer() {
     this.showDrawer = false;
-    this.removePricePlan(this.pricePlansForm.length - 1);
+    if(this.action == 'create'){
+      this.removePricePlan(this.pricePlansForm.length - 1);
+    }
   }
 
   editPricePlan(plan: any) {

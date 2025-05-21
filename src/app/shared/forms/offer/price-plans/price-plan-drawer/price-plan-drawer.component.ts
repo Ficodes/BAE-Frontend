@@ -246,6 +246,10 @@ export class PricePlanDrawerComponent implements OnInit {
   checkProfileData() {
     let profileData = this.formGroup?.get('prodSpecCharValueUse')?.value;
 
+    if(!profileData && this.formGroup?.get('productProfile')?.value){
+      profileData=this.formGroup?.get('productProfile')?.value.selectedValues
+    }
+
     if (!profileData || profileData.length === 0) {
       return true;
     } else {
