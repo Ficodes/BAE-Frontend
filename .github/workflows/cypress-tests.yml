@@ -1,0 +1,40 @@
+name: Cypress Testing
+
+on:
+  push:
+    branches:
+      - master
+
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+
+    env:
+      TERM: xterm-256color
+
+    steps:
+      - name: Checkouts
+        uses: actions/checkout@v4
+
+      - name: Installing dependencies
+        run: npm install
+
+      - name: Executing headless cypress testing
+        uses: cypress-io/github-action@v6
+        with:
+            start: npm start
+            wait-on: 'http://localhost:4200'
+            wait-on-timeout: 120
+            browser: chrome
+            config: defaultCommandTimeout=10000,pageLoadTimeout=60000
+            
+      - name: Upload build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots

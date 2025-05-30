@@ -130,7 +130,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
     console.log('default')
     console.log(this.defaultLang)
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
-    console.log(aux)
+    console.log('aux: ' + aux)
     if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
       this.loginInfo=aux;
       this.is_logged=true;
