@@ -86,6 +86,7 @@ import { MultipleSelectComponent } from './shared/multiple-select/multiple-selec
 import {CharacteristicComponent} from "./shared/characteristic/characteristic.component";
 import {PricePlanDrawerComponent} from "./shared/price-plan-drawer/price-plan-drawer.component";
 import {OfferComponent} from "./shared/forms/offer/offer.component";
+import {AboutDomeComponent} from "src/app/pages/about-dome/about-dome.component"
 
 @NgModule({
   declarations: [
@@ -179,7 +180,8 @@ import {OfferComponent} from "./shared/forms/offer/offer.component";
         MatomoRouterModule,
         CharacteristicComponent,
         PricePlanDrawerComponent,
-        OfferComponent
+        OfferComponent,
+        AboutDomeComponent
     ],
   providers: [
     AppInitService,

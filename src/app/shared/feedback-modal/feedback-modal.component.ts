@@ -1,6 +1,8 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, Input } from '@angular/core';
 import {faMessagePen, faHandsHoldingHeart} from "@fortawesome/pro-solid-svg-icons";
 import {EventMessageService} from "../../services/event-message.service";
+import { FeedbackServiceService } from "src/app/services/feedback-service.service"
+import { lastValueFrom } from 'rxjs';
 
 @Component({
   selector: 'feedback-modal',
@@ -9,8 +11,11 @@ import {EventMessageService} from "../../services/event-message.service";
 })
 export class FeedbackModalComponent {
   constructor(
-    private eventMessage: EventMessageService
+    private eventMessage: EventMessageService,
+    private feedbackService: FeedbackServiceService
   ) {  }
+  @Input() rateMessage: string
+  @Input() writeMessage: string
   protected readonly faMessagePen = faMessagePen;
   protected readonly faHandsHoldingHeart = faHandsHoldingHeart;
   rating: number = 0; // Current rating
@@ -26,7 +31,7 @@ export class FeedbackModalComponent {
     this.rating = star;
   }
 
-  next(){
+  async next(){
     if(this.addComment==false){
       this.addComment=true;
     } else {
@@ -37,10 +42,8 @@ export class FeedbackModalComponent {
         body["description"] = (document.getElementById("message") as HTMLTextAreaElement)?.value
       }
 
-      //TO-DO: CAMBIAR EL TIMEOUT POR LA LLAMADA AL ENDPOINT QUE GUARDE LOS DATOS
-      setTimeout(() => {
-        this.showThanksMessage=true;        
-      }, 1000); 
+      await lastValueFrom(this.feedbackService.sendFeedback(body))
+      this.showThanksMessage=true;
     }
     
   }

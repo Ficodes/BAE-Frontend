@@ -700,7 +700,8 @@ export class OfferComponent implements OnInit, OnDestroy{
       }
   
       if (plan.newValue.priceComponents[0].discountValue != null) {
-        const discount = await this.createPriceAlteration(compRel[0], plan.newValue.currency);
+        console.log(plan.newValue.priceComponents[0])
+        const discount = await this.createPriceAlteration(plan.newValue.priceComponents[0], plan.newValue.currency);
         price.popRelationship = [{ id: discount.id, href: discount.id, name: discount.name }];
       }
       

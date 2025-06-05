@@ -24,9 +24,9 @@
                 
                 <fa-icon [icon]="faMessagePen" class="text-5xl text-primary-50 align-middle mr-2"></fa-icon>
                 @if(!addComment){
-                <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-secondary-100 dark:text-white text-wrap break-all">How would you rate your overall experience with DOME?</h5>
+                <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-secondary-100 dark:text-white text-wrap break-all">{{rateMessage}}</h5>
                 }@else{
-                <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-secondary-100 dark:text-white text-wrap break-all">How can we improve DOME?</h5>
+                <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-secondary-100 dark:text-white text-wrap break-all">{{writeMessage}}</h5>
                 <p class="text-md tracking-tight text-secondary-100 dark:text-white text-wrap break-all">(optional)</p>
                 }
 

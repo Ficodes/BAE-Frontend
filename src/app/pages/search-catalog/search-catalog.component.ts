@@ -8,6 +8,7 @@ import {components} from "../../models/product-catalog";
 type ProductOffering = components["schemas"]["ProductOffering"];
 import {EventMessageService} from "../../services/event-message.service";
 import {LocalStorageService} from "../../services/local-storage.service";
+import {AccountServiceService} from "src/app/services/account-service.service"
 import {Category} from "../../models/interfaces";
 import { environment } from 'src/environments/environment';
 import { Router } from '@angular/router';
@@ -21,6 +22,7 @@ export class SearchCatalogComponent implements OnInit{
   constructor(
     private route: ActivatedRoute,
     private api: ApiServiceService,
+    private accService: AccountServiceService,
     private priceService: PriceServiceService, 
     private cdr: ChangeDetectorRef,
     private eventMessage: EventMessageService,
@@ -33,10 +35,17 @@ export class SearchCatalogComponent implements OnInit{
         this.checkPanel();
       }
     })
+    this.eventMessage.messages$.subscribe(ev => {
+      if(ev.type === 'CloseFeedback') {
+        this.feedback = false;
+      }
+    })
   }
 
   id:any;
   catalog:any;
+  providerName:string='';
+  providerDescription:string='';
   products: ProductOffering[]=[];
   nextProducts: ProductOffering[]=[];
   loading: boolean = false;
@@ -47,6 +56,9 @@ export class SearchCatalogComponent implements OnInit{
   showDrawer:boolean=false;
   searchEnabled = environment.SEARCH_ENABLED;
   showPanel = false;
+  feedback:boolean=false;
+  logo='';
+
 
   async ngOnInit() {
     initFlowbite();
@@ -55,7 +67,35 @@ export class SearchCatalogComponent implements OnInit{
     this.api.getCatalog(this.id).then(catalog => {
       this.catalog=catalog;
       this.cdr.detectChanges();
+      const owner = this.catalog.relatedParty.find((item: { role: string; }) => item.role === 'Owner');
+      if(owner.id.startsWith('urn:ngsi-ld:individual')){
+        this.accService.getUserInfo(owner.id).then(info  => {
+          console.log('info')
+          console.log(info)
+          this.providerName=info.givenName;
+          const provdesc = info.partyCharacteristic.find((item: { name: string; }) => item.name === 'description')
+          this.providerDescription=provdesc.value;
+        })
+        this.logo='assets/images/Dome-Marketplace.svg';
+      } else {
+        this.accService.getOrgInfo(owner.id).then(info  => {
+          console.log('info')
+          console.log(info)
+          this.providerName=info.tradingName;
+          const provdesc = info.partyCharacteristic.find((item: { name: string; }) => item.name === 'description')
+          this.providerDescription=provdesc.value;
+          const logo = info.partyCharacteristic.find((item: { name: string; }) => item.name === 'logo')
+          if(logo){
+            this.logo=logo.value
+          } else {
+            this.logo='assets/images/Dome-Marketplace.svg'
+          }
+        })
+      }      
+      console.log('--- catalogo')
+      console.log(this.catalog)
     })
+
     await this.getProducts(false);
 
     this.eventMessage.messages$.subscribe(ev => {
@@ -65,6 +105,7 @@ export class SearchCatalogComponent implements OnInit{
     })
     console.log('Productos:')
     console.log(this.products)
+    //this.feedback=true;
   }
 
   @HostListener('document:click')

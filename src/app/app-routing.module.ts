@@ -16,11 +16,16 @@ import { ContactUsFormComponent } from "./pages/contact-us/contact-us-form.compo
 import { AuthGuard } from './guard/auth.guard';
 import { OrganizationDetailsComponent } from "./pages/organization-details/organization-details.component"
 import { ProductOrdersComponent } from './pages/product-orders/product-orders.component';
+import {AboutDomeComponent} from "src/app/pages/about-dome/about-dome.component"
 
 const routes: Routes = [
   {
     path: 'dashboard',
     component: DashboardComponent
+  },
+  {
+    path: 'about',
+    component: AboutDomeComponent
   },
   {
     path: 'search',

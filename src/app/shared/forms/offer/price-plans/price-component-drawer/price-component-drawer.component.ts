@@ -73,18 +73,23 @@ export class PriceComponentDrawerComponent implements OnInit {
       console.log('---- Editing the following price component...')
       console.log(this.priceComponentForm.value)
       
-      if(this.priceComponentForm.get('selectedCharacteristic')?.value[0]?.productSpecCharacteristicValue){
-        if(this.priceComponentForm.get('selectedCharacteristic')?.value[0]?.productSpecCharacteristicValue.length >0){
-          if('valueFrom' in this.priceComponentForm.get('selectedCharacteristic')?.value[0]?.productSpecCharacteristicValue[0]){
-            // This is a range characteristic, so no value to select
+      const selectedCharControl = this.priceComponentForm.get('selectedCharacteristic');
+      const selectedCharValue = selectedCharControl?.value;
+      
+      if (Array.isArray(selectedCharValue) && selectedCharValue.length > 0) {
+        const pscv = selectedCharValue[0]?.productSpecCharacteristicValue;
+      
+        if (Array.isArray(pscv) && pscv.length > 0) {
+          if ('valueFrom' in pscv[0]) {
             this.showValueSelect = false;
           } else {
-            this.showValueSelect=true;
-          }          
+            this.showValueSelect = true;
+          }
         } else {
-          this.showValueSelect=true;
+          this.showValueSelect = true;
         }
       }
+      
       if(this.priceComponentForm.get('discountValue')?.value != null){
         this.showDiscount=true;
       }

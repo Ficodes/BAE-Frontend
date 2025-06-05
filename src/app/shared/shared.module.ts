@@ -24,14 +24,15 @@ const imports: any[] = [
 const declarations: any[] = [
   HeaderComponent,
   FooterComponent,
-  CartDrawerComponent
+  CartDrawerComponent,
+  FeedbackModalComponent
 ];
 
 
 @NgModule({
     imports: [...imports, CategoriesPanelComponent],
   exports: [...imports, ...declarations],
-  declarations: [...declarations, FeedbackModalComponent],
+  declarations: [...declarations],
   providers:[DatePipe, TranslateService]
 })
 export class SharedModule { }

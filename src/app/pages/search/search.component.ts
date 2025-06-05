@@ -36,6 +36,7 @@ export class SearchComponent implements OnInit {
   keywords:any=undefined;
   searchField = new FormControl();
   showPanel = false;
+  feedback:boolean=false;
 
   constructor(
     private api: ApiServiceService,
@@ -51,9 +52,15 @@ export class SearchComponent implements OnInit {
         this.checkPanel();
       }
     })
+    this.eventMessage.messages$.subscribe(ev => {
+      if(ev.type === 'CloseFeedback') {
+        this.feedback = false;
+      }
+    })
   } 
 
   async ngOnInit() {
+    //this.feedback=true;
     this.products=[];
     this.nextProducts=[];
     /*await this.api.slaCheck().then(data => {  
