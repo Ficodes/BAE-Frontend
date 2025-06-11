@@ -412,12 +412,14 @@
                                 class="text-lg font-normal text-gray-700 dark:text-gray-200 mb-4 break-all">
                                 </markdown>
                             </div>                            
-                              
-                            <button *ngIf="showReadMoreButton"
-                            class="mt-4 text-blue-500 focus:outline-none"
-                            (click)="toggleTermsReadMore()">
-                            {{ showTermsMore ? 'Read less' : 'Read more' }}
-                            </button>
+                            
+                            @if(showReadMoreButton){
+                                <button
+                                class="mt-4 text-blue-500 focus:outline-none"
+                                (click)="toggleTermsReadMore()">
+                                {{ showTermsMore ? 'Read less' : 'Read more' }}
+                                </button>
+                            }
                                                          
                         </div>
                     </div>

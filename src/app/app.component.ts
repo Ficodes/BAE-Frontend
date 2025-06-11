@@ -4,7 +4,7 @@ import { TranslateService } from '@ngx-translate/core';
 import {LocalStorageService} from "./services/local-storage.service";
 import {Category} from "./models/interfaces";
 import {EventMessageService} from "./services/event-message.service";
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, NavigationEnd } from '@angular/router';
 import { Router } from '@angular/router';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { ApiServiceService } from 'src/app/services/product-service.service';
@@ -83,6 +83,11 @@ export class AppComponent implements OnInit {
       console.log('token')
       console.log(aux.token)
     }
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // or just window.scrollTo(0, 0);
+      }
+    });
   }
 
   /*checkPanel() {
