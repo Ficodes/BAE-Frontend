@@ -39,6 +39,7 @@ export class ProductDetailsComponent implements OnInit {
   @ViewChild('agreementsContent')
   agreementsContent: ElementRef | undefined;
   @ViewChild('textDiv') textDiv!: ElementRef;
+  @ViewChild('termsText') termsTextRef!: ElementRef;
 
   id:any;
   productOff: Product | undefined;
@@ -70,6 +71,7 @@ export class ProductDetailsComponent implements OnInit {
   showError:boolean=false;
   showTermsMore:boolean=false;
   PURCHASE_ENABLED: boolean = environment.PURCHASE_ENABLED;
+  showReadMoreButton:boolean=false;
 
   orgInfo:any=undefined;
 
@@ -347,9 +349,21 @@ export class ProductDetailsComponent implements OnInit {
     return char.verified == true
   }
 
-  ngAfterViewInit() {
+  ngAfterViewChecked() {
+    // Wait for content to render before measuring
+    if (this.termsTextRef && !this.showReadMoreButton) {
+      setTimeout(() => this.checkOverflow(), 0); // Schedule after render
+    }
     // Trigger change detection after the view has been initialized
     this.setImageHeight();
+  }
+  
+  checkOverflow() {
+    const el = this.termsTextRef?.nativeElement;
+    if (el) {
+      const hasOverflow = el.scrollHeight > el.clientHeight;
+      this.showReadMoreButton = hasOverflow;
+    }
   }
 
   setImageHeight() {
@@ -748,14 +762,15 @@ async deleteProduct(product: Product | undefined){
     }
   }
 
-  toggleTermsReadMore(){
-    if(this.showTermsMore==false){
-      document?.getElementById('terms-markdown')?.classList.remove('line-clamp-5')
-    } else {
-      document?.getElementById('terms-markdown')?.classList.add('line-clamp-5')
-    }
-    this.showTermsMore=!this.showTermsMore;
+  toggleTermsReadMore() {
+    this.showTermsMore = !this.showTermsMore;
 
+    const el = this.termsTextRef.nativeElement;
+    if (this.showTermsMore) {
+      el.classList.remove('line-clamp-5');
+    } else {
+      el.classList.add('line-clamp-5');
+    }
   }
 
   goToLink(url: any){

@@ -405,16 +405,20 @@
                                     <fa-icon [icon]="faScaleBalanced" class="fa-2xl text-primary-100 align-middle"></fa-icon>
                                 </div>
                             </div>
-                            <div id="terms-markdown" class="line-clamp-5">
-                                <markdown class="text-lg font-normal text-gray-700 dark:text-gray-200 mb-4 text-wrap break-all" [data]="productOff?.productOfferingTerm?.at(0)?.description"></markdown>
-                            </div>
-                            @if(productOff?.productOfferingTerm?.at(0)?.description){
-                                @if(showTermsMore==false){
-                                    <button class="mt-4 text-blue-500 focus:outline-none" (click)="toggleTermsReadMore()">Read more</button>
-                                } @else {
-                                    <button class="mt-4 text-blue-500 focus:outline-none" (click)="toggleTermsReadMore()">Read less</button>
-                                }
-                            }
+                            <!-- Apply line-clamp to this div, not markdown -->
+                            <div #termsText [class.line-clamp-5]="!showTermsMore" class="overflow-hidden">
+                                <markdown
+                                [data]="productOff?.productOfferingTerm?.at(0)?.description"
+                                class="text-lg font-normal text-gray-700 dark:text-gray-200 mb-4 break-all">
+                                </markdown>
+                            </div>                            
+                              
+                            <button *ngIf="showReadMoreButton"
+                            class="mt-4 text-blue-500 focus:outline-none"
+                            (click)="toggleTermsReadMore()">
+                            {{ showTermsMore ? 'Read less' : 'Read more' }}
+                            </button>
+                                                         
                         </div>
                     </div>
                 }
