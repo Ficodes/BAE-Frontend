@@ -16,6 +16,7 @@ export class FeedbackModalComponent {
   ) {  }
   @Input() rateMessage: string
   @Input() writeMessage: string
+  @Input() type: string
   protected readonly faMessagePen = faMessagePen;
   protected readonly faHandsHoldingHeart = faHandsHoldingHeart;
   rating: number = 0; // Current rating
@@ -37,6 +38,7 @@ export class FeedbackModalComponent {
     } else {
       let body:any = {
         "rating": this.rating,
+        "type": this.type
       }
       if (document.getElementById("message") != null){
         body["description"] = (document.getElementById("message") as HTMLTextAreaElement)?.value
