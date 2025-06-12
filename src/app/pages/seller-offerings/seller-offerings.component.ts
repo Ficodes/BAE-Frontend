@@ -10,6 +10,7 @@ import {LocalStorageService} from "src/app/services/local-storage.service";
 import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "../../services/event-message.service";
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-seller-offerings',
@@ -39,6 +40,7 @@ export class SellerOfferingsComponent implements OnInit {
   offer_to_update:any;
   catalog_to_update:any;
   feedback:boolean=false;
+  userInfo:any;
 
   constructor(
     private localStorage: LocalStorageService,
@@ -47,7 +49,7 @@ export class SellerOfferingsComponent implements OnInit {
   ) {
     this.eventMessage.messages$.subscribe(ev => {
       if(ev.type === 'SellerProductSpec') {   
-        if(ev.value == true){
+        if(ev.value == true && (JSON.stringify(this.userInfo) != '{}' && (((this.userInfo.expire - moment().unix())-4) > 0))) {
           this.feedback=true;
         }     
         this.goToProdSpec();
@@ -106,6 +108,7 @@ export class SellerOfferingsComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.userInfo = this.localStorage.getObject('login_items') as LoginInfo;
     console.log('init')
   }
 

@@ -9,9 +9,10 @@ type ProductOffering = components["schemas"]["ProductOffering"];
 import {EventMessageService} from "../../services/event-message.service";
 import {LocalStorageService} from "../../services/local-storage.service";
 import {AccountServiceService} from "src/app/services/account-service.service"
-import {Category} from "../../models/interfaces";
+import {Category, LoginInfo} from "../../models/interfaces";
 import { environment } from 'src/environments/environment';
 import { Router } from '@angular/router';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-search-catalog',
@@ -105,7 +106,12 @@ export class SearchCatalogComponent implements OnInit{
     })
     console.log('Productos:')
     console.log(this.products)
-    this.feedback=true;
+    const userInfo = this.localStorage.getObject('login_items') as LoginInfo;
+
+    // The user is logged in
+    if ((JSON.stringify(userInfo) != '{}' && (((userInfo.expire - moment().unix())-4) > 0))) {
+      this.feedback=true;
+    }
   }
 
   @HostListener('document:click')

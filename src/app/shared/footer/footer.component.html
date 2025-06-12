@@ -11,9 +11,11 @@
 
     <!-- Footer Links -->
     <ul class="flex flex-wrap items-center text-sm font-medium text-gray-500 dark:text-gray-400">
-      <li>
-        <button (click)="feedback=!feedback;$event.stopPropagation();" class="mr-4 hover:underline md:mr-6">Feedback</button>
-      </li>
+      @if(checkLogged){
+        <li>
+          <button (click)="feedback=!feedback;$event.stopPropagation();" class="mr-4 hover:underline md:mr-6">Feedback</button>
+        </li>
+      }
       <li>
         <a href="../assets/documents/privacy.pdf" target="_blank" class="mr-4 hover:underline md:mr-6">{{ 'FOOTER._privacy' | translate }}</a>
       </li>

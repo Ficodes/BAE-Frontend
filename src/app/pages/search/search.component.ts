@@ -93,7 +93,12 @@ export class SearchComponent implements OnInit {
       });
     }
     setTimeout(() => {
-      this.feedback = true;
+      const userInfo = this.localStorage.getObject('login_items') as LoginInfo;
+
+      // The user is logged in
+      if ((JSON.stringify(userInfo) != '{}' && (((userInfo.expire - moment().unix())-4) > 0))) {
+        this.feedback = true;
+      }
     });
   }
 
