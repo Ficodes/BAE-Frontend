@@ -140,6 +140,7 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
     console.log('Transitioning to...', state, item);
     this.selectedItem = item;
 
+    const prevState = this.selectedItem.productOrderItem['state']
     try {
       // Actualizar el estado en la UI antes de enviar el PATCH
       this.selectedItem.productOrderItem['state'] = state;
@@ -154,6 +155,14 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
       console.log("Order state updated successfully:", stateResponse);
 
       this.orderToShow.state = stateResponse.state;
+    } catch (error) {
+      this.selectedItem.productOrderItem['state'] = prevState
+
+      this.handleError("Error updating order state");
+      console.error("Error updating order:", error);
+    }
+
+    try {
       // Ahora creamos la nota después de la actualización exitosa
       const newNote = {
         text: `Order state updated to ${state}`,
@@ -178,14 +187,12 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
       // Llamar al servicio para actualizar solo la nota
       const noteResponse = await this.orderService.updateOrder(this.orderToShow.id, notePatchData);
       console.log("Order note added successfully:", noteResponse);
-
-      // Cerrar el modal después de completar ambas actualizaciones
-      this.closeModal();
-
     } catch (error) {
-      this.handleError("Error updating order state");
-      console.error("Error updating order:", error);
+      console.error("Error updating order notes:", error);
     }
+
+    // Cerrar el modal después de completar ambas actualizaciones
+    this.closeModal();
   }
 
   ngOnInit() {
@@ -251,8 +258,8 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
         this.isLoading = false;
 
         // Sorts notes (older before)
-        if (this.orderToShow?.note?.length) {
-          this.orderToShow.note.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        if (this.selectedOrder?.note?.length) {
+          this.selectedOrder.note.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
         }
 
         this.scrollToBottom();
@@ -467,12 +474,12 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
     try {
       // Send update request to the backend
       const patchData = { note: this.selectedOrder.note };
-      console.log('patchData',patchData);
+
       await this.orderService.updateOrder(this.selectedOrder.id, patchData);
       console.log('Order notes updated successfully');
     } catch (error) {
+      this.handleError("Error updating order notes");
       console.error('Error updating order notes:', error);
-      alert('Failed to update notes. Please try again.');
       // Remove the note if update fails
       this.selectedOrder.note.pop();
     } finally {
