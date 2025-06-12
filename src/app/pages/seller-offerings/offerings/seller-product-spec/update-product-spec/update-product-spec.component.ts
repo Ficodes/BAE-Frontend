@@ -370,7 +370,7 @@ export class UpdateProductSpecComponent implements OnInit {
   }
 
   goBack() {
-    this.eventMessage.emitSellerProductSpec(true);
+    this.eventMessage.emitSellerProductSpec(false);
   }
 
   togglePreview(){

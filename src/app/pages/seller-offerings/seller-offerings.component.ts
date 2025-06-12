@@ -38,6 +38,7 @@ export class SellerOfferingsComponent implements OnInit {
   res_to_update:any;
   offer_to_update:any;
   catalog_to_update:any;
+  feedback:boolean=false;
 
   constructor(
     private localStorage: LocalStorageService,
@@ -45,7 +46,10 @@ export class SellerOfferingsComponent implements OnInit {
     private eventMessage: EventMessageService
   ) {
     this.eventMessage.messages$.subscribe(ev => {
-      if(ev.type === 'SellerProductSpec' && ev.value == true) {        
+      if(ev.type === 'SellerProductSpec') {   
+        if(ev.value == true){
+          this.feedback=true;
+        }     
         this.goToProdSpec();
       }
       if(ev.type === 'SellerCreateProductSpec' && ev.value == true) {
@@ -94,6 +98,9 @@ export class SellerOfferingsComponent implements OnInit {
       if(ev.type === 'SellerCatalogUpdate') {
         this.catalog_to_update=ev.value;
         this.goToUpdateCatalog();
+      }
+      if(ev.type === 'CloseFeedback') {
+        this.feedback = false;
       }
     })
   }

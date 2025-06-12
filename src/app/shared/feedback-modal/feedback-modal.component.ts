@@ -46,6 +46,8 @@ export class FeedbackModalComponent {
 
       await lastValueFrom(this.feedbackService.sendFeedback(body))
       this.showThanksMessage=true;
+      await lastValueFrom(this.feedbackService.sendFeedback(body))
+      this.showThanksMessage=true;
     }
     
   }

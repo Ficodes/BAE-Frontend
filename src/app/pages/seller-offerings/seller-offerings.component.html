@@ -108,3 +108,10 @@
         }
     </div>
 </div>
+@if(feedback){
+  <feedback-modal 
+  rateMessage="Based on your recent experience, how likely are you to recommend DOME to a colleague or a partner?"
+  writeMessage="How can we improve DOME?"
+  type="recommendation"
+  class="fixed inset-0 flex items-center justify-center z-40"></feedback-modal>
+}

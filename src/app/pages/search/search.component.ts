@@ -60,7 +60,6 @@ export class SearchComponent implements OnInit {
   } 
 
   async ngOnInit() {
-    //this.feedback=true;
     this.products=[];
     this.nextProducts=[];
     /*await this.api.slaCheck().then(data => {  
@@ -92,7 +91,10 @@ export class SearchComponent implements OnInit {
           await this.getProducts(false);
         }
       });
-    }    
+    }
+    setTimeout(() => {
+      this.feedback = true;
+    });
   }
 
   @HostListener('document:click')

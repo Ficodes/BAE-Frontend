@@ -24,10 +24,10 @@
                 
                 <fa-icon [icon]="faMessagePen" class="text-5xl text-primary-50 align-middle mr-2"></fa-icon>
                 @if(!addComment){
-                <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-secondary-100 dark:text-white text-wrap break-all">{{rateMessage}}</h5>
+                <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-secondary-100 dark:text-white text-wrap break-words">{{rateMessage}}</h5>
                 }@else{
-                <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-secondary-100 dark:text-white text-wrap break-all">{{writeMessage}}</h5>
-                <p class="text-md tracking-tight text-secondary-100 dark:text-white text-wrap break-all">(optional)</p>
+                <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-secondary-100 dark:text-white text-wrap break-words">{{writeMessage}}</h5>
+                <p class="text-md tracking-tight text-secondary-100 dark:text-white text-wrap break-words">(optional)</p>
                 }
 
             </div>
@@ -84,7 +84,7 @@
             <div class="w-full mb-4 rounded-t-lg p-8">
                 
                 <fa-icon [icon]="faHandsHoldingHeart" class="text-5xl text-primary-50 align-middle mr-2"></fa-icon>
-                <h5 class="md:text-3xl lg:text-4xl mt-2 font-semibold tracking-tight text-secondary-100 dark:text-white text-wrap break-all">Thank you for contacting DOME Marketplace.</h5>
+                <h5 class="md:text-3xl lg:text-4xl mt-2 font-semibold tracking-tight text-secondary-100 dark:text-white text-wrap break-words">Thank you for contacting DOME Marketplace.</h5>
 
             </div>
         }

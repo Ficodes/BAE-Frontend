@@ -105,7 +105,7 @@ export class SearchCatalogComponent implements OnInit{
     })
     console.log('Productos:')
     console.log(this.products)
-    //this.feedback=true;
+    this.feedback=true;
   }
 
   @HostListener('document:click')
