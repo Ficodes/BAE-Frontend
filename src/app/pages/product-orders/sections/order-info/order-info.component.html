@@ -508,7 +508,7 @@
 <!-- Backdrop (se muestra cuando el menú está abierto) -->
 @if (isDrawerOpen) {
   <div class="fixed inset-0 top-0 left-0 right-0 h-screen bg-black bg-opacity-50 z-40" (click)="closeDrawer()"></div>
-}
+
 <!-- Drawer for Notes -->
 <div id="drawer-notes"
      class="fixed top-0 right-0 z-50 h-screen p-4 overflow-y-auto transition-transform bg-secondary-50 w-5/12 dark:bg-primary-100 flex flex-col"
@@ -587,6 +587,7 @@
   </div>
 
 </div>
+}
 
 <!-- FIXME: We need an standalone error message component-->
 @if(showError){
