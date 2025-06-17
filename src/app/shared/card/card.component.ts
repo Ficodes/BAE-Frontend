@@ -4,7 +4,7 @@ import {
   OnInit,
   ChangeDetectorRef,
   HostListener,
-  ElementRef, ViewChild, AfterViewInit
+  ElementRef, ViewChild, AfterViewInit, OnDestroy
 } from '@angular/core';
 import {components} from "../../models/product-catalog";
 import { FastAverageColor } from 'fast-average-color';
@@ -26,13 +26,16 @@ import * as moment from 'moment';
 import { certifications } from 'src/app/models/certification-standards.const';
 import { jwtDecode } from "jwt-decode";
 import { environment } from 'src/environments/environment';
+import {ThemeConfig} from "../../themes";
+import {Subscription} from "rxjs";
+import {ThemeService} from "../../services/theme.service";
 
 @Component({
   selector: 'bae-off-card',
   templateUrl: './card.component.html',
   styleUrl: './card.component.css'
 })
-export class CardComponent implements OnInit, AfterViewInit {
+export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @Input() productOff: Product | undefined;
   @Input() cardId: number;
@@ -77,6 +80,9 @@ export class CardComponent implements OnInit, AfterViewInit {
   selectedPricePlanId: string | null = null;
   selectedPricePlan:any = null;
 
+  currentTheme: ThemeConfig | null = null;
+  private themeSubscription: Subscription = new Subscription();
+
 
 
   constructor(
@@ -87,6 +93,7 @@ export class CardComponent implements OnInit, AfterViewInit {
     private priceService: PriceServiceService,
     private cartService: ShoppingCartServiceService,
     private accService: AccountServiceService,
+    private themeService: ThemeService,
     private router: Router
     ) {
       this.targetModal = document.getElementById('details-modal');
@@ -143,8 +150,16 @@ export class CardComponent implements OnInit, AfterViewInit {
     }
   }
 
+  ngOnDestroy(): void {
+    if (this.themeSubscription) {
+      this.themeSubscription.unsubscribe();
+    }
+  }
 
   ngOnInit() {
+    this.themeSubscription = this.themeService.currentTheme$.subscribe(theme => {
+      this.currentTheme = theme;
+    });
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
     if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
       this.check_logged=true;

@@ -7,27 +7,28 @@ module.exports = {
   ],
   theme: {
     fontFamily: {
-      display: ['Blinker', 'IBM\\ Plex\\ Mono', 'Menlo', 'monospace'],
-      body: ['Blinker', 'IBM\\ Plex\\ Mono', 'Menlo', 'monospace'],
+      // Si también quieres que las fuentes sean temáticas, puedes aplicar el mismo patrón:
+      display: ['var(--theme-font-display)', 'Blinker', 'IBM\\ Plex\\ Mono', 'Menlo', 'monospace'],
+      body: ['var(--theme-font-body)', 'Blinker', 'IBM\\ Plex\\ Mono', 'Menlo', 'monospace']
     },
     extend: {
       colors: {
         primary: {
-          //Primary light
-          50: '#00add3',
-          //Primary dark
-          100: '#2d58a7',
+          50: 'rgb(var(--theme-primary-50) / <alpha-value>)',   // Antes '#00add3'
+          100: 'rgb(var(--theme-primary-100) / <alpha-value>)', // Antes '#2d58a7'
         },
         secondary: {
-          //Secondary light
-          50: '#dde6f6',
-          //Secondary dark
-          100: '#14274a',
-          //Color they use as bg when dark theme
-          200: '#0c1c38',
-          //Dark theme table background and inputs
-          300: '#182740'
+          50: 'rgb(var(--theme-secondary-50) / <alpha-value>)',  // Antes '#dde6f6'
+          100: 'rgb(var(--theme-secondary-100) / <alpha-value>)',// Antes '#14274a'
+          200: 'rgb(var(--theme-secondary-200) / <alpha-value>)',// Antes '#0c1c38'
+          300: 'rgb(var(--theme-secondary-300) / <alpha-value>)',// Antes '#182740'
         },
+        // Puedes añadir más colores temáticos aquí si es necesario
+        // Ejemplo:
+        // 'accent': 'var(--theme-accent-color)',
+        // 'background': 'var(--theme-background-color)',
+        // 'text-default': 'var(--theme-text-color)',
+        // 'text-muted': 'var(--theme-text-muted-color)',
       },
       transitionProperty: {
         width: "width"
@@ -48,21 +49,21 @@ module.exports = {
         fadeInOut: 'fadeInOut 5s ease-in-out infinite',
       },
       gridTemplateColumns:
-      {
-        '60/40': '60% 40%',
-        '80/20': '80% 20%',
-        '40/60': '40% 60%',
-        '25/75': '25% 75%',
-        '20/80': '20% 80%',
-        '10/90': '10% 90%'
-      },
+        {
+          '60/40': '60% 40%',
+          '80/20': '80% 20%',
+          '40/60': '40% 60%',
+          '25/75': '25% 75%',
+          '20/80': '20% 80%',
+          '10/90': '10% 90%'
+        },
       gridTemplateRows:
-      {
-        '60/40': '60% 40%',
-        '80/20': '80% 20%',
-        '20/80': '20% 80%',
-        '10/90': '10% 90%'
-      },
+        {
+          '60/40': '60% 40%',
+          '80/20': '80% 20%',
+          '20/80': '20% 80%',
+          '10/90': '10% 90%'
+        },
       maxHeight: {
         '3/4': '75%',
       },
@@ -71,6 +72,5 @@ module.exports = {
   plugins: [
     require('flowbite/plugin')
   ],
-  darkMode: 'class'
+  darkMode: 'class' // Esto es compatible con nuestro enfoque de clase por tema
 }
-
