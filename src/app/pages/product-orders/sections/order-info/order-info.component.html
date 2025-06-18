@@ -292,12 +292,12 @@
                                   {{orderToShow?.orderDate | date:'EEEE, dd/MM/yy, HH:mm'}}
                               </h3>
                             </div>
-                            <div class="flex flex-row gap-2 pb-2 text-gray-600">
+                            <div class="flex flex-row gap-2 text-gray-600">
                               <p class="w-fit text-base font-bold shrink-0 dark:text-white">
                                   Customer Info:
                               </p>
                             </div>
-                            <div class="flex flex-row gap-2 pb-2 text-gray-600">
+                            <div class="flex flex-row gap-2 pb-2 pt-2 ml-2 text-gray-600">
                               <p class="w-fit text-base font-bold shrink-0 dark:text-white">
                                   Name
                               </p>
@@ -305,7 +305,7 @@
                                 {{ customerName$ | async }}
                               </h3>
                           </div>
-                            <div class="flex flex-row gap-2 pb-2 text-gray-600">
+                            <div class="flex flex-row gap-2 pb-2 ml-2 text-gray-600">
                                 <p class="w-fit text-base font-bold shrink-0 dark:text-white">
                                     Billing address
                                 </p>
@@ -313,7 +313,7 @@
                                     {{orderToShow.billingAccount.contact[0].contactMedium[1].characteristic.city}}, {{orderToShow.billingAccount.contact[0].contactMedium[1].characteristic.street1}}, {{orderToShow.billingAccount.contact[0].contactMedium[1].characteristic.country}} ({{orderToShow.billingAccount.name}})
                                 </h3>
                             </div>
-                            <div class="flex flex-row gap-2 pb-2 text-gray-600">
+                            <div class="flex flex-row gap-2 pb-2 ml-2 text-gray-600">
                                 <p class="w-fit text-base font-bold shrink-0 dark:text-white">
                                     Contact Email
                                 </p>
