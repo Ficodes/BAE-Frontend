@@ -147,7 +147,7 @@
         Previous step
       </button>
 
-      <button (click)="goToStep(currentStep + 1)"
+      <button data-cy="offerNext" (click)="goToStep(currentStep + 1)"
               [disabled]="currentStep === steps.length - 1 || (formType === 'create' && !validateCurrentStep()) || !canNavigate(currentStep)"
               [ngClass]="{
                 'hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white': currentStep !== steps.length - 1 && (formType !== 'create' || validateCurrentStep() || canNavigate(currentStep)),
@@ -162,7 +162,7 @@
         </svg>
       </button>
       @if(formType === 'create' && currentStep === 7 || formType === 'update'){
-        <button (click)="submitForm()"
+        <button data-cy="offerFinish" (click)="submitForm()"
         [disabled]="!productOfferForm.controls['generalInfo'].valid"
         [ngClass]="formType === 'update' && !productOfferForm.controls['generalInfo'].valid ? 'opacity-50' : 'hover:bg-primary-50'"
 

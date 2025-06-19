@@ -30,7 +30,7 @@
           <label class="font-bold text-lg dark:text-white">
             {{ 'FORMS.PRICE_PLANS._name' | translate }}
           </label>
-          <input formControlName="name" type="text"
+          <input data-cy="pricePlanName" formControlName="name" type="text"
           [ngClass]="(formGroup.get('name')?.invalid == true && formGroup.value.name!='') || (formGroup.get('name')?.touched && formGroup.value.name=='') || (formGroup.hasError('nonUniqueName') && formGroup.get('name')?.touched) ? 'border-red-600' : 'border-gray-300 dark:border-gray-600'"
                  class="mt-1 w-full p-2 border rounded dark:bg-gray-700 dark:text-gray-100">
           @if(formGroup.hasError('nonUniqueName') && formGroup.get('name')?.touched){
@@ -197,7 +197,7 @@
               </app-price-components-table>
 
               <div class="px-4">
-                <button type="button" (click)="openPriceComponentDrawer()"
+                <button data-cy="newPriceComponent" type="button" (click)="openPriceComponentDrawer()"
                         class="mt-2 px-4 py-2 bg-blue-500 text-white rounded flex items-center">
                   <svg class="min-w-4 w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                     <path fill="currentColor"
@@ -218,6 +218,7 @@
             {{ 'FORMS.PRICE_PLANS._cancel' | translate }}
           </button>
           <button type="submit"
+                  data-cy="savePricePlan"
                   (click)="savePricePlan()"
                   [disabled]="formGroup.invalid"
                   class="px-4 py-2 rounded text-white flex items-center transition"
