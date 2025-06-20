@@ -5,6 +5,7 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from "@angular/forms";
 import {AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
 import {initFlowbite} from "flowbite";
 import {FormChangeState} from "../../../../models/interfaces";
+import {EventMessageService} from "src/app/services/event-message.service";
 
 interface ProcurementMode {
   id: string;
@@ -50,8 +51,30 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
   private hasBeenModified: boolean = false;
   private isEditMode: boolean = false;
 
-  constructor(private cdr: ChangeDetectorRef) {
+  constructor(private cdr: ChangeDetectorRef, private eventMessage: EventMessageService) {
     console.log('🔄 Initializing ProcurementModeComponent');
+    this.eventMessage.messages$.subscribe(ev => {
+      if(ev.type === 'UpdateOffer') {
+        if (this.isEditMode && this.hasBeenModified && this.originalValue) {
+          const currentValue = {
+            id: this.procurementMode,
+            name: this.procurementModes.find(m => m.id === this.procurementMode)?.name || 'Manual'
+          };
+          
+          // Solo emitir si el valor es diferente al original
+          if (JSON.stringify(currentValue) !== JSON.stringify(this.originalValue)) {
+            console.log('📝 Emitting changes on destroy');
+            this.formChange.emit({
+              subformType: 'procurement',
+              isDirty: true,
+              dirtyFields: ['id', 'name'],
+              originalValue: this.originalValue,
+              currentValue: currentValue
+            });
+          }
+        }
+      }
+    })
   }
 
   // As ControlValueAccessor

@@ -67,7 +67,7 @@
                     </span>
                 </button>
                 <hr class="h-px mb-2 bg-gray-300 dark:bg-gray-200 border-0">
-                <button id="chars" (click)="toggleChars()" [disabled]="!charsDone || generalForm.invalid"
+                <button id="chars" (click)="toggleChars()" [disabled]="!charsDone || generalForm.invalid || checkValidISOS()"
                 class="grid sm:grid-rows-2 md:grid-rows-1 md:grid-cols-25/75 xl:grid-cols-20/80 mb-2 mr-2 md:mr-0 text-gray-500 justify-items-center md:justify-items-start">
                     <span id="chars-circle" class="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 border border-2 border-gray-400 rounded-full shrink-0">
                         {{ BUNDLE_ENABLED ? 4 : 3 }}
@@ -78,7 +78,7 @@
                     </span>
                 </button>
                 <hr class="h-px mb-2 bg-gray-300 dark:bg-gray-200 border-0">
-                <button id="resource" (click)="toggleResource()" [disabled]="!resourceDone || generalForm.invalid"
+                <button id="resource" (click)="toggleResource()" [disabled]="!resourceDone || generalForm.invalid || checkValidISOS()"
                 class="grid sm:grid-rows-2 md:grid-rows-1 md:grid-cols-25/75 xl:grid-cols-20/80 mb-2 mr-2 md:mr-0 text-gray-500 justify-items-center md:justify-items-start">
                     <span id="resource-circle" class="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 border border-2 border-gray-400 rounded-full shrink-0">
                         {{ BUNDLE_ENABLED ? 5 : 4 }}
@@ -89,7 +89,7 @@
                     </span>
                 </button>
                 <hr class="h-px mb-2 bg-gray-300 dark:bg-gray-200 border-0">
-                <button id="service" (click)="toggleService()" [disabled]="!serviceDone || generalForm.invalid"
+                <button id="service" (click)="toggleService()" [disabled]="!serviceDone || generalForm.invalid || checkValidISOS()"
                 class="grid sm:grid-rows-2 md:grid-rows-1 md:grid-cols-25/75 xl:grid-cols-20/80 mb-2 mr-2 md:mr-0 text-gray-500 justify-items-center md:justify-items-start">
                     <span id="service-circle" class="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 border border-2 border-gray-400 rounded-full shrink-0">
                         {{ BUNDLE_ENABLED ? 6 : 5 }}
@@ -100,7 +100,7 @@
                     </span>
                 </button>
                 <hr class="h-px mb-2 bg-gray-300 dark:bg-gray-200 border-0">
-                <button id="attach" (click)="toggleAttach()" [disabled]="!attachDone || generalForm.invalid"
+                <button id="attach" (click)="toggleAttach()" [disabled]="!attachDone || generalForm.invalid || checkValidISOS()"
                 class="grid sm:grid-rows-2 md:grid-rows-1 md:grid-cols-25/75 xl:grid-cols-20/80 mb-2 mr-2 md:mr-0 text-gray-500 justify-items-center md:justify-items-start">
                     <span id="attach-circle" class="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 border border-2 border-gray-400 rounded-full shrink-0">
                         {{ BUNDLE_ENABLED ? 7 : 6 }}
@@ -111,7 +111,7 @@
                     </span>
                 </button>
                 <hr class="h-px mb-2 bg-gray-300 dark:bg-gray-200 border-0">
-                <button id="relationships" (click)="toggleRelationship()" [disabled]="!relationshipDone || generalForm.invalid"
+                <button id="relationships" (click)="toggleRelationship()" [disabled]="!relationshipDone || generalForm.invalid || checkValidISOS()"
                 class="grid sm:grid-rows-2 md:grid-rows-1 md:grid-cols-25/75 xl:grid-cols-20/80 mb-2 mr-2 md:mr-0 text-gray-500 justify-items-center md:justify-items-start">
                     <span id="relationships-circle" class="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 border border-2 border-gray-400 rounded-full shrink-0">
                         {{ BUNDLE_ENABLED ? 8 : 7 }}
@@ -122,7 +122,7 @@
                     </span>
                 </button>
                 <hr class="h-px mb-2 bg-gray-300 dark:bg-gray-200 border-0">
-                <button id="summary" [disabled]="!finishDone || generalForm.invalid" (click)="showFinish()"
+                <button id="summary" [disabled]="!finishDone || generalForm.invalid || checkValidISOS()" (click)="showFinish()"
                 class="grid sm:grid-rows-2 md:grid-rows-1 md:grid-cols-25/75 xl:grid-cols-20/80 mb-2 mr-2 md:mr-0 text-gray-500 justify-items-center md:justify-items-start">
                     <span id="summary-circle" class="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 border border-2 border-gray-400 rounded-full shrink-0">
                         {{ BUNDLE_ENABLED ? 9 : 8 }}

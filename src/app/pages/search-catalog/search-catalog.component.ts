@@ -83,11 +83,19 @@ export class SearchCatalogComponent implements OnInit{
           console.log('info')
           console.log(info)
           this.providerName=info.tradingName;
-          const provdesc = info.partyCharacteristic.find((item: { name: string; }) => item.name === 'description')
-          this.providerDescription=provdesc.value;
-          const logo = info.partyCharacteristic.find((item: { name: string; }) => item.name === 'logo')
-          if(logo){
-            this.logo=logo.value
+          if (Array.isArray(info?.partyCharacteristic) && info.partyCharacteristic.length > 0) {
+            const provdesc = info.partyCharacteristic.find((item: { name: string; }) => item.name === 'description')
+            if(provdesc?.value){
+              this.providerDescription=provdesc.value;
+            } else {
+              this.providerDescription=''
+            }
+            const logo = info.partyCharacteristic.find((item: { name: string; }) => item.name === 'logo')
+            if(logo?.value){
+              this.logo=logo.value
+            } else {
+              this.logo='assets/images/Dome-Marketplace.svg'
+            }
           } else {
             this.logo='assets/images/Dome-Marketplace.svg'
           }

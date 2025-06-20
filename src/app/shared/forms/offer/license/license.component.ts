@@ -1,6 +1,7 @@
 import {Component, Input, OnInit, OnDestroy, Output, EventEmitter} from '@angular/core';
 import {MarkdownTextareaComponent} from "../../markdown-textarea/markdown-textarea.component";
 import {AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
+import {EventMessageService} from "src/app/services/event-message.service";
 import {StatusSelectorComponent} from "../../status-selector/status-selector.component";
 import {TranslateModule} from "@ngx-translate/core";
 import {FormChangeState} from "../../../../models/interfaces";
@@ -26,6 +27,37 @@ export class LicenseComponent implements OnInit, OnDestroy {
   @Input() formType!: string;
   @Input() data: any;
   @Output() formChange = new EventEmitter<FormChangeState>();
+
+  constructor(
+    private eventMessage: EventMessageService) {
+    this.eventMessage.messages$.subscribe(ev => {
+      if(ev.type === 'UpdateOffer') {
+        if (this.isEditMode && this.hasBeenModified && this.originalValue) {
+          const currentValue = {
+            treatment: this.treatmentControl?.value || '',
+            description: this.descControl?.value || ''
+          };
+          
+          const dirtyFields = this.getDirtyFields(currentValue);
+          
+          if (dirtyFields.length > 0) {
+            const changeState: FormChangeState = {
+              subformType: 'license',
+              isDirty: true,
+              dirtyFields,
+              originalValue: this.originalValue,
+              currentValue
+            };
+    
+            console.log('🚀 Emitting final change state:', changeState);
+            this.formChange.emit(changeState);
+          } else {
+            console.log('📝 No real changes detected, skipping emission');
+          }
+        }
+      }
+    })
+  } 
 
   freeLicenseSelected: boolean = false;
   private originalValue: License | null = null;

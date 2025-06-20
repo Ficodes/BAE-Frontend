@@ -113,6 +113,7 @@ export class OfferComponent implements OnInit, OnDestroy{
     this.formChanges[change.subformType] = change;
     this.hasChanges = Object.keys(this.formChanges).length > 0;
     console.log('📝 Has changes:', this.hasChanges);
+    console.log(this.formChanges[change.subformType])
   }
 
   ngOnDestroy() {
@@ -177,6 +178,7 @@ export class OfferComponent implements OnInit, OnDestroy{
 
   submitForm() {
     if (this.formType === 'update') {
+      this.eventMessage.emitUpdateOffer(true);
       console.log('🔄 Starting offer update process...');
       console.log('📝 Current form changes:', this.formChanges);
       

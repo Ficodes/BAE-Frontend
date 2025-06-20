@@ -473,7 +473,9 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
   removePricePlan(index: number) {
     if (index !== -1) {
       this.pricePlansForm.removeAt(index);
+      console.log(this.pricePlansForm)
       this.syncPricePlans();
+      this.checkChanges();
       
       // Si se eliminaron todos los price plans, permitir cambiar el estado de payment online
       if (this.pricePlans.length === 0) {
