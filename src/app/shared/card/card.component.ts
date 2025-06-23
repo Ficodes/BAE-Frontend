@@ -76,6 +76,7 @@ export class CardComponent implements OnInit, AfterViewInit {
 
   selectedPricePlanId: string | null = null;
   selectedPricePlan:any = null;
+  productAlreadyInCart:boolean=false;
 
 
 
@@ -115,6 +116,24 @@ export class CardComponent implements OnInit, AfterViewInit {
           }
 
           this.cdr.detectChanges();
+        } else if (ev.type == 'RemovedCartItem'){
+          this.cartService.getShoppingCart().then(data => {
+            const exists = data.some((item: any) => item.id === this.productOff?.id);
+            if (exists) {
+              this.productAlreadyInCart=true;
+            } else {
+              this.productAlreadyInCart=false;
+            }
+          })
+        } else if (ev.type == 'AddedCartItem'){
+          this.cartService.getShoppingCart().then(data => {
+            const exists = data.some((item: any) => item.id === this.productOff?.id);
+            if (exists) {
+              this.productAlreadyInCart=true;
+            } else {
+              this.productAlreadyInCart=false;
+            }
+          })
         }
       })
     }
@@ -240,6 +259,15 @@ export class CardComponent implements OnInit, AfterViewInit {
     }
 
     this.prepareOffData();
+
+    this.cartService.getShoppingCart().then(data => {
+      const exists = data.some((item: any) => item.id === this.productOff?.id);
+      if (exists) {
+        this.productAlreadyInCart=true;
+      } else {
+        this.productAlreadyInCart=false;
+      }
+    })
 
     this.cdr.detectChanges();
   }
