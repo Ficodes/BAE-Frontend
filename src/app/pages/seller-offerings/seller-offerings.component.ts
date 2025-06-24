@@ -41,6 +41,14 @@ export class SellerOfferingsComponent implements OnInit {
   catalog_to_update:any;
   feedback:boolean=false;
   userInfo:any;
+  activeSection: string = 'catalogs'; // default
+  sectionActions : Record<string, () => void> = {
+    catalogs: this.goToCatalogs,
+    offers: this.goToOffers,
+    productspec: this.goToProdSpec,
+    servicespec: this.goToServiceSpec,
+    resourcespec: this.goToResourceSpec
+  };
 
   constructor(
     private localStorage: LocalStorageService,
@@ -51,25 +59,25 @@ export class SellerOfferingsComponent implements OnInit {
       if(ev.type === 'SellerProductSpec') {   
         if(ev.value == true && (JSON.stringify(this.userInfo) != '{}' && (((this.userInfo.expire - moment().unix())-4) > 0))) {
           this.feedback=true;
-        }     
+        }  
         this.goToProdSpec();
       }
-      if(ev.type === 'SellerCreateProductSpec' && ev.value == true) {
+      if(ev.type === 'SellerCreateProductSpec' && ev.value == true) {        
         this.goToCreateProdSpec();
       }
-      if(ev.type === 'SellerServiceSpec' && ev.value == true) {        
+      if(ev.type === 'SellerServiceSpec' && ev.value == true) {             
         this.goToServiceSpec();
       }
       if(ev.type === 'SellerCreateServiceSpec' && ev.value == true) {
         this.goToCreateServSpec();
       }
-      if(ev.type === 'SellerResourceSpec' && ev.value == true) {        
+      if(ev.type === 'SellerResourceSpec' && ev.value == true) {                
         this.goToResourceSpec();
       }
-      if(ev.type === 'SellerCreateResourceSpec' && ev.value == true) {
+      if(ev.type === 'SellerCreateResourceSpec' && ev.value == true) {        
         this.goToCreateResSpec();
       }
-      if(ev.type === 'SellerOffer' && ev.value == true) {        
+      if(ev.type === 'SellerOffer' && ev.value == true) {      
         this.goToOffers();
       }
       if(ev.type == 'SellerCatalog' && ev.value == true){
@@ -109,7 +117,18 @@ export class SellerOfferingsComponent implements OnInit {
 
   ngOnInit() {
     this.userInfo = this.localStorage.getObject('login_items') as LoginInfo;
-    console.log('init')
+    const saved = localStorage.getItem('activeSection');
+    console.log(saved)
+    if (saved) this.activeSection = saved;
+    if (saved && this.sectionActions[saved]) {
+      this.sectionActions[saved].call(this); // bind `this` context
+    }
+  }
+
+  setActiveSection(section: string) {
+    this.activeSection = section;
+    localStorage.setItem('activeSection', section);
+    console.log('Saved to localStorage:', section);
   }
 
   goToCreateProdSpec(){
@@ -301,7 +320,8 @@ export class SellerOfferingsComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  goToCatalogs(){
+  goToCatalogs(){  
+    this.setActiveSection('catalogs');  
     this.selectCatalogs();
     this.show_catalogs=true;
     this.show_prod_specs=false;
@@ -336,6 +356,7 @@ export class SellerOfferingsComponent implements OnInit {
   }
 
   goToProdSpec(){
+    this.setActiveSection('productspec'); 
     this.selectProdSpec();
     this.show_catalogs=false;
     this.show_prod_specs=true;
@@ -370,6 +391,7 @@ export class SellerOfferingsComponent implements OnInit {
   }
 
   goToServiceSpec(){
+    this.setActiveSection('servicespec'); 
     this.selectServiceSpec();
     this.show_catalogs=false;
     this.show_prod_specs=false;
@@ -404,6 +426,7 @@ export class SellerOfferingsComponent implements OnInit {
   }
 
   goToResourceSpec(){
+    this.setActiveSection('resourcespec'); 
     this.selectResourceSpec();
     this.show_catalogs=false;
     this.show_prod_specs=false;
@@ -438,6 +461,7 @@ export class SellerOfferingsComponent implements OnInit {
   }
 
   goToOffers(){
+    this.setActiveSection('offers'); 
     this.selectOffers();
     this.show_catalogs=false;
     this.show_prod_specs=false;
