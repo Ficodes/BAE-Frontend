@@ -11,7 +11,8 @@ import {
   faUser,
   faUsers,
   faCogs,
-  faReceipt
+  faReceipt,
+  faRuler
 } from "@fortawesome/sharp-solid-svg-icons";
 import {LocalStorageService} from "../../services/local-storage.service";
 import { ApiServiceService } from 'src/app/services/product-service.service';
@@ -426,4 +427,5 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   protected  readonly faUsers = faUsers;
   protected readonly faCogs = faCogs;
   protected readonly faReceipt = faReceipt;
+  protected readonly faRuler = faRuler;
 }
