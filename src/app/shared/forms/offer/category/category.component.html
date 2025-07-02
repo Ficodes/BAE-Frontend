@@ -39,7 +39,7 @@
           <th class="px-6 py-3 text-center">Select</th>
         </tr>
         </thead>
-        <tbody>
+        <tbody data-cy="categoryList">
         <!-- Renderizar la estructura recursiva comenzando desde las categorías raíz -->
         <ng-container *ngTemplateOutlet="categoryRow; context: { $implicit: categories, level: 0 }"></ng-container>
         </tbody>

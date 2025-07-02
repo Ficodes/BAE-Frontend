@@ -1,6 +1,6 @@
 @if (treatmentControl) {
   <label for="prod-name" class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._treatment' | translate }}</label>
-  <input id="prod-name" type="text" [formControl]="treatmentControl" maxLength="100"
+  <input data-cy="treatment" id="prod-name" type="text" [formControl]="treatmentControl" maxLength="100"
          class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"/>
 }
 

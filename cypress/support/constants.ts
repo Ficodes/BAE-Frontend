@@ -151,6 +151,19 @@ export const catalog_launched = [
     }
 ]
 
+export const category_dft = {
+    "id": "urn:ngsi-ld:category:e4522ff8-2f25-4cd8-b30f-04a0caefbdb5",
+    "href": "urn:ngsi-ld:category:e4522ff8-2f25-4cd8-b30f-04a0caefbdb5",
+    "description": "",
+    "isRoot": true,
+    "lastUpdate": "2025-02-18T14:59:54.493470129Z",
+    "lifecycleStatus": "Active",
+    "name": "dft cat",
+    "validFor": {
+        "startDateTime": "2025-02-18T14:59:54.308Z"
+    }
+}
+
 export const local_items = {
     "id": "admin",
     "user": "admin",
@@ -270,4 +283,35 @@ export const loginAcc = () => {
         cy.get('@login_token.all').should('have.length', 1)
 
         checkHeaderPostLogin()
+}
+
+export const productOffering = {
+    name: 'test', version: '0.1', description: 'test descr', lifecycleStatus: 'Active', lastUpdate: "2025-05-16T09:28:09.040567386Z",
+    relatedParty: [
+        {
+            id: "urn:ngsi-ld:individual:56c77de4-f136-4167-95f0-92a36983ee0f",
+            href: "urn:ngsi-ld:individual:56c77de4-f136-4167-95f0-92a36983ee0f",
+            role: "Owner",
+            "@referredType": ""
+        }
+    ]
+}
+export const productSpec = {
+    id: "urn:ngsi-ld:product-specification:305ac5ed-5845-467b-ab18-13856c2a8bac",
+    href: "urn:ngsi-ld:product-specification:305ac5ed-5845-467b-ab18-13856c2a8bac",
+    brand: "test", description: "description", isBundle: false, lastUpdate: "2025-05-16T09:28:09.040567386Z",
+    lifecycleStatus: "Launched", name: "Product1", productNumber: "1234", version: "0.1", attachment: [], bundledProductSpecification: [],
+    productSpecCharacteristic: [], productSpecificationRelationship: [],
+    relatedParty: [
+        {
+            id: "urn:ngsi-ld:individual:56c77de4-f136-4167-95f0-92a36983ee0f",
+            href: "urn:ngsi-ld:individual:56c77de4-f136-4167-95f0-92a36983ee0f",
+            role: "Owner",
+            "@referredType": ""
+        }
+    ],
+    resourceSpecification: [], serviceSpecification: [],
+    validFor: {
+        "startDateTime": "2025-05-07T14:43:55.417Z"
+    }
 }
