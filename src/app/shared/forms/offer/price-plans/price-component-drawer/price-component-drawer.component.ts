@@ -37,6 +37,7 @@ export class PriceComponentDrawerComponent implements OnInit {
   selectedCharacteristicVal:any;
   showDiscount:boolean=false;
   filteredChars:any[]=[];
+  showPopover = false;
 
   constructor(private fb: FormBuilder, private cdr: ChangeDetectorRef,) {}
 
