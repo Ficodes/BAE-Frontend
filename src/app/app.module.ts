@@ -87,6 +87,7 @@ import {CharacteristicComponent} from "./shared/characteristic/characteristic.co
 import {PricePlanDrawerComponent} from "./shared/price-plan-drawer/price-plan-drawer.component";
 import {OfferComponent} from "./shared/forms/offer/offer.component";
 import {AboutDomeComponent} from "src/app/pages/about-dome/about-dome.component"
+import { MarkdownTextareaComponent } from "src/app/shared/forms/markdown-textarea/markdown-textarea.component"
 
 @NgModule({
   declarations: [
@@ -181,7 +182,8 @@ import {AboutDomeComponent} from "src/app/pages/about-dome/about-dome.component"
         CharacteristicComponent,
         PricePlanDrawerComponent,
         OfferComponent,
-        AboutDomeComponent
+        AboutDomeComponent,
+        MarkdownTextareaComponent
     ],
   providers: [
     AppInitService,
