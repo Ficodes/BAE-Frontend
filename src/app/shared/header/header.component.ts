@@ -28,6 +28,8 @@ import { QrVerifierService } from 'src/app/services/qr-verifier.service';
 import * as uuid from 'uuid';
 import { TranslateService } from '@ngx-translate/core';
 import {ShoppingCartServiceService} from "../../services/shopping-cart-service.service";
+import {ThemeService} from "../../services/theme.service";
+import {NavLink, ThemeAuthUrlsConfig, ThemeConfig, ThemeLinkConfig} from "../../themes";
 
 @Component({
   selector: 'bae-header',
@@ -51,6 +53,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
               private eventMessage: EventMessageService,
               private router: Router,
               private qrVerifier: QrVerifierService,
+              private themeService: ThemeService,
               private sc: ShoppingCartServiceService) {
 
     this.themeToggleDarkIcon = themeToggleDarkIcon;
@@ -86,9 +89,19 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   flagDropdownOpen:boolean=false;
   cartCount: number = 0;
 
+  currentTheme: ThemeConfig | null = null;
+  private themeSubscription: Subscription = new Subscription();
+  public headerLinks: NavLink[] = [];
+  public themeAuthUrls: ThemeAuthUrlsConfig | undefined;
+
+
+
   ngOnDestroy(): void {
       this.qrWindow?.close()
       this.qrWindow=null
+      if (this.themeSubscription) {
+        this.themeSubscription.unsubscribe();
+      }
   }
 
   ngDoCheck(): void {
@@ -129,6 +142,15 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
     }
     console.log('default')
     console.log(this.defaultLang)
+
+    this.themeSubscription = this.themeService.currentTheme$.subscribe(theme => {
+      this.currentTheme = theme;
+      this.headerLinks = theme?.links?.headerLinks || [];
+      this.themeAuthUrls = theme?.authUrls;
+      // Podrías hacer más cosas aquí cuando el tema cambia si es necesario
+    });
+
+
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
     console.log('aux: ' + aux)
     if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {

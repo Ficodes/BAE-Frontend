@@ -12,7 +12,7 @@
     </div>
   </div>
 
-  <div class="flex-1 h-full bg-cover bg-right-bottom bg-opacity-25 rounded-lg" style="background-image: url(assets/logos/dome-logo-element-colour.png)">
+  <div class="flex-1 h-full bg-cover bg-right-bottom bg-opacity-25 bg-blend-multiply rounded-lg" [style.background-image]="'url(' + currentTheme?.assets?.cardDefaultBgUrl + ')'">
     <div class="flex-1 h-full px-5 py-5 bg-secondary-50/95 dark:bg-secondary-100/95 rounded-lg">
       <div class="overflow-y-hidden overflow-x-hidden">
       <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2 mr-2"
@@ -204,7 +204,7 @@
                       <li class="text-wrap break-all line-clamp-1">{{ 'CARD._product_version' | translate }}: v{{prodSpec.version}}</li>
                       @if(prodSpec.productNumber != ''){
                         <li class="text-wrap break-all line-clamp-1">{{ 'CARD._id_number' | translate }}: {{prodSpec.productNumber}}</li>
-                      }                      
+                      }
                       @if(orgInfo!=undefined){
                         <li class="text-wrap break-all line-clamp-1">{{ 'CARD._owner' | translate }}: <a (click)="goToOrgDetails(orgInfo.id)" target="_blank" class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline">{{orgInfo.tradingName}}</a></li>
                       }

@@ -10,6 +10,8 @@ import { LoginInfo } from 'src/app/models/interfaces';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { RefreshLoginServiceService } from "src/app/services/refresh-login-service.service";
 import * as moment from 'moment';
+import {ThemeService} from "./services/theme.service";
+import {environment} from "../environments/environment";
 
 
 @Component({
@@ -27,6 +29,7 @@ export class AppComponent implements OnInit {
               private route: ActivatedRoute,
               private router: Router,
               private api: ApiServiceService,
+              private themeService: ThemeService,
               private refreshApi: RefreshLoginServiceService) {
     this.translate.addLangs(['en', 'es']);
     this.translate.setDefaultLang('es');
@@ -49,6 +52,9 @@ export class AppComponent implements OnInit {
 
   }
   ngOnInit(): void {
+    const providerThemeName = environment.providerThemeName;
+    this.themeService.initializeProviderTheme(providerThemeName);
+
     initFlowbite();
     if(!this.localStorage.getObject('selected_categories'))
       this.localStorage.setObject('selected_categories', []);

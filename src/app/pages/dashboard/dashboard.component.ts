@@ -1,4 +1,4 @@
-import {Component, HostListener, OnInit, ChangeDetectorRef} from '@angular/core';
+import {Component, HostListener, OnInit, ChangeDetectorRef, OnDestroy} from '@angular/core';
 import {EventMessageService} from "../../services/event-message.service";
 import {LocalStorageService} from "../../services/local-storage.service";
 import { ApiServiceService } from 'src/app/services/product-service.service';
@@ -13,13 +13,15 @@ import { LoginServiceService } from "src/app/services/login-service.service"
 import { FormControl } from '@angular/forms';
 import { initFlowbite } from 'flowbite';
 import { environment } from 'src/environments/environment';
+import {ThemeService} from "../../services/theme.service";
+import {ThemeConfig} from "../../themes";
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
 
   isFilterPanelShown = false;
   showContact:boolean=false;
@@ -33,6 +35,9 @@ export class DashboardComponent implements OnInit {
   currentIndexServ: number = 0;
   currentIndexPub: number = 0;
   delay: number = 2000;
+  currentTheme: ThemeConfig | null = null;
+  private themeSubscription: Subscription = new Subscription();
+
   //loginSubscription: Subscription = new Subscription();;
   constructor(private localStorage: LocalStorageService,
               private eventMessage: EventMessageService,
@@ -42,6 +47,7 @@ export class DashboardComponent implements OnInit {
               private api: ApiServiceService,
               private loginService: LoginServiceService,
               private cdr: ChangeDetectorRef,
+              private themeService: ThemeService,
               private refreshApi: RefreshLoginServiceService) {
     this.eventMessage.messages$.subscribe(ev => {
       if(ev.type === 'FilterShown') {
@@ -69,6 +75,10 @@ export class DashboardComponent implements OnInit {
   }
 
   async ngOnInit() {
+    this.themeSubscription = this.themeService.currentTheme$.subscribe(theme => {
+      this.currentTheme = theme;
+    });
+
     this.statsService.getStats().then(data=> {
       this.services=data?.services;
       this.publishers=data?.organizations;
@@ -79,7 +89,7 @@ export class DashboardComponent implements OnInit {
     console.log('--- route data')
     console.log(this.route.queryParams)
     console.log(this.route.snapshot.queryParamMap.get('token'))
-    if(this.route.snapshot.queryParamMap.get('token') != null){    
+    if(this.route.snapshot.queryParamMap.get('token') != null){
       this.loginService.getLogin(this.route.snapshot.queryParamMap.get('token')).then(data => {
         console.log('---- loginangular response ----')
         console.log(data)
@@ -106,7 +116,7 @@ export class DashboardComponent implements OnInit {
         //this.refreshApi.stopInterval();
         //this.refreshApi.startInterval(((data.expire - moment().unix())-4)*1000, data);
         //this.refreshApi.startInterval(3000, data);
-      })      
+      })
       this.router.navigate(['/dashboard'])
     } else {
       console.log('sin token')
@@ -125,7 +135,7 @@ export class DashboardComponent implements OnInit {
       for(let i=0; i < data.length; i++){
         if(data[i].isRoot==true){
           this.categories.push(data[i])
-        }        
+        }
       }
       initFlowbite();
       this.cdr.detectChanges();
@@ -136,16 +146,24 @@ export class DashboardComponent implements OnInit {
     this.cdr.detectChanges();
     console.log('----')
   }
+
+  ngOnDestroy(): void {
+    if (this.themeSubscription) {
+      this.themeSubscription.unsubscribe();
+    }
+  }
+
+
   filterSearch(event: any) {
     if(this.searchField.value!='' && this.searchField.value != null){
       this.router.navigate(['/search', {keywords: this.searchField.value}]);
     } else {
       this.router.navigate(['/search']);
-    }  
+    }
   }
 
   goTo(path:string) {
     this.router.navigate([path]);
   }
-  
+
 }

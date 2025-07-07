@@ -1,39 +1,35 @@
 <footer class="fixed bottom-0 left-0 z-10 h-[25px] w-full p-4 bg-white border-t border-gray-200 shadow md:flex md:items-center md:justify-end md:p-6 dark:bg-gray-800 dark:border-gray-600">
-  <!--<span class="text-sm text-gray-500 sm:text-center dark:text-gray-400">2024 <a href="https://flowbite.com/" class="hover:underline">DOME</a>.
-  </span>-->
   <div class="flex justify-between items-center w-full">
-    <!-- Social Links -->
+    <!-- Social Links Dinámicos -->
     <div class="flex justify-start text-gray-500 dark:text-gray-400">
-      <fa-icon (click)="open(DOME_LINKEDIN)" class="mr-4 cursor-pointer" [icon]="faLinkedin"></fa-icon>
-      <fa-icon (click)="open(DOME_X)" class="mr-4 cursor-pointer" [icon]="faXTwitter"></fa-icon>
-      <fa-icon (click)="open(DOME_YOUTUBE)" class="cursor-pointer" [icon]="faYoutube"></fa-icon>
+      <ng-container *ngFor="let social of socialLinks; let last = last">
+        <fa-icon (click)="open(social.url!)" [ngClass]="{'mr-4': !last}" class="cursor-pointer" [icon]="social.icon"></fa-icon>
+      </ng-container>
     </div>
 
-    <!-- Footer Links -->
+    <!-- Dynamic Footer Links -->
     <ul class="flex flex-wrap items-center text-sm font-medium text-gray-500 dark:text-gray-400">
       @if(checkLogged){
         <li>
           <button (click)="feedback=!feedback;$event.stopPropagation();" class="mr-4 hover:underline md:mr-6">Feedback</button>
         </li>
       }
-      <li>
-        <a href="../assets/documents/privacy.pdf" target="_blank" class="mr-4 hover:underline md:mr-6">{{ 'FOOTER._privacy' | translate }}</a>
-      </li>
-      <li>
-        <a href="../assets/documents/cookies.pdf" target="_blank" class="mr-4 hover:underline md:mr-6">{{ 'FOOTER._cookies' | translate }}</a>
-      </li>
-      <li>
-        <a href="../assets/documents/terms.pdf" target="_blank" class="mr-4 hover:underline md:mr-6">{{ 'FOOTER._licensing' | translate }}</a>
-      </li>
-      <li>
-        <a (click)="goTo('/contact-us')" target="_blank" class="hover:underline cursor-pointer">{{ 'FOOTER._contact' | translate }}</a>
+      <li *ngFor="let link of footerLinks">
+        <!-- Enlace externo (ej. a un PDF o web externa) -->
+        <a *ngIf="!link.isRouterLink" [href]="link.url" target="_blank" class="mr-4 hover:underline md:mr-6">
+          {{ link.label | translate }}
+        </a>
+        <!-- Enlace interno (manejado por el router de Angular) -->
+        <a *ngIf="link.isRouterLink" (click)="goTo(link.url!)" class="mr-4 hover:underline md:mr-6 cursor-pointer">
+          {{ link.label | translate }}
+        </a>
       </li>
     </ul>
   </div>
-
 </footer>
+
 @if(feedback){
-  <feedback-modal 
+  <feedback-modal
   rateMessage="How would you rate your overall experience with DOME?"
   writeMessage="How can we improve DOME?"
   type="experience"

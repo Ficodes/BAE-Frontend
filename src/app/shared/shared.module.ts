@@ -11,28 +11,50 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {CategoriesPanelComponent} from "./categories-panel/categories-panel.component";
 import { CartDrawerComponent } from "./cart-drawer/cart-drawer.component";
 import { FeedbackModalComponent } from './feedback-modal/feedback-modal.component';
+import {RouterLink} from "@angular/router";
 
-const imports: any[] = [
+// Lista de componentes que pertenecen a este módulo.
+const SHARED_COMPONENTS = [
+  HeaderComponent,
+  FooterComponent,
+  FeedbackModalComponent,
+  CartDrawerComponent
+];
+
+// Lista de módulos comunes que este módulo necesita y re-exporta.
+const SHARED_MODULES = [
   CommonModule,
-  HttpClientModule,
   FormsModule,
   ReactiveFormsModule,
   FontAwesomeModule,
-  TranslateModule
+  TranslateModule,
+  HttpClientModule
 ];
 
-const declarations: any[] = [
-  HeaderComponent,
-  FooterComponent,
-  CartDrawerComponent,
-  FeedbackModalComponent
+// Lista de componentes/directivas Standalone que se importan y re-exportan.
+const STANDALONE_IMPORTS = [
+  CategoriesPanelComponent,
+  RouterLink
 ];
 
 
 @NgModule({
-    imports: [...imports, CategoriesPanelComponent],
-  exports: [...imports, ...declarations],
-  declarations: [...declarations],
-  providers:[DatePipe, TranslateService]
+  imports: [
+    ...SHARED_MODULES,
+    ...STANDALONE_IMPORTS
+  ],
+  declarations: [
+    ...SHARED_COMPONENTS
+  ],
+  exports: [
+    ...SHARED_MODULES,
+    ...SHARED_COMPONENTS,
+    ...STANDALONE_IMPORTS
+  ],
+  providers:[
+    DatePipe,
+    TranslateService
+  ]
 })
 export class SharedModule { }
+
