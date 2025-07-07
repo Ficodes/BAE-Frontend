@@ -158,7 +158,7 @@
     <div class="w-full h-full bg-secondary-50 rounded-b-lg p-4 dark:bg-secondary-100 dark:border-gray-800 border-secondary-50 border-b">
 
         <div id="desc-container" class="w-full bg-secondary-50/95 dark:bg-secondary-100/95 rounded-lg p-8 lg:p-12">
-
+            <div #detailsScrollAnchor id="details-scroll-anchor" class="pt-[88px] -mt-[88px]"></div>
             <div id="details-container">
                 <h2 #detailsContent class="text-4xl font-extrabold text-primary-100 dark:text-primary-50 text-center pb-4">Description</h2>
                 <markdown class="dark:text-gray-200 text-wrap break-all" [data]="prodSpec.description"></markdown>
@@ -304,6 +304,7 @@
             }
         </div>
 
+        <div #charsScrollAnchor id="chars-scroll-anchor" class="pt-[88px] -mt-[88px]"></div>
         @if(prodSpec.productSpecCharacteristic != undefined && prodChars.length>0) {
             <div #charsContent id="chars-container">
                 <h2 class="text-4xl font-extrabold text-primary-100 text-center pb-8 pt-12 dark:text-primary-50">Product characteristics</h2>
@@ -355,6 +356,7 @@
 
         }
 
+        <div #attachScrollAnchor id="attach-scroll-anchor" class="pt-[88px] -mt-[88px]"></div>
         @if(attatchments.length>0){
         <h2 #attachContent class="text-4xl font-extrabold text-primary-100 dark:text-primary-50 text-center pb-8 pt-12">Product attachments</h2>
         <div id="attach-container" class="container mx-auto px-4">
@@ -390,11 +392,12 @@
         </div>
 
         }
-
+        <div #agreementsScrollAnchor id="agreements-scroll-anchor" class="pt-[88px] -mt-[88px]"></div>
+        <div  id="agreements-container">
         @if(productOff?.productOfferingTerm?.at(0)?.name || productOff?.serviceLevelAgreement){
-            <div #agreementsContent id="agreements-container">
+            
                 @if(productOff?.productOfferingTerm?.at(0)?.name){
-                    <h2 class="text-4xl font-extrabold text-primary-100 text-center pb-8 pt-12 dark:text-primary-50">{{ 'PRODUCT_DETAILS._license' | translate }}</h2>
+                    <h2 #agreementsContent class="text-4xl font-extrabold text-primary-100 text-center pb-8 pt-12 dark:text-primary-50">{{ 'PRODUCT_DETAILS._license' | translate }}</h2>
                     <div class="container mx-auto px-4">
                         <div class="border border-gray-200 rounded-lg shadow bg-white dark:bg-secondary-200 dark:border-gray-800 p-8">
                             <div class="grid grid-cols-80/20 pb-4 h-1/4">
@@ -427,10 +430,11 @@
                 @if(productOff?.serviceLevelAgreement){
                 <h2 class="text-4xl font-extrabold text-primary-100 text-center pb-8 pt-12">{{ 'PRODUCT_DETAILS._sla' | translate }}</h2>
                     <p class="mb-2 pl-4 font-normal text-gray-700">{{productOff?.serviceLevelAgreement?.name}}.</p>
-                }
-            </div>
+                }            
         }
+        </div>
 
+        <div #relScrollAnchor id="rel-scroll-anchor" class="pt-[88px] -mt-[88px]"></div>
         @if(prodSpec.productSpecificationRelationship != undefined && prodSpec.productSpecificationRelationship.length>0){
             <h2 #relationshipsContent class="text-4xl font-extrabold text-primary-100 text-center pb-8 pt-12 dark:text-primary-50">Product relationships</h2>
             <div id="relationships-container" class="container mx-auto px-4">
