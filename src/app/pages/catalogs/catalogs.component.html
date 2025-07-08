@@ -91,34 +91,50 @@
 
 <!-- Main modal -->
 @if (showDesc){
-  <div id="details-modal" [ngClass]="showDesc ? 'backdrop-blur-sm': ''" tabindex="-1" aria-hidden="true" class="flex justify-center overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-40 justify-center items-center w-full md:inset-0 h-[calc(100%)] max-h-full rounded-lg shadow-2xl">
-    <div class="relative w-full max-w-7xl max-h-full rounded-t-lg">
-        <!-- Modal content -->
-      <div class="relative sm:m-8 bg-white rounded-lg shadow dark:border-gray-600 dark:bg-secondary-100 bg-cover bg-right-bottom rounded-lg" (click)="$event.stopPropagation();">
+  <div id="details-modal"
+  [ngClass]="showDesc ? 'backdrop-blur-sm' : ''"
+  tabindex="-1"
+  aria-hidden="true"
+  class="fixed inset-0 z-40 flex flex-col lg:flex-row justify-center overflow-y-auto overflow-x-hidden px-4 pt-[80px] lg:pt-0 lg:items-center">
 
-          <!-- START HEADER CARD -->
-          <div class="w-full rounded-t-lg p-4">
-              <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-primary-100 dark:text-primary-50 text-wrap break-all line-clamp-4">{{showingCat?.name}}</h5>
-          </div>
-          <hr class="h-px my-1 bg-primary-100 border-0 dark:bg-primary-100">
-        <!-- END HEADER CARD -->
+  <div class="relative w-full max-w-4xl">
+    <div class="relative bg-white dark:bg-secondary-100 rounded-lg shadow-lg bg-cover bg-right-bottom overflow-y-auto max-h-[calc(100vh-160px)]"
+         (click)="$event.stopPropagation();">
 
-        <div class="p-4">
-          <div class="justify-start">            
-              <div class="max-h-[300px] overflow-y-auto mb-4 p-4">
-                <markdown class="min-h-19 h-19 dark:text-secondary-50 text-wrap break-all" [data]="showingCat.description ? showingCat.description : 'CATALOGS._no_desc' | translate"></markdown>
-              </div> 
-          </div>
-        </div>
-        <hr class="h-px my-1 bg-primary-100 border-0 dark:bg-primary-100">
-        <div class="p-4">
-          @for(category of showingCat.category; track category.id) {
-            <span class="inline-block bg-blue-300 text-primary-100 text-xs font-bold me-2 px-2.5 py-0.5 rounded-full w-fit text-wrap break-all">{{category.name}}</span>
-          } @empty {
-            <span class="inline-block bg-blue-300 text-primary-100 text-xs font-bold me-2 px-2.5 py-0.5 rounded-full w-fit text-wrap break-all">{{'CATALOGS._no_cat' | translate}}</span>                            
-          }
-        </div>
-      </div>
-    </div>
-  </div>
+   <!-- HEADER -->
+   <div class="w-full rounded-t-lg p-4">
+     <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-primary-100 dark:text-primary-50 ">
+       {{ showingCat?.name }}
+     </h5>
+   </div>
+
+   <hr class="h-px my-1 bg-primary-100 border-0 dark:bg-primary-100" />
+
+   <!-- DESCRIPTION -->
+   <div class="p-4">
+     <div class="max-h-[300px] overflow-y-auto mb-4 p-4 rounded border border-primary-100/10 bg-primary-100/5 dark:bg-white/5">
+       <markdown class="dark:text-secondary-50 text-wrap break-all"
+                 [data]="showingCat.description ? showingCat.description : ('CATALOGS._no_desc' | translate)">
+       </markdown>
+     </div>
+   </div>
+
+   <hr class="h-px my-1 bg-primary-100 border-0 dark:bg-primary-100" />
+
+   <!-- CATEGORIES -->
+   <div class="p-4 flex flex-wrap gap-2">
+     @for(category of showingCat.category; track category.id) {
+       <span class="inline-block bg-blue-300 text-primary-100 text-xs font-bold px-2.5 py-0.5 rounded-full text-wrap break-all">
+         {{ category.name }}
+       </span>
+     } @empty {
+       <span class="inline-block bg-blue-300 text-primary-100 text-xs font-bold px-2.5 py-0.5 rounded-full text-wrap break-all">
+         {{ 'CATALOGS._no_cat' | translate }}
+       </span>
+     }
+   </div>
+ </div>
+</div>
+</div>
+
 }
