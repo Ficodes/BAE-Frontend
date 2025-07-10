@@ -72,14 +72,16 @@
                 }
 
                 <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2"
-                    [ngClass]="complianceLevel == 1 ? 'bg-red-200 text-red-700' : complianceLevel == 2 ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
-                    <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel == 1 ? 'text-red-700' : complianceLevel == 2 ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
-                    @if(complianceLevel==1){
-                        Level 1
-                    } @else if(complianceLevel==2) {
-                        Level 2
+                    [ngClass]="complianceLevel == 'NL' ? 'bg-red-200 text-red-700' : complianceLevel == 'BL' ? 'bg-orange-200 text-orange-700' : complianceLevel == 'P' ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
+                    <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel == 'NL' ? 'text-red-700' : complianceLevel == 'BL' ? 'text-orange-700' : complianceLevel == 'P' ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
+                    @if(complianceLevel=='NL'){
+                        No level
+                    }@else if(complianceLevel=='BL'){
+                        Baseline
+                    } @else if(complianceLevel=='P') {
+                        Professional
                     } @else {
-                        Level 3
+                        Professional+
                     }
                 </a>
             </div>
@@ -189,19 +191,32 @@
                     }
             </div>-->
             <h2 class="text-4xl font-extrabold text-primary-100 dark:text-primary-50 text-center pb-8 pt-12">{{ 'CARD._comp_profile' | translate }}</h2>
+
+              
             <div class="container mx-auto px-4">
-                <div class="flex flex-wrap -mx-4">
+                <h3 class="text-2xl font-bold text-primary-100 dark:text-primary-50 text-left mb-2">
+                    {{ complianceLevel === 'NL' ? 'No level' : complianceLevel === 'BL' ? 'Baseline' : complianceLevel === 'P' ? 'Professional' : complianceLevel === 'PP' ? 'Professional+' : complianceLevel }}
+                </h3>
+                <p class="mb-2 text-gray-800 dark:text-gray-200">
+                    {{ complianceDescription }}
+                </p>
+                @if (selfAtt) {
+                    <a [href]="selfAtt" target="_blank"
+                       class="font-medium text-blue-600 dark:text-blue-500 hover:underline">
+                      You can find the self attestation document here.
+                    </a>
+                  }
+                  
+                <div class="flex flex-wrap -mx-4 mt-4">
                     @for (char of complianceProf; track char.id) {
-                        <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-8">
-                            <div class="border border-2 rounded-lg shadow bg-white dark:bg-secondary-200 shadow-md p-8 h-full"
-                            [ngClass]="char.href == '#' ? 'border-gray-400' : (isVerified(char) && char.domesupported == true ? 'border-green-500' : 'border-green-300')">
-                                <h3 class="text-2xl font-bold mb-4 dark:text-white">{{char.name}}</h3>
+                        <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-8 " >
+                            <div class="border border-2 rounded-lg shadow bg-white dark:bg-secondary-200 shadow-md p-8 h-full border-primary-100 cursor-pointer" (click)="goToLink(char.href)">
+                            <!--[ngClass]="char.href == '#' ? 'border-gray-400' : (isVerified(char) && char.domesupported == true ? 'border-green-500' : 'border-green-300')">
                                 <div class="flex justify-between">
                                     @if (char.href == '#') {
                                         <a class="text-xs font-small md:font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2 bg-gray-400 dark:bg-gray-700 dark:text-white text-gray-900">
                                             Not required
                                         </a>
-                                        <!-- TODO: ADD EXPIRED when dome supported certs are expired-->
                                     } @else {
                                         <a class="mb-2 font-small md:font-medium pl-4 text-primary-100" target="_blank" href="{{char.href}}">
                                             {{char.value}}
@@ -226,8 +241,12 @@
                                         <fa-icon [icon]="faAtom" class="fa-2xl text-primary-100 align-middle"></fa-icon>
                                     } @else {
                                         <fa-icon [icon]="faAtom" class="fa-2xl text-gray-600 align-middle"></fa-icon>
-                                    }
-                                </div>
+                                        }
+                                        <fa-icon [icon]="faAtom" class="fa-2xl text-primary-100 align-middle"></fa-icon>
+                                </div>-->
+                                <fa-icon [icon]="faAtom" class="fa-2xl text-primary-100 align-middle"></fa-icon>
+                                <h3 class="text-2xl font-bold mt-4 dark:text-white">{{char.name}}</h3>
+
                             </div>
                         </div>
                     }

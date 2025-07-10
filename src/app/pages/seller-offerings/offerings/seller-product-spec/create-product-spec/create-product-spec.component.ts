@@ -112,6 +112,8 @@ export class CreateProductSpecComponent implements OnInit {
   selectedISO:any;
   showUploadFile:boolean=false;
   disableCompNext:boolean=true;
+  selfAtt:any;
+  showUploadAtt:boolean=false;
 
   //SERVICE INFO:
   serviceSpecPage=0;
@@ -369,8 +371,21 @@ export class CreateProductSpecComponent implements OnInit {
       this.selectedISOS.splice(index, 1);
       this.availableISOS.push({name: iso.name, mandatory: iso.mandatory, domesupported: iso.domesupported});
     }  
+    this.cdr.detectChanges(); 
+  }
+
+  removeSelfAtt(){
+    console.log('remove self att')
+    console.log(this.selfAtt)
+    const index = this.finishChars.findIndex(item => item.name === this.selfAtt.name);
+    console.log(index)
+    if (index !== -1) {
+      console.log('seleccionar')
+      this.finishChars.splice(index, 1);
+    }
+    this.selfAtt='';
     this.cdr.detectChanges();
-    console.log(this.prodSpecsBundle)    
+    console.log(this.finishChars)
   }
 
   checkValidISOS():boolean{
@@ -432,7 +447,7 @@ export class CreateProductSpecComponent implements OnInit {
                 }, 3000);
                 return;
               }
-              if(this.showCompliance){
+              if(this.showCompliance && !this.showUploadAtt){
                 const index = this.selectedISOS.findIndex(item => item.name === sel.name);
                 this.attachmentService.uploadFile(fileBody).subscribe({
                   next: data => {
@@ -440,6 +455,51 @@ export class CreateProductSpecComponent implements OnInit {
                       this.selectedISOS[index].url=data.content;
                       //this.selectedISOS[index].attachmentType=file.type;
                       this.showUploadFile=false;
+                      this.cdr.detectChanges();
+                      console.log('uploaded')
+                  },
+                  error: error => {
+                      console.error('There was an error while uploading the file!', error);
+                      if(error.error.error){
+                        console.log(error)
+                        this.errorMessage='Error: '+error.error.error;
+                      } else {
+                        this.errorMessage='There was an error while uploading the file!';
+                      }
+                      if (error.status === 413) {
+                        this.errorMessage='File size too large! Must be under 3MB.';
+                      }
+                      this.showError=true;
+                      setTimeout(() => {
+                        this.showError = false;
+                      }, 3000);
+                  }
+                });
+              }
+              if(this.showUploadAtt){
+                const index = this.finishChars.findIndex(item => item.name === this.selfAtt.name);
+                this.attachmentService.uploadFile(fileBody).subscribe({
+                  next: data => {
+                      console.log(data)
+                      if (index !== -1) {
+                        this.selfAtt.productSpecCharacteristicValue=[{
+                          isDefault: true,
+                          value: data.content
+                        }];
+                        this.finishChars[index] = this.selfAtt;
+                      } else {
+                        this.selfAtt = {
+                          id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
+                          name: 'Compliance:SelfAtt',
+                          productSpecCharacteristicValue: [{
+                            isDefault: true,
+                            value: data.content
+                          }]
+                        }
+                        this.finishChars.push(this.selfAtt)
+                      }
+                      this.showUploadFile=false;
+                      this.showUploadAtt=false;
                       this.cdr.detectChanges();
                       console.log('uploaded')
                   },
@@ -531,6 +591,11 @@ export class CreateProductSpecComponent implements OnInit {
   public fileLeave(event: any){
     console.log('leave')
     console.log(event);
+  }
+
+  toggleUploadSelfAtt(){
+    this.showUploadFile=true;
+    this.showUploadAtt=true;
   }
 
   toggleUploadFile(sel:any){

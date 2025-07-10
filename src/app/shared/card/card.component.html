@@ -16,15 +16,17 @@
     <div class="flex-1 h-full px-5 py-5 bg-secondary-50/95 dark:bg-secondary-100/95 rounded-lg">
       <div class="overflow-y-hidden overflow-x-hidden">
       <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2 mr-2"
-      [ngClass]="complianceLevel == 1 ? 'bg-red-200 text-red-700' : complianceLevel == 2 ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
-      <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel == 1 ? 'text-red-700' : complianceLevel == 2 ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
-          @if(complianceLevel==1){
-              Level 1
-          } @else if(complianceLevel==2) {
-              Level 2
-          } @else {
-              Level 3
-          }
+      [ngClass]="complianceLevel == 'NL' ? 'bg-red-200 text-red-700' : complianceLevel == 'BL' ? 'bg-orange-200 text-orange-700' : complianceLevel == 'P' ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
+      <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel == 'NL' ? 'text-red-700' : complianceLevel == 'BL' ? 'text-orange-700' : complianceLevel == 'P' ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
+      @if(complianceLevel=='NL'){
+        No level
+      }@else if(complianceLevel=='BL'){
+          Baseline
+      } @else if(complianceLevel=='P') {
+          Professional
+      } @else {
+          Professional+
+      }
       </a>
       @for (cat of categories; track cat.id) {
         <bae-badge class="mr-2" [category]=cat></bae-badge>
@@ -129,15 +131,17 @@
 
                   <div class="overflow-x-hidden">
                     <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2 mr-2"
-                    [ngClass]="complianceLevel==1 ? 'bg-red-200 text-red-700' : complianceLevel==2 ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
-                    <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel==1 ? 'text-red-700' : complianceLevel==2 ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
-                        @if(complianceLevel==1){
-                            Level 1
-                        } @else if(complianceLevel==2) {
-                            Level 2
-                        } @else {
-                            Level 3
-                        }
+                    [ngClass]="complianceLevel == 'NL' ? 'bg-red-200 text-red-700' : complianceLevel == 'BL' ? 'bg-orange-200 text-orange-700' : complianceLevel == 'P' ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
+                    <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel == 'NL' ? 'text-red-700' : complianceLevel == 'BL' ? 'text-orange-700' : complianceLevel == 'P' ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
+                      @if(complianceLevel=='NL'){
+                        No level
+                      }@else if(complianceLevel=='BL'){
+                          Baseline
+                      } @else if(complianceLevel=='P') {
+                          Professional
+                      } @else {
+                          Professional+
+                      }
                     </a>
                       @for (cat of categories; track cat.id) {
                           <bae-badge class="mr-2" [category]=cat></bae-badge>

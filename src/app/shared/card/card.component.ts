@@ -50,7 +50,7 @@ export class CardComponent implements OnInit, AfterViewInit {
   modal: Modal;
   prodSpec:ProductSpecification = {};
   complianceProf:any[] = certifications;
-  complianceLevel:number = 1;
+  complianceLevel:string = 'NL';
   showModal:boolean=false;
   cartSelection:boolean=false;
   check_prices:boolean=false;
@@ -202,6 +202,7 @@ export class CardComponent implements OnInit, AfterViewInit {
         this.getOwner();
 
         if(this.prodSpec.productSpecCharacteristic != undefined) {
+          this.complianceLevel = this.api.getComplianceLevel();
           let vcProf = this.prodSpec.productSpecCharacteristic.find((p => {
             return p.name === `Compliance:VC`
           }));
@@ -241,12 +242,12 @@ export class CardComponent implements OnInit, AfterViewInit {
           }
         }
 
-        if (vcs > 0) {
+        /*if (vcs > 0) {
           this.complianceLevel = 2
           if (vcs == domeSup) {
             this.complianceLevel = 3
           }
-        }
+        }*/
       })
     }
 

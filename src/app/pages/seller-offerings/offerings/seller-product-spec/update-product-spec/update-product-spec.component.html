@@ -366,6 +366,31 @@
                 }
                 @if(showCompliance){
                     <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white">{{ 'UPDATE_PROD_SPEC._comp_profile' | translate }}</h2>
+                    <h3 class="font-bold text-primary-100 dark:text-primary-50 text-left ml-4">
+                        Self Attestation:
+                    </h3>
+                    <div class="flex items-center justify-between ml-4 border border-1 p-2 rounded-lg shadow bg-white dark:bg-secondary-200 shadow-md">
+
+                        <p class="mb-2 text-gray-800 dark:text-gray-200">
+                            {{ selfAtt ? selfAtt.productSpecCharacteristicValue[0].value : 'Upload your self attestation document' }}
+                        </p>
+                        
+                        <div class="flex items-center justify-between">
+                            <button (click)="toggleUploadSelfAtt();$event.stopPropagation();" type="button" class="text-white file-select-button mr-4 bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
+                                <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v9m-5 0H5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-2M8 9l4-5 4 5m1 8h.01"/>
+                                </svg>                                                
+                            </button>
+                            @if(selfAtt && !checkExistingSelfAtt){
+                                <button (click)="removeSelfAtt()" type="button" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
+                                    <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+                                    </svg>                                                                                                
+                                </button> 
+                            }
+                        </div>
+
+                    </div>
                     @if(availableISOS.length>0){
                         <button id="dropdownButtonISO" (click)="buttonISOClicked=!buttonISOClicked" data-dropdown-toggle="dropdownISO" class="text-white w-full m-4 bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-between" type="button">
                             {{ 'UPDATE_PROD_SPEC._add_comp' | translate }}

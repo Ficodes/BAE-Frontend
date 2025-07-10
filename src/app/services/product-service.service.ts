@@ -300,4 +300,11 @@ export class ApiServiceService {
     let url = `${ApiServiceService.BASE_URL}/SLAManagement/sla/${id}`;
     return lastValueFrom(this.http.get<any>(url));
   }
+
+  getComplianceLevel(){
+    return 'NL'
+    //return 'BL'
+    //return 'P'
+    //return 'PP'
+  }
 }

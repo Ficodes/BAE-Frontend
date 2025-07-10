@@ -108,6 +108,9 @@ export class UpdateProductSpecComponent implements OnInit {
   selectedISO:any;
   complianceVC:any = null;
   showUploadFile:boolean=false;
+  selfAtt:any;
+  checkExistingSelfAtt:boolean=false;
+  showUploadAtt:boolean=false;
 
   //SERVICE INFO:
   serviceSpecPage=0;
@@ -288,6 +291,7 @@ export class UpdateProductSpecComponent implements OnInit {
           continue
         }
 
+
         const index = this.availableISOS.findIndex(item => item.name === this.prod.productSpecCharacteristic[i].name);
         if (index !== -1) {
           console.log('adding sel iso')
@@ -298,6 +302,10 @@ export class UpdateProductSpecComponent implements OnInit {
             domesupported: this.availableISOS[index].domesupported
           });
           this.availableISOS.splice(index, 1);
+        }
+        if (this.prod.productSpecCharacteristic[i].name == 'Compliance:SelfAtt') {
+          this.selfAtt=this.prod.productSpecCharacteristic[i]
+          this.checkExistingSelfAtt=true;
         }
       }
       console.log('selected isos')
@@ -525,6 +533,17 @@ export class UpdateProductSpecComponent implements OnInit {
     console.log(this.prodSpecsBundle)    
   }
 
+  removeSelfAtt(){
+    const index = this.finishChars.findIndex(item => item.name === this.selfAtt.name);
+    if (index !== -1) {
+      console.log('seleccionar')
+      this.finishChars.splice(index, 1);
+    }
+    this.selfAtt='';
+    this.cdr.detectChanges();
+    console.log(this.finishChars)
+  }
+
   checkValidISOS():boolean{
     let invalid = this.selectedISOS.find((p => {
       return p.url === ''
@@ -617,7 +636,7 @@ export class UpdateProductSpecComponent implements OnInit {
                 }, 3000);
                 return;
               }
-              if(this.showCompliance){
+              if(this.showCompliance && !this.showUploadAtt){
                 const index = this.selectedISOS.findIndex(item => item.name === sel.name);
                 this.attachmentService.uploadFile(fileBody).subscribe({
                   next: data => {
@@ -630,6 +649,50 @@ export class UpdateProductSpecComponent implements OnInit {
                   },
                   error: error => {
                       console.error('There was an error while uploading file!', error);
+                      if(error.error.error){
+                        console.log(error)
+                        this.errorMessage='Error: '+error.error.error;
+                      } else {
+                        this.errorMessage='There was an error while uploading the file!';
+                      }
+                      if (error.status === 413) {
+                        this.errorMessage='File size too large! Must be under 3MB.';
+                      }
+                      this.showError=true;
+                      setTimeout(() => {
+                        this.showError = false;
+                      }, 3000);
+                  }
+                });
+              }
+              if(this.showUploadAtt){
+                const index = this.finishChars.findIndex(item => item.name === this.selfAtt.name);
+                this.attachmentService.uploadFile(fileBody).subscribe({
+                  next: data => {
+                      if (index !== -1) {
+                        this.selfAtt.productSpecCharacteristicValue=[{
+                          isDefault: true,
+                          value: data.content
+                        }];
+                        this.finishChars[index] = this.selfAtt;
+                      } else {
+                        this.selfAtt = {
+                          id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
+                          name: 'Compliance:SelfAtt',
+                          productSpecCharacteristicValue: [{
+                            isDefault: true,
+                            value: data.content
+                          }]
+                        }
+                        this.finishChars.push(this.selfAtt)
+                      }
+                      this.showUploadFile=false;
+                      this.showUploadAtt=false;
+                      this.cdr.detectChanges();
+                      console.log('uploaded')
+                  },
+                  error: error => {
+                      console.error('There was an error while uploading the file!', error);
                       if(error.error.error){
                         console.log(error)
                         this.errorMessage='Error: '+error.error.error;
@@ -716,6 +779,11 @@ export class UpdateProductSpecComponent implements OnInit {
   public fileLeave(event: any){
     console.log('leave')
     console.log(event);
+  }
+
+  toggleUploadSelfAtt(){
+    this.showUploadFile=true;
+    this.showUploadAtt=true;
   }
 
   toggleUploadFile(sel:any){
