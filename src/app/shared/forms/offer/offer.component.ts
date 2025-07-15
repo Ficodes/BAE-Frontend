@@ -323,7 +323,8 @@ export class OfferComponent implements OnInit, OnDestroy{
           productProfile: configProfileCheck ? this.mapProductProfile(pricePlan?.prodSpecCharValueUse || []) : [],
           price: pricePlan?.price?.value,
           validFor: pricePlan?.validFor || null,
-          usageUnit: pricePlan.usageUnit
+          usageUnit: pricePlan.usageUnit,
+          usageSpecId: pricePlan?.usagespecid
         }
         if(pricePlan?.popRelationship){
           let alter = await this.api.getOfferingPrice(pricePlan?.popRelationship[0].id)
@@ -359,6 +360,7 @@ export class OfferComponent implements OnInit, OnDestroy{
             selectedCharacteristic: data?.prodSpecCharValueUse || null,
             currency: data?.price?.unit || 'EUR',
             usageUnit: data?.unitOfMeasure?.units || null,
+            usageSpecId: data?.usagespecid,
             recurringPeriod: data?.recurringChargePeriodType || 'month',
             price: data?.price?.value,
             validFor: data?.validFor || null,
@@ -391,6 +393,7 @@ export class OfferComponent implements OnInit, OnDestroy{
       }
       if(pricePlan.priceType=='usage'){
         priceInfo.usageUnit=pricePlan.unitOfMeasure.units
+        priceInfo.usageSpecId= pricePlan?.usagespecid
       }
 
       if(pricePlan.priceType=='recurring' || pricePlan.priceType=='recurring-prepaid'){
@@ -478,7 +481,18 @@ export class OfferComponent implements OnInit, OnDestroy{
     }
 
     if (priceType === 'usage') {
-      priceComp.unitOfMeasure = { amount: 1, units: component.usageUnit ?? component.newValue.usageUnit };
+      console.log(component.newValue)
+      priceComp.unitOfMeasure = {
+        amount: 1,
+        units: component.usageUnit ?? component.newValue.usageUnit      
+      }
+      priceComp['@baseType'] = "ProductOfferingPrice";
+      priceComp['@schemaLocation'] = "https://raw.githubusercontent.com/laraminones/tmf-new-schemas/main/UsageSpecId.json";
+      (priceComp as any).usagespecid = component.newValue.usageSpecId;
+
+
+      console.log('-- here')
+      console.log(priceComp)
     }
 
     if (component?.selectedCharacteristic || component?.newValue?.selectedCharacteristic) {
@@ -518,7 +532,18 @@ export class OfferComponent implements OnInit, OnDestroy{
     }
 
     if (component.newValue.priceType === 'usage') {
-      priceComp.unitOfMeasure = { amount: 1, units: component.newValue.usageUnit };
+      console.log(component.newValue)
+      priceComp.unitOfMeasure = { 
+        amount: 1,
+        units: component.newValue.usageUnit     
+      };
+
+      priceComp['@baseType'] = "ProductOfferingPrice";
+      priceComp['@schemaLocation'] = "https://raw.githubusercontent.com/laraminones/tmf-new-schemas/main/UsageSpecId.json";
+      (priceComp as any).usagespecid = component.newValue.usageSpecId;
+
+      console.log('----- here')
+      console.log(priceComp)
     }
 
     if (component.newValue.selectedCharacteristic) {
@@ -621,7 +646,18 @@ export class OfferComponent implements OnInit, OnDestroy{
     }
 
     if (priceType === 'usage') {
-      price.unitOfMeasure = { amount: 1, units: comp.usageUnit ?? plan?.newValue?.priceComponents[0]?.usageUnit };
+      price.unitOfMeasure = { 
+        amount: 1,
+        units: comp.usageUnit ?? plan?.newValue?.priceComponents[0]?.usageUnit     
+      };
+
+      price['@baseType'] = "ProductOfferingPrice";
+      price['@schemaLocation'] = "https://raw.githubusercontent.com/laraminones/tmf-new-schemas/main/UsageSpecId.json";
+      (price as any).usagespecid = comp.usageSpecId ?? plan?.newValue?.priceComponents[0].usageSpecId;
+
+
+      console.log('----- here')
+      console.log(price)
     }
 
     if (comp?.discountValue != null) {
@@ -681,7 +717,17 @@ export class OfferComponent implements OnInit, OnDestroy{
       }
   
       if (plan.newValue.priceComponents[0]?.priceType === 'usage') {
-        price.unitOfMeasure = { amount: 1, units: plan.newValue.priceComponents[0].usageUnit };
+        price.unitOfMeasure = { 
+          amount: 1,
+          units: plan.newValue.priceComponents[0].usageUnit        
+        };
+
+        price['@baseType'] = "ProductOfferingPrice";
+        price['@schemaLocation'] = "https://raw.githubusercontent.com/laraminones/tmf-new-schemas/main/UsageSpecId.json";
+        (price as any).usagespecid = plan?.newValue?.priceComponents[0].usageSpecId;
+
+        console.log('----- here')
+        console.log(price)
       }
   
       if (plan.newValue.priceComponents[0]?.selectedCharacteristic) {

@@ -157,11 +157,44 @@
           </select>
         </div>
       } @else if (priceComponentForm.get('priceType')?.value === 'usage') {
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'FORMS.PRICE_PLAN_COMPONENT._unit' | translate }}</label>
-          <input data-cy="usageInput" formControlName="usageUnit" type="text" placeholder="Ej. GB, CPU, Horas"
-                 class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
-        </div>
+      <div class="flex flex-row">
+        <select id="type" (change)="changePriceComponentUsageSpec($event)" 
+          class="mb-2 mr-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-gray-100 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            @if(!selectedUsageSpec){
+              <option value="">Select a usage specification</option>
+              @for(usage of usageSpecs; track usage){
+                <option  value="{{usage.id}}">{{usage.name}}</option>
+              }
+            } @else {
+              <option  value="{{selectedUsageSpec.id}}">{{selectedUsageSpec.name}}</option>
+              @for(usage of usageSpecs; track usage){
+                @if(usage.name != selectedUsageSpec.name){
+                  <option  value="{{usage.id}}">{{usage.name}}</option>
+                }
+              }
+            }
+          </select>
+          @if(showMetricSelect){
+              <select id="type" (change)="changePriceComponentMetric($event)"
+              class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-gray-100 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"> 
+                  @if(!selectedMetric){
+                    @for(metric of selectedUsageSpec.specCharacteristic; track metric){
+                      <option value="{{metric.name}}">{{metric.name}}</option>
+                    }
+                  } @else {
+                    <option value="selectedMetric">{{selectedMetric}}</option>
+                    @for(metric of selectedUsageSpec.specCharacteristic; track metric){
+                      @if(metric.name != selectedMetric){
+                        <option value="{{metric.name}}">{{metric.name}}</option>
+                      }                      
+                    }
+                  }
+              </select>
+          }
+      </div>
+      
+
+      
       }
 
       <!-- Descuento -->

@@ -69,6 +69,34 @@
         </div>
       }
     }
+
+    @if(metrics.length>0){
+      <p class="mt-4 mb-4 text-sm text-gray-500 dark:text-gray-400">Please select the metric you need to suit this offer to you.</p>
+      <div class="flex flex-row">
+        <!-- Usage Spec select -->
+        <!--<select (change)="onUsageSpecChange($event)" class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-gray-100 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+          <option value="">Select a usage specification</option>
+          @for (key of usageSpecIds; track key) {
+            <option [value]="key">{{ key }}</option>
+          }
+        </select>-->
+      
+        <!-- Unit of Measure select -->
+        <!--@if (selectedUsageSpecId) {-->
+        
+          <select (change)="onMetricChange($event)" class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-gray-100 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            @if(selectedUnitOfMeasure){
+              <option value="selectedMetric">{{selectedUnitOfMeasure}}</option>
+            }            
+            @for (metric of metrics || []; track metric) {
+              @if(metric.unitOfMeasure!=selectedUnitOfMeasure){
+                <option [value]="metric">{{ metric.unitOfMeasure }}</option>
+              }              
+            }
+          </select>
+        <!--}-->
+      </div> 
+    }
     @if (form.get('selectedPricePlan')?.value && form.get('characteristics')?.valid && tsAndCs.description!='') {
       <div class="mb-6 text-sm text-gray-500 dark:text-gray-400">
         <h5 class="text-wrap break-all text-base font-semibold text-primary-100 dark:text-gray-400">Terms and conditions:</h5>

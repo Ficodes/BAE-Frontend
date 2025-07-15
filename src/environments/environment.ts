@@ -28,6 +28,7 @@ export const environment = {
     PROD_SPEC_LIMIT: 6,
     SERV_SPEC_LIMIT: 6,
     RES_SPEC_LIMIT: 6,
+    USAGE_SPEC_LIMIT: 6,
     ORDER_LIMIT: 1000,
     CATEGORY_LIMIT: 100,
     INVOICE_LIMIT: 100,

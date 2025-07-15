@@ -10,6 +10,8 @@ import {EventMessageService} from "../../services/event-message.service";
 import { cartProduct } from 'src/app/models/interfaces';
 import { v4 as uuidv4 } from 'uuid';
 import { certifications } from 'src/app/models/certification-standards.const';
+import { UsageServiceService } from 'src/app/services/usage-service.service'
+import { ApiServiceService } from 'src/app/services/product-service.service'
 type Product = components["schemas"]["ProductOffering"];
 type ProductSpecification = components["schemas"]["ProductSpecification"];
 type ProductOfferingTerm = components["schemas"]["ProductOfferingTerm"];
@@ -50,6 +52,12 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
   images: AttachmentRefOrValue[]  = [];
   toastVisibility: boolean = false;
   orderChars:any[]=[];
+  selectedPriceComponents:any[]=[];
+  selectedMetric:any;
+  selectedUsageSpecId: string | null = null;
+  selectedUnitOfMeasure: string | null = null;
+  metrics:any[]=[];
+  groupedMetrics: { [usageSpecId: string]: { usagespecid: string; name: string; unitOfMeasure: string }[] } = {};
 
   characteristics: ProductSpecificationCharacteristic[] = []; // Características dinámicas
   filteredCharacteristics: ProductSpecificationCharacteristic[] = [];
@@ -61,7 +69,15 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     }
   }
 
-  constructor(private fb: FormBuilder, private priceService: PriceServiceService,private cartService: ShoppingCartServiceService,private eventMessage: EventMessageService,private cdr: ChangeDetectorRef,) {
+  constructor(
+    private fb: FormBuilder,
+    private priceService:
+    PriceServiceService,
+    private cartService: ShoppingCartServiceService,
+    private eventMessage: EventMessageService,
+    private cdr: ChangeDetectorRef,
+    private usageService: UsageServiceService,
+    private api: ApiServiceService) {
     // Crear el formulario padre
     this.form = this.fb.group({
       selectedPricePlan: [null, Validators.required], // Plan de precios seleccionado
@@ -148,8 +164,12 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
   }
 
   // Handle price plan selection
-  onPricePlanSelected(pricePlan: any): void {
+  async onPricePlanSelected(pricePlan: any) {
+    this.metrics=[];
+    console.log('precio')
+    console.log(pricePlan)
     this.form.get('selectedPricePlan')?.setValue(pricePlan);
+
 
     // Set chars based on selected price plan
     this.isCustom = pricePlan.priceType === 'custom';
@@ -163,10 +183,70 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
 
     this.filterCharacteristics();
 
+    if(pricePlan.usagespecid && pricePlan.unitOfMeasure){
+      //let usageSpec = await this.usageService.getUsageSpec(pricePlan.usagespecid)
+      this.metrics.push({
+        priceId: pricePlan.id,
+        usagespecid: pricePlan.usagespecid,
+        //name: usageSpec.name,
+        unitOfMeasure: pricePlan.unitOfMeasure.units
+      })
+    } else if(pricePlan.bundledPopRelationship) {
+      for(let i=0;i<pricePlan.bundledPopRelationship.length;i++){
+        let comp = await this.api.getOfferingPrice(pricePlan.bundledPopRelationship[i].id)
+        if(comp.usagespecid && comp.unitOfMeasure){
+          //let usageSpec = await this.usageService.getUsageSpec(comp.usagespecid)
+          this.metrics.push({
+            priceId: comp.id,
+            usagespecid: comp.usagespecid,
+            //name: usageSpec.name,
+            unitOfMeasure: comp.unitOfMeasure.units         
+          })
+        }
+      }
+  
+    }
+
+    console.log('metrics----')
+    console.log(this.metrics)
+
+    if(this.metrics.length>0){
+      this.selectedMetric=this.metrics[0]
+      this.selectedUnitOfMeasure=this.metrics[0].unitOfMeasure
+      const grouped = this.metrics.reduce((acc, metric) => {
+        const key = metric.usagespecid;
+      
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+      
+        acc[key].push(metric);
+      
+        return acc;
+      }, {} as Record<string, typeof this.metrics>);
+      this.groupedMetrics=grouped;        
+    }  
+
     this.selectedPricePlan = pricePlan;
     console.log(this.selectedPricePlan);
     this.calculatePrice();
   }
+
+  onUsageSpecChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    this.selectedUsageSpecId = target.value;
+    this.selectedUnitOfMeasure = null;
+  }
+  
+  onMetricChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    this.selectedUnitOfMeasure = target.value;
+  }
+
+  get usageSpecIds(): string[] {
+    return Object.keys(this.groupedMetrics);
+  }
+  
 
   // Handle characteristic value changes
   onValueChange(event: { characteristicId: string; selectedValue: any }): void {
@@ -240,7 +320,7 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
 
     const selectedPricePlan = this.form.get('selectedPricePlan')?.value;
     //PROD is an OrderItem
-    let prod = {
+    let prod : any = {
       "id": this.productOff?.id,
       "action": "add",
       "quantity": "1",
@@ -257,6 +337,14 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
       }],
       "product": {
         "productCharacteristic": this.orderChars
+      }
+    }
+
+    if(this.selectedMetric){
+      //Añadir la métrica al orderItem
+      prod.metric = {
+        usagespecid: this.selectedMetric.usagespecid,
+        unitOfMeasure: this.selectedMetric.unitOfMeasure
       }
     }
 
