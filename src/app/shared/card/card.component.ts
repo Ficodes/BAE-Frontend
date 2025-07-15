@@ -193,61 +193,14 @@ export class CardComponent implements OnInit, AfterViewInit {
     let specId:any|undefined=this.productOff?.productSpecification?.id;
     if(specId != undefined){
       this.api.getProductSpecification(specId).then(spec => {
-        let vcs = 0
-        let domeSup = 0
-        let tokenComp = []
         this.prodSpec = spec;
         console.log('prod spec')
         console.log(this.prodSpec)
         this.getOwner();
 
         if(this.prodSpec.productSpecCharacteristic != undefined) {
-          this.complianceLevel = this.api.getComplianceLevel();
-          let vcProf = this.prodSpec.productSpecCharacteristic.find((p => {
-            return p.name === `Compliance:VC`
-          }));
-
-          if (vcProf) {
-            const vcToken: any = vcProf.productSpecCharacteristicValue?.at(0)?.value
-            const decoded = jwtDecode(vcToken)
-            let credential: any = null
-
-            if ('verifiableCredential' in decoded) {
-              credential = decoded.verifiableCredential;
-            } else if('vc' in decoded) {
-              credential = decoded.vc;
-            }
-
-            if (credential != null) {
-              const subject = credential.credentialSubject;
-
-              if ('compliance' in subject) {
-                tokenComp = subject.compliance.map((comp: any) => {
-                  return comp.standard
-                })
-              }
-            }
-          }
+          this.complianceLevel = this.api.getComplianceLevel(this.prodSpec);
         }
-
-        for(let z=0; z < this.complianceProf.length; z++){
-          if (this.complianceProf[z].domesupported) {
-            domeSup += 1
-          }
-
-          if(this.prodSpec.productSpecCharacteristic != undefined){
-            if (tokenComp.indexOf(this.complianceProf[z].name) > -1) {
-              vcs += 1
-            }
-          }
-        }
-
-        /*if (vcs > 0) {
-          this.complianceLevel = 2
-          if (vcs == domeSup) {
-            this.complianceLevel = 3
-          }
-        }*/
       })
     }
 

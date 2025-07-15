@@ -15,7 +15,6 @@ import { LoginInfo, cartProduct,productSpecCharacteristicValueCart } from '../..
 import { ShoppingCartServiceService } from 'src/app/services/shopping-cart-service.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
 import {EventMessageService} from "../../services/event-message.service";
-import { jwtDecode } from "jwt-decode";
 import * as moment from 'moment';
 import { environment } from 'src/environments/environment';
 import { Location } from '@angular/common';
@@ -272,8 +271,8 @@ export class ProductDetailsComponent implements OnInit {
         }
         this.category = this.productOff?.category?.at(0)?.name ?? 'none';
         this.categories = this.productOff?.category;
-        this.price = this.productOff?.productOfferingPrice?.at(0)?.price?.value + ' ' +
-          this.productOff?.productOfferingPrice?.at(0)?.price?.unit ?? 'n/a';
+        this.price = this.productOff?.productOfferingPrice?.at(0)?.price?.value + ' ' + this.productOff?.productOfferingPrice?.at(0)?.price?.unit ?? 'n/a';
+
         let profile = this.productOff?.attachment?.filter(item => item.name === 'Profile Picture') ?? [];
         console.log('profile...')
         console.log(profile)
@@ -284,9 +283,6 @@ export class ProductDetailsComponent implements OnInit {
           this.images = profile;
           this.attatchments = this.productOff?.attachment?.filter(item => item.name != 'Profile Picture') ?? [];
         }
-        let vcs = 0
-        let domeSup = 0
-        let tokenComp = []
 
         if(this.prodSpec.productSpecCharacteristic != undefined) {
 
@@ -297,73 +293,12 @@ export class ProductDetailsComponent implements OnInit {
 
           if(selfAttObj){
             this.selfAtt = selfAttObj.productSpecCharacteristicValue?.at(0)?.value
-          }          
-
-          // Find if there is a credential attached to the product offering
-          let vcProf = this.prodSpec.productSpecCharacteristic.find((p => {
-            return p.name === `Compliance:VC`
-          }));
-
-          if (vcProf) {            
-            const vcToken: any = vcProf.productSpecCharacteristicValue?.at(0)?.value
-            const decoded = jwtDecode(vcToken)
-            let credential: any = null
-
-            if ('verifiableCredential' in decoded) {
-              credential = decoded.verifiableCredential;
-            } else if('vc' in decoded) {
-              credential = decoded.vc;
-            }
-
-            if (credential != null) {
-              const subject = credential.credentialSubject;
-
-              if ('compliance' in subject) {
-                tokenComp = subject.compliance.map((comp: any) => {
-                  return comp.standard
-                })
-              }
-            }
           }
         }
+
         //Hardcoding compliance lever for the moment
-        this.complianceLevel = this.api.getComplianceLevel();
+        this.complianceLevel = this.api.getComplianceLevel(this.prodSpec);
         this.complianceDescription = this.getComplianceDescription();
-
-        //Commenting this  section thus now we don't show a default set of certifications
-        /*for(let z = 0; z < this.complianceProf.length; z++){
-          if (this.complianceProf[z].domesupported) {
-            domeSup += 1
-          }
-
-          if(this.prodSpec.productSpecCharacteristic != undefined) {
-            // Search certificates or VCs
-            let compProf = this.prodSpec.productSpecCharacteristic.find((p => {
-              return p.name === this.complianceProf[z].name
-            }));
-
-            if (!compProf) {
-              this.complianceProf[z].href = '#'
-              this.complianceProf[z].value = 'Not provided yet'
-            } else {
-              this.complianceProf[z].href = compProf.productSpecCharacteristicValue?.at(0)?.value
-              this.complianceProf[z].value = 'Certification included'
-            }
-
-            if (tokenComp.indexOf(this.complianceProf[z].name) > -1) {
-              this.complianceProf[z].verified = true
-              vcs += 1
-            }
-          }
-        }*/
-
-        // Set compliance level
-        /*if (vcs > 0) {
-          this.complianceLevel = 2
-          if (vcs == domeSup) {
-            this.complianceLevel = 3
-          }
-        }*/
       })
     })
   }
@@ -382,7 +317,6 @@ export class ProductDetailsComponent implements OnInit {
         return '';
     }
   }
-  
 
   isVerified(char: any) {
     return char.verified == true
