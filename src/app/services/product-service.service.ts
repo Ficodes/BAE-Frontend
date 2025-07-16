@@ -306,7 +306,7 @@ export class ApiServiceService {
     let level = 'NL';
 
     if(prodSpec.productSpecCharacteristic != undefined) {
-      let vcProf = prodSpec.productSpecCharacteristic.find((p => {
+      let vcProf = prodSpec.productSpecCharacteristic.find(((p:any) => {
         return p.name === `Compliance:VC`
       }));
 

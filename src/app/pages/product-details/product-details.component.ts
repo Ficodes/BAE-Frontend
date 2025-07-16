@@ -216,7 +216,7 @@ export class ProductDetailsComponent implements OnInit {
         if(this.prodSpec.productSpecCharacteristic != undefined) {
           // Avoid displaying the compliance credential
           this.prodChars = this.prodSpec.productSpecCharacteristic.filter((char: any) => {
-            return char.name != 'Compliance:VC'
+            return char.name != 'Compliance:VC' && char.name != 'Compliance:SelfAtt'
           })
 
           console.log('-- prod spec')
