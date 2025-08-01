@@ -1,4 +1,4 @@
-import { Component, Input, forwardRef } from '@angular/core';
+import { Component, HostListener, Input, forwardRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { NgClass, NgIf } from "@angular/common";
 import { MarkdownComponent } from "ngx-markdown";
@@ -31,6 +31,13 @@ export class MarkdownTextareaComponent implements ControlValueAccessor {
   value: string = '';
   showPreview = false;
   showEmoji = false;
+
+  @HostListener('document:click')
+  onClick() {
+    if (this.showEmoji == true) {
+      this.showEmoji = false;
+    }
+  }
 
   onChange = (_: any) => {};
   onTouched = () => {};
