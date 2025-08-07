@@ -91,7 +91,7 @@ export class CategoriesComponent {
       }
     })*/
     console.log('Getting categories...')
-    this.api.getCategories(this.status).then(data => {      
+    this.api.getDefaultCategories().then(data => {      
       for(let i=0; i < data.length; i++){
         this.findChildren(data[i],data);
         this.unformattedCategories.push(data[i]);
