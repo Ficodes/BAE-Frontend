@@ -233,7 +233,8 @@
         "_no_desc": "No description included",
         "_no_cat": "No categories included",
         "_view_details": "View details",
-        "_desc": "Description"
+        "_desc": "Description",
+        "_choose": "Choose between our Catalogues"
     },
     "SHOPPING_CART": {
         "_buy": "Buy",
