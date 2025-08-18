@@ -207,7 +207,7 @@
                     </a>
                   }
                   
-                <div class="flex flex-wrap -mx-4 mt-4">
+                <div class="flex flex-wrap -mx-4 mt-4 justify-center">
                     @for (char of complianceProf; track char.id) {
                         <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-8 " >
                             <div class="border border-2 rounded-lg shadow bg-white dark:bg-secondary-200 shadow-md p-8 h-full border-primary-100 cursor-pointer" (click)="goToLink(char.href)">
@@ -256,7 +256,7 @@
             <h2 class="text-4xl font-extrabold text-primary-100 dark:text-primary-50 text-center pb-8 pt-12">{{ 'PRODUCT_DETAILS._product_pricing' | translate }}</h2>
             @if(productOff?.productOfferingPrice != undefined){
                 @if(checkCustom){
-                    <div class="grid grid-flow-row gap-4 lg:grid-cols-2 lg:auto-cols-auto justify-items-center p-2">
+                    <div class="grid gap-4 p-2 justify-center justify-items-center [grid-template-columns:repeat(auto-fit,minmax(250px,max-content))]">
                         @for (price of productOff?.productOfferingPrice; track price.id) {
                             @if (price.priceType == 'custom') {
                                 <div class="mx-auto bg-white border border-gray-200 dark:bg-secondary-200 dark:border-gray-800 rounded-lg shadow w-full p-4">
@@ -279,7 +279,7 @@
                         }
                     </div>
                 } @else {
-                    <div class="grid grid-flow-row gap-4 lg:grid-cols-2 lg:auto-cols-auto justify-items-center p-2">
+                    <div class="grid gap-4 p-2 justify-center justify-items-center [grid-template-columns:repeat(auto-fit,minmax(250px,max-content))]">
                         @for (price of productOff?.productOfferingPrice; track price.id) {
                             @if (price.priceType == 'recurring') {
                                 <div class="mx-auto bg-white dark:bg-secondary-200 dark:border-gray-800 border border-gray-200 rounded-lg shadow w-full">
@@ -321,6 +321,7 @@
                     </div>
                 }
             }
+            
         </div>
 
         <div #charsScrollAnchor id="chars-scroll-anchor" class="pt-[88px] -mt-[88px]"></div>
@@ -328,7 +329,7 @@
             <div #charsContent id="chars-container">
                 <h2 class="text-4xl font-extrabold text-primary-100 text-center pb-8 pt-12 dark:text-primary-50">{{ 'PRODUCT_DETAILS._product_chars' | translate }}</h2>
                 <div class="container mx-auto px-4">
-                    <div class="flex flex-wrap -mx-4">
+                    <div class="flex flex-wrap -mx-4 justify-center">
                         @for (char of prodChars; track char.id; let idx = $index) {
                             <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-8">
                                 <div class="border border-gray-200 rounded-lg shadow bg-white dark:bg-secondary-200 dark:border-gray-800 shadow-md p-8 h-full">
@@ -379,7 +380,7 @@
         @if(attatchments.length>0){
         <h2 #attachContent class="text-4xl font-extrabold text-primary-100 dark:text-primary-50 text-center pb-8 pt-12">{{ 'PRODUCT_DETAILS._product_att' | translate }}</h2>
         <div id="attach-container" class="container mx-auto px-4">
-            <div class="flex flex-wrap -mx-4">
+            <div class="flex flex-wrap -mx-4 justify-center">
                 @for (att of attatchments; track att.id) {
                     <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-8">
                         <div class="border border-gray-200 rounded-lg shadow bg-white dark:bg-secondary-200 dark:border-gray-800 shadow-md p-8 h-full grid grid-cols-80/20 pb-4 h-1/4">
@@ -457,7 +458,7 @@
         @if(prodSpec.productSpecificationRelationship != undefined && prodSpec.productSpecificationRelationship.length>0){
             <h2 #relationshipsContent class="text-4xl font-extrabold text-primary-100 text-center pb-8 pt-12 dark:text-primary-50">{{ 'PRODUCT_DETAILS._product_rels' | translate }}</h2>
             <div id="relationships-container" class="container mx-auto px-4">
-                <div class="flex flex-wrap -mx-4">
+                <div class="flex flex-wrap -mx-4 justify-center">
                     @for (rel of prodSpec.productSpecificationRelationship; track rel.id) {
                         <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-8">
                             <div class="border border-gray-200 rounded-lg shadow bg-white dark:bg-secondary-200 dark:border-gray-800 shadow-md p-8 h-full">
