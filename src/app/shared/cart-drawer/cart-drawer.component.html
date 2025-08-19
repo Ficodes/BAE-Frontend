@@ -36,7 +36,7 @@
                            @for (price of item.options.pricing; track price) {
                               <div class="flex place-content-center flex-col">
                                  <span class="font-bold text-gray-900 dark:text-primary-50 mr-3">{{ price['priceType'] }}:</span>
-                                 <span class="text-xs text-gray-900 dark:text-primary-50">{{ price['price']['dutyFreeAmount']['value'] }} {{ price['price']['dutyFreeAmount']['unit'] }}
+                                 <span class="text-xs text-gray-900 dark:text-primary-50">{{ price['price']['taxIncludedAmount']['value'] }} {{ price['price']['taxIncludedAmount']['unit'] }}
                                     @if(hasKey(price, 'recurringChargePeriod')){
                                        / {{ price['recurringChargePeriod'] }}
                                     }

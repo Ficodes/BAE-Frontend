@@ -137,7 +137,7 @@
         @for (item of price; track item) {
           <div class="flex justify-between mb-2">
             <span class="font-medium capitalize">{{ item['priceType'] }}:</span>
-            <span class="font-bold">{{ item['price']['dutyFreeAmount']['value'] }} {{ item['price']['dutyFreeAmount']['unit'] }}
+            <span class="font-bold">{{ item['price']['taxIncludedAmount']['value'] }} {{ item['price']['taxIncludedAmount']['unit'] }}
               @if(hasKey(item, 'recurringChargePeriod')){
                 / {{ item['recurringChargePeriod'] }}
               }
