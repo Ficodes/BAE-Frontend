@@ -82,7 +82,6 @@ export class BillingAccountFormComponent implements OnInit {
 
 
   ngOnInit() {
-    this.loading = true;
     if (this.billAcc != undefined) {
       this.is_create = false;
     } else {
@@ -198,6 +197,7 @@ export class BillingAccountFormComponent implements OnInit {
       }, 2000);
       return;
     } else {
+      this.loading = true;
       let billacc = {
         name: this.billingForm.value.name,
         contact: [{
@@ -239,8 +239,10 @@ export class BillingAccountFormComponent implements OnInit {
         next: data => {
           this.eventMessage.emitBillAccChange(true);
           this.resetBillingForm();
+          this.loading = false;
         },
         error: error => {
+          this.loading = false;
           console.error('There was an error while creating!', error);
           if(error.error.error){
             console.log(error)
