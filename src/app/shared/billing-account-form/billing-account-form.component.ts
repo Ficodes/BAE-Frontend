@@ -39,7 +39,7 @@ export class BillingAccountFormComponent implements OnInit {
   billingForm = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.maxLength(250)]),
     email: new FormControl('', [Validators.required, Validators.email, Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$'), Validators.maxLength(320)]),
-    country: new FormControl('', [Validators.required, Validators.maxLength(250)]),
+    country: new FormControl('AT', [Validators.required, Validators.maxLength(250)]),
     city: new FormControl('', [Validators.required, Validators.maxLength(250)]),
     stateOrProvince: new FormControl('', [Validators.required, Validators.maxLength(250)]),
     postCode: new FormControl('', [Validators.required, Validators.maxLength(250)]),
@@ -65,6 +65,38 @@ export class BillingAccountFormComponent implements OnInit {
   errorMessage:any='';
   showError:boolean=false;
 
+  selectedCountry: string = ''; // Stores the selected country code
+
+  euCountries = [
+    { code: 'AT', name: 'Austria' },
+    { code: 'BE', name: 'Belgium' },
+    { code: 'BG', name: 'Bulgaria' },
+    { code: 'HR', name: 'Croatia' },
+    { code: 'CY', name: 'Cyprus' },
+    { code: 'CZ', name: 'Czech Republic' },
+    { code: 'DK', name: 'Denmark' },
+    { code: 'EE', name: 'Estonia' },
+    { code: 'FI', name: 'Finland' },
+    { code: 'FR', name: 'France' },
+    { code: 'DE', name: 'Germany' },
+    { code: 'GR', name: 'Greece' },
+    { code: 'HU', name: 'Hungary' },
+    { code: 'IE', name: 'Ireland' },
+    { code: 'IT', name: 'Italy' },
+    { code: 'LV', name: 'Latvia' },
+    { code: 'LT', name: 'Lithuania' },
+    { code: 'LU', name: 'Luxembourg' },
+    { code: 'MT', name: 'Malta' },
+    { code: 'NL', name: 'Netherlands' },
+    { code: 'PL', name: 'Poland' },
+    { code: 'PT', name: 'Portugal' },
+    { code: 'RO', name: 'Romania' },
+    { code: 'SK', name: 'Slovakia' },
+    { code: 'SI', name: 'Slovenia' },
+    { code: 'ES', name: 'Spain' },
+    { code: 'SE', name: 'Sweden' }
+  ];
+
   constructor(
     private localStorage: LocalStorageService,
     private cdr: ChangeDetectorRef,
@@ -82,7 +114,6 @@ export class BillingAccountFormComponent implements OnInit {
 
 
   ngOnInit() {
-    this.loading = true;
     if (this.billAcc != undefined) {
       this.is_create = false;
     } else {
@@ -198,6 +229,7 @@ export class BillingAccountFormComponent implements OnInit {
       }, 2000);
       return;
     } else {
+      this.loading = true;
       let billacc = {
         name: this.billingForm.value.name,
         contact: [{
@@ -239,8 +271,10 @@ export class BillingAccountFormComponent implements OnInit {
         next: data => {
           this.eventMessage.emitBillAccChange(true);
           this.resetBillingForm();
+          this.loading = false;
         },
         error: error => {
+          this.loading = false;
           console.error('There was an error while creating!', error);
           if(error.error.error){
             console.log(error)

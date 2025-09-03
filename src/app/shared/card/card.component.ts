@@ -35,6 +35,7 @@ import { environment } from 'src/environments/environment';
 export class CardComponent implements OnInit, AfterViewInit {
 
   @Input() productOff: Product | undefined;
+  @Input() prodSpecInput: ProductSpecification | undefined;
   @Input() cardId: number;
 
   category: string = 'none';
@@ -164,6 +165,8 @@ export class CardComponent implements OnInit, AfterViewInit {
 
 
   ngOnInit() {
+    console.log('----- CARD -----')
+    console.log(this.productOff)
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
     if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
       this.check_logged=true;
@@ -190,19 +193,25 @@ export class CardComponent implements OnInit, AfterViewInit {
     } else {
       this.images = profile;
     }
-    let specId:any|undefined=this.productOff?.productSpecification?.id;
-    if(specId != undefined){
-      this.api.getProductSpecification(specId).then(spec => {
-        this.prodSpec = spec;
-        console.log('prod spec')
-        console.log(this.prodSpec)
-        this.getOwner();
-
-        if(this.prodSpec.productSpecCharacteristic != undefined) {
-          this.complianceLevel = this.api.getComplianceLevel(this.prodSpec);
-        }
-      })
-    }
+    this.prodSpec = this.productOff?.productSpecification ?? {};
+    /*if(!this.prodSpecInput){
+      console.log('no prod spec ----')
+      let specId:any|undefined=this.productOff?.productSpecification?.id;
+      if(specId != undefined){
+        this.api.getProductSpecification(specId).then(spec => {
+          this.prodSpec = spec;
+          console.log('prod spec')
+          console.log(this.prodSpec)
+          this.getOwner();
+  
+          if(this.prodSpec.productSpecCharacteristic != undefined) {
+            this.complianceLevel = this.api.getComplianceLevel(this.prodSpec);
+          }
+        })
+      }
+    } else {
+      this.prodSpec = this.prodSpecInput
+    }*/
 
     let result:any = this.priceService.formatCheapestPricePlan(this.productOff);
     this.price = {
@@ -229,6 +238,15 @@ export class CardComponent implements OnInit, AfterViewInit {
   getProductImage() {
     return this.images.length > 0 ? this.images?.at(0)?.url : 'https://placehold.co/600x400/svg';
   }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
+  }
+  
 
   loadMoreCategories(){
     this.loadMoreCats=!this.loadMoreCats;

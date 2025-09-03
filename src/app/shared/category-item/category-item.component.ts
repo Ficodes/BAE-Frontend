@@ -60,8 +60,8 @@ export class CategoryItemComponent implements OnInit {
   }
 
   ngOnInit() {
-    console.log(this.data)
-    console.log(this.isParent)
+    //console.log(this.data)
+    //console.log(this.isParent)
     if(this.data?.id){
       this.simplifiedId=this.data.id.split(':').pop()
     }

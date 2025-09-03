@@ -189,6 +189,7 @@ export class UsageSpecComponent implements OnInit {
         {
           id: this.partyId,
           href: this.partyId,
+          role: 'owner'
         }
       ],
     }

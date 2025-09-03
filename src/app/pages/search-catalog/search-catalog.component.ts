@@ -41,6 +41,11 @@ export class SearchCatalogComponent implements OnInit{
         this.feedback = false;
       }
     })
+    this.eventMessage.messages$.subscribe(ev => {
+      if(ev.type === 'AddedFilter' || ev.type === 'RemovedFilter') {
+        this.getProducts(false);
+      }
+    })
   }
 
   id:any;
@@ -107,11 +112,7 @@ export class SearchCatalogComponent implements OnInit{
 
     await this.getProducts(false);
 
-    this.eventMessage.messages$.subscribe(ev => {
-      if(ev.type === 'AddedFilter' || ev.type === 'RemovedFilter') {
-        this.getProducts(false);
-      }
-    })
+
     console.log('Productos:')
     console.log(this.products)
     const userInfo = this.localStorage.getObject('login_items') as LoginInfo;

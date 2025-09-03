@@ -38,7 +38,11 @@
       }
       </div>
       <a (click)="goToProductDetails(productOff)" class="cursor-pointer">
-        <h5 class="text-xl font-semibold line-clamp-2 tracking-tight text-primary-100 dark:text-white text-wrap break-all">{{productOff?.name}}</h5>
+        <h5 [ngClass]="{
+          'break-all': hasLongWord(productOff?.name, 20),
+          'break-words': !hasLongWord(productOff?.name, 20)
+        }"
+        class="text-xl font-semibold line-clamp-2 tracking-tight text-primary-100 dark:text-white text-wrap break-words">{{productOff?.name}}</h5>
       </a>
       <markdown class="min-h-19 h-19 line-clamp-2 text-gray-600 dark:text-gray-400" [data]="productOff?.description"></markdown>
       <!--<div class="flex w-full justify-between mt-2.5 mb-5 text-gray-500 font-mono">

@@ -289,7 +289,7 @@ export class PaginationService {
               productOfferingPrice: prodPrices ?? [],
               productOfferingRelationship: offer.productOfferingRelationship ?? [],
               productOfferingTerm: offer.productOfferingTerm ?? [],
-              productSpecification: offer.productSpecification,
+              productSpecification: spec ?? offer.productSpecification,
               resourceCandidate: offer.resourceCandidate,
               serviceCandidate: offer.serviceCandidate,
               serviceLevelAgreement: offer.serviceLevelAgreement,
@@ -314,6 +314,7 @@ export class PaginationService {
   async getProductsByCatalog(page: number, keywords: any, filters?: Category[], id?: any): Promise<ProductOffering[]> {
     try {
       console.log('-------------------------- getProductsByCatalog ----------------------------');
+      console.log(page)
       // Get data from API
       const productOfferings: ProductOffering[] = filters && filters.length > 0
         ? await this.api.getProductsByCategoryAndCatalog(filters, id, page)
