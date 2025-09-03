@@ -6,7 +6,7 @@ class PriceComponent {
     public price: number;
     public type: 'one time' | 'recurring' | 'recurring-prepaid' | 'usage';
     public recurringType?: 'day' | 'week' | 'month' | 'year';
-    public usageInput?: string;
+    public usageInput?: [string, string];
 
 }
 
@@ -91,7 +91,7 @@ describe('/my-offerings',{
             recurringType: 'week'
         }
 
-        interceptors(productSpec, productOffering, newCatalog, catalog_launched[0], category_dft, {})
+        interceptors(productSpec, productOffering, newCatalog, catalog_launched[0], category_dft, {usage:[]})
 
         cy.visit('/my-offerings')
         cy.wait('@catalogs')
@@ -150,6 +150,35 @@ describe('/my-offerings',{
             '@referredType': ''
         }]}
 
+        const usageSpecs = [
+            {
+                "id": "urn:ngsi-ld:usageSpecification:mock",
+                "href": "urn:ngsi-ld:usageSpecification:mock",
+                "description": "u1",
+                "name": "u1",
+                "relatedParty": [
+                    {
+                        "id": "mock:organization",
+                        "href": "mock:organization",
+                        "role": "owner",
+                        "@referredType": null
+                    }
+                ],
+                "specCharacteristic": [
+                    {
+                        "description": "m1",
+                        "name": "m1",
+                        "valueType": "number"
+                    },
+                    {
+                        "description": "m2",
+                        "name": "m2",
+                        "valueType": "number"
+                    }
+                ]
+            }
+        ]
+
         const pricePlan = {
             name: 'test price plan',
             description: 'description price plan test'
@@ -159,10 +188,10 @@ describe('/my-offerings',{
             description: 'description price component',
             type: 'usage',
             price: 5.12,
-            usageInput: 'CPU'
+            usageInput: ['u1', 'm1']
         }
 
-        interceptors(productSpec, productOffering, newCatalog, catalog_launched[0], category_dft, {})
+        interceptors(productSpec, productOffering, newCatalog, catalog_launched[0], category_dft, {usage:usageSpecs})
 
         cy.visit('/my-offerings')
         cy.wait('@catalogs')
@@ -234,7 +263,7 @@ describe('/my-offerings',{
             recurringType: 'week'
         }
 
-        interceptors(productSpec, productOffering, newCatalog, catalog_launched[0], category_dft, {})
+        interceptors(productSpec, productOffering, newCatalog, catalog_launched[0], category_dft, {usage: []})
 
         cy.visit('/my-offerings')
         cy.wait('@catalogs')
@@ -335,7 +364,14 @@ const interceptors = (productSpec:any, productOfferingPOST:any, newCatalog:any, 
 
     cy.intercept({method: 'POST', url: `http://proxy.docker:8004/catalog/catalog/${newCatalog.id}/productOffering`}, {statusCode: 201, body: productOfferingPOST}).as('offPOST')
     if (offPricePOST){
+        cy.intercept({method: 'GET', url: 'http://proxy.docker:8004//usage/usageSpecification?*'}, (res)=>{
+        res.reply({
+            statusCode: 200,
+            body: offPricePOST.usage
+        })
+    }).as('usageGET')
         cy.intercept({method: 'POST', url: 'http://proxy.docker:8004/catalog//productOfferingPrice'}, {statusCode: 201, body: offPricePOST}).as('offPricePOST')
+
     }
 
 }
@@ -395,7 +431,9 @@ const step6 = (online: boolean=false, pricePlan:any = null, priceComponent:Price
                 cy.getBySel('recurringType').select(priceComponent.recurringType)
             }
             else if (priceComponent.usageInput){
-                cy.getBySel('usageInput').type(priceComponent.usageInput)
+                cy.wait('@usageGET')
+                cy.getBySel('usageInput').select(priceComponent.usageInput[0])
+                cy.getBySel('usageMetric').select(priceComponent.usageInput[1])
             }
             cy.getBySel('savePriceComponent').click()
         }
