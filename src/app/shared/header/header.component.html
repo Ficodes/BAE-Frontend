@@ -16,7 +16,7 @@
             <li>
               <!-- CASO 1: El enlace es un MENÚ DESPLEGABLE (tiene 'children') -->
               <ng-container *ngIf="link.children && link.children.length > 0; else simpleLink">
-                <button [id]="link.id" [attr.data-dropdown-toggle]="link.id + 'Menu'" class="block cursor-pointer py-2 pl-3 pr-4 text-white rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-primary-100 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">
+                <button [id]="link.id" [attr.data-cy]="link.id === 'verifyDropdown' ? 'publishOffering' : link.id === 'searchDropdown' ? 'browse' : null" [attr.data-dropdown-toggle]="link.id + 'Menu'" class="block cursor-pointer py-2 pl-3 pr-4 text-white rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-primary-100 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">
                   {{ link.label | translate }}
                 </button>
                 <!-- Menú desplegable -->
@@ -43,7 +43,7 @@
                   {{ link.label | translate }}
                 </a>
                 <!-- Enlace interno -->
-                <a *ngIf="link.isRouterLink" [routerLink]="link.url" class="block py-2 pl-3 pr-4 text-white rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-primary-100 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent">
+                <a *ngIf="link.isRouterLink" [attr.data-cy]="link.url == '/about' ? 'about' : null" [routerLink]="link.url" class="block py-2 pl-3 pr-4 text-white rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-primary-100 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent">
                   {{ link.label | translate }}
                 </a>
               </ng-template>

@@ -49,7 +49,7 @@ describe('/my-offerings',{
 
         step4(0, length = 1)
 
-        step5('treatment test', 'description test')
+        step5('description test')
 
         step6()
 
@@ -111,7 +111,7 @@ describe('/my-offerings',{
 
         step4(0, length = 1)
 
-        step5('treatment test', 'description test')
+        step5('description test')
 
         step6(true, pricePlan, priceComponent)
 
@@ -211,7 +211,7 @@ describe('/my-offerings',{
 
         step4(0, length = 1)
 
-        step5('treatment test', 'description test')
+        step5('description test')
 
         step6(true, pricePlan, priceComponent)
 
@@ -283,7 +283,7 @@ describe('/my-offerings',{
 
         step4(0, length = 1)
 
-        step5('treatment test', 'description test')
+        step5('description test')
 
         step6(true, pricePlan, priceComponent)
 
@@ -406,8 +406,8 @@ const step4 = (pos: number, length: number) => {
     cy.getBySel('offerNext').click()
 }
 
-const step5 = (treatment: string, description: string) => {
-    cy.getBySel('treatment').type(treatment)
+const step5 = (description: string) => {
+    //cy.getBySel('treatment').type(treatment)
     cy.getBySel('textArea').type(description)
     cy.getBySel('offerNext').click()
 }
