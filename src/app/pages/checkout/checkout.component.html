@@ -173,7 +173,7 @@
         -->
 
         <button class="inline-flex items-center justify-center shrink-0 font-semibold leading-none rounded outline-none transition duration-300 ease-in-out focus:outline-0 focus:shadow focus:ring-1 focus:ring-accent-700 bg-primary-50 dark:bg-primary-100 text-white border border-transparent hover:bg-secondary-100 dark:hover:bg-primary-50 px-5 py-0 h-12 mt-5 w-full"
-                (click)="orderProduct()" [disabled]="items.length==0" [ngClass]="items.length==0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'">
+                (click)="orderProduct()" [disabled]="items.length==0 || !this.validBillAddr" [ngClass]="(items.length==0 || !this.validBillAddr)? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'">
           {{ 'SHOPPING_CART._checkout' | translate }}
         </button>
       </div>

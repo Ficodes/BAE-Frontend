@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, HostListener, OnInit} from '@angular/core';
-import {firstValueFrom} from 'rxjs';
+import {firstValueFrom, lastValueFrom} from 'rxjs';
 import {TranslateModule} from "@ngx-translate/core";
 import {LocalStorageService} from "../../services/local-storage.service";
 import {EventMessageService} from "../../services/event-message.service";
@@ -18,6 +18,8 @@ import {ProductOrderService} from "../../services/product-order-service.service"
 import {BillingAddressComponent} from "./billing-address/billing-address.component";
 import {BillingAccountFormComponent} from "../../shared/billing-account-form/billing-account-form.component";
 import { PaymentService } from 'src/app/services/payment.service';
+import { v4 as uuidv4 } from 'uuid';
+import { data } from 'jquery';
 
 
 @Component({
@@ -44,7 +46,7 @@ export class CheckoutComponent implements OnInit {
   preferred: boolean = false;
   loading_purchase: boolean = false;
   check_custom: boolean = false;
-
+  validBillAddr: boolean = true;
   errorMessage: any = '';
   showError: boolean = false;
 
@@ -423,11 +425,53 @@ export class CheckoutComponent implements OnInit {
     })
   }
 
-  onSelected(baddr: billingAccountCart) {
-    for (let ba of this.billingAddresses) {
-      ba.selected = false;
+  async onSelected(baddr: billingAccountCart) {
+    try{
+      this.validBillAddr = true
+      for (let ba of this.billingAddresses) {
+        ba.selected = false;
+      }
+      this.selectedBillingAddress = baddr;
+      const updatedItems = JSON.parse(JSON.stringify(this.items)); // we need a deep clone isntead of shallow clone
+      for (const cartItem of updatedItems){
+          const response = await lastValueFrom( this.priceService.calculatePrice({
+                "id": uuidv4(),
+                "productOrderItem":[{
+                  action: "add",
+                  id: cartItem.id, // product offering id
+                  itemTotalPrice:[{
+                    productOfferingPrice:{
+                      id: cartItem.options.pricing[0].id, //product offering price parent id
+                      href: cartItem.options.pricing[0].id,
+                      name: "" // Not using the pricePlan name in backend, we can discard thiss
+                  }}],
+                  product: {productCharacteristic:  cartItem.options.characteristics},
+                  productOffering: {id: cartItem.id, href: cartItem.id},
+                  quantity: "1"
+                }],
+                billingAccount: {
+                  id: this.selectedBillingAddress.id,
+                  href: this.selectedBillingAddress.id
+                }
+              }));
+          let pricing: any[] = response.orderTotalPrice;
+          pricing = pricing.map((data) =>{ return {...data, id: cartItem.options.pricing[0].id}});
+          cartItem.options.pricing = pricing;
+        }
+
+        // If all new prices were successfully collectedd, then we can commit the changes
+        await this.emptyShoppingCart();
+        this.items = updatedItems;
+        for (const cartItem of this.items){
+          await this.cartService.addItemShoppingCart(cartItem);
+        }
+        this.getTotalPrice();
+        this.cdr.detectChanges();
+    } catch (error) {
+      this.validBillAddr = false
+      this.cdr.detectChanges();
+      this.handleError(error, 'Invalid biling address');
     }
-    this.selectedBillingAddress = baddr;
   }
 
   onDeleted(baddr: billingAccountCart) {
