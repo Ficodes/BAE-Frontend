@@ -119,14 +119,22 @@ describe('/my-offerings',{
 
         step8()
 
+
         cy.wait('@offPricePOST').then((interception) => {
             const payload = interception.request.body
-            expect(payload).to.have.property('name', pricePlan.name).and.be.a('string')
-            expect(payload).to.have.property('description', pricePlan.description).and.be.a('string')
+            expect(payload).to.have.property('name', priceComponent.name).and.be.a('string')
+            expect(payload).to.have.property('description', priceComponent.description).and.be.a('string')
             expect(payload.price).to.have.property('value', priceComponent.price)
             if(priceComponent.recurringType){
                 expect(payload).to.have.property('recurringChargePeriodType', priceComponent.recurringType)
             }
+        });
+        cy.wait('@offPricePOST').then((interception) => {
+            const payload = interception.request.body
+            expect(payload).to.have.property('name', pricePlan.name).and.be.a('string')
+            expect(payload).to.have.property('description', pricePlan.description).and.be.a('string')
+            expect(payload).to.have.property('bundledPopRelationship')
+
         });
         cy.wait('@offPOST').then((interception) => {
             const payload = interception.request.body
@@ -221,12 +229,19 @@ describe('/my-offerings',{
 
         cy.wait('@offPricePOST').then((interception) => {
             const payload = interception.request.body
-            expect(payload).to.have.property('name', pricePlan.name).and.be.a('string')
-            expect(payload).to.have.property('description', pricePlan.description).and.be.a('string')
+            expect(payload).to.have.property('name', priceComponent.name).and.be.a('string')
+            expect(payload).to.have.property('description', priceComponent.description).and.be.a('string')
             expect(payload.price).to.have.property('value', priceComponent.price)
             if(priceComponent.recurringType){
                 expect(payload).to.have.property('recurringChargePeriodType', priceComponent.recurringType)
             }
+
+        });
+        cy.wait('@offPricePOST').then((interception) => {
+            const payload = interception.request.body
+            expect(payload).to.have.property('name', pricePlan.name).and.be.a('string')
+            expect(payload).to.have.property('description', pricePlan.description).and.be.a('string')
+            expect(payload).to.have.property('bundledPopRelationship')
 
         });
         cy.wait('@offPOST').then((interception) => {
@@ -293,12 +308,19 @@ describe('/my-offerings',{
 
         cy.wait('@offPricePOST').then((interception) => {
             const payload = interception.request.body
-            expect(payload).to.have.property('name', pricePlan.name).and.be.a('string')
-            expect(payload).to.have.property('description', pricePlan.description).and.be.a('string')
+            expect(payload).to.have.property('name', priceComponent.name).and.be.a('string')
+            expect(payload).to.have.property('description', priceComponent.description).and.be.a('string')
             expect(payload.price).to.have.property('value', priceComponent.price)
             if(priceComponent.recurringType){
                 expect(payload).to.have.property('recurringChargePeriodType', priceComponent.recurringType)
             }
+
+        });
+        cy.wait('@offPricePOST').then((interception) => {
+            const payload = interception.request.body
+            expect(payload).to.have.property('name', pricePlan.name).and.be.a('string')
+            expect(payload).to.have.property('description', pricePlan.description).and.be.a('string')
+            expect(payload).to.have.property('bundledPopRelationship')
 
         });
         cy.wait('@offPOST').then((interception) => {

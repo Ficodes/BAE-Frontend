@@ -313,16 +313,13 @@ export class OfferComponent implements OnInit, OnDestroy{
        const pricePlan = await this.api.getOfferingPrice(pop.id);
        console.log('-- price plan ----')
        console.log(pricePlan)
-       let configProfileCheck = true;
-       let realCharsLength = 0;
-       for(let i=0;i<this.selectedProdSpec?.productSpecCharacteristic.length;i++){
-          if (!certifications.some(certification => certification.name === this.selectedProdSpec?.productSpecCharacteristic[i].name)) {
-            realCharsLength++;
-          }
-        }
-       if(pricePlan?.prodSpecCharValueUse && pricePlan?.prodSpecCharValueUse.length < realCharsLength){
+       let configProfileCheck = false;
+       if(pricePlan?.prodSpecCharValueUse && pricePlan?.prodSpecCharValueUse.length > 0){
+        configProfileCheck=true
+       } else {
         configProfileCheck=false
        }
+
        let priceInfo: any = {
         id: pricePlan.id,
         name: pricePlan.name,
@@ -331,110 +328,57 @@ export class OfferComponent implements OnInit, OnDestroy{
         paymentOnline: pricePlan?.paymentOnline ?? !!pricePlan?.bundledPopRelationship,
         productProfile: configProfileCheck ? this.mapProductProfile(pricePlan?.prodSpecCharValueUse || []) : [],     
       }
-      if(pricePlan.priceType){
-        priceInfo.priceType=pricePlan.priceType;
-      }
-      /*if(pricePlan.prodSpecCharValueUse){
-        priceInfo.selectedCharacteristic=pricePlan.prodSpecCharValueUse;
-      }*/
-      if(pricePlan?.price?.unit){
-        priceInfo.currency=pricePlan?.price?.unit
-      }
-      if(pricePlan?.price?.value && pricePlan.isBundle==false){
-        priceInfo.paymentOnline=true
-        priceInfo.price=pricePlan?.price?.value        
-        let pricePlanTmp:any = {
-          id:pricePlan.id,
-          href:pricePlan.href,
-          name:pricePlan.name,
-          description:pricePlan?.description,
-          priceType:pricePlan?.priceType,
-          lastUpdate:pricePlan?.lastUpdate,
-          lifecycleStatus:pricePlan?.lifecycleStatus,
-          paymentOnline: true,
-          selectedCharacteristic: configProfileCheck ? null : pricePlan?.prodSpecCharValueUse,
-          currency: pricePlan?.price?.unit || 'EUR',
-          recurringPeriod: pricePlan?.recurringChargePeriodType || 'month',
-          productProfile: configProfileCheck ? this.mapProductProfile(pricePlan?.prodSpecCharValueUse || []) : [],
-          price: pricePlan?.price?.value,
-          validFor: pricePlan?.validFor || null,
-          usageUnit: pricePlan.usageUnit,
-          usageSpecId: pricePlan?.usageSpecId
+      
+      //Now every pricePlan is set as bundle even with only one price component
+      if(pricePlan.bundledPopRelationship){
+        for(let i=0;i<pricePlan.bundledPopRelationship.length;i++){
+          let data = await this.api.getOfferingPrice(pricePlan.bundledPopRelationship[i].id)
+            let priceComp:any = {
+              id:data.id,
+              href:data.href,
+              name:data?.name,
+              description:data?.description,
+              isBundle:data?.isBundle,
+              priceType:data?.priceType,
+              lastUpdate:data?.lastUpdate,
+              lifecycleStatus:data?.lifecycleStatus,
+              paymentOnline: data?.paymentOnline ?? !!data?.bundledPopRelationship,
+              selectedCharacteristic: data?.prodSpecCharValueUse || null,
+              currency: data?.price?.unit || 'EUR',
+              usageUnit: data?.unitOfMeasure?.units || null,
+              usageSpecId: data?.usageSpecId,
+              recurringPeriod: data?.recurringChargePeriodType || 'month',
+              price: data?.price?.value,
+              validFor: data?.validFor || null,
+            }
+            
+            if(data?.price?.unit){
+              priceComp.currency=data?.price?.unit
+            }
+  
+            if(data?.popRelationship){
+              let alter = await this.api.getOfferingPrice(data?.popRelationship[0].id)
+              console.log('----- alter')
+              console.log(alter)
+              if(alter.percentage){
+                priceComp.discountValue=alter?.percentage
+                priceComp.discountUnit='percentage'
+              }else{
+                priceComp.discountValue=alter?.price?.value
+                priceComp.discountUnit=alter?.price?.unit
+              }            
+              priceComp.discountDuration = alter?.unitOfMeasure?.amount            
+              priceComp.discountDurationUnit = alter?.unitOfMeasure?.units            
+              //priceComp.discountDurationUnit=alter?.
+              //priceComp.discountDuration=this.calculateDiscountDuration(alter?.validFor,alter?.)
+            }
+            relatedPrices.push(priceComp)
         }
-        if(pricePlan?.popRelationship){
-          let alter = await this.api.getOfferingPrice(pricePlan?.popRelationship[0].id)
-          if(alter.percentage){
-            pricePlanTmp.discountValue=alter?.percentage
-            pricePlanTmp.discountUnit='percentage'
-          }else{
-            pricePlanTmp.discountValue=alter?.price?.value
-            pricePlanTmp.discountUnit=alter?.price?.unit
-          }            
-          pricePlanTmp.discountDuration = alter?.unitOfMeasure?.amount            
-          pricePlanTmp.discountDurationUnit = alter?.unitOfMeasure?.units
-        }
-        relatedPrices.push(pricePlanTmp)
-        priceInfo.priceComponents=relatedPrices;
       }
-      console.log('price components---')
-      console.log(relatedPrices)
-      //if(pricePlan.bundledPopRelationship){
-      if(pricePlan.isBundle==true){  
-      for(let i=0;i<pricePlan.bundledPopRelationship.length;i++){
-        let data = await this.api.getOfferingPrice(pricePlan.bundledPopRelationship[i].id)
-          let priceComp:any = {
-            id:data.id,
-            href:data.href,
-            name:data?.name,
-            description:data?.description,
-            isBundle:data?.isBundle,
-            priceType:data?.priceType,
-            lastUpdate:data?.lastUpdate,
-            lifecycleStatus:data?.lifecycleStatus,
-            paymentOnline: data?.paymentOnline ?? !!data?.bundledPopRelationship,
-            selectedCharacteristic: data?.prodSpecCharValueUse || null,
-            currency: data?.price?.unit || 'EUR',
-            usageUnit: data?.unitOfMeasure?.units || null,
-            usageSpecId: data?.usageSpecId,
-            recurringPeriod: data?.recurringChargePeriodType || 'month',
-            price: data?.price?.value,
-            validFor: data?.validFor || null,
-          }
-          
-          if(data?.price?.unit){
-            priceComp.currency=data?.price?.unit
-          }
 
-          if(data?.popRelationship){
-            let alter = await this.api.getOfferingPrice(data?.popRelationship[0].id)
-            console.log('----- alter')
-            console.log(alter)
-            if(alter.percentage){
-              priceComp.discountValue=alter?.percentage
-              priceComp.discountUnit='percentage'
-            }else{
-              priceComp.discountValue=alter?.price?.value
-              priceComp.discountUnit=alter?.price?.unit
-            }            
-            priceComp.discountDuration = alter?.unitOfMeasure?.amount            
-            priceComp.discountDurationUnit = alter?.unitOfMeasure?.units            
-            //priceComp.discountDurationUnit=alter?.
-            //priceComp.discountDuration=this.calculateDiscountDuration(alter?.validFor,alter?.)
-          }
-          relatedPrices.push(priceComp)
-      }
       priceInfo.priceComponents=relatedPrices;
       console.log(priceInfo)
-      }
-
-      if(pricePlan.priceType == 'usage'){
-        priceInfo.usageUnit = pricePlan.unitOfMeasure.units
-        priceInfo.usageSpecId = pricePlan?.usageSpecId
-      }
-
-      if(pricePlan.priceType == 'recurring' || pricePlan.priceType == 'recurring-prepaid'){
-        priceInfo.recurringPeriod = pricePlan.recurringChargePeriodType
-      }
+      //}
 
       this.pricePlans.push(priceInfo);
       console.log(this.pricePlans)
@@ -624,16 +568,22 @@ export class OfferComponent implements OnInit, OnDestroy{
     if (plan.prodSpecCharValueUse) {
       price.prodSpecCharValueUse = plan.prodSpecCharValueUse.map((item: any) => ({
         ...item,
-        productSpecCharacteristicValue: item.productSpecCharacteristicValue.filter((v: any) => v.isDefault)
+        productSpecCharacteristicValue: item.productSpecCharacteristicValue
+          .filter((v: any) => v.isDefault)
       }));
     }
+    
+
 
     if(plan?.newValue?.prodSpecCharValueUse){
       price.prodSpecCharValueUse = plan?.newValue?.prodSpecCharValueUse.map((item: any) => ({
         ...item,
-        productSpecCharacteristicValue: item.productSpecCharacteristicValue.filter((v: any) => v.isDefault)
+        productSpecCharacteristicValue: item.productSpecCharacteristicValue
+          .filter((v: any) => v.isDefault)
       }));
     }
+
+    console.log(price.prodSpecCharValueUse)
 
     if (plan.usageUnit) {
       price.unitOfMeasure = plan.usageUnit;
@@ -641,87 +591,6 @@ export class OfferComponent implements OnInit, OnDestroy{
 
     if(plan?.newValue?.usageUnit){
       price.unitOfMeasure = plan?.newValue?.usageUnit;
-    }
-
-    return price;
-  }
-
-  private async createSinglePricePlan(plan: any, comp: any): Promise<ProductOfferingPrice> {
-    const price: ProductOfferingPrice = {
-      name: plan.name ?? plan?.newValue?.name,
-      isBundle: false,
-      description: plan.description ?? plan?.newValue?.description,
-      lifecycleStatus: plan.status ?? plan?.newValue?.lifecycleStatus,
-      priceType: comp?.priceType ?? plan?.newValue?.priceComponents[0]?.priceType ?? plan?.priceType ?? plan?.newValue?.priceType,
-      //price: comp?.price ? { value: comp.price ?? plan?.newValue.priceComponents[0].price, unit: plan.currency ?? plan?.newValue.priceComponents[0].currency } : undefined,
-      recurringChargePeriodType: undefined,
-      recurringChargePeriodLength: undefined,
-      unitOfMeasure: undefined,
-      prodSpecCharValueUse: undefined
-    };
-
-    if(comp?.price){
-      price.price = {
-        value: comp.price,
-        unit: plan.currency
-      }
-    } else if (plan?.newValue && !plan?.newValue?.isBundle && plan?.newValue?.priceComponents[0]?.price){
-      price.price = {
-        value: plan?.newValue?.priceComponents[0]?.price,
-        unit: plan?.newValue?.currency
-      }
-    } else {
-      price.price = undefined
-    }
-
-    let priceType = comp?.priceType ?? plan?.newValue?.priceComponents[0]?.priceType
-
-    if (['recurring', 'recurring-prepaid'].includes(priceType)) {
-      price.recurringChargePeriodType = comp.recurringPeriod ?? plan?.newValue?.priceComponents[0]?.recurringPeriod;
-      price.recurringChargePeriodLength = 1;
-    }
-
-    if (priceType === 'usage') {
-      price.unitOfMeasure = { 
-        amount: 1,
-        units: comp.usageUnit ?? plan?.newValue?.priceComponents[0]?.usageUnit     
-      };
-
-      price['@baseType'] = "ProductOfferingPrice";
-      price['@schemaLocation'] = "https://raw.githubusercontent.com/laraminones/tmf-new-schemas/main/UsageSpecId.json";
-      (price as any).usageSpecId = comp.usageSpecId ?? plan?.newValue?.priceComponents[0].usageSpecId;
-
-
-      console.log('----- here')
-      console.log(price)
-    }
-
-    if (comp?.discountValue != null) {
-      const discount = await this.createPriceAlteration(comp, plan.currency);
-      price.popRelationship = [{ id: discount.id, href: discount.id, name: discount.name }];
-    }
-
-    if(plan?.newValue?.priceComponents[0]?.discountValue){
-      const discount = await this.createPriceAlteration(plan?.newValue?.priceComponents[0], plan?.newValue?.currency);
-      price.popRelationship = [{ id: discount.id, href: discount.id, name: discount.name }];
-    }
-
-    if (comp?.selectedCharacteristic || plan?.newValue?.priceComponents[0]?.selectedCharacteristic) {
-      price.prodSpecCharValueUse = comp.selectedCharacteristic ?? plan?.newValue.priceComponents[0].selectedCharacteristic;
-    }
-
-    if (plan?.prodSpecCharValueUse) {
-      price.prodSpecCharValueUse = plan.prodSpecCharValueUse.map((item: any) => ({
-        ...item,
-        productSpecCharacteristicValue: item.productSpecCharacteristicValue.filter((v: any) => v.isDefault)
-      }));
-    }
-
-    if(plan?.newValue?.prodSpecCharValueUse){
-      price.prodSpecCharValueUse = plan?.newValue?.prodSpecCharValueUse.map((item: any) => ({
-        ...item,
-        productSpecCharacteristicValue: item.productSpecCharacteristicValue.filter((v: any) => v.isDefault)
-      }));
     }
 
     return price;
@@ -737,70 +606,6 @@ export class OfferComponent implements OnInit, OnDestroy{
       name: plan.newValue.name,
       isBundle: true,
       bundledPopRelationship: compRel
-    }
-    if(compRel.length<=1){
-      price = {
-        name: plan.newValue.name,
-        isBundle: false,
-        price: plan.newValue.priceComponents[0]?.price ? { value: plan.newValue.priceComponents[0].price, unit: plan.newValue.currency } : undefined
-      };
-      if(plan.newValue.priceComponents[0]?.priceType != plan.oldValue.priceType){
-        price.priceType = plan.newValue.priceComponents[0]?.priceType
-      }
-      if (['recurring', 'recurring-prepaid'].includes(plan.newValue.priceComponents[0]?.priceType)) {
-        price.recurringChargePeriodType = plan.newValue.priceComponents[0].recurringPeriod;
-        price.recurringChargePeriodLength = 1;
-      }
-  
-      if (plan.newValue.priceComponents[0]?.priceType === 'usage') {
-        price.unitOfMeasure = { 
-          amount: 1,
-          units: plan.newValue.priceComponents[0].usageUnit        
-        };
-
-        price['@baseType'] = "ProductOfferingPrice";
-        price['@schemaLocation'] = "https://raw.githubusercontent.com/laraminones/tmf-new-schemas/main/UsageSpecId.json";
-        (price as any).usageSpecId = plan?.newValue?.priceComponents[0].usageSpecId;
-
-        console.log('----- here')
-        console.log(price)
-      }
-  
-      if (plan.newValue.priceComponents[0]?.selectedCharacteristic) {
-        price.prodSpecCharValueUse = plan.newValue.priceComponents[0].selectedCharacteristic;
-      }
-
-      if(plan.oldValue?.priceComponents && plan.oldValue?.priceComponents.length>1){
-        console.log('tenia bundle pero ahora undefined')
-        price.bundledPopRelationship=undefined
-        console.log(price)
-      }
-
-      if(plan.newValue.priceComponents[0].prodSpecCharValueUse != null){
-        price.prodSpecCharValueUse = plan.newValue.priceComponents[0].prodSpecCharValueUse.map((item: any) => ({
-          ...item,
-          productSpecCharacteristicValue: item.productSpecCharacteristicValue.filter((v: any) => v.isDefault)
-        }));
-      }
-  
-      if (plan.newValue.priceComponents[0].discountValue != null) {
-        console.log(plan.newValue.priceComponents[0])
-        const discount = await this.createPriceAlteration(plan.newValue.priceComponents[0], plan.newValue.currency);
-        price.popRelationship = [{ id: discount.id, href: discount.id, name: discount.name }];
-      }
-      
-    } else if (plan.oldValue.price!=null){
-      price.price = undefined;
-      price.priceType = undefined;
-      if('recurringChargePeriodType' in plan.oldValue){
-        price.recurringChargePeriodType = undefined
-      }
-      if('recurringChargePeriodLength' in plan.oldValue){
-        price.recurringChargePeriodLength = undefined
-      }
-      if('unitOfMeasure' in plan.oldValue){
-        price.unitOfMeasure = undefined
-      }
     }
     if(modifiedFields.includes('description')){
       price.description = plan.newValue.description
@@ -831,18 +636,12 @@ export class OfferComponent implements OnInit, OnDestroy{
       try {
         let createdPriceId: string;
 
-        if (components.length > 1) {
-          const compRel = await Promise.all(
-            components.map((comp: any) => this.createPriceComponent(comp, plan.currency))
-          );
-          const bundledPricePlan = this.createBundledPricePlan(plan, compRel);
-          const created = await lastValueFrom(this.api.postOfferingPrice(bundledPricePlan));
-          createdPriceId = created.id;
-        } else {
-          const singlePlan = await this.createSinglePricePlan(plan, components[0]);
-          const created = await lastValueFrom(this.api.postOfferingPrice(singlePlan));
-          createdPriceId = created.id;
-        }
+        const compRel = await Promise.all(
+          components.map((comp: any) => this.createPriceComponent(comp, plan.currency))
+        );
+        const bundledPricePlan = this.createBundledPricePlan(plan, compRel);
+        const created = await lastValueFrom(this.api.postOfferingPrice(bundledPricePlan));
+        createdPriceId = created.id;
 
         this.productOfferForm.value.pricePlans[i].id = createdPriceId;
 
@@ -1075,27 +874,15 @@ export class OfferComponent implements OnInit, OnDestroy{
               console.log('Modified price plan')
               console.log(updatedPricePlan)
             } else {
-              if (finalPriceComps.length > 1) {
-                let createdPricePlan = await this.createBundledPricePlan(pricePlanChangeInfo[i],finalPriceComps);
-                const created = await lastValueFrom(this.api.postOfferingPrice(createdPricePlan));
-                let index = basePayload.productOfferingPrice.findIndex(
-                  (plan: any) => plan.id === pricePlanChangeInfo[i].id
-                );
-                basePayload.productOfferingPrice[index].id = created.id;
-                basePayload.productOfferingPrice[index].href = created.id;
-                console.log('New price plan')
-                console.log(createdPricePlan)
-              } else {
-                let createdPricePlan = await this.createSinglePricePlan(pricePlanChangeInfo[i],finalPriceComps[0]);
-                const created = await lastValueFrom(this.api.postOfferingPrice(createdPricePlan));
-                let index = basePayload.productOfferingPrice.findIndex(
-                  (plan: any) => plan.id === pricePlanChangeInfo[i].id
-                );
-                basePayload.productOfferingPrice[index].id = created.id;
-                basePayload.productOfferingPrice[index].href = created.id;
-                console.log('New price plan')
-                console.log(createdPricePlan)
-              }
+              let createdPricePlan = await this.createBundledPricePlan(pricePlanChangeInfo[i],finalPriceComps);
+              const created = await lastValueFrom(this.api.postOfferingPrice(createdPricePlan));
+              let index = basePayload.productOfferingPrice.findIndex(
+                (plan: any) => plan.id === pricePlanChangeInfo[i].id
+              );
+              basePayload.productOfferingPrice[index].id = created.id;
+              basePayload.productOfferingPrice[index].href = created.id;
+              console.log('New price plan')
+              console.log(createdPricePlan)
             }
           }
           break;

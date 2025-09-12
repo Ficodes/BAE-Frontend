@@ -176,7 +176,7 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
   filterCharacteristics() {
     this.filteredCharacteristics = [];
     for(let i = 0; i < this.characteristics.length; i++){
-      if (!certifications.some(certification => certification.name === this.characteristics[i].name)) {
+      if (!certifications.some(certification => certification.name === this.characteristics[i].name) && this.characteristics[i].name != 'Compliance:SelfAtt') {
         this.filteredCharacteristics.push(this.characteristics[i]);
       }
     }
@@ -221,16 +221,7 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
 
     this.filterCharacteristics();
 
-    if(pricePlan.usageSpecId && pricePlan.unitOfMeasure){
-      //let usageSpec = await this.usageService.getUsageSpec(pricePlan.usageSpecId)
-      this.metrics.push({
-        priceId: pricePlan.id,
-        usageSpecId: pricePlan.usageSpecId,
-        //name: usageSpec.name,
-        unitOfMeasure: pricePlan.unitOfMeasure.units,
-        value: 0
-      })
-    } else if(pricePlan.bundledPopRelationship) {
+    if(pricePlan.bundledPopRelationship){
       for(let i=0;i<pricePlan.bundledPopRelationship.length;i++){
         let comp = await this.api.getOfferingPrice(pricePlan.bundledPopRelationship[i].id)
         if(comp.usageSpecId && comp.unitOfMeasure){
@@ -244,8 +235,7 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
           })
         }
       }
-  
-    }
+    }  
 
     console.log('metrics----')
     console.log(this.metrics)
@@ -338,6 +328,10 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
         valueType = 'string'
       } else if (!valueType && !isNaN(value)) {
         valueType = 'number'
+      }
+
+      if(value==null && valueType=='number'){
+        value=0
       }
 
       this.orderChars.push({
