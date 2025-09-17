@@ -18,6 +18,7 @@ type ProductOfferingTerm = components["schemas"]["ProductOfferingTerm"];
 type ProductSpecificationCharacteristic = components["schemas"]["ProductSpecificationCharacteristic"];
 type AttachmentRefOrValue = components["schemas"]["AttachmentRefOrValue"];
 import { FormsModule } from '@angular/forms';
+import { lastValueFrom, Subscription } from 'rxjs';
 
 
 @Component({
@@ -370,7 +371,7 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
   }
 
   // Método para calcular el precio usando el servicio
-  calculatePrice(): void {
+  async calculatePrice(checkout: Boolean = false): Promise<void> {
     this.updateOrderChars();
 
     if (this.isFree) {
@@ -412,7 +413,7 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
         },
         usageCharacteristic: [{
           name: metric.unitOfMeasure,
-          value: metric.value
+          value: checkout? 1 : metric.value
         }]
       }));
     }
@@ -436,22 +437,23 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     console.log('--- prod ---')
 
     this.isLoading = true;
-    this.priceService.calculatePrice(previewReq).subscribe({
-      next: (response) => {
-        console.log('calculate price...')
-        console.log(response.orderTotalPrice)
-        this.price = response.orderTotalPrice; // Updates the price
-        this.price = this.price.map((item) => ({
-          ...item,
-          id: this.selectedPricePlan.id, //Adds price plan id to the price info
-        }));
-        this.isLoading = false; // Hides spinner
-      },
-      error: () => {
-        this.isLoading = false; // Manejo de errores
-        console.error('Error al calcular el precio');
-      },
-    });
+
+    try {
+      const response = await lastValueFrom(this.priceService.calculatePrice(previewReq));
+      console.log('calculate price...')
+      console.log(response.orderTotalPrice)
+      this.price = response.orderTotalPrice; // Updates the price
+      this.price = this.price.map((item) => ({
+        ...item,
+        id: this.selectedPricePlan.id, //Adds price plan id to the price info
+      }));
+      this.isLoading = false; // Hides spinner
+      return
+    } catch (error) {
+      this.isLoading = false; // Manejo de errores
+      console.error('Error al calcular el precio');
+      return
+    }
   }
 
   getProductImage() {
@@ -474,6 +476,13 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
       tsAccepted: formValues.tsAccepted,
       priceSummary: this.price,
     };
+
+    try {
+      await this.calculatePrice(true);
+    } catch (error) {
+      console.error('Error calculating price:', error);
+      return;
+    }
 
     // Construir las opciones del producto
     const prodOptions = this.buildProdOptions(formValues.tsAccepted);

@@ -494,7 +494,8 @@ export class CheckoutComponent implements OnInit {
                       id: this.selectedBillingAddress.id,
                       href: this.selectedBillingAddress.id
                     }
-                }
+                },
+                "usage": await this.buildUsageFromCartItem(cartItem)
               }));
           let pricing: any[] = response.orderTotalPrice;
           pricing = pricing.map((data) =>{ return {...data, id: cartItem.options.pricing[0].id}});
@@ -514,6 +515,36 @@ export class CheckoutComponent implements OnInit {
       this.cdr.detectChanges();
       this.handleError(error, 'Invalid biling address');
     }
+  }
+
+   private async buildUsageFromCartItem(cartItem: any) {
+    if (!cartItem.options.pricing || cartItem.options.pricing.length === 0) {
+      return [];
+    }
+
+    let result: any[] = []
+
+    const prodOffPrice = await this.api.getOfferingPrice(cartItem.options.pricing[0].id);
+    if(prodOffPrice.isBundle){
+      for(const singleRef of prodOffPrice.bundledPopRelationship){
+        const singleOffPrice = await this.api.getOfferingPrice(singleRef.id);
+        if (singleOffPrice.usageSpecId && singleOffPrice.unitOfMeasure) {
+          result.push({
+            usageSpecification: {
+              id: singleOffPrice.usageSpecId
+            },
+            usageCharacteristic: [{
+              name: singleOffPrice.unitOfMeasure.units,
+              value: 1
+            }]});
+        }
+      }
+    }
+    else{
+      result.push(prodOffPrice)
+    }
+
+    return result;
   }
 
   onDeleted(baddr: billingAccountCart) {
