@@ -87,6 +87,7 @@ export class SearchComponent implements OnInit {
         console.log(`Input updated`)
         if(this.searchField.value==''){
           this.keywords=undefined;
+          this.updateQueryParams(this.keywords)
           console.log('EVENT CLEAR')
           await this.getProducts(false);
         }
@@ -142,15 +143,30 @@ export class SearchComponent implements OnInit {
     if(this.searchField.value!='' && this.searchField.value != null){
       console.log('FILTER KEYWORDS')
       this.keywords=this.searchField.value;
+      this.updateQueryParams(this.keywords)
       //let filters = this.localStorage.getObject('selected_categories') as Category[] || [] ;
       await this.getProducts(false);
     } else {
       console.log('EMPTY  FILTER KEYWORDS')
       this.keywords=undefined;
+      this.updateQueryParams(this.keywords)
       //let filters = this.localStorage.getObject('selected_categories') as Category[] || [] ;
       await this.getProducts(false);
     }
   }
+
+  updateQueryParams(keywords: string | null) {
+    if (keywords) {
+      // Add/update the matrix param
+      this.router.navigate(
+        ['/search', { keywords }],
+        { replaceUrl: true }
+      );
+    } else {
+      // Navigate without the param
+      this.router.navigate(['/search'], { replaceUrl: true });
+    }
+  }  
 
   checkPanel() {
     const filters = this.localStorage.getObject('selected_categories') as Category[] || [] ;
