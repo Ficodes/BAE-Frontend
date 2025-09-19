@@ -66,25 +66,38 @@
                     <span class="bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800 ml-3">5.0</span>
                 </div>-->
             </div>
-            <div class="h-fit overflow-x-hidden">
+            <div class="h-fit overflow-x-hidden flex items-center flex-wrap">
                 @for (cat of categories; track cat.id) {
-                    <bae-badge class="mr-2" [category]=cat></bae-badge>
+                  <bae-badge class="mr-2" [category]=cat></bae-badge>
                 }
-
-                <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2"
-                    [ngClass]="complianceLevel == 'NL' ? 'bg-red-200 text-red-700' : complianceLevel == 'BL' ? 'bg-orange-200 text-orange-700' : complianceLevel == 'P' ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
-                    <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel == 'NL' ? 'text-red-700' : complianceLevel == 'BL' ? 'text-orange-700' : complianceLevel == 'P' ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
-                    @if(complianceLevel=='NL'){
-                        No level
-                    }@else if(complianceLevel=='BL'){
-                        Baseline
-                    } @else if(complianceLevel=='P') {
-                        Professional
-                    } @else {
-                        Professional+
-                    }
-                </a>
-            </div>
+              
+                @if(complianceLevel=='NL'){
+                  <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-1"
+                     [ngClass]="complianceLevel == 'NL' ? 'bg-red-200 text-red-700' : complianceLevel == 'BL' ? 'bg-orange-200 text-orange-700' : complianceLevel == 'P' ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
+                    <fa-icon [icon]="faAtom" class="mr-2"
+                             [ngClass]="complianceLevel == 'NL' ? 'text-red-700' : complianceLevel == 'BL' ? 'text-orange-700' : complianceLevel == 'P' ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
+                    No level
+                  </a>
+                } @else if(complianceLevel=='BL'){
+                    <img
+                        class="z-10 h-[1.2rem] max-w-[8rem] object-contain rounded-md mr-2"
+                        src="assets/logos/baseline.png"
+                        alt="Baseline logo"
+                    />  
+                } @else if(complianceLevel=='P') {
+                    <img
+                        class="z-10 h-[1.2rem] max-w-[8rem] object-contain rounded-md mr-2"
+                        src="assets/logos/prof.png"
+                        alt="Professional logo"
+                    />                  
+                } @else {
+                    <img
+                        class="z-10 h-[1.2rem] max-w-[8rem] object-contain rounded-md mr-2"
+                        src="assets/logos/profplus.png"
+                        alt="Professional plus logo"
+                    />  
+                }
+              </div>
         </div>
         <div class="hidden lg:block overflow-hidden rounded-r-lg">
             <div class="hidden lg:flex relative justify-center items-center w-full h-full">
@@ -212,9 +225,17 @@
 
               
             <div class="container mx-auto px-4">
-                <h3 class="text-2xl font-bold text-primary-100 dark:text-primary-50 text-left mb-2">
-                    {{ complianceLevel === 'NL' ? 'No level' : complianceLevel === 'BL' ? 'Baseline' : complianceLevel === 'P' ? 'Professional' : complianceLevel === 'PP' ? 'Professional+' : complianceLevel }}
-                </h3>
+                @if(complianceLevel=='NL'){
+                    <h3 class="text-2xl font-bold text-primary-100 dark:text-primary-50 text-left mb-2">                    
+                       No level
+                    </h3>
+                }@else if(complianceLevel=='BL'){
+                    <img class="z-10 dark:text-white rounded-md mr-2" src="assets/logos/baseline.png">
+                } @else if(complianceLevel=='P') {
+                <img class="z-10 dark:text-white rounded-md mr-2" src="assets/logos/prof.png">
+                } @else {
+                <img class="z-10 dark:text-white rounded-md mr-2" src="assets/logos/profplus.png">
+                }
                 <p class="mb-2 text-gray-800 dark:text-gray-200">
                     {{ complianceDescription }}
                 </p>

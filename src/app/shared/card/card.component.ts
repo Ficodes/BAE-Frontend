@@ -245,6 +245,10 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.images = profile;
     }
     this.prodSpec = this.productOff?.productSpecification ?? {};
+    this.getOwner();
+    if(this.prodSpec.productSpecCharacteristic != undefined) {
+      this.complianceLevel = this.api.getComplianceLevel(this.prodSpec);
+    }
     /*if(!this.prodSpecInput){
       console.log('no prod spec ----')
       let specId:any|undefined=this.productOff?.productSpecification?.id;

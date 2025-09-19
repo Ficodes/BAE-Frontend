@@ -14,29 +14,34 @@
 
   <div class="flex-1 h-full bg-cover bg-right-bottom bg-opacity-25 bg-blend-multiply rounded-lg" [style.background-image]="'url(' + currentTheme?.assets?.cardDefaultBgUrl + ')'">
     <div class="flex-1 h-full px-5 py-5 bg-secondary-50/95 dark:bg-tertiary-100/95 rounded-b-lg">
-      <div class="overflow-y-hidden overflow-x-hidden">
-      <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2 mr-2"
-      [ngClass]="complianceLevel == 'NL' ? 'bg-red-200 text-red-700' : complianceLevel == 'BL' ? 'bg-orange-200 text-orange-700' : complianceLevel == 'P' ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
-      <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel == 'NL' ? 'text-red-700' : complianceLevel == 'BL' ? 'text-orange-700' : complianceLevel == 'P' ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
-      @if(complianceLevel=='NL'){
-        No level
-      }@else if(complianceLevel=='BL'){
-          Baseline
-      } @else if(complianceLevel=='P') {
-          Professional
-      } @else {
-          Professional+
-      }
-      </a>
-      @for (cat of categories; track cat.id) {
-        <bae-badge class="mr-2" [category]=cat></bae-badge>
-      }
-      @if(checkMoreCats){
-        <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2 mr-2">
-          <fa-icon [icon]="faEllipsis" class="text-secondary-50 dark:text-primary-100"></fa-icon>
-        </a>
-      }
-      </div>
+      <div class="flex items-center flex-wrap overflow-y-hidden overflow-x-hidden align-middle">
+        <!--<a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2 mr-2"
+        [ngClass]="complianceLevel == 'NL' ? 'bg-red-200 text-red-700' : complianceLevel == 'BL' ? 'bg-orange-200 text-orange-700' : complianceLevel == 'P' ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
+        <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel == 'NL' ? 'text-red-700' : complianceLevel == 'BL' ? 'text-orange-700' : complianceLevel == 'P' ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
+        -->
+        @if(complianceLevel=='NL'){
+          <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2 mr-2"
+          [ngClass]="complianceLevel == 'NL' ? 'bg-red-200 text-red-700' : complianceLevel == 'BL' ? 'bg-orange-200 text-orange-700' : complianceLevel == 'P' ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
+          <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel == 'NL' ? 'text-red-700' : complianceLevel == 'BL' ? 'text-orange-700' : complianceLevel == 'P' ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
+              No level
+          </a>
+        }@else if(complianceLevel=='BL'){
+          <img class="z-10 dark:text-white rounded-md mb-2 mr-2 max-h-[1.2rem] align-middle" src="assets/logos/baseline.png">
+        } @else if(complianceLevel=='P') {
+          <img class="z-10 dark:text-white rounded-md mb-2 mr-2 max-h-[1.2rem] align-middle" src="assets/logos/prof.png">
+        } @else {
+          <img class="z-10 dark:text-white rounded-md mb-2 mr-2 max-h-[1.2rem] align-middle" src="assets/logos/profplus.png">
+        }
+        <!--</a>-->
+        @for (cat of categories; track cat.id) {
+          <bae-badge class="mr-2" [category]=cat></bae-badge>
+        }
+        @if(checkMoreCats){
+          <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2 mr-2">
+            <fa-icon [icon]="faEllipsis" class="text-secondary-50 dark:text-primary-100"></fa-icon>
+          </a>
+        }
+        </div>
       <a (click)="goToProductDetails(productOff)" class="cursor-pointer">
         <h5 [ngClass]="{
           'break-all': hasLongWord(productOff?.name, 20),
@@ -142,20 +147,20 @@
                       <div class="min-h-19 pt-2 text-gray-500 dark:text-gray-400">V: {{productOff?.version || 'latest'}}</div>
                   </div>
 
-                  <div class="overflow-x-hidden">
-                    <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2 mr-2"
-                    [ngClass]="complianceLevel == 'NL' ? 'bg-red-200 text-red-700' : complianceLevel == 'BL' ? 'bg-orange-200 text-orange-700' : complianceLevel == 'P' ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
-                    <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel == 'NL' ? 'text-red-700' : complianceLevel == 'BL' ? 'text-orange-700' : complianceLevel == 'P' ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
-                      @if(complianceLevel=='NL'){
-                        No level
-                      }@else if(complianceLevel=='BL'){
-                          Baseline
-                      } @else if(complianceLevel=='P') {
-                          Professional
-                      } @else {
-                          Professional+
-                      }
-                    </a>
+                  <div class="h-fit overflow-x-hidden flex items-center flex-wrap">
+                    @if(complianceLevel=='NL'){
+                      <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2 mr-2"
+                      [ngClass]="complianceLevel == 'NL' ? 'bg-red-200 text-red-700' : complianceLevel == 'BL' ? 'bg-orange-200 text-orange-700' : complianceLevel == 'P' ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
+                      <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel == 'NL' ? 'text-red-700' : complianceLevel == 'BL' ? 'text-orange-700' : complianceLevel == 'P' ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
+                          No level
+                      </a>
+                    }@else if(complianceLevel=='BL'){
+                      <img class="z-10 dark:text-white rounded-md mb-2 mr-2 max-h-[1.2rem] align-middle" src="assets/logos/baseline.png">
+                    } @else if(complianceLevel=='P') {
+                      <img class="z-10 dark:text-white rounded-md mb-2 mr-2 max-h-[1.2rem] align-middle" src="assets/logos/prof.png">
+                    } @else {
+                      <img class="z-10 dark:text-white rounded-md mb-2 mr-2 max-h-[1.2rem] align-middle" src="assets/logos/profplus.png">
+                    }
                       @for (cat of categories; track cat.id) {
                           <bae-badge class="mr-2" [category]=cat></bae-badge>
                       }
