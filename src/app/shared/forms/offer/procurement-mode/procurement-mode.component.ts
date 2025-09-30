@@ -6,6 +6,9 @@ import {AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators
 import {initFlowbite} from "flowbite";
 import {FormChangeState} from "../../../../models/interfaces";
 import {EventMessageService} from "src/app/services/event-message.service";
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
+import { lastValueFrom } from 'rxjs';
 
 interface ProcurementMode {
   id: string;
@@ -50,8 +53,12 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
   private originalValue: ProcurementMode | null = null;
   private hasBeenModified: boolean = false;
   private isEditMode: boolean = false;
+  showProcurementError:boolean=false;
+  errorMessage:string = '';
+  gatewayUrl:string = '';
+  gatewayCount: number = 0;
 
-  constructor(private cdr: ChangeDetectorRef, private eventMessage: EventMessageService) {
+  constructor(private cdr: ChangeDetectorRef, private eventMessage: EventMessageService, private http: HttpClient) {
     console.log('🔄 Initializing ProcurementModeComponent');
     this.eventMessage.messages$.subscribe(ev => {
       if(ev.type === 'UpdateOffer') {
@@ -140,7 +147,7 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
 
     // Inicializar el control del formulario
     this.formGroup.addControl('mode', new FormControl<string>(initialValue, [Validators.required]));
-    
+
     // Guardar el valor original solo en modo edición
     if (this.isEditMode) {
       this.originalValue = {
@@ -155,9 +162,13 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
       console.log('📝 Form value changed in subscription:', value);
       
       if (value && value.mode) {
-        if(value.mode=='manual'){
+        if(value.mode == 'manual'){
+          this.errorMessage = "";
+          this.showProcurementError = false;
           this.form.setErrors(null)
-        } else {
+        } else if (this.gatewayCount == 0){
+          this.errorMessage = "You can't select this procurement mode as you are not registered on the payment gateway.";
+          this.showProcurementError = true;
           this.form.setErrors({ invalidProcurement: true }); 
         }
 
@@ -168,6 +179,14 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
         console.log('📝 Current procurementMode:', this.procurementMode);
         this.hasBeenModified = true;
       }
+    });
+
+    let paymentInfoUrl = `${environment.BASE_URL}/paymentInfo`;
+    lastValueFrom(this.http.get<any>(paymentInfoUrl)).then(data => {
+      this.gatewayUrl = data.providerUrl;
+      this.gatewayCount = data.gatewaysCount;
+    }).catch(() => {
+      this.gatewayCount = 0;
     });
   }
 

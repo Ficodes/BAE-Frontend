@@ -68,7 +68,6 @@ export class OfferComponent implements OnInit, OnDestroy{
   pricePlans:any = [];
   errorMessage:any='';
   showError:boolean=false;
-  showProcurementError:boolean=false;
   loading:boolean=false;
   bundleChecked:boolean=false;
   offersBundle:any[]=[];
@@ -99,10 +98,6 @@ export class OfferComponent implements OnInit, OnDestroy{
     this.productOfferForm.statusChanges.subscribe(status => {
       if(!this.productOfferForm.controls['generalInfo'].valid || !this.productOfferForm.get('procurementMode')?.valid){
         this.isFormValid = false
-        if(!this.productOfferForm.get('procurementMode')?.valid){
-          this.errorMessage = "You can't select this procurement mode as you are not registered on the payment gateway.";
-          this.showProcurementError=true;
-        }
       } else {
         this.isFormValid = true
       }

@@ -150,7 +150,14 @@ export class ChatModalComponent implements OnInit, OnDestroy, OnChanges {
   ngOnChanges() {
     if (this.isOpen && this.quoteId) {
       let aux = this.localStorage.getObject('login_items') as LoginInfo;
-      this.currentUserId = aux.id;
+
+      if(aux.logged_as == aux.id){
+        this.currentUserId = aux.partyId;
+      } else {
+        let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as)
+        this.currentUserId = loggedOrg.partyId
+      }
+
       //this.currentUserId = this.loginService.getUserId();
       this.loadMessages();
       this.startPolling();
