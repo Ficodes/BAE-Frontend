@@ -68,7 +68,6 @@ export class OfferComponent implements OnInit, OnDestroy{
   pricePlans:any = [];
   errorMessage:any='';
   showError:boolean=false;
-  showProcurementError:boolean=false;
   loading:boolean=false;
   bundleChecked:boolean=false;
   offersBundle:any[]=[];
@@ -97,20 +96,11 @@ export class OfferComponent implements OnInit, OnDestroy{
 
     // Subscribe to form validation changes
     this.productOfferForm.statusChanges.subscribe(status => {
-      if(!this.productOfferForm.controls['generalInfo'].valid || !this.productOfferForm.get('procurementMode')?.valid){
-        this.isFormValid = false
-        if(!this.productOfferForm.get('procurementMode')?.valid){
-          this.errorMessage = "You can't select this procurement mode as you are not registered on the payment gateway.";
-          this.showProcurementError=true;
-        }
-      } else {
-        this.isFormValid = true
-      }
+      this.isFormValid = status === 'VALID';
     });
 
     // Subscribe to subform changes
     this.formSubscription = this.eventMessage.messages$.subscribe(message => {
-      console.log('subform changed-----')
       if (message.type === 'SubformChange') {
         const changeState = message.value as FormChangeState;
         console.log('Received subform change:', changeState);
@@ -176,8 +166,7 @@ export class OfferComponent implements OnInit, OnDestroy{
     if(this.formType == 'create'){
       return (this.productOfferForm.get('generalInfo')?.valid &&  (index <= this.currentStep)) || (this.productOfferForm.get('generalInfo')?.valid &&  (index <= this.highestStep));
     } else {
-      //return this.productOfferForm.get('generalInfo')?.valid
-      return this.isFormValid
+      return this.productOfferForm.get('generalInfo')?.valid
     }
   }  
 
