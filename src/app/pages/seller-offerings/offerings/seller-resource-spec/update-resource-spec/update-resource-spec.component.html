@@ -166,6 +166,43 @@
             }
             @if(showChars){
                 <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white">{{ 'UPDATE_RES_SPEC._chars' | translate }}</h2>
+                <!--<div class="flex">
+                    <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white">{{ 'UPDATE_RES_SPEC._chars' | translate }}</h2>
+                    <div class="flex inline-flex ml-2 align-middle">
+                        <svg data-popover-target="popover-chars" class="flex self-center w-6 h-6 text-primary-100" clip-rule="evenodd" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div data-popover id="popover-chars" role="tooltip" class="absolute z-20 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                    <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                        <h3 class="font-semibold text-gray-900 dark:text-white">Characteristics</h3>
+                    </div>
+                    <div class="px-3 py-2 inline-block">
+                        <p class="inline-block">Create the characteristics that will define the resource.
+                        </p>
+                    </div>
+                    <div data-popper-arrow></div>
+                </div>
+                <div class="inline-flex items-center justify-center w-full m-4">
+                    <div class="mx-auto bg-white dark:bg-secondary-300 border border-gray-200 dark:border-gray-800 rounded-lg shadow w-full">
+                        <div class="bg-primary-100 dark:bg-secondary-200 rounded-t-lg w-full">
+                            <h5 class="flex justify-center mb-2 p-2 text-2xl font-bold tracking-tight text-white">Characteristics</h5>
+                        </div>
+                        <p class="flex justify-center mb-2 p-2 font-normal text-gray-700 dark:text-gray-200">Create the characteristics that will define the resource.</p>
+                    </div>
+                </div>
+                <div class="flex justify-center w-full m-4">
+                    <div class="flex w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">
+                    <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                    </svg>
+                    <span class="sr-only">Info</span>
+                    <div>
+                        Create the characteristics that will define the resource.
+                    </div>
+                    </div>
+                </div>-->
                 @if (prodChars.length === 0){
                     <div class="flex justify-center w-full m-4">
                       <div class="flex w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">

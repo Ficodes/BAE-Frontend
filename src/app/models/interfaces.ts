@@ -30,6 +30,12 @@ export interface LoginInfo {
   logged_as: string
 }
 
+export interface FeedbackInfo {
+  approval?: boolean,
+  expire?: number,
+}
+
+
 export interface productSpecCharacteristicValueCart {
     characteristic: ProductSpecificationCharacteristic,
     value?: CharacteristicValueSpecification

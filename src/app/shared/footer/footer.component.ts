@@ -60,6 +60,10 @@ export class FooterComponent implements OnInit, OnDestroy {
         this.socialLinks.push({ url: theme.links.youtube, icon: this.faYoutube });
       }
     });
+    const userInfo = this.localStorage.getObject('login_items') as LoginInfo;
+    if((JSON.stringify(userInfo) != '{}' && (((userInfo.expire - moment().unix())-4) > 0))) {
+     this.checkLogged=true
+    }
   }
 
   ngOnDestroy(): void {

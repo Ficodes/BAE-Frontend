@@ -63,6 +63,8 @@ export class AppComponent implements OnInit {
       this.localStorage.setObject('cart_items', []);
     if(!this.localStorage.getObject('login_items'))
       this.localStorage.setObject('login_items', {});
+    if(!this.localStorage.getObject('feedback'))
+      this.localStorage.setObject('feedback', {});
     //this.checkPanel();
     this.eventMessage.messages$.subscribe(ev => {
       if(ev.type === 'LoginProcess') {

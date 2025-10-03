@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
 
 import {components} from "src/app/models/resource-catalog";
+import { initFlowbite } from 'flowbite';
 type ResourceSpecification_Update = components["schemas"]["ResourceSpecification_Update"];
 type CharacteristicValueSpecification = components["schemas"]["ResourceSpecificationCharacteristicValue"];
 type ResourceSpecificationCharacteristic = components["schemas"]["ResourceSpecificationCharacteristic"];
@@ -97,6 +98,7 @@ export class UpdateResourceSpecComponent implements OnInit {
     this.initPartyInfo();
     console.log(this.res)
     this.populateResInfo();
+    initFlowbite();
   }
 
   initPartyInfo(){
@@ -146,6 +148,9 @@ export class UpdateResourceSpecComponent implements OnInit {
     this.showSummary=false;
     this.showPreview=false;
     this.refreshChars();
+    setTimeout(() => {        
+      initFlowbite();   
+    }, 100);
   }
 
   onTypeChange(event: any) {

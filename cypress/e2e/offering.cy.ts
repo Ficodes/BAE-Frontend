@@ -436,7 +436,7 @@ const step5 = (description: string) => {
 
 const step6 = (online: boolean=false, pricePlan:any = null, priceComponent:PriceComponent = null) => {
     if(online){
-        cy.getBySel('onlinePayment').click()
+        cy.getBySel('pricePlanType').select('paid')
     }
     if(pricePlan){
         cy.getBySel('newPricePlan').click()

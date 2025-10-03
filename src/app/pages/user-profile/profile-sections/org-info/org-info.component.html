@@ -12,7 +12,7 @@
         <hr class="h-px mr-4 ml-4 bg-primary-100 dark:bg-white border-0">
         <form class="m-4 grid md:grid-cols-2 gap-4" [formGroup]="profileForm">
             <div>
-                <span class="font-bold dark:text-white">{{ 'PROFILE._name' | translate }}</span>
+                <span class="font-bold dark:text-white">{{ 'PROFILE._name' | translate }} (*)</span>
                 <input type="text" formControlName="name" id="name"
                 class="mb-2 bg-gray-50 text-gray-900 dark:bg-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                 [ngClass]="(profileForm.get('name')?.invalid == true && profileForm.value.name!='') || (profileForm.get('name')?.touched && profileForm.value.name=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'" />
@@ -26,8 +26,8 @@
                 class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />    
             </div>
             <div>
-                <span class="font-bold dark:text-white">{{ 'PROFILE._country' | translate }}</span>
-                <select id="country" formControlName="country" class=""class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                <span class="font-bold dark:text-white">{{ 'PROFILE._country' | translate }} (*)</span>
+                <select id="country" formControlName="country" class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                     <option *ngFor="let country of euCountries" [value]="country.code">
                       {{ country.name }}
                     </option>
@@ -140,7 +140,24 @@
             </div>
         </form>
 
-        <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'PROFILE._add_logo' | translate }}</h2>
+        <div class="flex">
+            <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'PROFILE._add_logo' | translate }}</h2>
+            <div class="flex inline-flex ml-2 align-middle">
+                <svg data-popover-target="popover-logo" class="flex self-center w-6 h-6 text-primary-100" clip-rule="evenodd" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+            </div>
+        </div>
+        <div data-popover id="popover-logo" role="tooltip" class="absolute z-20 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+            <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                <h3 class="font-semibold text-gray-900 dark:text-white">Logo requirements</h3>
+            </div>
+            <div class="px-3 py-2 inline-block">
+                <p class="inline-block">The supported formats are SVG and PNG. The logo size should follow an 1:1 aspect ratio (e.g. 160x160px resolution) and transparent background.
+                </p>
+            </div>
+            <div data-popper-arrow></div>
+        </div>
         <hr class="h-px mr-4 ml-4 bg-primary-100 dark:bg-white border-0">
         @if(showImgPreview){
             <div class="relative isolate flex flex-col justify-end overflow-hidden rounded-2xl px-8 pb-8 pt-40 max-w-sm mx-auto m-4 shadow-lg">

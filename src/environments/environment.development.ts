@@ -79,5 +79,7 @@ export const environment = {
         addAttachmentToQuote: '/addAttachmentToQuote',
         deleteQuote: '/quote'
     },
-    analytics: ''
+    analytics: '',
+    feedbackCampaign: false,
+    feedbackCampaignExpiration: 0
 };

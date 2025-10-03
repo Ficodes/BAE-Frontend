@@ -17,7 +17,7 @@
               </button>
             </div>-->
             <!-- Modal body -->
-            @if(!showThanksMessage){
+            @if(!showThanksMessage && !checkCampaing){
 
                 <!-- START HEADER CARD -->
             <div class="w-full rounded-t-lg p-8">
@@ -36,7 +36,8 @@
 
 
                 <div class="p-8">
-                @if(!addComment){
+
+               @if(!addComment){
                     <div class="justify-start">
                         <h5 class="font-semibold tracking-tight text-lg text-primary-100 dark:text-primary-50">{{ 'FEEDBACK._tap' | translate }}</h5>
     
@@ -80,13 +81,41 @@
                     </div>
                 }
             </div>
-        } @else {
+        } @else if(showThanksMessage){
             <div class="w-full mb-4 rounded-t-lg p-8">
                 
                 <fa-icon [icon]="faHandsHoldingHeart" class="text-5xl text-primary-50 align-middle mr-2"></fa-icon>
                 <h5 class="md:text-3xl lg:text-4xl mt-2 font-semibold tracking-tight text-secondary-100 dark:text-white text-wrap break-words">{{ 'FEEDBACK._thanks' | translate }}</h5>
 
             </div>
+        } @else if(checkCampaing){
+            <div class="w-full rounded-t-lg p-8">
+                <fa-icon [icon]="faMessagePen" class="text-5xl text-primary-50 align-middle mr-2"></fa-icon>
+                <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-secondary-100 dark:text-white text-wrap break-words">Would you like to provide feedback?</h5>
+                <div class="justify-start mt-4">
+                    <div class="flex gap-4">
+                        <label class="inline-flex items-center">
+                          <input type="radio" name="feedbackOption" [(ngModel)]="wantsFeedback" [value]="true" class="w-4 h-4 cursor-pointer text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
+                          <span class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Yes</span>
+                        </label>
+                    
+                        <label class="inline-flex items-center">
+                          <input type="radio" name="feedbackOption" [(ngModel)]="wantsFeedback" [value]="false" class="w-4 h-4 cursor-pointer text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                          <span class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">No</span>
+                        </label>
+                    </div>
+                    <div class="flex">
+                        <button type="button" (click)="updateFeedback()" [disabled]="wantsFeedback==null"
+                        class="mt-4 w-fit flex items-center justify-start disabled:opacity-50 disabled:cursor-not-allowed text-white bg-primary-100 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2 dark:bg-primary-100 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                        <svg class="rtl:rotate-180 w-3.5 h-3.5 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                        </svg>
+                        Confirm
+                        </button>
+                    </div>
+                </div>
+            </div>
+                
         }
     </div>
   </div>

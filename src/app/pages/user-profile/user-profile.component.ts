@@ -47,6 +47,9 @@ export class UserProfileComponent implements OnInit{
     let today = new Date();
     today.setMonth(today.getMonth()-1);
     this.initPartyInfo();
+    setTimeout(() => {        
+      initFlowbite();   
+    }, 100);
   }
 
   initPartyInfo(){
@@ -90,6 +93,9 @@ export class UserProfileComponent implements OnInit{
     this.show_org_profile=true;
     this.show_revenue=false;
     this.selectGeneral();
+    setTimeout(() => {        
+      initFlowbite();   
+    }, 100);
   }
 
   getBilling(){

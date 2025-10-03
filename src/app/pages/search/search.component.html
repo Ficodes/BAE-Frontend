@@ -81,10 +81,11 @@
   </div>
 
 </section>
-@if(feedback && providerThemeName=='DOME'){
+
+@if(feedback){
   <feedback-modal 
-  rateMessage="How relevant are the services to your context, needs and industry challenges?"
-  writeMessage="Please elaborate on your answer"
-  type="services"
+  rateMessage="Based on your recent experience, how likely are you to recommend DOME to a colleague or a partner?"
+  writeMessage="How can we improve DOME?"
+  type="campaign"
   class="fixed inset-0 flex items-center justify-center z-40"></feedback-modal>
 }

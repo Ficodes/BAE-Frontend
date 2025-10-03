@@ -1,5 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
+import * as moment from "moment";
 import { Observer } from "rxjs";
 import { environment } from "src/environments/environment";
 
@@ -32,7 +33,9 @@ export class AppInitService {
                 environment.DFT_CATALOG_ID = config.defaultId;
                 environment.quoteApi = config.quoteApi ?? 'http://localhost:8080/quoteManagement';
                 environment.PAYMENT_URL = config.paymentUrl;
-                environment.analytics = config.analytics ?? 'https://analytics.dome-marketplace-sbx.org/'
+                environment.analytics = config.analytics ?? 'https://analytics.dome-marketplace-sbx.org/',
+                environment.feedbackCampaign = config.feedbackCampaign ?? false,
+                environment.feedbackCampaignExpiration = config.feedbackCampaign ?? moment().add(1, 'week').unix()
                 resolve(config);
             }),
             error: (error) => {

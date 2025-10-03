@@ -2,8 +2,8 @@
   <h2 class="text-xl font-semibold text-secondary-100 dark:text-white">{{ 'FORMS.PRICE_PLANS._price_plans' | translate }}</h2>
 
   <!-- Payment Online Checkbox -->
-  <div class="mb-4 flex items-center">
-    <input type="checkbox"
+  <div class="mb-4 flex flex-col">
+    <!--<input type="checkbox"
            data-cy="onlinePayment"
            [formControl]="paymentOnlineControl"
            (change)="onPaymentOnlineChange($event)"
@@ -13,7 +13,26 @@
       @if (pricePlans.length > 0) {
         <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">({{ 'FORMS.PRICE_PLANS._locked_after_first_plan' | translate }})</span>
       }
+    </label>-->
+    @if (pricePlans.length == 0) {
+    <label class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+      Select the price type that best suits for you:
     </label>
+    <select id="pricePlanType" data-cy="pricePlanType" [value]="priceType" (change)="onPaymentOnlineChange($event)"
+    class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+      <option value="free">Free</option>
+      <option value="tailored">Tailored price</option>
+      <option value="paid">Online paid price</option>
+    </select>
+    } @else {
+      <label class="mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+        You've selected a {{
+          priceType === 'free' ? 'free' :
+          priceType === 'tailored' ? 'tailored' :
+          'online paid'
+        }} price type. If you want to change it you need to delete all your price plans before.        
+      </label>
+    }
   </div>
 
   <!-- Price Plans Table -->
@@ -24,16 +43,19 @@
   </app-price-plans-table>
 
   <!-- Add Price Plan Button -->
-  <button data-cy="newPricePlan" type="button" (click)="openPricePlanDrawer()"
-          class="mt-2 px-4 py-2 flex items-center justify-center text-base font-medium bg-secondary-50 dark:bg-secondary-100 text-primary-100 dark:text-primary-50 rounded">
-    <svg class="min-w-4 w-4 h-4 md:mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+   @if(priceType!='free'){
+    <button data-cy="newPricePlan" type="button" (click)="openPricePlanDrawer()"
+      class="mt-2 px-4 py-2 flex items-center justify-center text-base font-medium bg-secondary-50 dark:bg-secondary-100 text-primary-100 dark:text-primary-50 rounded">
+      <svg class="min-w-4 w-4 h-4 md:mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
       <path fill="currentColor"
             d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM232 344l0-64-64 0c-13.3 0-24-10.7-24-24s10.7-24
             24-24l64 0 0-64c0-13.3 10.7-24 24-24s24 10.7 24 24l0 64 64 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-64
             0 0 64c0 13.3-10.7 24-24 24s-24-10.7-24-24z"/>
-    </svg>
-    <span class="hidden md:block">{{ 'FORMS.PRICE_PLANS._add' | translate }}</span>
-  </button>
+      </svg>
+      <span class="hidden md:block">{{ 'FORMS.PRICE_PLANS._add' | translate }}</span>
+    </button>
+   }
+
 </div>
 
 <!-- Price Plan Drawer -->

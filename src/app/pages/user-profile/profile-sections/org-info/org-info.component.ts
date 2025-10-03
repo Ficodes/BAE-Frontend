@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnChanges } from '@angular/core';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
@@ -23,7 +23,7 @@ type OrganizationUpdate = components["schemas"]["Organization_Update"];
   templateUrl: './org-info.component.html',
   styleUrl: './org-info.component.css'
 })
-export class OrgInfoComponent {
+export class OrgInfoComponent implements OnInit {
   loading: boolean = false;
   orders:any[]=[];
   profile:any;
@@ -35,7 +35,7 @@ export class OrgInfoComponent {
     name: new FormControl('', [Validators.required]),
     website: new FormControl(''),
     description: new FormControl(''),
-    country: new FormControl(''),
+    country: new FormControl('',[Validators.required]),
   });
   mediumForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email, Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$'), Validators.maxLength(320)]),
@@ -130,6 +130,9 @@ export class OrgInfoComponent {
     today.setMonth(today.getMonth()-1);
     this.selectedDate = today.toISOString();
     this.initPartyInfo();
+    setTimeout(() => {        
+      initFlowbite();   
+    }, 500);
   }
 
   initPartyInfo(){
@@ -141,6 +144,7 @@ export class OrgInfoComponent {
       this.token=aux.token;
       this.email=aux.email;
       //this.partyId = aux.partyId;
+      this.profileForm.reset();
       this.getProfile();
     }
     initFlowbite();
@@ -156,7 +160,6 @@ export class OrgInfoComponent {
       this.loading=false;
       this.cdr.detectChanges();
     })
-
     this.cdr.detectChanges();
     initFlowbite();
   }

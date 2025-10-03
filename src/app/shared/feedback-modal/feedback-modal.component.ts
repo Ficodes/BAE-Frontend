@@ -1,18 +1,21 @@
-import { Component, HostListener, Input } from '@angular/core';
+import { Component, HostListener, Input, OnInit } from '@angular/core';
 import {faMessagePen, faHandsHoldingHeart} from "@fortawesome/pro-solid-svg-icons";
 import {EventMessageService} from "../../services/event-message.service";
 import { FeedbackServiceService } from "src/app/services/feedback-service.service"
+import {LocalStorageService} from "../../services/local-storage.service";
 import { lastValueFrom } from 'rxjs';
+import { FeedbackInfo } from 'src/app/models/interfaces';
 
 @Component({
   selector: 'feedback-modal',
   templateUrl: './feedback-modal.component.html',
   styleUrl: './feedback-modal.component.css'
 })
-export class FeedbackModalComponent {
+export class FeedbackModalComponent implements OnInit {
   constructor(
     private eventMessage: EventMessageService,
-    private feedbackService: FeedbackServiceService
+    private feedbackService: FeedbackServiceService,
+    private localStorage: LocalStorageService,
   ) {  }
   @Input() rateMessage: string
   @Input() writeMessage: string
@@ -22,10 +25,35 @@ export class FeedbackModalComponent {
   rating: number = 0; // Current rating
   addComment:boolean=false;
   showThanksMessage:boolean=false;
+  checkCampaing:boolean=false;
+  wantsFeedback: boolean = false;
 
   @HostListener('document:click')
   onClick() {
     this.eventMessage.emitCloseFeedback(true);
+  }
+
+  ngOnInit(): void {
+    if(this.type=='campaign'){
+      this.checkCampaing=true;      
+    }else{
+      this.checkCampaing=false;
+    }
+  }
+
+  updateFeedback(){
+    this.checkCampaing=false;
+    if (!this.wantsFeedback) {
+      this.eventMessage.emitCloseFeedback(true);
+    }
+
+    let feedbackInfo = this.localStorage.getObject('feedback') as FeedbackInfo;
+
+    let wantsFeedback = {
+      "approval": this.wantsFeedback,
+      "expire": feedbackInfo?.expire,
+    }
+    this.localStorage.setObject('feedback',wantsFeedback)
   }
 
   setRating(star: number) {

@@ -103,6 +103,7 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
   action = 'create'; // What are we doing?
   originalValue: any;
   formSubscription: Subscription | null = null;
+  priceType:string='free';
 
   private originalPricePlans: PricePlan[] = [];
   private originalPriceComponents: { [key: string]: any[] } = {};
@@ -129,8 +130,15 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
     // Set initial payment online state based on existing plans
     if (this.pricePlans.length > 0) {
       this.paymentOnline = this.pricePlans[0].paymentOnline;
-      this.paymentOnlineControl.setValue(this.paymentOnline);
-      this.paymentOnlineControl.disable();
+      if(this.paymentOnline){
+        this.priceType='paid'
+      } else {
+        this.priceType='tailored'
+      }
+      //this.paymentOnlineControl.setValue(this.paymentOnline);
+      //this.paymentOnlineControl.disable();
+    } else {
+      this.priceType='free'
     }
 
     // Guardar el estado original
@@ -399,11 +407,23 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
 
   onPaymentOnlineChange(event: any) {
     // Solo permitir cambios si no hay price plans
-    if (this.pricePlans.length === 0) {
+    /*if (this.pricePlans.length === 0) {
       this.paymentOnline = event.target.checked;
       this.paymentOnlineControl.setValue(this.paymentOnline);
       this.cdr.detectChanges();
+    }*/
+    if(event.target.value == 'paid'){
+      this.paymentOnline=true;
+      this.priceType='paid';
+    } else if(event.target.value == 'free'){
+      this.priceType='free';
+      this.paymentOnline=false;
+    } else {
+      this.priceType='tailored';
+      this.paymentOnline=false;
     }
+    //this.paymentOnlineControl.setValue(this.paymentOnline);
+    this.cdr.detectChanges();
   }
 
   private createPricePlanForm(plan: any = null): FormGroup {
@@ -480,8 +500,9 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
       // Si se eliminaron todos los price plans, permitir cambiar el estado de payment online
       if (this.pricePlans.length === 0) {
         this.paymentOnline = false;
-        this.paymentOnlineControl.setValue(false);
-        this.paymentOnlineControl.enable();
+        this.priceType='free';
+        //this.paymentOnlineControl.setValue(false);
+        //this.paymentOnlineControl.enable();
         this.cdr.detectChanges();
       }
     }
@@ -598,10 +619,13 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
     this.form.get('pricePlans')?.setValue(this.pricePlans);
     this.onChange(this.pricePlans);
     if (this.pricePlans.length === 0) {
+      this.priceType='free';
+    }
+    /*if (this.pricePlans.length === 0) {
       this.paymentOnlineControl.enable();
     } else {
       this.paymentOnlineControl.disable();
-    }
+    }*/
     this.cdr.detectChanges();
   }
 
