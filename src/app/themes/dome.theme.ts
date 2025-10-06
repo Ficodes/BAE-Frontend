@@ -23,6 +23,11 @@ const domeHeaderLinks: NavLink[] = [
     label: 'HEADER._about',
     url: '/about',
     isRouterLink: true
+  },
+  {
+    label: 'HEADER._blog',
+    url: '/blog',
+    isRouterLink: true
   }
 ];
 

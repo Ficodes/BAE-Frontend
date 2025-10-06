@@ -1,0 +1,56 @@
+<div class="bg-secondary-50 dark:bg-secondary-200 fixed inset-0 flex flex-col">
+    <!-- Sticky header + breadcrumb wrapper -->
+    <div class="sticky top-0 z-10">
+        <!-- Header -->
+        <section id="jumbo" 
+            class="w-full bg-cover bg-right-bottom pt-8"
+            style="background-image: url(assets/images/bg_1_shadow.png)">
+            
+            <div class="pt-8 pb-8 px-4 w-full text-left lg:pt-16 lg:px-12">
+                <div class="flex flex-row mx-auto max-w-screen-xl justify-between">
+                    <div class="flex flex-col">
+                        <h1 class="mb-4 text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl text-white">
+                            {{entry.title}}
+                        </h1>
+                        <p class="text-lg font-normal lg:text-xl text-secondary-50">
+                            Created by 
+                            <b class="text-primary-50">
+                                {{entry.author}}
+                            </b> 
+                            on {{entry.date | date:'EEEE, dd/MM/yy, HH:mm'}}.
+                        </p>
+                    </div>
+                </div>    
+            </div>
+        </section>
+
+        <!-- Breadcrumb -->
+        <nav class="flex px-5 py-3 shadow-lg text-gray-700 border border-gray-200 bg-secondary-50 dark:bg-secondary-100 dark:border-gray-800 dark:text-white">
+            <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
+                <li class="inline-flex items-center">
+                    <button (click)="goBack()" class="inline-flex items-center text-sm font-medium text-gray-500 dark:text-white hover:text-primary-100 dark:hover:text-primary-50">
+                        <svg class="w-3 h-3 mr-2 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 10">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 1 1 5l4 4m6-8L7 5l4 4"/>
+                        </svg>
+                        Back
+                    </button>
+                </li>
+                <li aria-current="page">
+                    <div class="flex items-center">
+                        <svg class="rtl:rotate-180 w-3 h-3 mx-1 text-gray-400 dark:text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+                        </svg>
+                        <span class="ms-1 text-sm font-medium text-gray-500 dark:text-white md:ms-2">Entry details</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Scrollable content -->
+    <div class="flex-1 overflow-y-auto p-8 lg:pt-8 lg:p-16">
+        <markdown class="text-gray-700 dark:text-secondary-50 whitespace-pre-line"
+        [data]="entry.content">
+        </markdown>
+    </div>
+</div>
