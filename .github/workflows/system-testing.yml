@@ -54,9 +54,10 @@ jobs:
             STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$PROXY_LOCATION")
             if [[ "$STATUS" -eq 200 ]]; then
               echo "Proxy repository found"
-              PROXY_REPO=$(echo -e "$PROXY_LOCATION" | awk -F "/" '{print $4 "/" $5}')
-              PROXY_BRANCH=$(echo -e "$PROXY_LOCATION" | awk -F "/tree/" '{print $2}')
+              PROXY_REPO=$(echo "$PROXY_LOCATION" | awk -F "/" '{print $4 "/" $5}')
+              PROXY_BRANCH=$(echo "$PROXY_LOCATION" | awk -F "/tree/" '{print $2}')
               PROXY_BRANCH="${PROXY_BRANCH:-master}"
+              echo "Extracted - Repo: $PROXY_REPO, Branch: $PROXY_BRANCH"
             else
               echo "Proxy repository not found: $PROXY_LOCATION (HTTP $STATUS)"
               exit 1
@@ -69,9 +70,10 @@ jobs:
             STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$CHARGING_LOCATION")
             if [[ "$STATUS" -eq 200 ]]; then
               echo "Charging repository found"
-              CHARGING_REPO=$(echo -e "$CHARGING_LOCATION" | awk -F "/" '{print $4 "/" $5}')
-              CHARGING_BRANCH=$(echo -e "$CHARGING_LOCATION" | awk -F "/tree/" '{print $2}')
+              CHARGING_REPO=$(echo "$CHARGING_LOCATION" | awk -F "/" '{print $4 "/" $5}')
+              CHARGING_BRANCH=$(echo "$CHARGING_LOCATION" | awk -F "/tree/" '{print $2}')
               CHARGING_BRANCH="${CHARGING_BRANCH:-master}"
+              echo "Extracted - Repo: $CHARGING_REPO, Branch: $CHARGING_BRANCH"
             else
               echo "Charging repository not found: $CHARGING_LOCATION (HTTP $STATUS)"
               exit 1
