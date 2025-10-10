@@ -14,8 +14,8 @@ jobs:
       - name: Check if system testing is activated
         id: check_activation
         run: |
-          ACTIVATE=$(echo -e '${{ github.event.pull_request.body }}' | grep '^SYSTEM_TESTING:' | sed 's/SYSTEM_TESTING: *//')
-          echo "System testing activation: $ACTIVATE"
+          ACTIVATE=$(echo '${{ github.event.pull_request.body }}' | grep '^SYSTEM_TESTING:' | sed 's/SYSTEM_TESTING: *//' | tr -d '[:space:]')
+          echo "System testing activation: '$ACTIVATE'"
           if [[ "$ACTIVATE" == "ACTIVATE" ]]; then
             echo "activated=true" >> $GITHUB_OUTPUT
             echo "System testing is ACTIVATED"
@@ -30,15 +30,15 @@ jobs:
           echo "Parsing PR body for dependencies..."
 
           # Parse PROXY dependency
-          PROXY_LOCATION=$(echo -e '${{ github.event.pull_request.body }}' | grep '^PROXY:' | sed 's/PROXY: *//')
+          PROXY_LOCATION=$(echo '${{ github.event.pull_request.body }}' | grep '^PROXY:' | sed 's/PROXY: *//' | xargs)
           echo "Proxy location: $PROXY_LOCATION"
 
           # Parse CHARGING dependency
-          CHARGING_LOCATION=$(echo -e '${{ github.event.pull_request.body }}' | grep '^CHARGING:' | sed 's/CHARGING: *//')
+          CHARGING_LOCATION=$(echo '${{ github.event.pull_request.body }}' | grep '^CHARGING:' | sed 's/CHARGING: *//' | xargs)
           echo "Charging location: $CHARGING_LOCATION"
 
           # Parse TM_VERSION
-          TM_VERSION=$(echo -e '${{ github.event.pull_request.body }}' | grep '^TM_VERSION:' | sed 's/TM_VERSION: *//')
+          TM_VERSION=$(echo '${{ github.event.pull_request.body }}' | grep '^TM_VERSION:' | sed 's/TM_VERSION: *//' | xargs)
           echo "TMForum API version: $TM_VERSION"
 
           # Default values (using upstream FIWARE-TMForum repos)
