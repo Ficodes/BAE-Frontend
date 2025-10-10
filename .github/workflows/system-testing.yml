@@ -1,0 +1,110 @@
+name: Trigger E2E Testing Workflow
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - main
+
+jobs:
+  trigger-system-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if system testing is activated
+        id: check_activation
+        run: |
+          ACTIVATE=$(echo -e '${{ github.event.pull_request.body }}' | grep '^SYSTEM_TESTING:' | sed 's/SYSTEM_TESTING: *//')
+          echo "System testing activation: $ACTIVATE"
+          if [[ "$ACTIVATE" == "ACTIVATE" ]]; then
+            echo "activated=true" >> $GITHUB_OUTPUT
+            echo "System testing is ACTIVATED"
+          else
+            echo "activated=false" >> $GITHUB_OUTPUT
+            echo "System testing NOT activated (add 'SYSTEM_TESTING: ACTIVATE' to PR body to enable)"
+          fi
+
+      - name: Trigger Repository Dispatch
+        if: steps.check_activation.outputs.activated == 'true'
+        run: |
+          echo "Parsing PR body for dependencies..."
+
+          # Parse PROXY dependency
+          PROXY_LOCATION=$(echo -e '${{ github.event.pull_request.body }}' | grep '^PROXY:' | sed 's/PROXY: *//')
+          echo "Proxy location: $PROXY_LOCATION"
+
+          # Parse CHARGING dependency
+          CHARGING_LOCATION=$(echo -e '${{ github.event.pull_request.body }}' | grep '^CHARGING:' | sed 's/CHARGING: *//')
+          echo "Charging location: $CHARGING_LOCATION"
+
+          # Parse TM_VERSION
+          TM_VERSION=$(echo -e '${{ github.event.pull_request.body }}' | grep '^TM_VERSION:' | sed 's/TM_VERSION: *//')
+          echo "TMForum API version: $TM_VERSION"
+
+          # Default values (using upstream FIWARE-TMForum repos)
+          PROXY_REPO="FIWARE-TMForum/business-ecosystem-logic-proxy"
+          PROXY_BRANCH="master"
+          CHARGING_REPO="FIWARE-TMForum/business-ecosystem-charging-backend"
+          CHARGING_BRANCH="master"
+          TM_VERSION="${TM_VERSION:-1.3.18}"
+
+          # Process PROXY location if specified
+          if [[ -n "$PROXY_LOCATION" ]]; then
+            echo "Validating proxy repository..."
+            STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$PROXY_LOCATION")
+            if [[ "$STATUS" -eq 200 ]]; then
+              echo "Proxy repository found"
+              PROXY_REPO=$(echo -e "$PROXY_LOCATION" | awk -F "/" '{print $4 "/" $5}')
+              PROXY_BRANCH=$(echo -e "$PROXY_LOCATION" | awk -F "/tree/" '{print $2}')
+              PROXY_BRANCH="${PROXY_BRANCH:-master}"
+            else
+              echo "Proxy repository not found: $PROXY_LOCATION (HTTP $STATUS)"
+              exit 1
+            fi
+          fi
+
+          # Process CHARGING location if specified
+          if [[ -n "$CHARGING_LOCATION" ]]; then
+            echo "Validating charging repository..."
+            STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$CHARGING_LOCATION")
+            if [[ "$STATUS" -eq 200 ]]; then
+              echo "Charging repository found"
+              CHARGING_REPO=$(echo -e "$CHARGING_LOCATION" | awk -F "/" '{print $4 "/" $5}')
+              CHARGING_BRANCH=$(echo -e "$CHARGING_LOCATION" | awk -F "/tree/" '{print $2}')
+              CHARGING_BRANCH="${CHARGING_BRANCH:-master}"
+            else
+              echo "Charging repository not found: $CHARGING_LOCATION (HTTP $STATUS)"
+              exit 1
+            fi
+          fi
+
+          echo ""
+          echo "E2E Test Configuration:"
+          echo "  Proxy:     $PROXY_REPO @ $PROXY_BRANCH"
+          echo "  Charging:  $CHARGING_REPO @ $CHARGING_BRANCH"
+          echo "  Frontend:  ${{ github.repository }} @ ${{ github.event.pull_request.head.ref }}"
+          echo "  TM Version: $TM_VERSION"
+          echo "  PR URL:    ${{ github.event.pull_request.html_url }}"
+          echo ""
+
+          # Trigger E2E tests in DOME-testing repository
+          echo "Triggering E2E tests..."
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.ADMIN }}" \
+            -H "Accept: application/vnd.github.everest-preview+json" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"event_type\": \"cross-repo-test\",
+              \"client_payload\": {
+                \"repository_A\": \"$PROXY_REPO\",
+                \"branch_A\": \"$PROXY_BRANCH\",
+                \"repository_B\": \"$CHARGING_REPO\",
+                \"branch_B\": \"$CHARGING_BRANCH\",
+                \"repository_frontend\": \"${{ github.repository }}\",
+                \"branch_frontend\": \"${{ github.event.pull_request.head.ref }}\",
+                \"tm_version\": \"$TM_VERSION\",
+                \"pull_request_url\": \"${{ github.event.pull_request.html_url }}\"
+              }
+            }" \
+            https://api.github.com/repos/sluFicodes/DOME-testing/dispatches
+
+          echo "E2E tests triggered successfully!"
