@@ -51,7 +51,7 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
 
   page: number=0;
   ORDER_LIMIT: number = environment.ORDER_LIMIT;
-  filters: any[]=['acknowledged','inProgress','completed','pending'];
+  filters: any[]=['acknowledged', 'partial', 'inProgress', 'completed', 'pending'];
   check_custom:boolean=false;
   isSeller:boolean=false;
   role:any='Customer'

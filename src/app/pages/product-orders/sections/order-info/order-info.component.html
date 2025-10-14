@@ -69,6 +69,15 @@
                     </li>
 
                     <li class="flex items-center">
+                        <input id="partial" type="checkbox" value="" checked (change)="onStateFilterChange('partial')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+
+                        <label for="partial" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {{ 'PRODUCT_ORDERS._partial' | translate }}
+                        </label>
+                    </li>
+
+                    <li class="flex items-center">
                         <input id="completed" type="checkbox" value="" checked (change)="onStateFilterChange('completed')"
                         class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
 
@@ -163,6 +172,8 @@
                                                     <span class="bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{order.state}}</span>
                                                 } @else if(order.state ===  'completed') {
                                                     <span class="bg-blue-100 dark:bg-secondary-300 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500">{{order.state}}</span>
+                                                } @else if(order.state ===  'partial') {
+                                                    <span class="bg-blue-100 dark:bg-secondary-300 text-purple-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-purple-500">{{order.state}}</span>
                                                 } @else if(order.state === 'failed') {
                                                     <span class="bg-blue-100 dark:bg-secondary-300 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{order.state}}</span>
                                                 } @else if(order.state === 'pending') {
