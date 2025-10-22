@@ -354,6 +354,8 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
 
       if (!valueType && isNaN(value)) {
         valueType = 'string'
+      } else if(!valueType && (value == false || value == true)) {
+        valueType = 'boolean'
       } else if (!valueType && !isNaN(value)) {
         valueType = 'number'
       }
