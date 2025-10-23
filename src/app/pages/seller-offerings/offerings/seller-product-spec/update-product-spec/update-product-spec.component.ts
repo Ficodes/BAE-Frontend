@@ -84,6 +84,7 @@ export class UpdateProductSpecComponent implements OnInit {
   stringCharSelected:boolean=true;
   numberCharSelected:boolean=false;
   rangeCharSelected:boolean=false;
+  booleanCharSelected:boolean=false;
   prodChars:ProductSpecificationCharacteristic[]=[];
   finishChars:ProductSpecificationCharacteristic[]=[];
   creatingChars:CharacteristicValueSpecification[]=[];
@@ -166,6 +167,7 @@ export class UpdateProductSpecComponent implements OnInit {
   numberUnit: string = '';
   fromValue: string = '';
   toValue: string = '';
+  booleanValue: boolean = false;
   rangeUnit: string = '';
 
   filenameRegex = /^[A-Za-z0-9_.-]+$/;
@@ -812,6 +814,7 @@ export class UpdateProductSpecComponent implements OnInit {
     this.stringCharSelected=true;
     this.numberCharSelected=false;
     this.rangeCharSelected=false;
+    this.booleanCharSelected=false;
     this.showPreview=false;
     this.refreshChars();
     initFlowbite();
@@ -1129,6 +1132,7 @@ export class UpdateProductSpecComponent implements OnInit {
     this.stringCharSelected=true;
     this.numberCharSelected=false;
     this.rangeCharSelected=false;
+    this.booleanCharSelected=false;
     this.creatingChars=[];
   }
 
@@ -1192,14 +1196,22 @@ export class UpdateProductSpecComponent implements OnInit {
       this.stringCharSelected=true;
       this.numberCharSelected=false;
       this.rangeCharSelected=false;
+      this.booleanCharSelected=false;
     }else if (event.target.value=='number'){
       this.stringCharSelected=false;
       this.numberCharSelected=true;
       this.rangeCharSelected=false;
-    }else{
+      this.booleanCharSelected=false;
+    }else if (event.target.value=='range'){
       this.stringCharSelected=false;
       this.numberCharSelected=false;
       this.rangeCharSelected=true;
+      this.booleanCharSelected=false;
+    } else {
+      this.stringCharSelected=false;
+      this.numberCharSelected=false;
+      this.rangeCharSelected=false;
+      this.booleanCharSelected=true;
     }
     this.creatingChars=[];
   }
@@ -1236,7 +1248,7 @@ export class UpdateProductSpecComponent implements OnInit {
       }
       this.numberUnit='';
       this.numberValue='';
-    }else{
+    }else if(this.rangeCharSelected){
       console.log('range')
       if(this.creatingChars.length==0){
         this.creatingChars.push({
@@ -1252,10 +1264,21 @@ export class UpdateProductSpecComponent implements OnInit {
           valueTo:this.toValue as any,
           unitOfMeasure:this.rangeUnit})
       } 
+    }else{
+      console.log('boolean')
+      if(this.creatingChars.length==0){
+        this.creatingChars.push({
+          isDefault:true,
+          value:this.booleanValue as any
+        })
+      } else{
+        this.creatingChars.push({
+          isDefault:false,
+          value:this.booleanValue as any
+        })
+      }
     }
-    this.fromValue='';
-    this.toValue='';
-    this.rangeUnit='';
+    this.booleanValue=false;
   }
 
   removeCharValue(char:any,idx:any){
