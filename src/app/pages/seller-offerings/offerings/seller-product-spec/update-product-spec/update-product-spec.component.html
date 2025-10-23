@@ -640,6 +640,14 @@
                         </div>
                     } @else {
                         <form class="m-4 grid grid-cols-2 gap-4" [formGroup]="charsForm">
+                            @if(booleanCharSelected){
+                                <div class="flex flex-items items-center text-gray-600 dark:text-gray-200 col-span-2">
+                                    <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                                    </svg>
+                                    <h3 class="text-sm italic text-gray-600 ml-4 dark:text-gray-200">This characteristic's name should follow the pattern "Related characteristic's name - enabled"</h3>
+                                </div>
+                            }
                             <div>
                                 <label for="prod-name" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._product_name' | translate }}</label>
                                 <input formControlName="name" type="text" id="prod-name" maxLength="100"
@@ -777,7 +785,7 @@
                                             class="sr-only peer"
                                           />
                                           <div
-                                            class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none 
+                                            class="relative w-11 h-6 bg-gray-400 peer-focus:outline-none 
                                                    peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 
                                                    rounded-full peer dark:bg-gray-700 
                                                    peer-checked:after:translate-x-full 

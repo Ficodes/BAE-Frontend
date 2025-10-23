@@ -195,31 +195,46 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
 
   filterCharacteristics() {
     this.filteredCharacteristics = [];
-    for(let i = 0; i < this.characteristics.length; i++){
-      if (!certifications.some(certification => certification.name === this.characteristics[i].name) && this.characteristics[i].name != 'Compliance:SelfAtt') {
-        this.filteredCharacteristics.push(this.characteristics[i]);
-      }
-    }
-
-    // Reconfigurar el grupo de características en el formulario
+  
+    // Set disabled prefixes
+    const disabledPrefixes = this.characteristics
+      .filter(c => c.name?.endsWith(' - enabled'))
+      .filter(c => {
+        const val = c.productSpecCharacteristicValue?.[0]?.value;
+        const valueStr = String(val).toLowerCase();
+        return valueStr === 'false';
+      })
+      .map(c => c.name?.replace(/ - enabled$/, '').trim());
+  
+    // Filter out certifications, self-att, and disabled prefixes
+    this.filteredCharacteristics = this.characteristics.filter(char => {
+      const isCertification = certifications.some(cert => cert.name === char.name);
+      const isSelfAtt = char.name === 'Compliance:SelfAtt';
+      const isDisabledByPrefix = disabledPrefixes.some(prefix =>
+        char.name === prefix || char.name === `${prefix} - enabled`
+      );
+  
+      return !isCertification && !isSelfAtt && !isDisabledByPrefix;
+    });
+  
     const characteristicsGroup = this.fb.group({});
-    this.filteredCharacteristics.forEach((characteristic) => {
+    this.filteredCharacteristics.forEach(characteristic => {
       if (characteristic.id != null) {
-        const defaultValue = characteristic.productSpecCharacteristicValue?.find(
-          (val) => val.isDefault
-        )?.value || characteristic.productSpecCharacteristicValue?.find(
-          (val) => val.isDefault
-        )?.valueFrom;
-
+        const defaultValue =
+          characteristic.productSpecCharacteristicValue?.find(val => val.isDefault)?.value ??
+          characteristic.productSpecCharacteristicValue?.find(val => val.isDefault)?.valueFrom;
+  
         characteristicsGroup.addControl(
           characteristic.id,
           this.fb.control(defaultValue || null, Validators.required)
         );
       }
     });
-
+  
     this.form.setControl('characteristics', characteristicsGroup);
   }
+  
+  
 
   // Handle price plan selection
   async onPricePlanSelected(pricePlan: any) {

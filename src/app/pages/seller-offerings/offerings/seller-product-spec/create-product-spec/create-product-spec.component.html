@@ -537,6 +537,9 @@
                         </div>
                     } @else {
                         <form class="m-4 grid grid-cols-2 gap-4" [formGroup]="charsForm">
+                            @if(booleanCharSelected){
+                                <h3 class="text-sm font-italic text-gray-600 ml-4 dark:text-gray-200">This characteristic's name should follow the pattern "Related characteristic's name - enabled"</h3>
+                            }
                             <div>
                                 <label for="prod-name" class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._product_name' | translate }}</label>
                                 <input formControlName="name" type="text" id="prod-name" maxLength="100"
@@ -665,7 +668,6 @@
                                 </div>
                             } @else if (booleanCharSelected && creatingChars.length==0){
                                 <div class="flex flex-col md:flex-row items-center align-items-middle">
-
                                     <div class="flex items-center w-full mb-2 md:mb-0">
                                         <label class="inline-flex items-center cursor-pointer">
                                           <input 
