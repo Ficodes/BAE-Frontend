@@ -51,7 +51,7 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
 
   page: number=0;
   ORDER_LIMIT: number = environment.ORDER_LIMIT;
-  filters: any[]=['acknowledged', 'partial', 'inProgress', 'completed', 'pending'];
+  filters: any[]=[];
   check_custom:boolean=false;
   isSeller:boolean=false;
   role:any='Customer'
@@ -350,12 +350,8 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
     const index = this.filters.findIndex(item => item === filter);
     if (index !== -1) {
       this.filters.splice(index, 1);
-      console.log('elimina filtro')
-      console.log(this.filters)
     } else {
-      console.log('añade filtro')
       this.filters.push(filter)
-      console.log(this.filters)
     }
     this.getOrders(false);
   }

@@ -100,6 +100,7 @@ export class ProductDetailsComponent implements OnInit {
   stepsText:string[]=['text-chars','text-price','text-terms','text-checkout'];
   stepsCircles:string[]=['circle-chars','circle-price','circle-terms','circle-checkout'];
   licenseTerm:any=undefined;
+  isLoaded = false;
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -220,13 +221,7 @@ export class ProductDetailsComponent implements OnInit {
       this.cdr.detectChanges();
     }
     window.scrollTo(0, 0);
-    let cart = await this.cartService.getShoppingCart();
-    const exists = cart.some((item: any) => item.id === this.productOff?.id);
-    if (exists) {
-      this.productAlreadyInCart=true;
-    } else {
-      this.productAlreadyInCart=false;
-    }
+
     this.id = this.route.snapshot.paramMap.get('id');
     console.log('--- Details ID:')
     console.log(this.id)
@@ -238,13 +233,12 @@ export class ProductDetailsComponent implements OnInit {
     let prices: any[]=[];
     if(prodPrices!== undefined){
       for(let j=0; j < prodPrices.length; j++){
-        this.api.getProductPrice(prodPrices[j].id).then(price => {
-          prices.push(price);
-          console.log(price)
-          if(price.priceType == 'custom'){
-            this.checkCustom = true;
-          }
-        })
+        let price = await this.api.getProductPrice(prodPrices[j].id);
+        prices.push(price);
+        console.log(price)
+        if(price.priceType == 'custom'){
+          this.checkCustom = true;
+        }
       }
     }
 
@@ -273,16 +267,14 @@ export class ProductDetailsComponent implements OnInit {
     }
     if(this.prodSpec.serviceSpecification != undefined){
       for(let j=0; j < this.prodSpec.serviceSpecification.length; j++){
-        this.api.getServiceSpec(this.prodSpec.serviceSpecification[j].id).then(serv => {
-          this.serviceSpecs.push(serv);
-        })
+        let serv = await this.api.getServiceSpec(this.prodSpec.serviceSpecification[j].id);
+        this.serviceSpecs.push(serv);
       }
     }
     if(this.prodSpec.resourceSpecification != undefined){
       for(let j=0; j < this.prodSpec.resourceSpecification.length; j++){
-        this.api.getResourceSpec(this.prodSpec.resourceSpecification[j].id).then(res => {
-          this.resourceSpecs.push(res);
-        })
+        let res = this.api.getResourceSpec(this.prodSpec.resourceSpecification[j].id);
+        this.resourceSpecs.push(res);
       }
     }
 
@@ -336,6 +328,13 @@ export class ProductDetailsComponent implements OnInit {
     //Hardcoding compliance lever for the moment
     this.complianceLevel = this.api.getComplianceLevel(this.prodSpec);
     this.complianceDescription = this.getComplianceDescription();
+
+    if(this.check_logged){
+      let cart = await this.cartService.getShoppingCart();
+      const exists = cart.some((item: any) => item.id === this.productOff?.id);
+      this.productAlreadyInCart=exists;
+      this.cdr.detectChanges();
+    }
   }
 
   toggleQuoteModal(){
