@@ -198,7 +198,7 @@
           </ul>
           <div class="py-1">
             @if(orgs.length > 0 && isAdmin) {
-              <button data-dropdown-toggle="orgs-dropdown" data-dropdown-placement="left-start" class="flex w-full justify-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"><fa-icon [icon]="faAnglesLeft" class="mr-2"></fa-icon>{{ 'HEADER._change_session' | translate }}</button>
+              <button data-cy="changeSession" data-dropdown-toggle="orgs-dropdown" data-dropdown-placement="left-start" class="flex w-full justify-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"><fa-icon [icon]="faAnglesLeft" class="mr-2"></fa-icon>{{ 'HEADER._change_session' | translate }}</button>
             }
             <button id="signOut" (click)="logout();" class="flex w-full justify-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"><fa-icon [icon]="faArrowRightFromBracket" class="mr-2"></fa-icon>{{ 'HEADER._sign_out' | translate }}</button>
           </div>
@@ -215,7 +215,7 @@
         </li>
       </ul>
     </div>
-    <div id="orgs-dropdown" class="z-50 hidden bg-secondary-50 divide-y divide-primary-100/50 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600 ">
+    <div data-cy="orgsDropdown" id="orgs-dropdown" class="z-50 hidden bg-secondary-50 divide-y divide-primary-100/50 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600 ">
       <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="avatarButton">
           @for (org of orgs; track org.id; let idx = $index) {
             @if(org.id != loginInfo.logged_as || loginInfo.logged_as == loginInfo.id){

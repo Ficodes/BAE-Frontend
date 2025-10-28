@@ -140,22 +140,22 @@
                     <form class="m-4 md:grid md:grid-cols-2 gap-4" [formGroup]="generalForm">
                         <div>
                             <label for="prod-name" class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._product_name' | translate }}</label>
-                            <input formControlName="name" type="text" id="prod-name" maxLength="100"
+                            <input data-cy="inputName" formControlName="name" type="text" id="prod-name" maxLength="100"
                             [ngClass]="generalForm.get('name')?.invalid == true && generalForm.value.name!='' ? 'border-red-600' : 'border-gray-300'"
                             class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
                             <label for="prod-version" class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._product_version' | translate }}</label>
-                            <input formControlName="version" type="text" id="prod-version"
+                            <input data-cy="inputVersion" formControlName="version" type="text" id="prod-version"
                             [ngClass]="generalForm.get('version')?.invalid == true ? 'border-red-600' : 'border-gray-300'"
                             class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
-                        
+
                         </div>
                         <div>
                             <label for="prod-brand" class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._product_brand' | translate }}</label>
-                            <input formControlName="brand" type="text" id="prod-brand"
+                            <input data-cy="inputBrand" formControlName="brand" type="text" id="prod-brand"
                             [ngClass]="generalForm.get('brand')?.invalid == true && generalForm.value.brand!='' ? 'border-red-600' : 'border-gray-300'"
                             class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
                             <label for="prod-number" class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._id_number' | translate }}</label>
-                            <input formControlName="number" type="text" id="prod-number" 
+                            <input data-cy="inputIdNumber" formControlName="number" type="text" id="prod-number"
                             class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
                         
                         </div>
@@ -165,7 +165,7 @@
                     </form>
                     @if(BUNDLE_ENABLED){
                         <div class="flex w-full justify-items-end justify-end">
-                            <button type="button" (click)="toggleBundle();generalDone=true;" [disabled]="!generalForm.valid" [ngClass]="!generalForm.valid ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-end align-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                            <button data-cy="btnNext" type="button" (click)="toggleBundle();generalDone=true;" [disabled]="!generalForm.valid" [ngClass]="!generalForm.valid ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-end align-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                                 {{ 'CREATE_PROD_SPEC._next' | translate }}
                                 <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
@@ -174,7 +174,7 @@
                         </div>
                     }@else{
                         <div class="flex w-full justify-items-end justify-end">
-                            <button type="button" (click)="toggleCompliance();generalDone=true;" [disabled]="!generalForm.valid" [ngClass]="!generalForm.valid ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-end align-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                            <button data-cy="btnNext" type="button" (click)="toggleCompliance();generalDone=true;" [disabled]="!generalForm.valid" [ngClass]="!generalForm.valid ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-end align-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                                 {{ 'CREATE_PROD_SPEC._next' | translate }}
                                 <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
@@ -294,7 +294,7 @@
                         }
                     }
                     <div class="flex w-full justify-items-end justify-end ml-4">
-                        <button type="button" (click)="toggleCompliance();bundleDone=true;" [disabled]="prodSpecsBundle.length<2 && bundleChecked" [ngClass]="(prodSpecsBundle.length<2 && bundleChecked) ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        <button data-cy="btnNext" type="button" (click)="toggleCompliance();bundleDone=true;" [disabled]="prodSpecsBundle.length<2 && bundleChecked" [ngClass]="(prodSpecsBundle.length<2 && bundleChecked) ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                             {{ 'CREATE_PROD_SPEC._next' | translate }}
                             <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
@@ -430,11 +430,11 @@
                             </div>
 
                             <!-- Button -->
-                            <button type="button" (click)="toggleChars(); complianceDone = true;"
-                                    [disabled]="checkValidISOS()" 
+                            <button data-cy="btnNext" type="button" (click)="toggleChars(); complianceDone = true;"
+                                    [disabled]="checkValidISOS()"
                                     [ngClass]="checkValidISOS() ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
-                                    class="flex text-white bg-primary-100 focus:ring-4 focus:outline-none 
-                                        focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 
+                                    class="flex text-white bg-primary-100 focus:ring-4 focus:outline-none
+                                        focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5
                                         text-center inline-flex items-center">
                                 {{ 'CREATE_PROD_SPEC._next' | translate }}
                                 <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
@@ -675,7 +675,7 @@
                         </div>
                     }
                     <div class="flex w-full justify-items-end justify-end ml-4 mt-4">
-                        <button type="button" (click)="toggleResource();charsDone=true;" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        <button data-cy="btnNext" type="button" (click)="toggleResource();charsDone=true;" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                             {{ 'CREATE_PROD_SPEC._next' | translate }}
                             <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
@@ -776,7 +776,7 @@
                             </div>
                         }
                     <div class="flex w-full justify-items-end justify-end ml-4">
-                        <button type="button" (click)="toggleService();resourceDone=true;" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        <button data-cy="btnNext" type="button" (click)="toggleService();resourceDone=true;" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                             {{ 'CREATE_PROD_SPEC._next' | translate }}
                             <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
@@ -876,7 +876,7 @@
                             </div>
                         }
                     <div class="flex w-full justify-items-end justify-end ml-4 mt-4">
-                        <button type="button" (click)="toggleAttach();serviceDone=true;" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        <button data-cy="btnNext" type="button" (click)="toggleAttach();serviceDone=true;" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                             {{ 'CREATE_PROD_SPEC._next' | translate }}
                             <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
@@ -1075,7 +1075,7 @@
                         </div>
                     }
                     <div class="flex w-full justify-items-end justify-end ml-4 mt-4">
-                        <button type="button" (click)="toggleRelationship();attachDone=true;" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        <button data-cy="btnNext" type="button" (click)="toggleRelationship();attachDone=true;" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                             {{ 'CREATE_PROD_SPEC._next' | translate }}
                             <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
@@ -1265,7 +1265,7 @@
                         }
                     </div>
                     <div class="flex w-full justify-items-end justify-end ml-4">
-                        <button type="button" (click)="showFinish();relationshipDone=true;" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        <button data-cy="btnFinish" type="button" (click)="showFinish();relationshipDone=true;" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                             {{ 'CREATE_PROD_SPEC._finish' | translate }}
                             <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
@@ -1562,7 +1562,7 @@
                         }
                         }
                         <div class="flex w-full justify-items-end justify-end ml-4 mt-4">
-                            <button type="button" (click)="createProduct();" [disabled]="loading" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button data-cy="btnCreateProduct" type="button" (click)="createProduct();" [disabled]="loading" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
                                 {{ 'CREATE_PROD_SPEC._create_prod' | translate }}
                                 <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>

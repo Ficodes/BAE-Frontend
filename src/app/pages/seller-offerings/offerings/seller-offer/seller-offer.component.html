@@ -153,7 +153,7 @@
                 </thead>
                 <tbody data-cy="offers">
                     @for (offer of offers; track offer.id) {
-                        <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                        <tr data-cy="offerRow" class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
                             <td class="px-6 py-4 text-wrap break-all">
                                 {{offer.name}}
                             </td>
