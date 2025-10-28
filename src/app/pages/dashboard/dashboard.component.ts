@@ -69,12 +69,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   startTagTransition() {
     setInterval(() => {
-      if (this.services?.length > 0) {
-        this.currentIndexServ = (this.currentIndexServ + 1) % this.services.length;
-      }
-      if (this.publishers?.length > 0) {
-        this.currentIndexPub = (this.currentIndexPub + 1) % this.publishers.length;
-      }
+      this.currentIndexServ = (this.currentIndexServ + 1) % this.services.length;
+      this.currentIndexPub = (this.currentIndexPub + 1) % this.publishers.length;
     }, this.delay);
   }
 
@@ -84,8 +80,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
 
     this.statsService.getStats().then(data=> {
-      this.services=data?.services;
-      this.publishers=data?.organizations;
+      this.services=data?.services || [];
+      this.publishers=data?.organizations || [];
       this.startTagTransition();
     })
     this.isFilterPanelShown = JSON.parse(this.localStorage.getItem('is_filter_panel_shown') as string);
