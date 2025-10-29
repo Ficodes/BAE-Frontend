@@ -64,6 +64,7 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
 
   characteristics: ProductSpecificationCharacteristic[] = []; // Características dinámicas
   filteredCharacteristics: ProductSpecificationCharacteristic[] = [];
+  disabledCharacteristics: any[] = [];
 
   @HostListener('document:keydown.escape', ['$event'])
   handleEscape(event: KeyboardEvent): void {
@@ -193,6 +194,10 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     this.closeDrawer.emit();
   }
 
+  disableChars(){
+    
+  }
+
   filterCharacteristics() {
     this.filteredCharacteristics = [];
   
@@ -210,11 +215,11 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     this.filteredCharacteristics = this.characteristics.filter(char => {
       const isCertification = certifications.some(cert => cert.name === char.name);
       const isSelfAtt = char.name === 'Compliance:SelfAtt';
-      const isDisabledByPrefix = disabledPrefixes.some(prefix =>
+      /*const isDisabledByPrefix = disabledPrefixes.some(prefix =>
         char.name === prefix || char.name === `${prefix} - enabled`
-      );
+      );*/
   
-      return !isCertification && !isSelfAtt && !isDisabledByPrefix;
+      return !isCertification && !isSelfAtt;
     });
   
     const characteristicsGroup = this.fb.group({});
@@ -320,6 +325,30 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
   onValueChange(event: { characteristicId: string; selectedValue: any }): void {
     const characteristicsGroup = this.form.get('characteristics') as FormGroup;
     characteristicsGroup.get(event.characteristicId)?.setValue(event.selectedValue);
+
+    let char = this.filteredCharacteristics.find(item => item.id === event.characteristicId);
+    if (char?.name?.endsWith('- enabled')) {
+      const cleanName = char.name.replace(/- enabled$/, '').trim();
+      const disabledChar = this.filteredCharacteristics.find(
+        item => item.name === cleanName
+      );
+      const isSelected = event.selectedValue === true || event.selectedValue === 'true';
+      if (disabledChar) {
+        if (!isSelected) {
+          // Add it if it's not already in the array
+          if (!this.disabledCharacteristics.includes(disabledChar.id)) {
+            this.disabledCharacteristics.push(disabledChar.id);
+          }
+        } else {
+          // Remove it if it exists
+          this.disabledCharacteristics = this.disabledCharacteristics.filter(
+            id => id !== disabledChar.id
+          );
+          console.log(this.disabledCharacteristics)
+        }
+      }
+    }    
+    console.log(char)
     this.calculatePrice();
   }
 
@@ -363,27 +392,28 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     for(let i=0; i<this.getKeys(selectedCharacteristics).length;i++){
       let idx = this.filteredCharacteristics.findIndex(item => item.id === this.getKeys(selectedCharacteristics)[i]);
       console.log(this.filteredCharacteristics[idx])
-
-      let value = this.getValues(selectedCharacteristics)[i]
-      let valueType = this.filteredCharacteristics[idx].valueType
-
-      if (!valueType && isNaN(value)) {
-        valueType = 'string'
-      } else if(!valueType && (value == false || value == true)) {
-        valueType = 'boolean'
-      } else if (!valueType && !isNaN(value)) {
-        valueType = 'number'
+      if(!this.disabledCharacteristics.includes(this.filteredCharacteristics[idx].id)){
+        let value = this.getValues(selectedCharacteristics)[i]
+        let valueType = this.filteredCharacteristics[idx].valueType
+  
+        if (!valueType && isNaN(value)) {
+          valueType = 'string'
+        } else if(!valueType && (value == false || value == true)) {
+          valueType = 'boolean'
+        } else if (!valueType && !isNaN(value)) {
+          valueType = 'number'
+        }
+  
+        if(value==null && valueType=='number'){
+          value=0
+        }
+  
+        this.orderChars.push({
+          "name": this.filteredCharacteristics[idx].name,
+          "value": value,
+          "valueType": valueType,
+        })
       }
-
-      if(value==null && valueType=='number'){
-        value=0
-      }
-
-      this.orderChars.push({
-        "name": this.filteredCharacteristics[idx].name,
-        "value": value,
-        "valueType": valueType,
-      })
     }
   }
 

@@ -711,7 +711,7 @@
                                     }
                                 </div>
                             }
-                            <label for="values" [ngClass]="rangeCharSelected && creatingChars.length==1 || booleanCharSelected && creatingChars.length==1 ? 'hidden' : ''" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._add_values' | translate }}</label>
+                            <label for="values" [ngClass]="rangeCharSelected && creatingChars.length==1 || booleanCharSelected ? 'hidden' : ''" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._add_values' | translate }}</label>
                             @if(stringCharSelected){
                                 <div class="flex flex-row items-center align-items-middle">
                                     <input type="text" id="value" [(ngModel)]="stringValue"
@@ -774,44 +774,9 @@
                                         </svg>                                                                              
                                     </button> 
                                 </div>
-                            } @else if (booleanCharSelected && creatingChars.length==0){
-                                <div class="flex flex-col md:flex-row items-center align-items-middle">
-
-                                    <div class="flex items-center w-full mb-2 md:mb-0">
-                                        <label class="inline-flex items-center cursor-pointer">
-                                          <input 
-                                            type="checkbox" 
-                                            [(ngModel)]="booleanValue"
-                                            class="sr-only peer"
-                                          />
-                                          <div
-                                            class="relative w-11 h-6 bg-gray-400 peer-focus:outline-none 
-                                                   peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 
-                                                   rounded-full peer dark:bg-gray-700 
-                                                   peer-checked:after:translate-x-full 
-                                                   rtl:peer-checked:after:-translate-x-full 
-                                                   peer-checked:after:border-white 
-                                                   after:content-[''] after:absolute after:top-[2px] after:start-[2px] 
-                                                   after:bg-white after:border-gray-300 after:border 
-                                                   after:rounded-full after:h-5 after:w-5 after:transition-all 
-                                                   dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600">
-                                          </div>
-                                          <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-                                            Is this characteristic enabled?
-                                          </span>
-                                        </label>
-                                      </div>
-                                      
-
-                                    <button (click)="addCharValue()" type="button" class="cursor-pointer text-white w-fit h-full bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
-                                        <svg class="w-6 h-6 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
-                                        </svg>                                                                              
-                                    </button>
-                                </div>
                             }
                             <div class="flex w-full justify-items-center justify-center mt-4">
-                                <button type="button" (click)="saveChar()"  [disabled]="!charsForm.valid || creatingChars.length==0" [ngClass]="!charsForm.valid || creatingChars.length==0 ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                                <button type="button" (click)="saveChar()"  [disabled]="!charsForm.valid || (creatingChars.length==0 && !booleanCharSelected)" [ngClass]="!charsForm.valid || (creatingChars.length==0 && !booleanCharSelected) ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                                     {{ 'UPDATE_PROD_SPEC._save_char' | translate }}
                                     <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M11 16h2m6.707-9.293-2.414-2.414A1 1 0 0 0 16.586 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.414a1 1 0 0 0-.293-.707ZM16 20v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v6h8ZM9 4h6v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4Z"/>

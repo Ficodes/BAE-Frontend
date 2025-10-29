@@ -1298,6 +1298,18 @@ export class UpdateProductSpecComponent implements OnInit {
   }
 
   saveChar(){
+    if(this.booleanCharSelected){
+      this.creatingChars=[
+        {
+          isDefault:true,
+          value: true as any
+        },
+        {
+          isDefault:false,
+          value:false as any
+        }
+      ]
+    }
     if(this.charsForm.value.name!=null){
       this.prodChars.push({
         id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
