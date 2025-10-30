@@ -1151,10 +1151,6 @@ export class CreateProductSpecComponent implements OnInit {
           this.nonBooleanChars.splice(nonBooleanIndex, 1);
         }
       }
-      // Set default only if not already selected
-      if (!this.charsForm.get('name')?.value && this.nonBooleanChars.length > 0) {
-        this.charsForm.get('name')?.setValue(this.nonBooleanChars[0]+' - enabled');
-      }
     }
 
     this.charsForm.reset();
@@ -1194,11 +1190,13 @@ export class CreateProductSpecComponent implements OnInit {
       }
     }
 
-    // Set default only if not already selected
-    if (!this.charsForm.get('name')?.value && this.nonBooleanChars.length > 0) {
-      this.charsForm.get('name')?.setValue(this.nonBooleanChars[0]+' - enabled');
-    } else {
-      this.charsForm.reset();
+    if(this.booleanCharSelected){
+      // Set default only if not already selected
+      if (this.nonBooleanChars.length > 0) {
+        this.charsForm.get('name')?.setValue(this.nonBooleanChars[0]+' - enabled');
+      } else {
+        this.charsForm.reset();
+      }
     }
 
     this.cdr.detectChanges();
