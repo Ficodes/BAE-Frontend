@@ -640,20 +640,42 @@
                         </div>
                     } @else {
                         <form class="m-4 grid grid-cols-2 gap-4" [formGroup]="charsForm">
-                            @if(booleanCharSelected){
+                           <!--@if(booleanCharSelected){
                                 <div class="flex flex-items items-center text-gray-600 dark:text-gray-200 col-span-2">
                                     <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
                                     </svg>
                                     <h3 class="text-sm italic text-gray-600 ml-4 dark:text-gray-200">This characteristic's name should follow the pattern "Related characteristic's name - enabled"</h3>
                                 </div>
+                            }-->
+                            @if(!booleanCharSelected){
+                                <div>
+                                    <label for="prod-name" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._product_name' | translate }}</label>
+                                    <input formControlName="name" type="text" id="prod-name" maxLength="100"
+                                    class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                                    
+                                </div>
+                            } @else {
+                                <div>
+                                    @if(nonBooleanChars.length>0){
+                                        <label for="prod-name" class="font-bold text-lg dark:text-white">Select the related characteristic's name</label>
+                                        <select id="type" (change)="onSelectBooleanName($event)"
+                                        class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                        @for(charname of nonBooleanChars; track charname){
+                                            <option value="{{charname}}">{{charname}}</option>
+                                        }    
+                                        </select>
+                                    }@else{
+                                        <div class="flex flex-items items-center align-items-middle text-gray-600 dark:text-gray-200 col-span-2">
+                                            <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                                            </svg>
+                                            <h3 class="text-sm italic text-gray-600 ml-4 dark:text-gray-200">There's no characteristic available.</h3>
+                                        </div>
+                                    }
+
+                                </div>
                             }
-                            <div>
-                                <label for="prod-name" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._product_name' | translate }}</label>
-                                <input formControlName="name" type="text" id="prod-name" maxLength="100"
-                                class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
-                                
-                            </div>
                             <div>
                                 <label class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._type' | translate }}</label>
                                 <select id="type" (change)="onTypeChange($event)"
