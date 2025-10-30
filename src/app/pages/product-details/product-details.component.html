@@ -424,7 +424,7 @@
                     <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-8">
                         <div class="border border-gray-200 rounded-lg shadow bg-white dark:bg-secondary-200 dark:border-gray-800 shadow-md p-8 h-full grid grid-cols-80/20 pb-4 h-1/4">
                             <div class="flex justify-start">
-                                <h3 class="text-2xl font-bold mb-4 dark:text-white">{{att.name}}</h3>
+                                <h3 class="text-2xl font-bold mb-4 dark:text-white break-all">{{att.name}}</h3>
                             </div>
                             <!--<a class="mb-2 font-normal pl-4 text-primary-100 text-wrap break-all" target="_blank" href="{{att.url}}">
                                 {{att.url}}
@@ -459,7 +459,7 @@
                     <h2 #agreementsContent class="text-4xl font-extrabold text-primary-100 text-center pb-8 pt-12 dark:text-primary-50">{{ 'PRODUCT_DETAILS._license' | translate }}</h2>
                     <div class="container mx-auto px-4">
                         <div class="border border-gray-200 rounded-lg shadow bg-white dark:bg-secondary-200 dark:border-gray-800 p-8">
-                            <div class="grid grid-cols-80/20 pb-4 h-1/4">
+                            <div class="pb-4 h-1/4">
                                 <!--<div class="flex justify-start">
                                     <h2 class="text-gray-900 dark:text-white text-3xl font-extrabold mb-2 text-wrap break-all">{{licenseTerm.name}}</h2>
                                 </div>-->
@@ -501,7 +501,7 @@
                     @for (rel of prodSpec.productSpecificationRelationship; track rel.id) {
                         <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-8">
                             <div class="border border-gray-200 rounded-lg shadow bg-white dark:bg-secondary-200 dark:border-gray-800 shadow-md p-8 h-full">
-                                <h3 class="text-2xl font-bold mb-4 dark:text-white">{{rel.name}}</h3>
+                                <h3 class="text-2xl font-bold mb-4 dark:text-white break-all">{{rel.name}}</h3>
                                 <div class="flex justify-between">
                                     <p class="mb-2 font-normal pl-4 text-gray-700 dark:text-gray-200">{{rel.relationshipType}}</p>
                                     @if(rel.relationshipType == 'dependency'){
