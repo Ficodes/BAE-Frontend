@@ -31,7 +31,7 @@ describe('/my-offerings',{
 
         cy.visit('/my-offerings')
         cy.wait('@catalog')
-        cy.get('@catalog.all').should('have.length', 2)
+        cy.get('@catalog.all').should('have.length', 4)
         cy.getBySel('newCatalog').click()
         cy.getBySel('catalogName').type(name)
         cy.getBySel('catalogDsc').type(description)
@@ -72,7 +72,7 @@ describe('/my-offerings',{
 
         cy.visit('/my-offerings')
         cy.wait('@catalog')
-        cy.get('@catalog.all').should('have.length', 2)
+        cy.get('@catalog.all').should('have.length', 4)
         cy.getBySel('newCatalog').click()
         cy.getBySel('catalogName').type(name)
         cy.getBySel('catalogDsc').type(description)
