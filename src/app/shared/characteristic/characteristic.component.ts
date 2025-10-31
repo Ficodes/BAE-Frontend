@@ -35,6 +35,8 @@ interface Characteristic {
 export class CharacteristicComponent implements OnInit {
   @Input() characteristic!: ProductSpecificationCharacteristic;
   @Input() readOnly: boolean = false;
+  @Input() isDisabled: boolean = false;
+  @Input() canBeDisabled: boolean = false;
   @Output() valueChange = new EventEmitter<any>();
 
   control = new FormControl();

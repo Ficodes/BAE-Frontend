@@ -1329,11 +1329,11 @@ export class UpdateProductSpecComponent implements OnInit {
     if(this.booleanCharSelected){
       this.creatingChars=[
         {
-          isDefault:true,
+          isDefault:false,
           value: true as any
         },
         {
-          isDefault:false,
+          isDefault:true,
           value:false as any
         }
       ]

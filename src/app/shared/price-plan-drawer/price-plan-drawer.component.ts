@@ -65,6 +65,7 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
   characteristics: ProductSpecificationCharacteristic[] = []; // Características dinámicas
   filteredCharacteristics: ProductSpecificationCharacteristic[] = [];
   disabledCharacteristics: any[] = [];
+  canBeDisabledChars: any[]=[];
 
   @HostListener('document:keydown.escape', ['$event'])
   handleEscape(event: KeyboardEvent): void {
@@ -231,15 +232,46 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
   
         characteristicsGroup.addControl(
           characteristic.id,
-          this.fb.control(defaultValue || null, Validators.required)
+          this.fb.control(defaultValue ?? null, Validators.required)
         );
+        if(!characteristic.name?.endsWith('- enabled') && this.filteredCharacteristics.some((char => char.name === characteristic.name+' - enabled'))){
+          this.canBeDisabledChars.push(characteristic.id)
+          this.disabledCharacteristics.push(characteristic.id)
+        }
       }
     });
   
     this.form.setControl('characteristics', characteristicsGroup);
   }
-  
-  
+
+  onToggleChange(event: Event, charName: any): void {
+    const inputElement = event.target as HTMLInputElement;
+    const isChecked = inputElement.checked;
+    let char = this.filteredCharacteristics.find(char => char.name == charName+' - enabled')
+    const characteristicsGroup = this.form.get('characteristics') as FormGroup;
+    if(char && char.id)
+    characteristicsGroup.get(char.id)?.setValue(isChecked)
+
+    const cleanName = char?.name?.replace(/- enabled$/, '').trim();
+    const disabledChar = this.filteredCharacteristics.find(
+      item => item.name === cleanName
+    );
+    //const isSelected = event.selectedValue === true || event.selectedValue === 'true';
+    if (disabledChar) {
+      if (!isChecked) {
+        // Add it if it's not already in the array
+        if (!this.disabledCharacteristics.includes(disabledChar.id)) {
+          this.disabledCharacteristics.push(disabledChar.id);
+        }
+      } else {
+        // Remove it if it exists
+        this.disabledCharacteristics = this.disabledCharacteristics.filter(
+          id => id !== disabledChar.id
+        );
+      }
+    }
+    this.calculatePrice();
+  }
 
   // Handle price plan selection
   async onPricePlanSelected(pricePlan: any) {
@@ -326,7 +358,7 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     const characteristicsGroup = this.form.get('characteristics') as FormGroup;
     characteristicsGroup.get(event.characteristicId)?.setValue(event.selectedValue);
 
-    let char = this.filteredCharacteristics.find(item => item.id === event.characteristicId);
+    /*let char = this.filteredCharacteristics.find(item => item.id === event.characteristicId);
     if (char?.name?.endsWith('- enabled')) {
       const cleanName = char.name.replace(/- enabled$/, '').trim();
       const disabledChar = this.filteredCharacteristics.find(
@@ -348,7 +380,7 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
         }
       }
     }    
-    console.log(char)
+    console.log(char)*/
     this.calculatePrice();
   }
 
@@ -407,14 +439,19 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
         if(value==null && valueType=='number'){
           value=0
         }
-  
-        this.orderChars.push({
-          "name": this.filteredCharacteristics[idx].name,
-          "value": value,
-          "valueType": valueType,
-        })
+
+        if(!this.filteredCharacteristics[idx].name?.endsWith('- enabled')){
+          this.orderChars.push({
+            "name": this.filteredCharacteristics[idx].name,
+            "value": value,
+            "valueType": valueType,
+          })
+        } 
+
       }
     }
+    console.log('Calculating the price with...')
+    console.log(this.orderChars)
   }
 
   // Método para calcular el precio usando el servicio
