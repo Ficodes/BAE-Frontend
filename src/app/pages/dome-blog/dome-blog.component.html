@@ -1,0 +1,59 @@
+<!-- Full height app wrapper -->
+<div class="bg-secondary-50 dark:bg-secondary-200 fixed inset-0 flex flex-col">
+    <!-- Sticky header -->
+    <section id="jumbo" 
+        class="sticky top-0 z-10 w-full bg-cover bg-right-bottom pt-8"
+        style="background-image: url(assets/images/bg_1_shadow.png)">
+        
+        <div class="pt-8 pb-8 px-4 w-full text-left lg:pt-16 lg:px-12">
+            <div class="flex flex-row mx-auto max-w-screen-xl justify-between">
+                <div class="flex flex-col">
+                    <h1 class="mb-4 text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl text-white">
+                        DOME blog
+                    </h1>
+                    <!--<p class="text-lg font-normal lg:text-xl text-secondary-50">
+                        Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor
+                    </p>-->
+                </div>
+                @if(checkAdmin){
+                    <button type="button" data-cy="newBlogEntry" (click)="goToCreate()"  class="ml-2 mr-8 mb-4 text-white max-h-12 bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center align-middle me-2">
+                        <p class="pl-2 pr-2">Add a new entry</p>
+                        <svg class="w-[18px] h-[18px] text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+                        </svg>
+                    </button> 
+                }
+            </div>    
+        </div>
+    </section>
+
+    <!-- Only this area scrolls -->
+    <div class="flex-1 overflow-y-auto p-4 pb-16">
+        @for(entry of entries; track entry){
+            <div class="flex flex-col m-4 mx-auto max-w-screen-xl w-full border border-gray-300 dark:border-secondary-300 bg-white dark:bg-secondary-100 rounded-lg shadow-lg p-8">
+                <div class="flex inline-flex justify-between">
+                    <h2 class="text-2xl font-bold mb-4 dark:text-white break-words">{{ entry.title }}</h2>
+                    @if(entry.partyId == partyId){
+                        <button type="button" (click)="goToUpdate(entry._id)" class="m-2 text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 lg:p-2.5 text-center inline-flex items-center me-2">
+                            <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                <path fill-rule="evenodd" d="M14 4.182A4.136 4.136 0 0 1 16.9 3c1.087 0 2.13.425 2.899 1.182A4.01 4.01 0 0 1 21 7.037c0 1.068-.43 2.092-1.194 2.849L18.5 11.214l-5.8-5.71 1.287-1.31.012-.012Zm-2.717 2.763L6.186 12.13l2.175 2.141 5.063-5.218-2.141-2.108Zm-6.25 6.886-1.98 5.849a.992.992 0 0 0 .245 1.026 1.03 1.03 0 0 0 1.043.242L10.282 19l-5.25-5.168Zm6.954 4.01 5.096-5.186-2.218-2.183-5.063 5.218 2.185 2.15Z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    }
+                </div>                
+                <h4 class="mb-4 text-lg italic text-secondary-200 dark:text-secondary-50">
+                    Created by 
+                    <b class="text-secondary-100 dark:text-primary-50">{{entry.author}}</b> 
+                    on {{entry.date | date:'EEEE, dd/MM/yy, HH:mm'}}.
+                </h4>
+                <markdown class="dark:text-secondary-50 line-clamp-4 text-wrap break-all"
+                [data]="entry.content">
+                </markdown>
+                <button type="button" (click)="goToDetails(entry._id)" 
+                        class="mt-4 w-fit text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center">
+                    <p class="pl-2 pr-2">View details</p>
+                </button> 
+            </div>
+        }
+    </div>
+</div>

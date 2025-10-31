@@ -31,7 +31,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   domeRegister: string = environment.DOME_REGISTER_LINK
   services: string[] = []
   publishers: string[] = []
-  categories:any[]=[];
   currentIndexServ: number = 0;
   currentIndexPub: number = 0;
   delay: number = 2000;
@@ -131,15 +130,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         console.log(aux['expire'] - moment().unix() <= 5)
       }
     }
-    this.api.getLaunchedCategories().then(data => {
-      for(let i=0; i < data.length; i++){
-        if(data[i].isRoot==true){
-          this.categories.push(data[i])
-        }
-      }
-      initFlowbite();
-      this.cdr.detectChanges();
-    })
 
     this.showContact = true;
 

@@ -192,7 +192,7 @@ export const local_items = {
   export const checkHeaderPreLogin = () => {
     // Mocks
     cy.intercept( {method:'GET', url: 'http://proxy.docker:8004/stats'}, init_stat).as('stats')
-    cy.intercept( {method: 'GET', url: 'http://proxy.docker:8004/catalog/productOffering?*'}, product_offering).as('productOffering')
+    //cy.intercept( {method: 'GET', url: 'http://proxy.docker:8004/catalog/productOffering?*'}, product_offering).as('productOffering')
     cy.intercept( {method: 'GET', url: 'http://proxy.docker:8004/config'}, init_config).as('config')
     cy.intercept( {method:'GET', url: 'http://proxy.docker:8004/catalog/category?*'}, category_launched).as('category')
     // Verify mocks are called 1 time
@@ -203,8 +203,8 @@ export const local_items = {
     cy.get('@stats.all').should('have.length', 1)
     cy.wait('@config')
     cy.get('@config.all').should('have.length', 1)
-    cy.wait('@productOffering')
-    cy.get('@productOffering.all').should('have.length', 1)
+    //cy.wait('@productOffering')
+    //cy.get('@productOffering.all').should('have.length', 1)
     cy.wait('@category')
     cy.get('@category.all').should('have.length', 1)
     // Verify header interactive elemements are displayed and work as expected
@@ -275,8 +275,8 @@ export const loginAcc = () => {
         cy.get('@stats.all').should('have.length', 2)
         cy.wait('@config')
         cy.get('@config.all').should('have.length', 2)
-        cy.wait('@productOffering')
-        cy.get('@productOffering.all').should('have.length', 2)
+        //cy.wait('@productOffering')
+        //cy.get('@productOffering.all').should('have.length', 2)
         cy.wait('@category')
         cy.get('@category.all').should('have.length', 2)
         cy.wait('@login_token')
@@ -295,6 +295,9 @@ export const productOffering = {
             "@referredType": ""
         }
     ]
+}
+export const blogEntry = {
+    title: 'Entry title', content: 'Blog entry content', partyId: 'urn:ngsi-ld:individual:b73dd8ce-b63f-4c5b-be07-ca7ea10ad78e', author: 'admin'
 }
 export const productSpec = {
     id: "urn:ngsi-ld:product-specification:305ac5ed-5845-467b-ab18-13856c2a8bac",

@@ -84,10 +84,12 @@ export class UpdateProductSpecComponent implements OnInit {
   stringCharSelected:boolean=true;
   numberCharSelected:boolean=false;
   rangeCharSelected:boolean=false;
+  booleanCharSelected:boolean=false;
   prodChars:ProductSpecificationCharacteristic[]=[];
   finishChars:ProductSpecificationCharacteristic[]=[];
   creatingChars:CharacteristicValueSpecification[]=[];
   showCreateChar:boolean=false;
+  nonBooleanChars:string[]=[];
 
   //BUNDLE INFO:
   bundleChecked:boolean=false;
@@ -166,6 +168,7 @@ export class UpdateProductSpecComponent implements OnInit {
   numberUnit: string = '';
   fromValue: string = '';
   toValue: string = '';
+  booleanValue: boolean = false;
   rangeUnit: string = '';
 
   filenameRegex = /^[A-Za-z0-9_.-]+$/;
@@ -322,12 +325,28 @@ export class UpdateProductSpecComponent implements OnInit {
       for(let i=0; i < this.prod.productSpecCharacteristic.length; i++){
         const index = this.selectedISOS.findIndex(item => item.name === this.prod.productSpecCharacteristic[i].name);
         if (index == -1) {
+          const currentChar = this.prod.productSpecCharacteristic[i];
+          const name = currentChar.name;
+
           this.prodChars.push({
             id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
             name: this.prod.productSpecCharacteristic[i].name,
             description: this.prod.productSpecCharacteristic[i].description ? this.prod.productSpecCharacteristic[i].description : '',
             productSpecCharacteristicValue: this.prod.productSpecCharacteristic[i].productSpecCharacteristicValue
           });
+
+          // Check if it's not a boolean-enabled characteristic
+          if (!name.endsWith('- enabled')) {
+            // Look for a corresponding "enabled" version
+            const hasEnabledVersion = this.prod.productSpecCharacteristic.some(
+              (item: { name: string; }) => item.name === `${name} - enabled`
+            );
+
+            // Only push if there's no "- enabled" variant
+            if (!hasEnabledVersion) {
+              this.nonBooleanChars.push(name);
+            }
+          }
         }
       }
     }
@@ -812,6 +831,7 @@ export class UpdateProductSpecComponent implements OnInit {
     this.stringCharSelected=true;
     this.numberCharSelected=false;
     this.rangeCharSelected=false;
+    this.booleanCharSelected=false;
     this.showPreview=false;
     this.refreshChars();
     initFlowbite();
@@ -1129,6 +1149,7 @@ export class UpdateProductSpecComponent implements OnInit {
     this.stringCharSelected=true;
     this.numberCharSelected=false;
     this.rangeCharSelected=false;
+    this.booleanCharSelected=false;
     this.creatingChars=[];
   }
 
@@ -1192,16 +1213,35 @@ export class UpdateProductSpecComponent implements OnInit {
       this.stringCharSelected=true;
       this.numberCharSelected=false;
       this.rangeCharSelected=false;
+      this.booleanCharSelected=false;
+      this.charsForm.reset();
     }else if (event.target.value=='number'){
       this.stringCharSelected=false;
       this.numberCharSelected=true;
       this.rangeCharSelected=false;
-    }else{
+      this.booleanCharSelected=false;
+      this.charsForm.reset();
+    }else if (event.target.value=='range'){
       this.stringCharSelected=false;
       this.numberCharSelected=false;
       this.rangeCharSelected=true;
+      this.booleanCharSelected=false;
+      this.charsForm.reset();
+    } else {
+      this.stringCharSelected=false;
+      this.numberCharSelected=false;
+      this.rangeCharSelected=false;
+      this.booleanCharSelected=true;
+      // Set default only if not already selected
+      if (!this.charsForm.get('name')?.value && this.nonBooleanChars.length > 0) {
+        this.charsForm.get('name')?.setValue(this.nonBooleanChars[0]+' - enabled');
+      }
     }
     this.creatingChars=[];
+  }
+
+  onSelectBooleanName(event: any){
+    this.charsForm.get('name')?.setValue(event.target.value+' - enabled');
   }
 
   addCharValue(){
@@ -1236,7 +1276,7 @@ export class UpdateProductSpecComponent implements OnInit {
       }
       this.numberUnit='';
       this.numberValue='';
-    }else{
+    }else if(this.rangeCharSelected){
       console.log('range')
       if(this.creatingChars.length==0){
         this.creatingChars.push({
@@ -1252,10 +1292,21 @@ export class UpdateProductSpecComponent implements OnInit {
           valueTo:this.toValue as any,
           unitOfMeasure:this.rangeUnit})
       } 
+    }else{
+      console.log('boolean')
+      if(this.creatingChars.length==0){
+        this.creatingChars.push({
+          isDefault:true,
+          value:this.booleanValue as any
+        })
+      } else{
+        this.creatingChars.push({
+          isDefault:false,
+          value:this.booleanValue as any
+        })
+      }
     }
-    this.fromValue='';
-    this.toValue='';
-    this.rangeUnit='';
+    this.booleanValue=false;
   }
 
   removeCharValue(char:any,idx:any){
@@ -1275,6 +1326,19 @@ export class UpdateProductSpecComponent implements OnInit {
   }
 
   saveChar(){
+    if(this.booleanCharSelected){
+      this.creatingChars=[
+        {
+          isDefault:true,
+          value: true as any
+        },
+        {
+          isDefault:false,
+          value:false as any
+        }
+      ]
+    }
+    
     if(this.charsForm.value.name!=null){
       this.prodChars.push({
         id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
@@ -1282,6 +1346,26 @@ export class UpdateProductSpecComponent implements OnInit {
         description: this.charsForm.value.description != null ? this.charsForm.value.description : '',
         productSpecCharacteristicValue: this.creatingChars
       })
+
+      // Check if it's not a boolean-enabled characteristic
+      if (!this.charsForm.value.name.endsWith('- enabled')) {
+        // Look for a corresponding "enabled" version
+        const hasEnabledVersion = this.prodChars.some(
+          (item) => item.name === `${name} - enabled`
+        );
+
+        // Only push if there's no "- enabled" variant
+        if (!hasEnabledVersion) {
+          this.nonBooleanChars.push(this.charsForm.value.name);
+        }
+      } else {
+        const cleanName = this.charsForm.value.name.replace(/- enabled$/, '').trim();
+        const nonBooleanIndex = this.nonBooleanChars.findIndex(item => item === cleanName);
+        if (nonBooleanIndex !== -1) {
+          console.log('eliminar boolean')
+          this.nonBooleanChars.splice(nonBooleanIndex, 1);
+        }
+      }
     }
 
     this.charsForm.reset();
@@ -1299,7 +1383,38 @@ export class UpdateProductSpecComponent implements OnInit {
     if (index !== -1) {
       console.log('eliminar')
       this.prodChars.splice(index, 1);
-    }   
+    }  
+    
+    
+    if(!char.name.endsWith('- enabled')){      
+      const nonBooleanIndex = this.nonBooleanChars.findIndex(item => item === char.name);
+      if (nonBooleanIndex !== -1) {
+        console.log('eliminar boolean')
+        this.nonBooleanChars.splice(nonBooleanIndex, 1);
+      }
+      const relatedEnabledIndex = this.prodChars.findIndex(item => item.name === char.name+' - enabled');
+      if (relatedEnabledIndex !== -1) {
+        console.log('eliminar')
+        this.prodChars.splice(relatedEnabledIndex, 1);
+      }
+    } else {
+      const cleanName = char.name.replace(/- enabled$/, '').trim();
+      const nonBooleanIndex = this.nonBooleanChars.findIndex(item => item === cleanName);
+      if (nonBooleanIndex == -1) {
+        console.log('añadir boolean')
+        this.nonBooleanChars.push(cleanName)
+      }
+    }
+
+    if(this.booleanCharSelected){
+      // Set default only if not already selected
+      if (this.nonBooleanChars.length > 0) {
+        this.charsForm.get('name')?.setValue(this.nonBooleanChars[0]+' - enabled');
+      } else {
+        this.charsForm.reset();
+      }
+    }
+
     this.cdr.detectChanges();
     console.log(this.prodChars)    
   }

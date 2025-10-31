@@ -1,6 +1,7 @@
 export const environment = {
     BASE_URL: 'http://localhost:8004',
-    PAYMENT_URL: 'https://payment.dome-marketplace-sbx.org',
+    isProduction: false,
+    PAYMENT_URL: '/revenue',
     LEGACY_PREFIX: '',
     //API_PORT: 8632,
     //API_PORT: 8004,

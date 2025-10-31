@@ -23,6 +23,7 @@ export class AppComponent implements OnInit {
   title = 'DOME Marketplace';
   showPanel = false;
   providerThemeName=environment.providerThemeName;
+  isProduction:boolean = environment.isProduction;
 
   constructor(private translate: TranslateService,
               private localStorage: LocalStorageService,

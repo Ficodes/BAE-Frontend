@@ -8,7 +8,7 @@ import {FormChangeState} from "../../../../models/interfaces";
 import {EventMessageService} from "src/app/services/event-message.service";
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, Subscription } from 'rxjs';
 
 interface ProcurementMode {
   id: string;
@@ -53,6 +53,8 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
   private originalValue: ProcurementMode | null = null;
   private hasBeenModified: boolean = false;
   private isEditMode: boolean = false;
+  private formSub?: Subscription;
+
   showProcurementError:boolean=false;
   errorMessage:string = '';
   gatewayUrl:string = '';
@@ -158,23 +160,27 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
     }
 
     // Suscribirse a los cambios del formulario
-    this.form.valueChanges.subscribe(value => {
+    this.formSub = this.form.valueChanges.subscribe(value => {
       console.log('📝 Form value changed in subscription:', value);
-      
+
       if (value && value.mode) {
-        if(value.mode == 'manual'){
-          this.errorMessage = "";
-          this.showProcurementError = false;
-          this.form.setErrors(null)
-        } else if (this.gatewayCount == 0){
+        if (value.mode != 'manual' && this.gatewayCount == 0) {
           this.errorMessage = "You can't select this procurement mode as you are not registered on the payment gateway.";
           this.showProcurementError = true;
-          this.form.setErrors({ invalidProcurement: true }); 
+          this.form.setErrors({ invalidProcurement: true });
+          this.formGroup.patchValue({
+            mode: 'manual'
+          }, { emitEvent: false });
+          return;
         }
+
+        this.errorMessage = "";
+        this.showProcurementError = false;
+        this.form.setErrors(null)
 
         const mode = this.procurementModes.find(m => m.id === value.mode) || this.procurementModes[0];
         console.log('📝 Found mode:', mode);
-        
+
         this.procurementMode = mode.id;
         console.log('📝 Current procurementMode:', this.procurementMode);
         this.hasBeenModified = true;
@@ -220,6 +226,8 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
 
   ngOnDestroy() {
     // Solo emitir cambios en modo edición y si ha habido modificaciones
+    this.formSub?.unsubscribe();
+
     if (this.isEditMode && this.hasBeenModified && this.originalValue) {
       const currentValue = {
         id: this.procurementMode,
