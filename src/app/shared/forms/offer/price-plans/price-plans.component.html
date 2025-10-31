@@ -61,6 +61,7 @@
 <!-- Price Plan Drawer -->
 @if (showDrawer) {
   <app-price-plan-drawer
+    data-cy="pricePlanDrawer"
     [formGroup]="selectedPricePlan"
     [prodSpec]="prodSpec"
     [action]="action"

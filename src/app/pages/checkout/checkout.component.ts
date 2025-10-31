@@ -204,15 +204,18 @@ export class CheckoutComponent implements OnInit {
 
     try {
       const response = await firstValueFrom(this.orderService.postProductOrder(productOrder));
-      const redirectUrl = response.headers.get('X-redirect-url');
+      const redirectUrl = response.headers.get('X-Redirect-URL');
 
+      console.log(response.headers)
       console.log(redirectUrl);
       console.log('PROD ORDER DONE');
 
       if (redirectUrl) {
+        console.log('redirectURL')
         // Going to the payment gateway
         window.location.href = redirectUrl;
       } else {
+        console.log('non-redirectURL')
         // we clear the shopping cart only if no redirection is applied
         await this.emptyShoppingCart();
         this.goToInventory();

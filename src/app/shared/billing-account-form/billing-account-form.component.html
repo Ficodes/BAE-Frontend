@@ -10,7 +10,7 @@
 <form novalidate="" class="grid h-full grid-cols-2 gap-5 m-4" [formGroup]="billingForm">
     <div class="col-span-2">
         <label for="title" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'BILLING._title' | translate }} (*)</label>
-        <input id="title" formControlName="name" name="title" type="text" 
+        <input data-cy="billingTitle" id="title" formControlName="name" name="title" type="text" 
         [ngClass]="billingForm.get('name')?.touched && billingForm.get('name')?.invalid
         ? 'border-red-600'
         : 'border-gray-300 dark:border-secondary-200'"  
@@ -35,7 +35,7 @@
         @if(billingForm.get('country')?.invalid && billingForm.get('country')?.errors?.['maxlength']){
             <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">{{ 'BILLING._too_long' | translate }}</span></p>
         }-->
-        <select id="country" formControlName="country" class=""class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+        <select data-cy="billingCountry" id="country" formControlName="country" class=""class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
             <option *ngFor="let country of euCountries" [value]="country.code">
               {{ country.name }}
             </option>
@@ -43,7 +43,7 @@
     </div>
     <div>
         <label for="address.city" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'BILLING._city' | translate }} (*)</label>
-        <input id="address.city" formControlName="city" name="address.city" type="text"
+        <input data-cy="billingCity" id="address.city" formControlName="city" name="address.city" type="text"
         [ngClass]="billingForm.get('city')?.touched && billingForm.get('city')?.invalid
         ? 'border-red-600'
         : 'border-gray-300 dark:border-secondary-200'" 
@@ -57,7 +57,7 @@
     </div>
     <div>
         <label for="address.state" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'BILLING._state' | translate }} (*)</label>
-        <input id="address.state" formControlName="stateOrProvince" name="address.state" type="text"
+        <input data-cy="billingState" id="address.state" formControlName="stateOrProvince" name="address.state" type="text"
         [ngClass]="billingForm.get('stateOrProvince')?.touched && billingForm.get('stateOrProvince')?.invalid
         ? 'border-red-600'
         : 'border-gray-300 dark:border-secondary-200'" 
@@ -71,7 +71,7 @@
     </div>
     <div>
         <label for="address.zip" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'BILLING._post_code' | translate }} (*)</label>
-        <input id="address.zip" formControlName="postCode" name="address.zip" type="text"
+        <input data-cy="billingZip" id="address.zip" formControlName="postCode" name="address.zip" type="text"
         [ngClass]="billingForm.get('postCode')?.touched && billingForm.get('postCode')?.invalid
         ? 'border-red-600'
         : 'border-gray-300 dark:border-secondary-200'" 
@@ -85,7 +85,7 @@
     </div>
     <div class="col-span-2">
         <label for="address.street_address" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'BILLING._street' | translate }} (*)</label>
-        <textarea id="address.street_address" formControlName="street" name="address.street_address"
+        <textarea data-cy="billingAddress" id="address.street_address" formControlName="street" name="address.street_address"
         [ngClass]="billingForm.get('street')?.touched && billingForm.get('street')?.invalid
         ? 'border-red-600'
         : 'border-gray-300 dark:border-secondary-200'" 
@@ -99,7 +99,7 @@
     </div>
     <div class="col-span-2">
         <label for="email" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'BILLING._email' | translate }} (*)</label>
-        <input id="email" 
+        <input data-cy="billingEmail" id="email"
         [ngClass]="billingForm.get('email')?.touched && billingForm.get('email')?.invalid
         ? 'border-red-600'
         : 'border-gray-300 dark:border-secondary-200'" 
@@ -150,7 +150,7 @@
                         </ul>
                     </div>
                 }
-                <input id="phoneNumber" formControlName="telephoneNumber" name="phoneNumber" type="number" [ngClass]="billingForm.get('telephoneNumber')?.touched && billingForm.get('telephoneNumber')?.invalid == true ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"
+                <input data-cy="billingPhone" id="phoneNumber" formControlName="telephoneNumber" name="phoneNumber" type="number" [ngClass]="billingForm.get('telephoneNumber')?.touched && billingForm.get('telephoneNumber')?.invalid == true ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"
                 class="mb-2 bg-gray-50 border text-gray-900 text-sm rounded-r-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-secondary-300 dark:text-white">
             </div>
             @if(billingForm.get('telephoneNumber')?.invalid  && billingForm.get('telephoneNumber')?.errors?.['min'] && billingForm.get('telephoneNumber')?.touched){
@@ -163,7 +163,7 @@
     </div>
     <div class="flex w-full justify-end col-span-2">
         @if(is_create){
-            <button type="button" (click)="createBilling()"
+            <button data-cy="addBilling" type="button" (click)="createBilling()"
                     [disabled]="!billingForm.valid" [ngClass]="!billingForm.valid ? 'opacity-50' : 'hover:bg-primary-50 dark:hover:bg-primary-200'"
                     class="m-2 flex w-fit justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-primary-100 focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-900">
                 {{ 'BILLING._add' | translate }}

@@ -6,7 +6,7 @@
       {{ 'FORMS.PROCUREMENT_MODE._title' | translate }}
     </label>
     <div [formGroup]="formGroup">
-      <select formControlName="mode" class="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+      <select data-cy="procurement" formControlName="mode" class="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
         @for (mode of procurementModes; track mode.id) {
           <option [value]="mode.id">{{ mode.name }}</option>
         }

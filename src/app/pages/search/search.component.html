@@ -52,7 +52,7 @@
     } @else {
       <div class="md:pl-5 grid grid-cols-1 place-items-center lg:grid-cols-2 xl:grid-cols-3">
         @for (prod of products; track prod.id; let index = $index) {
-          <bae-off-card [productOff]=prod [cardId]="index" class="w-full h-full p-2"></bae-off-card>
+          <bae-off-card data-cy="baeCard" [productOff]=prod [cardId]="index" class="w-full h-full p-2"></bae-off-card>
         } @empty {
           <div class="min-h-19 dark:text-gray-600 text-center">{{ 'DASHBOARD._not_found' | translate }}</div>
         }

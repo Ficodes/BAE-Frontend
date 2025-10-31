@@ -5,7 +5,7 @@
 <h2 class="text-4xl mt-4 font-extrabold text-primary-100 text-center dark:text-primary-50">{{ 'GALLERY._title' | translate }}</h2>
 <div id="featuredOfferings" class="pt-8 pb-2 px-4 mx-auto max-w-screen-xl w-full grid gap-2 grid-cols-1 place-items-center sm:grid-cols-2 xl:grid-cols-4">
   @for (prod of products; track prod.id; let index = $index) {
-    <bae-off-card id="featuredOfferCard" [productOff]=prod [cardId]="index" class="w-full h-full"></bae-off-card>
+    <bae-off-card data-cy="baeCard" id="featuredOfferCard" [productOff]=prod [cardId]="index" class="w-full h-full"></bae-off-card>
   } @empty {
   }
 </div>
