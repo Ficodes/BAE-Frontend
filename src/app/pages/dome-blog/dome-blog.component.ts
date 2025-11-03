@@ -48,16 +48,13 @@ export class DomeBlogComponent implements OnInit {
       console.log(aux)
       if(aux.logged_as==aux.id){
         this.partyId = aux.partyId;
-        this.checkAdmin=aux.roles.some(role =>
-          role.name === 'admin'
-        );
       } else {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as)
         this.partyId = loggedOrg.partyId;
-        this.checkAdmin=loggedOrg.roles.some((role: { name: string; }) =>
-          role.name === 'admin'
-        );
       }
+      this.checkAdmin=aux.roles.some(role =>
+        role.name === 'admin'
+      );
     }
   }
 
