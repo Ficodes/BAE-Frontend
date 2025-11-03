@@ -55,7 +55,7 @@ export class DomeBlogComponent implements OnInit {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as)
         this.partyId = loggedOrg.partyId;
         this.checkAdmin=loggedOrg.roles.some((role: { name: string; }) =>
-          role.name === 'admin' || role.name === 'orgAdmin'
+          role.name === 'admin'
         );
       }
     }
