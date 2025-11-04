@@ -59,7 +59,7 @@
         </thead>
         <tbody>
           @for (invoice of invoices; track invoice.id; let idx = $index) {
-            <tr class="border-b bg-gray-100 hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+            <tr data-cy="invoiceRow" class="border-b bg-gray-100 hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
               <td class="px-6 py-4 text-center align-middle">
                 {{invoice?.billDate | date:'EEEE, dd/MM/yy, HH:mm'}}
               </td>
@@ -136,7 +136,7 @@
 <!-- INVOICE DETAILS modal-->
 @if (showInvoiceDetails){
   <div id="invoice-details-modal" [ngClass]="showInvoiceDetails ? 'backdrop-blur-sm': ''" tabindex="-1" aria-hidden="true" class="flex justify-center overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%)] max-h-full shadow-2xl">
-    <div class="w-full md:w-3/4 lg:w-1/2 relative bg-secondary-50 dark:bg-secondary-100 border border-secondary-50 dark:border-gray-800 rounded-lg shadow bg-cover bg-right-bottom" (click)="$event.stopPropagation();">
+    <div data-cy="invoiceDetail" class="w-full md:w-3/4 lg:w-1/2 relative bg-secondary-50 dark:bg-secondary-100 border border-secondary-50 dark:border-gray-800 rounded-lg shadow bg-cover bg-right-bottom" (click)="$event.stopPropagation();">
       <!-- Modal header -->
       <div class="flex items-center justify-between p-2 rounded-t dark:border-gray-600 shadow-lg">
         <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'INVOICES._applied_billing_rates' | translate }}</h2>

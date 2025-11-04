@@ -31,6 +31,9 @@ export class AuthGuard implements CanActivate {
         for(let i=0;i<loggedOrg.roles.length;i++){
           userRoles.push(loggedOrg.roles[i].name)
         }
+        if(aux.roles.some(role => role.name === 'admin')){
+          userRoles.push('admin')
+        }
       }
     } else {
       this.router.navigate(['/dashboard']);

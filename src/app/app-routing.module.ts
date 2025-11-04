@@ -102,10 +102,12 @@ const routes: Routes = [
     component: BlogEntryDetailComponent
   },
   { path: 'blog-entry',
-    component: EntryFormComponent
+    component: EntryFormComponent,
+    canActivate: [AuthGuard], data: { roles: ['admin'] }
   },
   { path: 'blog-entry/:id',
-    component: EntryFormComponent
+    component: EntryFormComponent,
+    canActivate: [AuthGuard], data: { roles: ['admin'] }
   },
   { path: '**', redirectTo: 'dashboard', pathMatch: 'full' },
 ]

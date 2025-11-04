@@ -36,7 +36,7 @@
                 <button (click)="goToOrders()" aria-current="true" id="order-button" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
                     {{ 'PRODUCT_ORDERS._orders' | translate }}
                 </button>
-                <button (click)="goToInvoices()" id="bill-button" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+                <button data-cy="invoices" (click)="goToInvoices()" id="bill-button" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
                     {{ 'PRODUCT_ORDERS._invoices' | translate }}
                 </button>
 

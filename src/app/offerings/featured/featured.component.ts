@@ -23,7 +23,7 @@ export class FeaturedComponent implements OnInit {
     }
 
   ngOnInit(): void {
-    this.api.getLaunchedCategories().then(data => {
+    this.api.getDefaultCategories().then(data => {
       for(let i=0; i < data.length; i++){
         if(data[i].isRoot==true){
           this.categories.push(data[i])

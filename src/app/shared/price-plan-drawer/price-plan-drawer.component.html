@@ -61,15 +61,33 @@
         <p class="mt-6 text-sm text-gray-500 dark:text-gray-400">This price plan has an associate profile. That means that the following characteristics are already set for you.</p>
         <div class="rounded-lg border border-dashed border-primary-100 bg-white p-2 m-2 dark:bg-gray-800">
           @for (ch of filteredCharacteristics ; track ch.id) {
+            @if(!ch.name?.endsWith('- enabled')){
             <app-characteristic [characteristic]="ch" [readOnly]="true" (valueChange)="onValueChange($event)"></app-characteristic>
+            }
           }
         </div>
       } @else if(filteredCharacteristics.length > 0) {
         <p class="mt-6 text-sm text-gray-500 dark:text-gray-400">Please select the characteristics you need to suit this offer to you.</p>
         <div class="rounded-lg border border-dashed border-primary-100 bg-white p-2 m-2 dark:bg-gray-800">
-          @for (ch of filteredCharacteristics ; track ch.id) {
-            @if (!disabledCharacteristics.includes(ch.id)) {
-            <app-characteristic [characteristic]="ch" [readOnly]="false" (valueChange)="onValueChange($event)"></app-characteristic>
+          @for (ch of filteredCharacteristics ; track ch.id; let i = $index) {
+            @if(!ch.name?.endsWith('- enabled')){
+              <div class="flex flex-row w-full items-start">
+                @if(canBeDisabledChars.includes(ch.id)){
+                  <label class="inline-flex items-center cursor-pointer w-fit justify-start items-start my-4 mr-2">
+                    <input type="checkbox" (change)="onToggleChange($event, ch.name)" class="sr-only peer">
+                    <div class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
+                  </label>
+                }
+                <div class="flex w-full">
+                  <app-characteristic
+                  [characteristic]="ch"
+                  [readOnly]="false"
+                  [isDisabled]="disabledCharacteristics.includes(ch.id)"
+                  [canBeDisabled]="canBeDisabledChars.includes(ch.id)"
+                  (valueChange)="onValueChange($event)">
+                  </app-characteristic>
+                </div>
+              </div>
             }
           }
         </div>

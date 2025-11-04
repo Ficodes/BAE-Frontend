@@ -52,6 +52,7 @@ export class InventoryProductsComponent implements OnInit {
   selectedInv:any;
   selectedResources:any[]=[];
   selectedServices:any[]=[];
+  productOff:any;
 
   errorMessage:any='';
   showError:boolean=false;
@@ -231,37 +232,63 @@ export class InventoryProductsComponent implements OnInit {
     console.log(id)
   }
 
-  selectProduct(prod:any){
+  async selectProduct(prod:any){
     this.selectedProduct=prod;
     console.log('selecting prod')
     console.log(this.selectedProduct)
     this.selectedResources=[];
     this.selectedServices=[];
-    for(let i=0; i<this.selectedProduct.productPrice?.length;i++){
+    /*for(let i=0; i<this.selectedProduct.productPrice?.length;i++){
       if(this.selectedProduct.productPrice[i].priceType == 'custom'){
         this.checkCustom=true;
       }
-    }
+    }*/
+
     console.log('is prod spec undefined?')
     console.log(this.selectedProduct.product)
-    this.api.getProductSpecification(this.selectedProduct.product.productSpecification.id).then(spec => {
-      if(spec.serviceSpecification != undefined){
-        for(let j=0; j < spec.serviceSpecification.length; j++){
-          this.api.getServiceSpec(spec.serviceSpecification[j].id).then(serv => {
-            this.selectedServices.push(serv);
-            console.log(serv)
-          })
+    let spec = await this.api.getProductSpecification(this.selectedProduct.product.productSpecification.id)
+    if(spec.serviceSpecification != undefined){
+      for(let j=0; j < spec.serviceSpecification.length; j++){
+        let serv = await this.api.getServiceSpec(spec.serviceSpecification[j].id);
+        this.selectedServices.push(serv);
+      }
+    }
+    if(spec.resourceSpecification != undefined){
+      for(let j=0; j < spec.resourceSpecification.length; j++){
+        let res = await this.api.getResourceSpec(spec.resourceSpecification[j].id);
+        this.selectedResources.push(res);
+      }
+    }
+    console.log('--- spec')
+    console.log(spec)
+
+    let prodOff = await this.api.getProductById(this.selectedProduct.productOffering.id);
+    let prodPrices: any[] | undefined= prodOff.productOfferingPrice;
+    let prices: any[]=[];
+    if(prodPrices!== undefined){
+      for(let j=0; j < prodPrices.length; j++){
+        let price = await this.api.getProductPrice(prodPrices[j].id);
+        prices.push(price);
+        console.log(price)
+        if(price.priceType == 'custom'){
+          this.checkCustom = true;
         }
       }
-      if(spec.resourceSpecification != undefined){
-        for(let j=0; j < spec.resourceSpecification.length; j++){
-          this.api.getResourceSpec(spec.resourceSpecification[j].id).then(res => {
-            this.selectedResources.push(res);
-            console.log(res)
-          })
-        }
-      }
-    })
+    }
+
+    this.productOff={
+      id: prodOff.id,
+      name: prodOff.name,
+      category: prodOff.category,
+      description: prodOff.description,
+      lastUpdate: prodOff.lastUpdate,
+      attachment: spec.attachment,
+      productOfferingPrice: prices,
+      productSpecification: prodOff.productSpecification,
+      productOfferingTerm: prodOff.productOfferingTerm,
+      serviceLevelAgreement: prodOff.serviceLevelAgreement,
+      version: prodOff.version
+    }
 
     this.showDetails=true;
     console.log(this.selectedProduct)
