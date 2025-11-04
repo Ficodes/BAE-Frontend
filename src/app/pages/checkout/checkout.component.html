@@ -185,7 +185,17 @@
             class="text-sm text-body dark:text-gray-200">{{ 'SHOPPING_CART._calculated' | translate }}</span></div>
         </div>
         -->
-
+        @if(!validBillAddr){
+          <div class="flex items-center p-4 text-sm text-primary-50" role="alert">
+            <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+            </svg>
+            <span class="sr-only">Info</span>
+            <p class="text-center">
+              You need to create at least one valid billing address.
+            </p>
+          </div>
+        }
         <button data-cy="checkout" class="inline-flex items-center justify-center shrink-0 font-semibold leading-none rounded outline-none transition duration-300 ease-in-out focus:outline-0 focus:shadow focus:ring-1 focus:ring-accent-700 bg-primary-50 dark:bg-primary-100 text-white border border-transparent hover:bg-secondary-100 dark:hover:bg-primary-50 px-5 py-0 h-12 mt-5 w-full"
                 (click)="orderProduct()" [disabled]="items.length==0 || !this.validBillAddr" [ngClass]="(items.length==0 || !this.validBillAddr)? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'">
           {{ 'SHOPPING_CART._checkout' | translate }}

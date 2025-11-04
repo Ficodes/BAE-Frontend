@@ -115,7 +115,7 @@ export class PriceServiceService {
 
   calculatePrice(prod: any) {
     console.log('Simulating HTTP call with payload:', prod);
-    let url = `${PriceServiceService.BASE_URL}/billing/order/`;
+    let url = `${PriceServiceService.BASE_URL}/billing/ordewr/`;
 
     return this.http.post<any>(url,prod);
 
