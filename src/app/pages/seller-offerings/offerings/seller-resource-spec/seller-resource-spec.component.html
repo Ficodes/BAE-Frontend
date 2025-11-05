@@ -185,7 +185,7 @@
         @if (!loading_more) {
             @if (page_check) {
             <div class="flex pt-6 pb-2 justify-center align-middle">
-                <button (click)="next()" class="flex cursor-pointer shadow-lg items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 dark:text-white bg-white dark:bg-primary-100 dark:hover:bg-secondary-100 border border-gray-300 dark:border-secondary-200 rounded-lg hover:bg-gray-200">
+                <button data-cy="loadMore" (click)="next()" class="flex cursor-pointer shadow-lg items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 dark:text-white bg-white dark:bg-primary-100 dark:hover:bg-secondary-100 border border-gray-300 dark:border-secondary-200 rounded-lg hover:bg-gray-200">
                 Load more
                 <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
