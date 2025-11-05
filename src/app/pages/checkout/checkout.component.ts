@@ -51,6 +51,7 @@ export class CheckoutComponent implements OnInit {
   showError: boolean = false;
   providerId:any = null;
   loadingItems:boolean=false;
+  orderNote: string = '';
 
   constructor(
     private localStorage: LocalStorageService,
@@ -255,22 +256,35 @@ export class CheckoutComponent implements OnInit {
   }
 
   private createProductOrder(products: any[]) {
-    return {
-      productOrderItem: products,
-      relatedParty: [
-        {
-          id: this.relatedParty,
-          href: this.relatedParty,
-          role: 'Customer'
-        }
-      ],
-      priority: '4',
-      billingAccount: {
-        id: this.selectedBillingAddress.id,
-        href: this.selectedBillingAddress.id
-      },
-      notificationContact: this.selectedBillingAddress.email
-    };
+
+      let po:any = {
+        productOrderItem: products,
+        relatedParty: [
+          {
+            id: this.relatedParty,
+            href: this.relatedParty,
+            role: 'Customer'
+          }
+        ],
+        priority: '4',
+        billingAccount: {
+          id: this.selectedBillingAddress.id,
+          href: this.selectedBillingAddress.id
+        },
+        notificationContact: this.selectedBillingAddress.email
+      };
+
+      if(this.orderNote!=''){
+        const newNote = {
+          text: this.orderNote,
+          id: `urn:ngsi-ld:note:${uuidv4()}`,
+          author: this.relatedParty,
+          date: new Date().toISOString()
+        };
+        po['note']=[newNote]
+      }
+
+    return po
   }
 
   private async emptyShoppingCart() {
