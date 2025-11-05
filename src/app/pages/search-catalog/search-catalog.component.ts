@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { PriceServiceService } from 'src/app/services/price-service.service';
@@ -19,7 +19,7 @@ import * as moment from 'moment';
   templateUrl: './search-catalog.component.html',
   styleUrl: './search-catalog.component.css'
 })
-export class SearchCatalogComponent implements OnInit{
+export class SearchCatalogComponent implements OnInit, OnDestroy{
   constructor(
     private route: ActivatedRoute,
     private api: ApiServiceService,
@@ -136,6 +136,13 @@ export class SearchCatalogComponent implements OnInit{
     this.router.navigate([path]);
   }
 
+  ngOnDestroy(){
+    let storedFilters = this.localStorage.getObject('selected_categories') as Category[] || [];
+    for(let i=0;i<storedFilters.length;i++){
+      this.localStorage.removeCategoryFilter(storedFilters[i]);
+      this.eventMessage.emitRemovedFilter(storedFilters[i]);
+    }
+  }
 
   async getProducts(next:boolean){
     let filters = this.localStorage.getObject('selected_categories') as Category[] || [];

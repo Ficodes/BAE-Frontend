@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, SimpleChanges, OnChanges, HostListener, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, SimpleChanges, OnChanges, HostListener, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {CategoriesFilterComponent} from "../../shared/categories-filter/categories-filter.component";
 import {components} from "../../models/product-catalog";
@@ -21,7 +21,7 @@ import * as moment from 'moment';
   templateUrl: './search.component.html',
   styleUrl: './search.component.css'
 })
-export class SearchComponent implements OnInit {
+export class SearchComponent implements OnInit, OnDestroy {
 
   products: ProductOffering[]=[];
   nextProducts: ProductOffering[]=[];
@@ -156,6 +156,14 @@ export class SearchComponent implements OnInit {
     if(this.showDrawer==true){
       this.showDrawer=false;
       this.cdr.detectChanges();
+    }
+  }
+
+  ngOnDestroy(){
+    let storedFilters = this.localStorage.getObject('selected_categories') as Category[] || [];
+    for(let i=0;i<storedFilters.length;i++){
+      this.localStorage.removeCategoryFilter(storedFilters[i]);
+      this.eventMessage.emitRemovedFilter(storedFilters[i]);
     }
   }
 
