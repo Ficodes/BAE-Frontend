@@ -22,7 +22,8 @@ export const init_config = {
     'domeRegister': 'https://dome-marketplace.github.io/onboarding/',
     'domePublish': 'https://knowledgebase.dome-marketplace.org/shelves/company-onboarding-process',
     'purchaseEnabled': false,
-    'defaultId': 'urn:ngsi-ld:catalog:32828e1d-4652-4f4c-b13e-327450ce83c6'
+    'defaultId': 'urn:ngsi-ld:catalog:32828e1d-4652-4f4c-b13e-327450ce83c6',
+    "theme": "DOME"
        
 }
 
