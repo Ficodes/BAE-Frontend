@@ -1,6 +1,14 @@
 export const certifications = [
+    { id: 1, name: 'SecNumCloud', mandatory: false , domesupported: true},
+    { id: 2, name: 'BSI-C5', mandatory: false, domesupported: true },
+    { id: 3, name: 'CISPE', mandatory: false, domesupported: true },
+    { id: 4, name: 'EU Cloud CoC', mandatory: false, domesupported: true },
+    { id: 5, name: 'CSA CCM', mandatory: false, domesupported: true },
+    { id: 6, name: 'ISO/IEC 27001', mandatory: false, domesupported: true },
+    { id: 7, name: 'TISAX', mandatory: false, domesupported: true },
+    { id: 8, name: 'SWIPO', mandatory: false, domesupported: true },
     //Information security
-    { id: 1, name: 'ISO 22301:2019', mandatory: false , domesupported: true},
+    /*{ id: 1, name: 'ISO 22301:2019', mandatory: false , domesupported: true},
     { id: 2, name: 'ISO/IEC 27000:2018', mandatory: false, domesupported: true },
     { id: 3, name: 'ISO/IEC 27001:2022', mandatory: false, domesupported: true },
     { id: 4, name: 'ISO/IEC 27002:2022', mandatory: false, domesupported: true },
@@ -24,5 +32,5 @@ export const certifications = [
     //Service level agreement
     { id: 18, name: 'ISO/IEC 19086-1:201', mandatory: false, domesupported: false },
     { id: 19, name: 'ISO/IEC 19086-2:2018', mandatory: false, domesupported: false },
-    { id: 20, name: 'ISO/IEC 19086-3:2017', mandatory: false, domesupported: false }
+    { id: 20, name: 'ISO/IEC 19086-3:2017', mandatory: false, domesupported: false }*/
 ]

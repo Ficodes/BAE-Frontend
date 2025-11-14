@@ -93,6 +93,7 @@ export class MarkdownTextareaComponent implements ControlValueAccessor {
   addEmoji(event:any){
       this.showEmoji=false;
       this.value += event.emoji.native
+      this.onChange(this.value);
   }
 
   addMarkdownTag(tag: string): void {
