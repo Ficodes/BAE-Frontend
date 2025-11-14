@@ -216,11 +216,13 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     this.filteredCharacteristics = this.characteristics.filter(char => {
       const isCertification = certifications.some(cert => cert.name === char.name);
       const isSelfAtt = char.name === 'Compliance:SelfAtt';
+      const iscredentialConfig = char.valueType === 'credentialsConfiguration';
+      const isAuthPolicy = char.valueType === 'authorizationPolicy';
       /*const isDisabledByPrefix = disabledPrefixes.some(prefix =>
         char.name === prefix || char.name === `${prefix} - enabled`
       );*/
   
-      return !isCertification && !isSelfAtt;
+      return !isCertification && !isSelfAtt && !iscredentialConfig && !isAuthPolicy;
     });
   
     const characteristicsGroup = this.fb.group({});
