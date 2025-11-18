@@ -631,7 +631,7 @@ export class UpdateProductSpecComponent implements OnInit {
               }
               let fileBody = {
                 content: {
-                  name: file.name,
+                  name: uuidv4()+'_'+file.name,
                   data: base64String
                 },
                 contentType: file.type,
