@@ -5,6 +5,7 @@ import { FeedbackServiceService } from "src/app/services/feedback-service.servic
 import {LocalStorageService} from "../../services/local-storage.service";
 import { lastValueFrom } from 'rxjs';
 import { FeedbackInfo } from 'src/app/models/interfaces';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'feedback-modal',
@@ -81,6 +82,13 @@ export class FeedbackModalComponent implements OnInit {
   }
 
   hide(){
+    let feedbackInfo = this.localStorage.getObject('feedback') as FeedbackInfo;
+    let expiration = feedbackInfo?.expire ?? environment?.feedbackCampaignExpiration ?? 0;
+    let wantsFeedback : FeedbackInfo = {
+      "expire": expiration,
+      "approval": false
+    }
+    this.localStorage.setObject('feedback',wantsFeedback)
     this.eventMessage.emitCloseFeedback(true);
   }
 

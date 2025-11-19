@@ -265,6 +265,7 @@ export class ProductDetailsComponent implements OnInit {
         }
       }
     }
+
     if(this.prodSpec.serviceSpecification != undefined){
       for(let j=0; j < this.prodSpec.serviceSpecification.length; j++){
         let serv = await this.api.getServiceSpec(this.prodSpec.serviceSpecification[j].id);
@@ -273,7 +274,7 @@ export class ProductDetailsComponent implements OnInit {
     }
     if(this.prodSpec.resourceSpecification != undefined){
       for(let j=0; j < this.prodSpec.resourceSpecification.length; j++){
-        let res = this.api.getResourceSpec(this.prodSpec.resourceSpecification[j].id);
+        let res = await this.api.getResourceSpec(this.prodSpec.resourceSpecification[j].id);
         this.resourceSpecs.push(res);
       }
     }
