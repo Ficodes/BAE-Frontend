@@ -29,11 +29,11 @@ jobs:
           echo "Parsing PR body for dependencies..."
 
           # Parse PROXY dependency
-          PROXY_LOCATION=$(echo '${{ github.event.pull_request.body }}' | grep '^PROXY:' | sed 's/PROXY: *//' | xargs)
+          PROXY_LOCATION=$(echo '${{ github.event.pull_request.body }}' | grep '^PROXY:' | sed 's/PROXY: *//' | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
           echo "Proxy location: $PROXY_LOCATION"
 
           # Parse CHARGING dependency
-          CHARGING_LOCATION=$(echo '${{ github.event.pull_request.body }}' | grep '^CHARGING:' | sed 's/CHARGING: *//' | xargs)
+          CHARGING_LOCATION=$(echo '${{ github.event.pull_request.body }}' | grep '^CHARGING:' | sed 's/CHARGING: *//' | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
           echo "Charging location: $CHARGING_LOCATION"
 
           # Parse TM_VERSION
