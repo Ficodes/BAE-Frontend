@@ -47,7 +47,7 @@
   
           <!-- Step Forms -->
           @if (currentStep === 0) {
-            <app-related-party-id></app-related-party-id>
+            <app-related-party-id formControlName="partyInfo"></app-related-party-id>
           } @else if (currentStep === 1) {
               <app-price-plans-form 
                 [form]="productOfferForm" 
@@ -60,7 +60,55 @@
             [form]="productOfferForm.controls['procurementMode']">
             </app-procurement-mode>
           } @else if(currentStep === 3) {
-            <!--<app-offer-summary [productOfferForm]="productOfferForm"></app-offer-summary>-->
+            <div class="m-8">
+                <div class="mb-4 grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._name' | translate }}</label>
+                        <label class="mb-2 bg-gray-50 text-wrap break-all dark:bg-secondary-300 dark:border-secondary-200 dark:text-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            {{ offer?.name }}
+                        </label>
+            
+                    </div>
+                   <div>
+                        <label for="prod-version" class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._version' | translate }}</label>
+                        <label class="mb-2 bg-gray-50 text-wrap break-all border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            {{ offer?.version }}
+                        </label>
+                    </div>
+                </div>
+                @if(productOfferForm.get('partyInfo')?.value){
+                <h2 class="text-md dark:text-white mb-4">Exclusive ad-hoc offer created for <b>{{productOfferForm.get('partyInfo')?.value.displayName}}</b>.</h2>
+                }
+                @if(productOfferForm.get('pricePlans')?.value){
+                    <h2 class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._price_plans' | translate }}</h2>
+                    <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">
+                        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">
+                                        {{ 'CREATE_OFFER._name' | translate }}
+                                    </th>
+                                    <th scope="col" class="hidden md:table-cell px-6 py-3">
+                                        {{ 'CREATE_OFFER._description' | translate }}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (price of productOfferForm.get('pricePlans')?.value; track price.id) {
+                                    <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                                        <td class="px-6 py-4 max-w-1/6 text-wrap break-all">
+                                            {{price.name}}
+                                        </td>
+                                        <td class="hidden md:table-cell px-6 py-4 text-wrap break-all">
+                                            {{price.description}}
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
           }
       </div>
     }
@@ -97,8 +145,9 @@
         </button>
         @if(currentStep === 3){
           <button data-cy="offerFinish"
-          [disabled]="!isFormValid|| loading"
-          [ngClass]="loading || !isFormValid ? 'opacity-50' : 'hover:bg-primary-50'"
+          (click)="createOffer()"
+          [disabled]="loading"
+          [ngClass]="loading ? 'opacity-50' : 'hover:bg-primary-50'"
   
           class="px-4 py-2 text-base font-medium text-white rounded-lg bg-primary-100">
             Create Offer

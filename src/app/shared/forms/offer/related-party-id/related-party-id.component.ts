@@ -31,42 +31,43 @@ import { FormsModule } from '@angular/forms';
 })
 export class RelatedPartyIdComponent implements OnInit {
   @Input() partyId: any;
+  @Output() formChange = new EventEmitter<FormChangeState>();
 
   //CATEGORIES
   loading:boolean=false;
   parties:any[]=[
     {
-      partyId:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca5395",
+      id:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca5395",
       username: "admin",
       displayName: "admin",
       email: "admin@test.com"
     },
     {
-      partyId:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca1111",
+      id:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca1111",
       username: "test",
       displayName: "test",
       email: "test@test.com"
     },
     {
-      partyId:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca2222",
+      id:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca2222",
       username: "another test",
       displayName: "another test",
       email: "atest@test.com"
     },
     {
-      partyId:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca3333",
+      id:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca3333",
       username: "lara",
       displayName: "lara",
       email: "lara@test.com"
     },
     {
-      partyId:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca4444",
+      id:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca4444",
       username: "marcos",
       displayName: "marcos",
       email: "marcos@test.com"
     },
     {
-      partyId:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca5555",
+      id:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca5555",
       username: "fran",
       displayName: "fran",
       email: "fran@test.com"
@@ -99,11 +100,35 @@ export class RelatedPartyIdComponent implements OnInit {
     console.log('🔄 Toggling selection:', party);
     // Si el producto ya está seleccionado, lo deseleccionamos. Si no, lo seleccionamos.
     this.selectedParty = this.selectedParty?.id === party.id ? null : party;
+    this.onChange(this.selectedParty);
+    this.onTouched();
   }
 
-  getRowClass(prodId: string): string {
-    return prodId === this.selectedParty?.id
+  getRowClass(partyId: string): string {
+    return partyId === this.selectedParty?.id
       ? "bg-white dark:bg-secondary-100"
       : "bg-white dark:bg-secondary-300";
+  }
+
+  // As ControlValueAccessor
+  onChange: (value: any) => void = () => {};
+  onTouched: () => void = () => {};
+
+  writeValue(partyInfo: any): void {
+    console.log('📝 Writing value:', partyInfo);
+    this.selectedParty = partyInfo;
+    /*if (this.isEditMode) {
+      this.originalValue = prodSpec;
+      this.hasBeenModified = false;
+    }*/
+    this.onChange(partyInfo);
+  }
+
+  registerOnChange(fn: any): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: any): void {
+    this.onTouched = fn;
   }
 }

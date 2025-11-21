@@ -65,7 +65,7 @@ export class CustomOfferComponent implements OnInit {
 
       this.productOfferForm = this.fb.group({
         prodSpec: new FormControl(null, [Validators.required]),
-        partyInfo: this.fb.group({}),
+        partyInfo: new FormControl(null, [Validators.required]),
         pricePlans: new FormControl([]),
         procurementMode: this.fb.group({})
       });
@@ -123,6 +123,11 @@ export class CustomOfferComponent implements OnInit {
     async createOffer() {
       this.loading=true;
       const plans = this.productOfferForm.value.pricePlans;
+
+      console.log('---- party info value ----')
+      console.log(this.productOfferForm.get('partyInfo')?.value)
+      console.log('---- full form value ----')
+      console.log(this.productOfferForm.value)
   
       if (plans.length === 0) {
         this.saveOfferInfo();
@@ -177,6 +182,14 @@ export class CustomOfferComponent implements OnInit {
         validFor: {
           startDateTime: new Date().toISOString()
         },
+        relatedParty: [
+          {
+            "role": "Buyer",
+            "name": this.productOfferForm.get('partyInfo')?.value.username,
+            "href": this.productOfferForm.get('partyInfo')?.value.id,
+            "id": this.productOfferForm.get('partyInfo')?.value.id
+          }
+        ],
         productOfferingTerm: [
           {
             name: 'License',
@@ -194,6 +207,8 @@ export class CustomOfferComponent implements OnInit {
       }
   
       this.offerToCreate = offer;
+      console.log('---- Offer to create -----')
+      console.log(this.offerToCreate)
   
       const request$ = this.api.postProductOffering(offer, formValue.catalogue.id)
   
@@ -364,12 +379,14 @@ export class CustomOfferComponent implements OnInit {
     }
   
     validateCurrentStep(): boolean {
+      console.log('-length------')
+      console.log(this.productOfferForm.get('pricePlans')?.value.length)
       switch (this.currentStep) {
         case 0: // General Info
           return true;
-        case 2: // Price Plans
-          return true;
-        case 3: // Procurement Mode
+        case 1: // Price Plans
+          return this.productOfferForm.get('pricePlans')?.value.length == 0 ? false : true;
+        case 2: // Procurement Mode
           return this.productOfferForm.get('procurementMode')?.valid || false;
         default:
           return true;
