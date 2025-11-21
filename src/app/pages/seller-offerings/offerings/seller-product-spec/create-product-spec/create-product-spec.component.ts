@@ -426,7 +426,7 @@ export class CreateProductSpecComponent implements OnInit {
               }
               let fileBody = {
                 content: {
-                  name: prod_name+file.name,
+                  name: uuidv4()+'_'+file.name,
                   data: base64String
                 },
                 contentType: file.type,

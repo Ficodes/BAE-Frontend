@@ -28,6 +28,11 @@ const domeHeaderLinks: NavLink[] = [
     label: 'HEADER._blog',
     url: '/blog',
     isRouterLink: true
+  },
+  {
+    label: 'FOOTER._contact',
+    url: '/contact-us',
+    isRouterLink: true
   }
 ];
 
@@ -36,7 +41,6 @@ const domeFooterLinks: NavLink[] = [
   { label: 'FOOTER._privacy', url: 'assets/documents/privacy.pdf', isRouterLink: false },
   { label: 'FOOTER._cookies', url: 'assets/documents/cookies.pdf', isRouterLink: false },
   { label: 'FOOTER._licensing', url: 'assets/documents/terms.pdf', isRouterLink: false },
-  { label: 'FOOTER._contact', url: '/contact-us', isRouterLink: true },
 ];
 
 

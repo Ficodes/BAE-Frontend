@@ -243,9 +243,9 @@ export class ProductDetailsComponent implements OnInit {
     }
 
     if(this.prodSpec.productSpecCharacteristic != undefined) {
-      // Avoid displaying the compliance credential
+      // Avoid displaying the compliance credential && Avoid showing "- enabled" chars
       this.prodChars = this.prodSpec.productSpecCharacteristic.filter((char: any) => {
-        return char.name != 'Compliance:VC' && char.name != 'Compliance:SelfAtt'
+        return char.name != 'Compliance:VC' && char.name != 'Compliance:SelfAtt' && !char.name?.endsWith(' - enabled')
       })
 
       for(let i=0; i<certifications.length; i++){
@@ -264,6 +264,7 @@ export class ProductDetailsComponent implements OnInit {
           this.prodChars.splice(index, 1);
         }
       }
+      
     }
 
     if(this.prodSpec.serviceSpecification != undefined){
