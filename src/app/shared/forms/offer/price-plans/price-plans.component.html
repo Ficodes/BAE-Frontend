@@ -14,25 +14,34 @@
         <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">({{ 'FORMS.PRICE_PLANS._locked_after_first_plan' | translate }})</span>
       }
     </label>-->
-    @if (pricePlans.length == 0) {
-    <label class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-      Select the price type that best suits for you:
-    </label>
-    <select id="pricePlanType" data-cy="pricePlanType" [value]="priceType" (change)="onPaymentOnlineChange($event)"
-    class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-      <option value="free">Free</option>
-      <option value="tailored">Tailored price</option>
-      <option value="paid">Online paid price</option>
-    </select>
+    @if(!custom){
+      @if (pricePlans.length == 0) {
+        <label class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+          Select the price type that best suits for you:
+        </label>
+        <select id="pricePlanType" data-cy="pricePlanType" [value]="priceType" (change)="onPaymentOnlineChange($event)"
+        class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+          @if(!custom){
+            <option value="free">Free</option>
+            <option value="tailored">Tailored price</option>
+          }
+          <option value="paid">Online paid price</option>
+        </select>
+        } @else {
+          <label class="mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+            You've selected a {{
+              priceType === 'free' ? 'free' :
+              priceType === 'tailored' ? 'tailored' :
+              'online paid'
+            }} price type. If you want to change it you need to delete all your price plans before.        
+          </label>
+        }
     } @else {
-      <label class="mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-        You've selected a {{
-          priceType === 'free' ? 'free' :
-          priceType === 'tailored' ? 'tailored' :
-          'online paid'
-        }} price type. If you want to change it you need to delete all your price plans before.        
+      <label class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+        Custom offers' price must be online paid.
       </label>
     }
+
   </div>
 
   <!-- Price Plans Table -->

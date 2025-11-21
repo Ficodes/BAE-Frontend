@@ -89,6 +89,7 @@ interface PricePlanChange {
 export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAccessor {
   @Input() form!: FormGroup;  // Recibe el formulario del padre
   @Input() prodSpec: any | null = null;  // Y con este se acceder a prodSpec
+  @Input() custom:boolean = false;
   @Output() formChange = new EventEmitter<FormChangeState>();
 
   pricePlansForm = this.fb.array<FormGroup>([], { validators: [] });
@@ -139,6 +140,11 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
       //this.paymentOnlineControl.disable();
     } else {
       this.priceType='free'
+    }
+
+    if(this.custom){
+      this.priceType='paid'
+      this.paymentOnline=true;
     }
 
     // Guardar el estado original
@@ -422,6 +428,10 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
       this.priceType='tailored';
       this.paymentOnline=false;
     }
+    if(this.custom){
+      this.priceType='paid'
+      this.paymentOnline=true;
+    }
     //this.paymentOnlineControl.setValue(this.paymentOnline);
     this.cdr.detectChanges();
   }
@@ -504,6 +514,10 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
         //this.paymentOnlineControl.setValue(false);
         //this.paymentOnlineControl.enable();
         this.cdr.detectChanges();
+      }
+      if(this.custom){
+        this.priceType='paid'
+        this.paymentOnline=true;
       }
     }
   }
@@ -620,6 +634,10 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
     this.onChange(this.pricePlans);
     if (this.pricePlans.length === 0) {
       this.priceType='free';
+    }
+    if(this.custom){
+      this.priceType='paid'
+      this.paymentOnline=true;
     }
     /*if (this.pricePlans.length === 0) {
       this.paymentOnlineControl.enable();

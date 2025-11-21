@@ -95,6 +95,7 @@
             <app-price-plans-form 
               [form]="productOfferForm" 
               [prodSpec]="productOfferForm.get('prodSpec')?.value"
+              [custom]="false"
               (formChange)="handleSubformChange($event)">
             </app-price-plans-form>
           }@else{
@@ -114,6 +115,7 @@
           }@else{
             <app-price-plans-form [form]="productOfferForm" 
                                 [prodSpec]="productOfferForm.get('prodSpec')?.value"
+                                [custom]="false"
                                 (formChange)="handleSubformChange($event)">
             </app-price-plans-form>
           }         
