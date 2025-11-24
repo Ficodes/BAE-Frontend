@@ -1,7 +1,7 @@
 name: Trigger E2E Testing Workflow
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened, synchronize]
     branches:
       - main
@@ -83,7 +83,7 @@ jobs:
           echo "E2E Test Configuration:"
           echo "  Proxy:     $PROXY_REPO @ $PROXY_BRANCH"
           echo "  Charging:  $CHARGING_REPO @ $CHARGING_BRANCH"
-          echo "  Frontend:  ${{ github.repository }} @ ${{ github.event.pull_request.head.ref }}"
+          echo "  Frontend:  ${{ github.event.pull_request.head.repo.full_name }} @ ${{ github.event.pull_request.head.ref }}"
           echo "  TM Version: $TM_VERSION"
           echo "  PR URL:    ${{ github.event.pull_request.html_url }}"
           echo ""
@@ -101,7 +101,7 @@ jobs:
                 \"branch_A\": \"$PROXY_BRANCH\",
                 \"repository_B\": \"$CHARGING_REPO\",
                 \"branch_B\": \"$CHARGING_BRANCH\",
-                \"repository_frontend\": \"${{ github.repository }}\",
+                \"repository_frontend\": \"${{ github.event.pull_request.head.repo.full_name }}\",
                 \"branch_frontend\": \"${{ github.event.pull_request.head.ref }}\",
                 \"tm_version\": \"$TM_VERSION\",
                 \"pull_request_url\": \"${{ github.event.pull_request.html_url }}\"
