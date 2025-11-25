@@ -497,15 +497,20 @@ export class CheckoutComponent implements OnInit {
         ba.selected = false;
       }
       this.selectedBillingAddress = baddr;
+      console.log('billing addr selected....')
+      console.log(this.selectedBillingAddress)
       const updatedItems = JSON.parse(JSON.stringify(this.items)); // we need a deep clone isntead of shallow clone
+
       for (const cartItem of updatedItems){
+        console.log('---- cart item ----')
+        console.log(cartItem)
           const response = await lastValueFrom( this.priceService.calculatePrice({
                 "productOrder":{
                     "id": uuidv4(),
                     "productOrderItem":[{
                       action: "add",
                       id: cartItem.id, // product offering id
-                      itemTotalPrice:[{
+                      itemTotalPrice: cartItem.options.pricing.length == 0 ? [] : [{
                         productOfferingPrice:{
                           id: cartItem.options.pricing[0].id, //product offering price parent id
                           href: cartItem.options.pricing[0].id,

@@ -52,6 +52,11 @@ export class AccountServiceService {
     return lastValueFrom(this.http.get<any>(url));
   }
 
+  getOrgList(){
+    let url = `${AccountServiceService.BASE_URL}/party/organization`;
+    return lastValueFrom(this.http.get<any[]>(url));
+  }
+
   updateUserInfo(partyId:any,profile:any){
     let url = `${AccountServiceService.BASE_URL}/party/individual/${partyId}`;   
     return this.http.patch<any>(url, profile);

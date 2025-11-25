@@ -107,7 +107,7 @@ export class PriceServiceService {
     if (offering?.productOfferingPrice && offering?.productOfferingPrice.length > 0) {
       // Check if the first POP is a custom one
       const pop = await this.getProductPrice(offering.productOfferingPrice[0].id);
-      isCustom = pop.priceType.toLowerCase() === 'custom';
+      isCustom = pop.priceType?.toLowerCase() === 'custom';
     }
 
     return isCustom;

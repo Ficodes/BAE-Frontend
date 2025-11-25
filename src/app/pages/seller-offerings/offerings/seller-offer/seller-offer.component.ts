@@ -10,6 +10,7 @@ import {LocalStorageService} from "src/app/services/local-storage.service";
 import { LoginInfo } from 'src/app/models/interfaces';
 import {EventMessageService} from "src/app/services/event-message.service";
 import { initFlowbite } from 'flowbite';
+import { PriceServiceService } from 'src/app/services/price-service.service';
 
 @Component({
   selector: 'seller-offer',
@@ -36,6 +37,7 @@ export class SellerOfferComponent implements OnInit{
   partyId:any;
   sort:any=undefined;
   isBundle:any=undefined;
+  customMap: Record<string, boolean> = {};
 
   constructor(
     private router: Router,
@@ -43,7 +45,8 @@ export class SellerOfferComponent implements OnInit{
     private cdr: ChangeDetectorRef,
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
-    private paginationService: PaginationService
+    private paginationService: PaginationService,
+    private priceService: PriceServiceService
   ) {
     this.eventMessage.messages$.subscribe(ev => {
       if(ev.type === 'ChangedSession') {
@@ -94,6 +97,10 @@ export class SellerOfferComponent implements OnInit{
     this.eventMessage.emitSellerUpdateOffer(offer);
   }
 
+  goToCreateCustom(offer:any){
+    this.eventMessage.emitSellerCreateCustomOffer(offer);
+  }
+
   async getOffers(next:boolean){
     if(next == false){
       this.loading=true;
@@ -107,14 +114,23 @@ export class SellerOfferComponent implements OnInit{
     }
     
     this.paginationService.getItemsPaginated(this.page, this.PROD_SPEC_LIMIT, next, this.offers,this.nextOffers, options,
-      this.api.getProductOfferByOwner.bind(this.api)).then(data => {
+      this.api.getProductOfferByOwner.bind(this.api)).then(async data => {
       this.page_check=data.page_check;      
       this.offers=data.items;
       this.nextOffers=data.nextItems;
       this.page=data.page;
       this.loading=false;
       this.loading_more=false;
+      console.log('offers...')
+      console.log(this.offers)
+      this.customMap={}
+      for (const offer of this.offers) {
+        this.customMap[offer.id] = await this.priceService.isCustomOffering(offer);
+      }
+      console.log('custom map')
+      console.log(this.customMap)
     })
+
   }
 
   async next(){

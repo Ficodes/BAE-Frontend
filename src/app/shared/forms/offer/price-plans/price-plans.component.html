@@ -15,24 +15,27 @@
       }
     </label>-->
     @if (pricePlans.length == 0) {
-    <label class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-      Select the price type that best suits for you:
-    </label>
-    <select id="pricePlanType" data-cy="pricePlanType" [value]="priceType" (change)="onPaymentOnlineChange($event)"
-    class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-      <option value="free">Free</option>
-      <option value="tailored">Tailored price</option>
-      <option value="paid">Online paid price</option>
-    </select>
-    } @else {
-      <label class="mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-        You've selected a {{
-          priceType === 'free' ? 'free' :
-          priceType === 'tailored' ? 'tailored' :
-          'online paid'
-        }} price type. If you want to change it you need to delete all your price plans before.        
+      <label class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+        Select the price type that best suits for you:
       </label>
-    }
+      <select id="pricePlanType" data-cy="pricePlanType" [value]="priceType" (change)="onPaymentOnlineChange($event)"
+      class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+        <option value="free">Free</option>
+        @if(!custom){
+          <option value="tailored">Tailored price</option>
+        }
+        <option value="paid">Online paid price</option>
+      </select>
+      } @else {
+        <label class="mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+          You've selected a {{
+            priceType === 'free' ? 'free' :
+            priceType === 'tailored' ? 'tailored' :
+            'online paid'
+          }} price type. If you want to change it you need to delete all your price plans before.        
+        </label>
+      }
+
   </div>
 
   <!-- Price Plans Table -->
