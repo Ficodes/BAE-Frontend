@@ -37,8 +37,6 @@
             <!-- Columna del Checkbox -->
             </th>
             <th scope="col" class="px-6 py-3">{{ 'OFFERINGS._name' | translate }}</th>
-            <th scope="col" class="hidden md:table-cell px-6 py-3">Email
-            </th>
         </tr>
         </thead>
         <tbody>
@@ -56,8 +54,7 @@
                         (click)="$event.stopPropagation();toggleSelection(party)">
                 </td>
 
-                <td class="px-6 py-4">{{ party.displayName }}</td>
-                <td class="px-6 py-4">{{ party.email }}</td>
+                <td class="px-6 py-4">{{ party.tradingName }}</td>
             </tr>
             }
         </tbody>

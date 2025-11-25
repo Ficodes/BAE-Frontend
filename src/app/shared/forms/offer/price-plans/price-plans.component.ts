@@ -142,11 +142,6 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
       this.priceType='free'
     }
 
-    if(this.custom){
-      this.priceType='paid'
-      this.paymentOnline=true;
-    }
-
     // Guardar el estado original
     this.originalPricePlans = this.pricePlans.map((plan: PricePlan) => ({
       id: plan['id'],
@@ -428,10 +423,6 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
       this.priceType='tailored';
       this.paymentOnline=false;
     }
-    if(this.custom){
-      this.priceType='paid'
-      this.paymentOnline=true;
-    }
     //this.paymentOnlineControl.setValue(this.paymentOnline);
     this.cdr.detectChanges();
   }
@@ -514,10 +505,6 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
         //this.paymentOnlineControl.setValue(false);
         //this.paymentOnlineControl.enable();
         this.cdr.detectChanges();
-      }
-      if(this.custom){
-        this.priceType='paid'
-        this.paymentOnline=true;
       }
     }
   }
@@ -634,10 +621,6 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
     this.onChange(this.pricePlans);
     if (this.pricePlans.length === 0) {
       this.priceType='free';
-    }
-    if(this.custom){
-      this.priceType='paid'
-      this.paymentOnline=true;
     }
     /*if (this.pricePlans.length === 0) {
       this.paymentOnlineControl.enable();

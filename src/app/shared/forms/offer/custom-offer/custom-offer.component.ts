@@ -14,6 +14,7 @@ import {EventMessageService} from "src/app/services/event-message.service";
 import {FormChangeState, PricePlanChangeState} from "../../../../models/interfaces";
 import {Subscription} from "rxjs";
 import * as moment from 'moment';
+import { environment } from 'src/environments/environment';
 
 type ProductOffering_Create = components["schemas"]["ProductOffering_Create"];
 type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
@@ -35,7 +36,7 @@ type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
 })
 export class CustomOfferComponent implements OnInit {
   @Input() offer: any = {};
-  @Input() partyId: any;
+  @Input() partyId: any | undefined;
 
   productOfferForm: FormGroup;
   currentStep = 0;
@@ -75,6 +76,7 @@ export class CustomOfferComponent implements OnInit {
     async ngOnInit() {
       console.log('--------- OFFER DATA ----------')
       console.log(this.offer)
+      console.log(this.partyId)
       console.log('-------------------------------')
       await this.loadOfferData();
       this.loadingData=false;  
@@ -184,8 +186,7 @@ export class CustomOfferComponent implements OnInit {
         },
         relatedParty: [
           {
-            "role": "Buyer",
-            "name": this.productOfferForm.get('partyInfo')?.value.username,
+            "role": environment.BUYER_ROLE,
             "href": this.productOfferForm.get('partyInfo')?.value.id,
             "id": this.productOfferForm.get('partyInfo')?.value.id
           }
@@ -210,7 +211,7 @@ export class CustomOfferComponent implements OnInit {
       console.log('---- Offer to create -----')
       console.log(this.offerToCreate)
   
-      const request$ = this.api.postProductOffering(offer, formValue.catalogue.id)
+      const request$ = this.api.postProductOffering(offer, null)
   
       request$.subscribe({
         next: (data) => {
@@ -379,13 +380,14 @@ export class CustomOfferComponent implements OnInit {
     }
   
     validateCurrentStep(): boolean {
-      console.log('-length------')
-      console.log(this.productOfferForm.get('pricePlans')?.value.length)
+      console.log('--- party')
+      console.log(this.productOfferForm.get('partyInfo')?.value)
       switch (this.currentStep) {
-        case 0: // General Info
-          return true;
+        case 0: // Party Info
+          const value = this.productOfferForm.get('partyInfo')?.value;
+          return value && Object.keys(value).length != 0;                 
         case 1: // Price Plans
-          return this.productOfferForm.get('pricePlans')?.value.length == 0 ? false : true;
+          return true;
         case 2: // Procurement Mode
           return this.productOfferForm.get('procurementMode')?.valid || false;
         default:

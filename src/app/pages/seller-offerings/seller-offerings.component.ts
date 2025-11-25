@@ -50,6 +50,8 @@ export class SellerOfferingsComponent implements OnInit {
     servicespec: this.goToServiceSpec,
     resourcespec: this.goToResourceSpec
   };
+  //partyIdCustom:string='urn:ngsi-ld:organization:02922d6d-2e7e-4235-a1aa-4f393a75bc52'
+  //partyIdCustom:any=null
 
   constructor(
     private localStorage: LocalStorageService,

@@ -47,7 +47,7 @@
   
           <!-- Step Forms -->
           @if (currentStep === 0) {
-            <app-related-party-id formControlName="partyInfo"></app-related-party-id>
+            <app-related-party-id formControlName="partyInfo" [partyId]="partyId"></app-related-party-id>
           } @else if (currentStep === 1) {
               <app-price-plans-form 
                 [form]="productOfferForm" 
@@ -77,7 +77,7 @@
                     </div>
                 </div>
                 @if(productOfferForm.get('partyInfo')?.value){
-                <h2 class="text-md dark:text-white mb-4">Exclusive ad-hoc offer created for <b>{{productOfferForm.get('partyInfo')?.value.displayName}}</b>.</h2>
+                <h2 class="text-md dark:text-white mb-4">Exclusive ad-hoc offer created for <b>{{productOfferForm.get('partyInfo')?.value.tradingName}}</b>.</h2>
                 }
                 @if(productOfferForm.get('pricePlans')?.value){
                     <h2 class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._price_plans' | translate }}</h2>

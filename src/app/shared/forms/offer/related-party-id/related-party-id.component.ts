@@ -4,7 +4,7 @@ import {TranslateModule} from "@ngx-translate/core";
 import {environment} from "../../../../../environments/environment";
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from "@angular/forms";
 import {PaginationService} from "../../../../services/pagination.service";
-import {ApiServiceService} from "../../../../services/product-service.service";
+import {AccountServiceService} from "../../../../services/account-service.service";
 import {AppModule} from "../../../../app.module";
 import {initFlowbite} from "flowbite";
 import {FormChangeState} from "../../../../models/interfaces";
@@ -30,79 +30,64 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './related-party-id.component.css'
 })
 export class RelatedPartyIdComponent implements OnInit {
+  constructor(
+    private accService: AccountServiceService,
+    private cdr: ChangeDetectorRef,
+  ) {
+  }
   @Input() partyId: any;
   @Output() formChange = new EventEmitter<FormChangeState>();
 
   //CATEGORIES
   loading:boolean=false;
-  parties:any[]=[
-    {
-      id:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca5395",
-      username: "admin",
-      displayName: "admin",
-      email: "admin@test.com"
-    },
-    {
-      id:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca1111",
-      username: "test",
-      displayName: "test",
-      email: "test@test.com"
-    },
-    {
-      id:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca2222",
-      username: "another test",
-      displayName: "another test",
-      email: "atest@test.com"
-    },
-    {
-      id:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca3333",
-      username: "lara",
-      displayName: "lara",
-      email: "lara@test.com"
-    },
-    {
-      id:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca4444",
-      username: "marcos",
-      displayName: "marcos",
-      email: "marcos@test.com"
-    },
-    {
-      id:"urn:ngsi-ld:individual:999815b1-33dc-4b67-ac9c-90303aca5555",
-      username: "fran",
-      displayName: "fran",
-      email: "fran@test.com"
-    },
-  ];
+  parties:any[]=[];
   selectedParty:any={}
   searchTerm: string = '';
+  incomingValue: any = null;
 
   get filteredParties() {
     const term = this.searchTerm.toLowerCase().trim();
     if (!term) return this.parties;
 
     return this.parties.filter(p =>
-      p.displayName?.toLowerCase().includes(term) ||
-      p.email?.toLowerCase().includes(term) ||
-      p.username?.toLowerCase().includes(term)
+      p.tradingName?.toLowerCase().includes(term)
     );
   }
 
-  ngOnInit(){
-    this.selectedParty=this.parties[0]
+  async ngOnInit() {
+    // 1. Load list
+    this.parties = await this.accService.getOrgList();
+    console.log("Parties loaded:", this.parties);
+  
+    // 2. Determine initial selected party  
+    if (this.incomingValue) {
+      // incomingValue might already be the object
+      this.selectedParty = this.parties.find(p => p.id === this.incomingValue.id);
+    } 
+    else if (this.partyId) {
+      this.selectedParty = this.parties.find(p => p.id === this.partyId);
+    }
+  
+    // 3. Emit to parent form (full object!)
+    this.onChange(this.selectedParty ?? null);
+    this.onTouched();
+  
+    // UI refresh
+    this.cdr.detectChanges();
+  
+    console.log("Selected party after init:", this.selectedParty);
   }
-
+  
+  
   isSelected(partyId: string): boolean {
     return this.selectedParty?.id === partyId;
-  }
+  }  
 
   toggleSelection(party: any): void {
-    
-    console.log('🔄 Toggling selection:', party);
-    // Si el producto ya está seleccionado, lo deseleccionamos. Si no, lo seleccionamos.
-    this.selectedParty = this.selectedParty?.id === party.id ? null : party;
-    this.onChange(this.selectedParty);
+    this.selectedParty = party;
+    this.onChange(party);
     this.onTouched();
-  }
+  }  
 
   getRowClass(partyId: string): string {
     return partyId === this.selectedParty?.id
@@ -114,14 +99,9 @@ export class RelatedPartyIdComponent implements OnInit {
   onChange: (value: any) => void = () => {};
   onTouched: () => void = () => {};
 
-  writeValue(partyInfo: any): void {
-    console.log('📝 Writing value:', partyInfo);
-    this.selectedParty = partyInfo;
-    /*if (this.isEditMode) {
-      this.originalValue = prodSpec;
-      this.hasBeenModified = false;
-    }*/
-    this.onChange(partyInfo);
+  writeValue(value: any): void {
+    console.log("writeValue called with:", value);
+    this.incomingValue = value;
   }
 
   registerOnChange(fn: any): void {
