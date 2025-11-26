@@ -59,7 +59,10 @@ class="flex justify-center overflow-y-auto overflow-x-hidden fixed top-0 right-0
                                     <h5 class="flex justify-center mb-2 p-6 text-2xl font-bold tracking-tight text-gray-900 w-full">{{price.name}}</h5>
                                 </div>
                                 <div class="pl-4 pr-4">
-                                    <markdown class="w-full p-4 text-wrap break-all" [data]="price?.description"></markdown>
+                                    <markdown [ngClass]="{
+                                        'break-all': hasLongWord(price?.description, 20),
+                                        'break-words': !hasLongWord(price?.description, 20)
+                                        }" class="w-full p-4 text-wrap break-words" [data]="price?.description"></markdown>
                                 </div>
                               </div>
 
@@ -73,10 +76,16 @@ class="flex justify-center overflow-y-auto overflow-x-hidden fixed top-0 right-0
 
                               <div class="max-w-sm bg-white border border-gray-200 rounded-lg shadow w-full">
                                   <div class="bg-yellow-300 rounded-t-lg w-full">
-                                      <h5 class="flex justify-center mb-2 p-6 text-2xl font-bold tracking-tight text-gray-900 text-wrap break-all">{{price.name}}</h5>
+                                      <h5 [ngClass]="{
+                                        'break-all': hasLongWord(price.name, 20),
+                                        'break-words': !hasLongWord(price.name, 20)
+                                        }" class="flex justify-center mb-2 p-6 text-2xl font-bold tracking-tight text-gray-900 text-wrap break-words">{{price.name}}</h5>
                                   </div>
                                   <div class="pl-4 pr-4">
-                                    <markdown class="w-full p-4 text-wrap break-all" [data]="price?.description"></markdown>
+                                    <markdown [ngClass]="{
+                                        'break-all': hasLongWord(price?.description, 20),
+                                        'break-words': !hasLongWord(price?.description, 20)
+                                        }" class="w-full p-4 text-wrap break-words" [data]="price?.description"></markdown>
                                 </div>
                               </div>
                             </label>
@@ -90,7 +99,10 @@ class="flex justify-center overflow-y-auto overflow-x-hidden fixed top-0 right-0
                                         <div class="flex justify-start mb-2">
                                             <h2 class="text-gray-900 text-3xl font-extrabold mb-2">{{price.name}}</h2>
                                         </div>
-                                        <markdown class="w-full text-wrap break-all p-4" [data]="price?.description"></markdown>
+                                        <markdown [ngClass]="{
+                                            'break-all': hasLongWord(price?.description, 20),
+                                            'break-words': !hasLongWord(price?.description, 20)
+                                            }" class="w-full text-wrap break-words p-4" [data]="price?.description"></markdown>
                                     </div>
                                 </label>
                             </div>
@@ -104,7 +116,10 @@ class="flex justify-center overflow-y-auto overflow-x-hidden fixed top-0 right-0
                                     <h5 class="flex justify-center mb-2 p-6 text-2xl font-bold tracking-tight text-gray-900">{{price.name}}</h5>
                                 </div>
                                 <div class="pl-4 pr-4">
-                                    <markdown class="w-full p-4 text-wrap break-all" [data]="price?.description"></markdown>
+                                    <markdown [ngClass]="{
+                                        'break-all': hasLongWord(price?.description, 20),
+                                        'break-words': !hasLongWord(price?.description, 20)
+                                        }" class="w-full p-4 text-wrap break-words" [data]="price?.description"></markdown>
                                 </div>
                             </div>
                           </label>

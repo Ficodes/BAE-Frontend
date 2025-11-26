@@ -122,10 +122,16 @@
                             <tbody>
                                 @for (prod of prodChars; track prod;) {
                                     <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                        <td class="px-6 py-4 text-wrap break-all">
+                                        <td [ngClass]="{
+                                            'break-all': hasLongWord(prod.name, 20),
+                                            'break-words': !hasLongWord(prod.name, 20)
+                                            }" class="px-6 py-4 text-wrap break-words">
                                             {{prod.name}}
                                         </td>
-                                        <td class="hidden lg:table-cell px-6 py-4 text-wrap break-all">
+                                        <td [ngClass]="{
+                                            'break-all': hasLongWord(prod.description, 20),
+                                            'break-words': !hasLongWord(prod.description, 20)
+                                            }" class="hidden lg:table-cell px-6 py-4 text-wrap break-words">
                                             {{prod.description}}                                       
                                         </td>
                                         <td class="px-6 py-4 text-wrap break-all">
@@ -337,7 +343,10 @@
                     } @else {
                     <div>
                         <label class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._product_name' | translate }}</label>
-                        <label class="mb-2 bg-gray-50 text-wrap break-all border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                        <label [ngClass]="{
+                            'break-all': hasLongWord(serviceToCreate?.name, 20),
+                            'break-words': !hasLongWord(serviceToCreate?.name, 20)
+                            }" class="mb-2 bg-gray-50 text-wrap break-words border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                             {{serviceToCreate?.name}}
                         </label>
                     </div>
@@ -358,7 +367,10 @@
                     @if(serviceToCreate?.description !=''){
                         <label class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._product_description' | translate }}</label>
                         <div class="px-4 py-2 bg-white dark:bg-secondary-300 border dark:border-secondary-200 rounded-lg p-4 mb-2"> 
-                            <markdown class="bg-gray-50 text-wrap break-all dark:bg-secondary-100 dark:text-white text-gray-900 text-wrap break-all" [data]="serviceToCreate?.description"></markdown>
+                            <markdown [ngClass]="{
+                                'break-all': hasLongWord(serviceToCreate?.description, 20),
+                                'break-words': !hasLongWord(serviceToCreate?.description, 20)
+                                }" class="bg-gray-50 dark:bg-secondary-100 dark:text-white text-gray-900 text-wrap break-words" [data]="serviceToCreate?.description"></markdown>
                         </div>
                     }
                     
@@ -382,10 +394,16 @@
                                 <tbody>
                                     @for (prod of serviceToCreate?.specCharacteristic; track prod;) {
                                         <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                            <td class="px-6 py-4 text-wrap break-all">
+                                            <td [ngClass]="{
+                                                'break-all': hasLongWord(prod.name, 20),
+                                                'break-words': !hasLongWord(prod.name, 20)
+                                                }" class="px-6 py-4 text-wrap break-words">
                                                 {{prod.name}}
                                             </td>
-                                            <td class="hidden lg:table-cell px-6 py-4 text-wrap break-all">
+                                            <td [ngClass]="{
+                                                'break-all': hasLongWord(prod.description, 20),
+                                                'break-words': !hasLongWord(prod.description, 20)
+                                                }" class="hidden lg:table-cell px-6 py-4 text-wrap break-words">
                                                 {{prod.description}}                                       
                                             </td>
                                             <td class="px-6 py-4 text-wrap break-all">

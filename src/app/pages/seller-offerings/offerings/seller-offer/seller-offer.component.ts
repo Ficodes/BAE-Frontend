@@ -160,4 +160,12 @@ export class SellerOfferComponent implements OnInit{
 
   }
 
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
+  }
+
 }

@@ -614,4 +614,12 @@ export class CheckoutComponent implements OnInit {
   goToProdDetails(product: cartProduct){
     this.router.navigate(['/search/', product.id]);
   }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
+  }
 }

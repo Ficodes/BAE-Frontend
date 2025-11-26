@@ -47,7 +47,10 @@
             <tbody>
                 @for (usage of usageSpecs; track usage.id) {
                     <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                        <td class="px-6 py-4 text-wrap break-all">
+                        <td [ngClass]="{
+                            'break-all': hasLongWord(usage.name, 20),
+                            'break-words': !hasLongWord(usage.name, 20)
+                            }" class="px-6 py-4 text-wrap break-words">
                             {{usage.name}}
                         </td>
                         <td class="hidden md:table-cell px-6 py-4">

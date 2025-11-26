@@ -3,7 +3,10 @@
     <input [(ngModel)]="checked" type="checkbox" [id]="option" value="" class="hidden peer" #optioninput>
     <label [for]="option" [ngClass]="isParent && isFirst ? labelClassParentFirst : isParent && isLast ? labelClassParentLast : isParent ? labelClassParent : labelClass" (click)="onClick(optioninput.checked)">
       <div class="flex w-full justify-between items-center">
-        <div class="w-full text-base text-left font-semibold text-wrap break-all">{{ data?.name }}</div>
+        <div [ngClass]="{
+          'break-all': hasLongWord(data?.name, 20),
+          'break-words': !hasLongWord(data?.name, 20)
+          }" class="w-full text-base text-left font-semibold text-wrap break-words">{{ data?.name }}</div>
         <fa-icon [icon]="checked ? faCircleCheck : faCircle" class="mr-7 text-2xl"></fa-icon>
       </div>
     </label>
@@ -11,7 +14,10 @@
     @if(data){
       <h2 [id]="'accordion-heading-'+simplifiedId">
         <div [ngClass]="checkClasses(isFirst,isLast,data)">
-          <span class="text-left justify-start text-wrap break-all">{{ data.name }}</span>
+          <span [ngClass]="{
+            'break-all': hasLongWord(data.name, 20),
+            'break-words': !hasLongWord(data.name, 20)
+            }" class="text-left justify-start text-wrap break-words">{{ data.name }}</span>
           <div class="justify-end inline-flex">
             <div class="justify-end" (click)="onClickCategory(data)">
               <input [checked]="isCheckedCategory(data)" type="checkbox" value="" class="hidden peer">

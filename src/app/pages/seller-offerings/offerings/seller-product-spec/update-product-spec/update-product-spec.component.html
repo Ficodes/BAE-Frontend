@@ -301,7 +301,10 @@
                                 <tbody>
                                     @for (prod of prodSpecs; track prod.id) {
                                         <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                            <td class="px-6 py-4 text-wrap break-all">
+                                            <td [ngClass]="{
+                                                'break-all': hasLongWord(prod.name, 20),
+                                                'break-words': !hasLongWord(prod.name, 20)
+                                                }" class="px-6 py-4 text-wrap break-words">
                                                 {{prod.name}}
                                             </td>
                                             <td class="hidden md:table-cell px-6 py-4">
@@ -466,7 +469,10 @@
                             <tbody>
                                 @for (sel of selectedISOS; track sel.name; let idx = $index) {
                                     <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                        <td class="px-6 py-4 text-wrap break-all">
+                                        <td [ngClass]="{
+                                            'break-all': hasLongWord(sel.name, 20),
+                                            'break-words': !hasLongWord(sel.name, 20)
+                                            }" class="px-6 py-4 text-wrap break-words">
                                             {{sel.name}}
                                         </td>
                                         <td class="px-6 py-4 text-wrap break-all">
@@ -585,10 +591,16 @@
                                 <tbody>
                                     @for (prod of prodChars; track prod;) {
                                         <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                            <td class="px-6 py-4 max-w-1/6 text-wrap break-all">
+                                            <td [ngClass]="{
+                                                'break-all': hasLongWord(prod.name, 20),
+                                                'break-words': !hasLongWord(prod.name, 20)
+                                                }" class="px-6 py-4 max-w-1/6 text-wrap break-words">
                                                 {{prod.name}}
                                             </td>
-                                            <td class="hidden lg:table-cell px-6 py-4 text-wrap break-all">
+                                            <td [ngClass]="{
+                                                'break-all': hasLongWord(prod.description, 20),
+                                                'break-words': !hasLongWord(prod.description, 20)
+                                                }" class="hidden lg:table-cell px-6 py-4 text-wrap break-words">
                                                 {{prod.description}}                                       
                                             </td>
                                             <td class="px-6 py-4 text-wrap break-all">
@@ -862,7 +874,10 @@
                             <tbody>
                                 @for (res of resourceSpecs; track res.id) {
                                     <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                        <td class="px-6 py-4 text-wrap break-all">
+                                        <td [ngClass]="{
+                                            'break-all': hasLongWord(res.name, 20),
+                                            'break-words': !hasLongWord(res.name, 20)
+                                            }" class="px-6 py-4 text-wrap break-words">
                                             {{res.name}}
                                         </td>
                                         <td class="hidden md:table-cell px-6 py-4">
@@ -962,7 +977,10 @@
                             <tbody>
                                 @for (serv of serviceSpecs; track serv.id) {
                                     <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                        <td class="px-6 py-4 text-wrap break-all">
+                                        <td [ngClass]="{
+                                            'break-all': hasLongWord(serv.name, 20),
+                                            'break-words': !hasLongWord(serv.name, 20)
+                                            }" class="px-6 py-4 text-wrap break-words">
                                             {{serv.name}}
                                         </td>
                                         <td class="hidden md:table-cell px-6 py-4">
@@ -1128,7 +1146,10 @@
                                 <tbody>
                                     @for (att of prodAttachments; track att) {
                                         <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                            <td class="px-6 py-4 max-w-1/6 text-wrap break-all">
+                                            <td [ngClass]="{
+                                                'break-all': hasLongWord(att.name, 20),
+                                                'break-words': !hasLongWord(att.name, 20)
+                                                }" class="px-6 py-4 max-w-1/6 text-wrap break-words">
                                                 {{att.name}}
                                             </td>
                                             <td class="px-6 py-4 text-wrap break-all">
@@ -1253,7 +1274,10 @@
                                                 <td class="px-6 py-4">
                                                     {{rel.relationshipType}}
                                                 </td>
-                                                <td class="px-6 py-4 text-wrap break-all">
+                                                <td [ngClass]="{
+                                                    'break-all': hasLongWord(rel.name, 20),
+                                                    'break-words': !hasLongWord(rel.name, 20)
+                                                    }" class="px-6 py-4 text-wrap break-words">
                                                     {{rel.name}}
                                                 </td>
                                                 <td class="px-6 py-4">
@@ -1327,7 +1351,10 @@
                                             @for (rel of prodSpecRels; track rel) {
                                                 <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200" (click)="selectRelationship(rel)" 
                                                     [ngClass]="rel.id == selectedProdSpec.id ? 'bg-gray-300 dark:bg-secondary-200' : 'bg-white dark:bg-secondary-300'">
-                                                    <td class="px-6 py-4 text-wrap break-all">
+                                                    <td [ngClass]="{
+                                                        'break-all': hasLongWord(rel.name, 20),
+                                                        'break-words': !hasLongWord(rel.name, 20)
+                                                        }" class="px-6 py-4 text-wrap break-words">
                                                         {{rel.name}}
                                                     </td>
                                                     <td class="hidden md:table-cell px-6 py-4">
@@ -1401,7 +1428,10 @@
                         <div class="mb-4 md:grid md:grid-cols-2 gap-4">
                             <div>
                                 <label class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._product_name' | translate }}</label>
-                                <label class="mb-2 bg-gray-50 text-wrap break-all border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                <label [ngClass]="{
+                                    'break-all': hasLongWord(productSpecToUpdate?.name, 20),
+                                    'break-words': !hasLongWord(productSpecToUpdate?.name, 20)
+                                    }" class="mb-2 bg-gray-50 text-wrap break-words border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                                     {{productSpecToUpdate?.name}}
                                 </label>
                                 <label for="prod-version" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._product_version' | translate }}</label>
@@ -1411,7 +1441,10 @@
                             </div>
                             <div>
                                 <label class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._product_brand' | translate }}</label>
-                                <label class="mb-2 bg-gray-50 text-wrap break-all border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" >
+                                <label [ngClass]="{
+                                    'break-all': hasLongWord(productSpecToUpdate?.brand, 20),
+                                    'break-words': !hasLongWord(productSpecToUpdate?.brand, 20)
+                                    }" class="mb-2 bg-gray-50 text-wrap break-words border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" >
                                     {{productSpecToUpdate?.brand}}
                                 </label>
                                 @if(productSpecToUpdate?.productNumber!=''){
@@ -1439,7 +1472,10 @@
                         @if(productSpecToUpdate?.description !=''){
                             <label class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._product_description' | translate }}</label>
                             <div class="px-4 py-2 bg-white dark:bg-secondary-300 border dark:border-secondary-200 rounded-lg p-4 mb-4">                                
-                                <markdown class="bg-gray-50 text-wrap break-all dark:bg-secondary-300 dark:text-white text-gray-900" [data]="productSpecToUpdate?.description"></markdown>
+                                <markdown [ngClass]="{
+                                    'break-all': hasLongWord(productSpecToUpdate?.description, 20),
+                                    'break-words': !hasLongWord(productSpecToUpdate?.description, 20)
+                                    }" class="bg-gray-50 text-wrap break-words dark:bg-secondary-300 dark:text-white text-gray-900" [data]="productSpecToUpdate?.description"></markdown>
                             </div>
                         }
 
@@ -1467,7 +1503,10 @@
                                     <tbody>
                                         @for (bun of prodSpecsBundle; track bun) {
                                             <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                                <td class="px-6 py-4 text-wrap break-all">
+                                                <td [ngClass]="{
+                                                    'break-all': hasLongWord(bun.name, 20),
+                                                    'break-words': !hasLongWord(bun.name, 20)
+                                                    }" class="px-6 py-4 text-wrap break-words">
                                                     {{bun.name}}
                                                 </td>
                                                 <td class="px-6 py-4">
@@ -1508,10 +1547,16 @@
                                     <tbody>
                                         @for (prod of productSpecToUpdate?.productSpecCharacteristic; track prod;) {
                                             <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                                <td class="px-6 py-4 max-w-1/6 text-wrap break-all">
+                                                <td [ngClass]="{
+                                                    'break-all': hasLongWord(prod.name, 20),
+                                                    'break-words': !hasLongWord(prod.name, 20)
+                                                    }" class="px-6 py-4 max-w-1/6 text-wrap break-words">
                                                     {{prod.name}}
                                                 </td>
-                                                <td class="hidden lg:table-cell px-6 py-4 text-wrap break-all">
+                                                <td [ngClass]="{
+                                                    'break-all': hasLongWord(prod.description, 20),
+                                                    'break-words': !hasLongWord(prod.description, 20)
+                                                    }" class="hidden lg:table-cell px-6 py-4 text-wrap break-words">
                                                     {{prod.description}}                                       
                                                 </td>
                                                 <td class="px-6 py-4 text-wrap break-all">
@@ -1560,7 +1605,10 @@
                                     <tbody>
                                         @for (res of selectedResourceSpecs; track res) {
                                             <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                                <td class="px-6 py-4 text-wrap break-all">
+                                                <td [ngClass]="{
+                                                    'break-all': hasLongWord(res.name, 20),
+                                                    'break-words': !hasLongWord(res.name, 20)
+                                                    }" class="px-6 py-4 text-wrap break-words">
                                                     {{res.name}}
                                                 </td>
                                             </tr>
@@ -1584,7 +1632,10 @@
                                     <tbody>
                                         @for (serv of selectedServiceSpecs; track serv) {
                                             <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                                <td class="px-6 py-4 text-wrap break-all">
+                                                <td [ngClass]="{
+                                                    'break-all': hasLongWord(serv.name, 20),
+                                                    'break-words': !hasLongWord(serv.name, 20)
+                                                    }" class="px-6 py-4 text-wrap break-words">
                                                     {{serv.name}}
                                                 </td>
                                             </tr>
@@ -1611,7 +1662,10 @@
                                     <tbody>
                                         @for (att of productSpecToUpdate?.attachment; track att) {
                                             <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                                <td class="px-6 py-4 max-w-1/6 text-wrap break-all">
+                                                <td [ngClass]="{
+                                                    'break-all': hasLongWord(att.name, 20),
+                                                    'break-words': !hasLongWord(att.name, 20)
+                                                    }" class="px-6 py-4 max-w-1/6 text-wrap break-words">
                                                     {{att.name}}
                                                 </td>
                                                 <td class="px-6 py-4 text-wrap break-all">
@@ -1644,7 +1698,10 @@
                                                 <td class="px-6 py-4">
                                                     {{rel.relationshipType}}
                                                 </td>
-                                                <td class="px-6 py-4 text-wrap break-all">
+                                                <td [ngClass]="{
+                                                    'break-all': hasLongWord(rel.name, 20),
+                                                    'break-words': !hasLongWord(rel.name, 20)
+                                                    }" class="px-6 py-4 text-wrap break-words">
                                                     {{rel.name}}
                                                 </td>
                                             </tr>

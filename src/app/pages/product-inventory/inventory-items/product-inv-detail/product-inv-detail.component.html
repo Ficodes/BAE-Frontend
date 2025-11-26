@@ -36,7 +36,10 @@
                 <!--</a>-->
             </div>
             <div class="pt-2 line-clamp-5 h-fit">
-                <markdown class="dark:text-gray-200 text-wrap break-all" [data]="productOff?.description"></markdown>
+                <markdown [ngClass]="{
+                    'break-all': hasLongWord(productOff?.description, 20),
+                    'break-words': !hasLongWord(productOff?.description, 20)
+                    }" class="dark:text-gray-200 text-wrap break-words" [data]="productOff?.description"></markdown>
             </div>
             <div class="pt-2 line-clamp-5 h-fit">
                 Start Date: {{ prod.startDate }}
@@ -59,12 +62,18 @@
 
             <div id="details-container">            
                 <h2 #detailsContent class="text-4xl font-extrabold text-primary-100 dark:text-primary-50 text-center pb-4">Description</h2>
-                <markdown class="dark:text-gray-200 text-wrap break-all" [data]="prodSpec.description"></markdown>
+                <markdown [ngClass]="{
+                    'break-all': hasLongWord(prodSpec.description, 20),
+                    'break-words': !hasLongWord(prodSpec.description, 20)
+                    }" class="dark:text-gray-200 text-wrap break-words" [data]="prodSpec.description"></markdown>
                 @if(serviceSpecs.length > 0){
                     <div class="pb-2">                
                         <h5 class="text-xl font-semibold tracking-tight text-primary-100 dark:text-primary-50">{{ 'PRODUCT_DETAILS._service_spec' | translate }}:</h5>
                         @for(service of serviceSpecs; track service.id){
-                            <p class="pl-4 dark:text-gray-200"><b>{{service.name}}</b>:  <markdown class="text-gray-800 dark:text-gray-200 text-wrap break-all" [data]="service.description"></markdown></p>
+                            <p class="pl-4 dark:text-gray-200"><b>{{service.name}}</b>:  <markdown [ngClass]="{
+                                'break-all': hasLongWord(service.description, 20),
+                                'break-words': !hasLongWord(service.description, 20)
+                                }" class="text-gray-800 dark:text-gray-200 text-wrap break-words" [data]="service.description"></markdown></p>
                         }
                     </div>
                 }
@@ -72,7 +81,10 @@
                     <div class="pb-2">                
                         <h5 class="text-xl font-semibold tracking-tight text-primary-100 dark:text-primary-50">{{ 'PRODUCT_DETAILS._resource_spec' | translate }}:</h5>
                         @for(resource of resourceSpecs; track resource.id){
-                            <p class="pl-4 dark:text-gray-200"><b>{{resource.name}}</b>: <markdown class="text-gray-800 dark:text-gray-200 text-wrap break-all" [data]="resource.description"></markdown></p>
+                            <p class="pl-4 dark:text-gray-200"><b>{{resource.name}}</b>: <markdown [ngClass]="{
+                                'break-all': hasLongWord(resource.description, 20),
+                                'break-words': !hasLongWord(resource.description, 20)
+                                }" class="text-gray-800 dark:text-gray-200 text-wrap break-words" [data]="resource.description"></markdown></p>
                         }
                     </div>
                 }
@@ -94,7 +106,10 @@
                             <div class="flex justify-start mb-2">
                                 <h2 class="text-gray-900 dark:text-white text-3xl font-extrabold mb-2">{{pricePlan?.name}}</h2>
                             </div>
-                            <markdown class="dark:text-gray-200 w-full p-4 text-wrap break-all" [data]="pricePlan?.description"></markdown>
+                            <markdown [ngClass]="{
+                                'break-all': hasLongWord(pricePlan?.description, 20),
+                                'break-words': !hasLongWord(pricePlan?.description, 20)
+                                }" class="dark:text-gray-200 w-full p-4 text-wrap break-words" [data]="pricePlan?.description"></markdown>
                         </div>
                     }
                 </div>

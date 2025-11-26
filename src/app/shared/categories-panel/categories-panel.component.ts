@@ -1,4 +1,5 @@
 import {Component, OnInit} from '@angular/core';
+import { NgClass } from '@angular/common';
 import {TranslateModule} from "@ngx-translate/core";
 import {LocalStorageService} from "../../services/local-storage.service";
 import {Category} from "../../models/interfaces";
@@ -13,7 +14,8 @@ import {faTag} from "@fortawesome/pro-solid-svg-icons";
   standalone: true,
   imports: [
     TranslateModule,
-    FaIconComponent
+    FaIconComponent,
+    NgClass
   ],
   templateUrl: './categories-panel.component.html',
   styleUrl: './categories-panel.component.css'
@@ -48,6 +50,14 @@ export class CategoriesPanelComponent implements OnInit {
     console.log('Category dismissed: '+ JSON.stringify(cat));
     this.localStorage.removeCategoryFilter(cat);
     this.eventMessage.emitRemovedFilter(cat);
+  }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
   }
 
   protected readonly faAddressCard = faAddressCard;

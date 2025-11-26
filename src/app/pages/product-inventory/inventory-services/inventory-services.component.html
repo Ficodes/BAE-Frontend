@@ -150,7 +150,10 @@
                                     <td class="px-6 py-4 text-wrap break-all w-1/2 md:w-1/4">
                                         <a (click)="selectService(serv)" class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline">{{serv.id}}</a>                                    
                                     </td>
-                                    <td class="px-6 py-4 text-wrap break-all w-1/2 md:w-1/4">
+                                    <td [ngClass]="{
+                                        'break-all': hasLongWord(serv.name, 20),
+                                        'break-words': !hasLongWord(serv.name, 20)
+                                        }" class="px-6 py-4 text-wrap break-words w-1/2 md:w-1/4">
                                         {{serv.name}}
                                     </td>
                                     <td class="hidden md:table-cell px-6 py-4 md:w-1/4">
@@ -226,7 +229,10 @@
             </div>
             <div class="p-4">
                 <h2 class="text-2xl font-extrabold text-primary-100 text-center dark:text-primary-50 pb-4">{{selectedServ.name}}</h2>
-                <markdown class="bg-gray-50 text-wrap break-all dark:bg-secondary-300 dark:text-white text-gray-900 pb-4 text-center" [data]="selectedServ.description ? selectedServ.description : 'CATALOGS._no_desc' | translate"></markdown>
+                <markdown [ngClass]="{
+                    'break-all': hasLongWord(selectedServ.description, 20),
+                    'break-words': !hasLongWord(selectedServ.description, 20)
+                    }" class="bg-gray-50 text-wrap break-words dark:bg-secondary-300 dark:text-white text-gray-900 pb-4 text-center" [data]="selectedServ.description ? selectedServ.description : 'CATALOGS._no_desc' | translate"></markdown>
                 @if(selectedServ.serviceCharacteristic != undefined && selectedServ.serviceCharacteristic.length>0) {
                     <div #charsContent id="chars-container">
                         <h2 class="text-xl font-bold dark:text-white pb-4 px-4">{{ 'PRODUCT_INVENTORY._serv_chars' | translate }}</h2>

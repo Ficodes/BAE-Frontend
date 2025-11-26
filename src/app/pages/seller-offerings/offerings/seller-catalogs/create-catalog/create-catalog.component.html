@@ -91,7 +91,10 @@
                     } @else {
                         <div>
                             <label class="font-bold text-lg dark:text-white">{{ 'CREATE_CATALOG._name' | translate }}</label>
-                            <label class="mb-2 bg-gray-50 text-wrap break-all dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            <label [ngClass]="{
+                                'break-all': hasLongWord(catalogToCreate?.name, 20),
+                                'break-words': !hasLongWord(catalogToCreate?.name, 20)
+                                }" class="mb-2 bg-gray-50 text-wrap break-words dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                                 {{catalogToCreate?.name}}
                             </label>
                         </div>
@@ -112,7 +115,10 @@
                         @if(catalogToCreate?.description !=''){
                             <label class="font-bold text-lg dark:text-white">{{ 'CREATE_CATALOG._description' | translate }}</label>
                             <div class="px-4 py-2 bg-white rounded-lg p-4 mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900">
-                                <markdown class="bg-gray-50 text-wrap break-all dark:bg-secondary-300 dark:text-white text-gray-900" [data]="catalogToCreate?.description"></markdown>
+                                <markdown [ngClass]="{
+                                    'break-all': hasLongWord(catalogToCreate?.description, 20),
+                                    'break-words': !hasLongWord(catalogToCreate?.description, 20)
+                                    }" class="bg-gray-50 text-wrap break-words dark:bg-secondary-300 dark:text-white text-gray-900" [data]="catalogToCreate?.description"></markdown>
                             </div>
                         }
                     }

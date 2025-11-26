@@ -125,7 +125,10 @@
                       }
                    </button>
                    <div class="p-2 flex items-center w-2/3">
-                      <p class="text-lg text-gray-700 dark:text-gray-200 line-clamp-4 text-wrap break-all">{{item.name}}</p>
+                      <p [ngClass]="{
+                        'break-all': hasLongWord(item.name, 20),
+                        'break-words': !hasLongWord(item.name, 20)
+                        }" class="text-lg text-gray-700 dark:text-gray-200 line-clamp-4 text-wrap break-words">{{item.name}}</p>
                    </div> 
                   </div>              
                  <div class="p-2 flex items-center">

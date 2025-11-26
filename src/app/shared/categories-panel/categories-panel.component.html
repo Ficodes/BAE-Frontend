@@ -4,9 +4,15 @@
     <div class="overflow-x-auto max-h-[46px] inline-flex">
       @if(selected.length > 0){
         @for(category of selected; track category.id; let idx = $index) {
-        <span [id]="'badge-dismiss-'+idx" class="text-wrap break-all" title="{{category?.name}}"
+        <span [ngClass]="{
+          'break-all': hasLongWord(category?.name, 20),
+          'break-words': !hasLongWord(category?.name, 20)
+          }" [id]="'badge-dismiss-'+idx" class="text-wrap break-words" title="{{category?.name}}"
         class="inline-flex min-w-fit mb-1 justify-between items-center px-2 py-1 me-2 text-xs font-medium text-primary-100 border border-1 border-primary-100 bg-secondary-50 rounded dark:bg-secondary-100 dark:text-secondary-50">
-          <span class="line-clamp-1 min-w-fit text-wrap break-all"><fa-icon [icon]="faTag" class="mr-2"></fa-icon>{{category?.name}}</span>
+          <span [ngClass]="{
+            'break-all': hasLongWord(category?.name, 20),
+            'break-words': !hasLongWord(category?.name, 20)
+            }" class="line-clamp-1 min-w-fit text-wrap break-words"><fa-icon [icon]="faTag" class="mr-2"></fa-icon>{{category?.name}}</span>
           <button type="button" (click)="notifyDismiss(category)"
           class="inline-flex items-center p-1 ms-2 text-sm text-primary-100 dark:text-secondary-50 bg-transparent rounded-sm hover:bg-primary-100 hover:text-secondary-50 dark:hover:bg-primary-50 dark:hover:text-primary-100" [attr.data-dismiss-target]="'#badge-dismiss-'+idx" aria-label="Remove">
           <svg class="w-2 h-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">

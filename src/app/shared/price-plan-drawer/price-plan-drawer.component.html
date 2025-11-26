@@ -17,7 +17,10 @@
 
   <!-- Scrollable content -->
   <form [formGroup]="form" class="flex-1 p-4 overflow-y-auto">
-    <h5 id="drawer-right-label" class="inline-flex items-center text-wrap break-all mb-4 text-base font-semibold text-primary-100 dark:text-gray-400"><svg class="w-4 h-4 me-2.5 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+    <h5 id="drawer-right-label" [ngClass]="{
+      'break-all': hasLongWord(productOff?.name, 20),
+      'break-words': !hasLongWord(productOff?.name, 20)
+      }" class="inline-flex items-center text-wrap break-words mb-4 text-base font-semibold text-primary-100 dark:text-gray-400"><svg class="w-4 h-4 me-2.5 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
       <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
     </svg>Adding {{productOff?.name}} to cart</h5>
     <button type="button"
@@ -99,7 +102,10 @@
       <div class="grid grid-cols-4 gap-2 mb-4">
         @for (metric of metrics || []; track metric.unitOfMeasure) {
           <div class="flex flex-col">
-            <h5 class="text-wrap break-all text-base text-primary-100 dark:text-gray-400">{{ metric.unitOfMeasure }}</h5>
+            <h5 [ngClass]="{
+              'break-all': hasLongWord(metric.unitOfMeasure, 20),
+              'break-words': !hasLongWord(metric.unitOfMeasure, 20)
+              }" class="text-wrap break-words text-base text-primary-100 dark:text-gray-400">{{ metric.unitOfMeasure }}</h5>
             <input
             type="number"
             (input)="onMetricChange($event, metric)"
@@ -114,9 +120,12 @@
     }
     @if (form.get('selectedPricePlan')?.value && form.get('characteristics')?.valid && tsAndCs.description!='') {
       <div class="mb-6 text-sm text-gray-500 dark:text-gray-400">
-        <h5 class="text-wrap break-all text-base font-semibold text-primary-100 dark:text-gray-400">Terms and conditions:</h5>
+        <h5 class="text-wrap break-words text-base font-semibold text-primary-100 dark:text-gray-400">Terms and conditions:</h5>
         <div class="max-h-[300px] overflow-y-auto mb-2">
-        <markdown class="text-gray-500 dark:text-gray-400 text-wrap break-all" [data]="tsAndCs.description"></markdown>
+        <markdown [ngClass]="{
+          'break-all': hasLongWord(tsAndCs.description, 20),
+          'break-words': !hasLongWord(tsAndCs.description, 20)
+          }" class="text-gray-500 dark:text-gray-400 text-wrap break-words" [data]="tsAndCs.description"></markdown>
         </div>
         <div class="flex items-center">
           <input type="checkbox" id="tsAccepted" data-cy="acceptTermsCheckbox" class="mr-2" formControlName="tsAccepted">

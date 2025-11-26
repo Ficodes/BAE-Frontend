@@ -143,7 +143,10 @@
             <div class="w-full mb-4 rounded-t-lg grid grid-cols-80/20 lg:grid-cols-60/40">
 
               <div class="flex flex-col p-4 overflow-x-hidden">
-                  <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-primary-100 dark:text-primary-50 text-wrap break-all">{{productOff?.name}}</h5>
+                  <h5 [ngClass]="{
+                    'break-all': hasLongWord(productOff?.name, 20),
+                    'break-words': !hasLongWord(productOff?.name, 20)
+                  }" class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-primary-100 dark:text-primary-50 text-wrap break-words">{{productOff?.name}}</h5>
                   <div class="grid grid-cols-2">
                       <div class="min-h-19 pt-2 text-gray-500 dark:text-gray-400">V: {{productOff?.version || 'latest'}}</div>
                   </div>
@@ -203,7 +206,10 @@
             <div class="p-4 lg:p-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div class="justify-start">
                   <h5 class="font-semibold tracking-tight text-lg text-primary-100 dark:text-primary-50">{{ 'CARD._prod_details' | translate }}:</h5>
-                  <markdown class="min-h-19 h-19 dark:text-secondary-50 line-clamp-6 text-wrap break-all" [data]="productOff?.description"></markdown>
+                  <markdown [ngClass]="{
+                    'break-all': hasLongWord(productOff?.description, 20),
+                    'break-words': !hasLongWord(productOff?.description, 20)
+                  }" class="min-h-19 h-19 dark:text-secondary-50 line-clamp-6 text-wrap break-words" [data]="productOff?.description"></markdown>
               </div>
               <!--<div class="justify-start">
                 <h5 class="font-semibold tracking-tight text-lg text-primary-100 dark:text-primary-50">{{ 'CARD._comp_profile' | translate }}:</h5>
@@ -229,7 +235,10 @@
                         <li class="text-wrap break-all line-clamp-1">{{ 'CARD._id_number' | translate }}: {{prodSpec.productNumber}}</li>
                       }
                       @if(orgInfo!=undefined){
-                        <li class="text-wrap break-all line-clamp-1">{{ 'CARD._owner' | translate }}: <a (click)="goToOrgDetails(orgInfo.id)" target="_blank" class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline">{{orgInfo.tradingName}}</a></li>
+                        <li [ngClass]="{
+                          'break-all': hasLongWord(orgInfo.tradingName, 20),
+                          'break-words': !hasLongWord(orgInfo.tradingName, 20)
+                        }" class="text-wrap break-words line-clamp-1">{{ 'CARD._owner' | translate }}: <a (click)="goToOrgDetails(orgInfo.id)" target="_blank" class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline">{{orgInfo.tradingName}}</a></li>
                       }
                     </ul>
               </div>

@@ -35,7 +35,10 @@
 
                 <div (click)="goToCatalogSearch(cat.id)" class="block cursor-pointer rounded-lg bg-cover mb-4 md:mb-0" style="background-image: url(assets/logos/dome-logo-element-colour.png);" >
                     <div class="block w-full h-full p-6 bg-opacity-100 bg-secondary-50 rounded-lg dark:bg-secondary-100 bg-secondary-50/90 dark:bg-secondary-100/90 bg-cover">
-                        <h5 class="text-2xl font-bold tracking-tight line-clamp-4 text-primary-100 dark:text-white text-wrap break-all">{{cat.name}}</h5>
+                        <h5 [ngClass]="{
+                          'break-all': hasLongWord(cat.name, 20),
+                          'break-words': !hasLongWord(cat.name, 20)
+                        }"  class="text-2xl font-bold tracking-tight line-clamp-4 text-primary-100 dark:text-white text-wrap break-words">{{cat.name}}</h5>
                         <markdown class="line-clamp-[8] text-wrap break-all dark:text-white text-gray-900" [data]="cat.description ? cat.description : 'CATALOGS._no_desc' | translate"></markdown>
                         <!--<a (click)="showFullDesc(cat);$event.stopPropagation();" class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2">
                           <fa-icon [icon]="faEye" class="text-primary-50 mr-2"></fa-icon>
@@ -44,9 +47,12 @@
                         <hr class="h-px my-1 bg-primary-100 border-0 dark:bg-primary-100">
                         <div class="">
                           @for(category of cat.category; track category.id) {
-                            <span class="inline-block bg-blue-300 text-primary-100 text-xs font-bold me-2 px-2.5 py-0.5 rounded-full w-fit text-wrap break-all">{{category.name}}</span>
+                            <span [ngClass]="{
+                              'break-all': hasLongWord(category.name, 20),
+                              'break-words': !hasLongWord(category.name, 20)
+                            }" class="inline-block bg-blue-300 text-primary-100 text-xs font-bold me-2 px-2.5 py-0.5 rounded-full w-fit text-wrap break-words">{{category.name}}</span>
                           } @empty {
-                            <span class="inline-block bg-blue-300 text-primary-100 text-xs font-bold me-2 px-2.5 py-0.5 rounded-full w-fit text-wrap break-all">{{'CATALOGS._no_cat' | translate}}</span>                            
+                            <span class="inline-block bg-blue-300 text-primary-100 text-xs font-bold me-2 px-2.5 py-0.5 rounded-full w-fit text-wrap break-words">{{'CATALOGS._no_cat' | translate}}</span>                            
                           }
                         </div>
                         <div class="flex sticky top-[100vh] justify-center align-items-bottom">
@@ -113,7 +119,10 @@
    <!-- DESCRIPTION -->
    <div class="p-4">
      <div class="max-h-[300px] overflow-y-auto mb-4 p-4 rounded border border-primary-100/10 bg-primary-100/5 dark:bg-white/5">
-       <markdown class="dark:text-secondary-50 text-wrap break-all"
+       <markdown [ngClass]="{
+        'break-all': hasLongWord(showingCat.description, 20),
+        'break-words': !hasLongWord(showingCat.description, 20)
+        }" class="dark:text-secondary-50 text-wrap break-words"
                  [data]="showingCat.description ? showingCat.description : ('CATALOGS._no_desc' | translate)">
        </markdown>
      </div>
@@ -124,11 +133,14 @@
    <!-- CATEGORIES -->
    <div class="p-4 flex flex-wrap gap-2">
      @for(category of showingCat.category; track category.id) {
-       <span class="inline-block bg-blue-300 text-primary-100 text-xs font-bold px-2.5 py-0.5 rounded-full text-wrap break-all">
+       <span [ngClass]="{
+        'break-all': hasLongWord(category.name, 20),
+        'break-words': !hasLongWord(category.name, 20)
+        }" class="inline-block bg-blue-300 text-primary-100 text-xs font-bold px-2.5 py-0.5 rounded-full text-wrap break-words">
          {{ category.name }}
        </span>
      } @empty {
-       <span class="inline-block bg-blue-300 text-primary-100 text-xs font-bold px-2.5 py-0.5 rounded-full text-wrap break-all">
+       <span class="inline-block bg-blue-300 text-primary-100 text-xs font-bold px-2.5 py-0.5 rounded-full text-wrap break-words">
          {{ 'CATALOGS._no_cat' | translate }}
        </span>
      }

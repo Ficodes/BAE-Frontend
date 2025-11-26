@@ -90,7 +90,10 @@
     <div class="relative px-4 py-2 bg-white dark:bg-secondary-300 rounded-b-lg">
       <label for="editor" class="sr-only">Publish post</label>
       @if(showPreview){
-        <markdown class="min-h-16 h-fit block bg-white text-wrap break-all dark:bg-secondary-300 dark:text-white text-gray-900"
+        <markdown [ngClass]="{
+          'break-all': hasLongWord(value, 20),
+          'break-words': !hasLongWord(value, 20)
+          }" class="min-h-16 h-fit block bg-white text-wrap break-words dark:bg-secondary-300 dark:text-white text-gray-900"
                   [data]="value"></markdown>
 
       }@else{

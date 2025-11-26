@@ -606,4 +606,5 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
       termsAccepted,
     };
   }
+  
 }

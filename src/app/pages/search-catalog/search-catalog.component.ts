@@ -182,4 +182,12 @@ export class SearchCatalogComponent implements OnInit, OnDestroy{
       this.localStorage.setItem('is_filter_panel_shown', this.showPanel.toString())
     }
   }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
+  }
 }

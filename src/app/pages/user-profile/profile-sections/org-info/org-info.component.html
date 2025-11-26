@@ -127,7 +127,10 @@
                 <div class="px-4 py-2 bg-white dark:bg-secondary-300 rounded-b-lg">
                     <label for="editor" class="sr-only">Publish post</label>
                     @if(showPreview){
-                            <markdown class="text-gray-800 dark:text-gray-200 text-wrap break-all" [data]="description"></markdown>
+                            <markdown [ngClass]="{
+                                'break-all': hasLongWord(description, 20),
+                                'break-words': !hasLongWord(description, 20)
+                                }" class="text-gray-800 dark:text-gray-200 text-wrap break-words" [data]="description"></markdown>
                         
                     }@else{
                         <textarea id="editor" formControlName="description" rows="8" class="block w-full min-h-fit px-0 text-sm text-gray-800 dark:text-gray-200 bg-white dark:bg-secondary-300 border-0" placeholder="Add product description..." ></textarea>

@@ -150,7 +150,10 @@
                                     <td class="px-6 py-4 text-wrap break-all w-1/2 md:w-1/4">
                                         <a (click)="selectResource(res)" class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline">{{res.id}}</a>                                    
                                     </td>
-                                    <td class="px-6 py-4 text-wrap break-all w-1/2 md:w-1/4">
+                                    <td [ngClass]="{
+                                        'break-all': hasLongWord(res.name, 20),
+                                        'break-words': !hasLongWord(res.name, 20)
+                                        }" class="px-6 py-4 text-wrap break-words w-1/2 md:w-1/4">
                                         {{res.name}}
                                     </td>
                                     <td class="hidden md:table-cell px-6 py-4 md:w-1/4">
@@ -226,7 +229,10 @@
             </div>
             <div class="p-4">
                 <h2 class="text-2xl font-extrabold text-primary-100 text-center dark:text-primary-50 pb-4">{{selectedRes.name}}</h2>
-                <markdown class="bg-gray-50 text-wrap break-all dark:bg-secondary-300 dark:text-white text-gray-900 pb-4 text-center" [data]="selectedRes.description ? selectedRes.description : 'CATALOGS._no_desc' | translate"></markdown>
+                <markdown [ngClass]="{
+                    'break-all': hasLongWord(selectedRes.description, 20),
+                    'break-words': !hasLongWord(selectedRes.description, 20)
+                    }" class="bg-gray-50 text-wrap break-words dark:bg-secondary-300 dark:text-white text-gray-900 pb-4 text-center" [data]="selectedRes.description ? selectedRes.description : 'CATALOGS._no_desc' | translate"></markdown>
                 @if(selectedRes.resourceCharacteristic != undefined && selectedRes.resourceCharacteristic.length>0) {
                     <div #charsContent id="chars-container">
                         <h2 class="text-xl font-bold dark:text-white pb-4 px-4">{{ 'PRODUCT_INVENTORY._res_details' | translate }}</h2>

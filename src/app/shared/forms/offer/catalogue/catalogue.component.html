@@ -51,7 +51,10 @@
                                 (click)="$event.stopPropagation(); toggleSelection(cat)">
                         </td>
 
-                        <td class="px-6 py-4 text-wrap break-all">
+                        <td [ngClass]="{
+                            'break-all': hasLongWord(cat.name, 20),
+                            'break-words': !hasLongWord(cat.name, 20)
+                            }" class="px-6 py-4 text-wrap break-words">
                             {{cat.name}}
                         </td>
                         <td class="hidden md:table-cell px-6 py-4">

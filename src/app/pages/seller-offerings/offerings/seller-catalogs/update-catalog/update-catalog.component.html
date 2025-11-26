@@ -168,7 +168,10 @@
                     } @else {
                         <div>
                             <label class="font-bold text-lg dark:text-white">{{ 'UPDATE_CATALOG._name' | translate }}</label>
-                            <label class="mb-2 bg-gray-50 text-wrap break-all dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            <label [ngClass]="{
+                                'break-all': hasLongWord(generalForm.value.name, 20),
+                                'break-words': !hasLongWord(generalForm.value.name, 20)
+                                }" class="mb-2 bg-gray-50 text-wrap break-words dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                                 {{generalForm.value.name}}
                             </label>
                         </div>
@@ -189,7 +192,10 @@
                         @if(catalogToUpdate?.description !=''){
                             <label class="font-bold text-lg dark:text-white">{{ 'UPDATE_CATALOG._description' | translate }}</label>
                             <div class="px-4 py-2 bg-white rounded-lg p-4 mb-4 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900">
-                                <markdown class="bg-gray-50 text-wrap break-all dark:bg-secondary-300 dark:text-white text-gray-900" [data]="catalogToUpdate?.description"></markdown>
+                                <markdown [ngClass]="{
+                                    'break-all': hasLongWord(catalogToUpdate?.description, 20),
+                                    'break-words': !hasLongWord(catalogToUpdate?.description, 20)
+                                    }" class="bg-gray-50 text-wrap break-words dark:bg-secondary-300 dark:text-white text-gray-900" [data]="catalogToUpdate?.description"></markdown>
                             </div>
                         }
                         

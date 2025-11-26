@@ -34,7 +34,10 @@
                 <tbody>
                     @for (bill of billing_accounts; track bill.id) {
                         <tr (click)="selectBill(bill)" class="border-b hover:bg-gray-200 dark:border-gray-700 dark:hover:bg-secondary-200" [ngClass]="bill.selected == true ? 'bg-primary-30 dark:bg-secondary-200' : 'bg-white dark:bg-secondary-300'">
-                            <td class="px-6 py-4 text-wrap break-all">
+                            <td [ngClass]="{
+                                'break-all': hasLongWord(bill.name, 20),
+                                'break-words': !hasLongWord(bill.name, 20)
+                                }" class="px-6 py-4 text-wrap break-words">
                                 {{bill.name}}
                             </td>
                             <td class="px-6 py-4 text-wrap break-all">

@@ -43,4 +43,12 @@ export class UsageSpecSummaryComponent implements OnInit {
     console.log(this.usageSpecForm.get('metrics')?.value)
   }
 
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
+  }
+
 }

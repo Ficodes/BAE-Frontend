@@ -27,7 +27,11 @@
                        [style.display]="'-webkit-box'"
                        [style.webkitBoxOrient]="'vertical'"
                        [style.webkitLineClamp]="'2'"
-                       class="text-md text-wrap break-all line-clamp-2 mb-2 font-medium block items-center
+                       [ngClass]="{
+                        'break-all': hasLongWord(serv, 20),
+                        'break-words': !hasLongWord(serv, 20)
+                        }"
+                       class="text-md text-wrap break-words line-clamp-2 mb-2 font-medium block items-center
                               px-2.5 py-0.5 rounded-md text-primary-100 bg-secondary-50 w-fit animate-in">
                       {{ serv }}
                     </a>
@@ -41,7 +45,11 @@
                     [style.display]="'-webkit-box'"
                     [style.webkitBoxOrient]="'vertical'"
                     [style.webkitLineClamp]="'2'"
-                       class="text-md text-wrap break-all line-clamp-2 font-medium block items-center
+                    [ngClass]="{
+                      'break-all': hasLongWord(pub, 20),
+                      'break-words': !hasLongWord(pub, 20)
+                      }"
+                       class="text-md text-wrap break-words line-clamp-2 font-medium block items-center
                               px-2.5 py-0.5 rounded-md text-primary-100 bg-secondary-50 w-fit animate-in">
                       {{ pub }}
                     </a>

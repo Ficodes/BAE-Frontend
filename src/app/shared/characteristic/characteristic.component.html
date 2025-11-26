@@ -2,7 +2,10 @@
     <!-- Nombre y descripción -->
     <div class="my-2">
       <h4 class="text-lg font-semibold text-primary-100 dark:text-gray-300">{{ characteristic.name }}</h4>
-      <markdown class="text-gray-500 dark:text-gray-400 text-wrap break-all" [data]="characteristic.description"></markdown>
+      <markdown [ngClass]="{
+        'break-all': hasLongWord(characteristic.description, 20),
+        'break-words': !hasLongWord(characteristic.description, 20)
+        }" class="text-gray-500 dark:text-gray-400 text-wrap break-words" [data]="characteristic.description"></markdown>
     </div>
     @if(!isDisabled){
     <!-- Slider -->

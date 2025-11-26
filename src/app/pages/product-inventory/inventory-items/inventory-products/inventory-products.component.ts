@@ -306,4 +306,12 @@ export class InventoryProductsComponent implements OnInit {
     this.eventMessage.emitOpenResourceDetails({resourceId: id, prodId: this.selectedProduct.id});
   }
 
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
+  }
+
 }

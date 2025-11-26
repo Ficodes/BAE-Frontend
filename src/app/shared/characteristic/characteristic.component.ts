@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
-import {NgForOf} from "@angular/common";
+import {NgForOf, NgClass} from "@angular/common";
 import {components} from "../../models/product-catalog";
 import {MarkdownComponent} from "ngx-markdown";
 import { certifications } from 'src/app/models/certification-standards.const';
@@ -26,6 +26,7 @@ interface Characteristic {
   standalone: true,
   imports: [
     NgForOf,
+    NgClass,
     ReactiveFormsModule,
     MarkdownComponent
   ],
@@ -83,5 +84,13 @@ export class CharacteristicComponent implements OnInit {
 
   getUnit(): string | undefined {
     return this.characteristic.productSpecCharacteristicValue?.[0].unitOfMeasure;
+  }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
   }
 }

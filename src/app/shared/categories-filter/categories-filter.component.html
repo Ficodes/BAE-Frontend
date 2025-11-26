@@ -6,7 +6,10 @@
           @if (category.children) {
             @if (category.children.length != 0) {
               <div [ngClass]="checkClasses($first,$last,category)">
-                <span class="text-left justify-start text-wrap break-all">{{ category?.name }}</span>
+                <span [ngClass]="{
+                  'break-all': hasLongWord(category?.name, 20),
+                  'break-words': !hasLongWord(category?.name, 20)
+                  }" class="text-left justify-start text-wrap break-words">{{ category?.name }}</span>
                 <div class="justify-end inline-flex">
                   <div class="justify-end" (click)="onClick(category)">
                     <input [checked]="isCheckedCategory(category)" type="checkbox" value="" class="hidden peer">

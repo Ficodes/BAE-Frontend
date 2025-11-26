@@ -54,7 +54,11 @@
                   </div>
                   <div class="p-2 flex items-center w-2/3">
                     <p (click)="goToProdDetails(item)"
-                      class="text-lg text-gray-700 dark:text-gray-400 line-clamp-4 text-wrap break-all cursor-pointer"
+                    [ngClass]="{
+                      'break-all': hasLongWord(item.name, 20),
+                      'break-words': !hasLongWord(item.name, 20)
+                      }"
+                      class="text-lg text-gray-700 dark:text-gray-400 line-clamp-4 text-wrap break-words cursor-pointer"
                       role="button" tabindex="0">
                       {{ item.name }}
                     </p>
