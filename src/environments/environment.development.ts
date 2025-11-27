@@ -80,6 +80,7 @@ export const environment = {
         addAttachmentToQuote: '/addAttachmentToQuote',
         deleteQuote: '/quote'
     },
+    QUOTES_ENABLED: true,
     analytics: '',
     feedbackCampaign: false,
     feedbackCampaignExpiration: 0

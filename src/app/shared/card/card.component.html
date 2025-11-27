@@ -91,7 +91,7 @@
                   class="flex align-items-bottom text-white cursor-pointer bg-green-700 hover:bg-green-900 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
               {{ 'CARD._add_cart' | translate }}
             </button>
-          } @else if(providerThemeName=='DOME'){
+          } @else if(quotesEnabled){
             <button type="button" (click)="toggleQuoteModal();$event.stopPropagation();" class="m-4 w-fit flex items-center justify-start text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
               {{ 'CARD._quote' | translate }}
               <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
