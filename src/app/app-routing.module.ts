@@ -14,6 +14,7 @@ import { SellerOfferingsComponent } from "./pages/seller-offerings/seller-offeri
 import { AdminComponent } from "./pages/admin/admin.component";
 import { ContactUsFormComponent } from "./pages/contact-us/contact-us-form.component";
 import { AuthGuard } from './guard/auth.guard';
+import { quoteGuardGuard } from './guard/quote-guard.guard';
 import { OrganizationDetailsComponent } from "./pages/organization-details/organization-details.component"
 import { ProductOrdersComponent } from './pages/product-orders/product-orders.component';
 import {AboutDomeComponent} from "src/app/pages/about-dome/about-dome.component"
@@ -22,6 +23,8 @@ import { UsageSpecsComponent } from "src/app/pages/usage-specs/usage-specs.compo
 import { DomeBlogComponent } from "src/app/pages/dome-blog/dome-blog.component"
 import { BlogEntryDetailComponent } from "src/app/pages/dome-blog/blog-entry-detail/blog-entry-detail.component"
 import { EntryFormComponent } from "src/app/pages/dome-blog/entry-form/entry-form.component"
+import { environment } from '../environments/environment';
+
 
 const routes: Routes = [
   {
@@ -88,7 +91,7 @@ const routes: Routes = [
   },
   { path: 'quote-list',
     component: QuoteListComponent,
-    canActivate: [AuthGuard], data: { roles: [] }
+    canActivate: [AuthGuard, quoteGuardGuard], data: { roles: [] }
   },
   {
     path: 'usage-spec',

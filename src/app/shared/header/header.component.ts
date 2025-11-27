@@ -62,6 +62,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
     this.themeToggleLightIcon = themeToggleLightIcon;
   }
   providerThemeName = environment.providerThemeName;
+  quotesEnabled = environment.QUOTES_ENABLED;
   qrWindow: Window | null = null;
   statePair:string
   catalogs: any[] | undefined  = [];

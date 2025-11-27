@@ -176,7 +176,7 @@
             <li>
               <button id="productOrders" (click)="goTo('/product-orders')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faReceipt" class="mr-2"></fa-icon>{{ 'HEADER._orders' | translate }}</button>
             </li>
-            @if(providerThemeName=='DOME'){
+            @if(quotesEnabled){
               <li>
                 <button id="quotelist" (click)="goTo('/quote-list')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faReceipt" class="mr-2"></fa-icon>Quotes</button>
               </li>

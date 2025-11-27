@@ -43,6 +43,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() cardId: number;
 
   providerThemeName = environment.providerThemeName;
+  quotesEnabled = environment.QUOTES_ENABLED;
   category: string = 'none';
   categories: any[] | undefined  = [];
   categoriesMore: any[] | undefined  = [];

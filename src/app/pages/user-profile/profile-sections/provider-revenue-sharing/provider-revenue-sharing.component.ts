@@ -22,6 +22,8 @@ export class ProviderRevenueSharingComponent implements OnInit {
   revenueSummary:any;
   referral:any;
   support:any;
+  errorMessage: any = '';
+  showError:boolean=false;
 
   partyId:any='';
 
@@ -33,25 +35,44 @@ export class ProviderRevenueSharingComponent implements OnInit {
   
 
   async ngOnInit() {
+    this.loading=true;
     this.initPartyInfo();
-    let info = await this.revenueService.getRevenue(this.partyId);
-    console.log('------')
-    console.log(info)
-    for(let i=0; i<info.length; i++){
-      if(info[i].label == 'Subscription'){
-        this.subscription = info[i]
-      } else if(info[i].label == 'Billing History'){
-        this.billing = info[i]
-      } else if(info[i].label == 'Revenue Summary'){
-        this.revenueSummary = info[i]
-      } else if (info[i].label == 'Revenue Volume Monitoring'){
-        this.revenue = info[i]
-      } else if(info[i].label == 'Referral Program Area'){
-        this.referral = info[i]
-      } else if(info[i].label == 'Support'){
-        this.support = info[i]
+    try {
+      let info = await this.revenueService.getRevenue(this.partyId);
+      this.loading=false;
+      console.log('------')
+      console.log(info)
+      for(let i=0; i<info.length; i++){
+        if(info[i].label == 'Subscription'){
+          this.subscription = info[i]
+        } else if(info[i].label == 'Billing History'){
+          this.billing = info[i]
+        } else if(info[i].label == 'Revenue Summary'){
+          this.revenueSummary = info[i]
+        } else if (info[i].label == 'Revenue Volume Monitoring'){
+          this.revenue = info[i]
+        } else if(info[i].label == 'Referral Program Area'){
+          this.referral = info[i]
+        } else if(info[i].label == 'Support'){
+          this.support = info[i]
+        }
       }
+    } catch (error) {
+      this.handleError(error, "There was an error accessing revenue sharing's data, please contact with an administrator.");
+      this.loading=false;
+    } finally {
+      this.loading=false;
     }
+
+  }
+
+  private handleError(error: any, defaultMessage: string) {
+    console.error(defaultMessage, error);
+    this.errorMessage = error?.error?.error
+      ? `Error: ${error.error.error}`
+      : defaultMessage;
+    this.showError = true;
+    setTimeout(() => (this.showError = false), 3000);
   }
 
   initPartyInfo(){

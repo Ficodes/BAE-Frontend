@@ -24,7 +24,7 @@ export class AppInitService {
                 environment.SEARCH_ENABLED = config.searchEnabled;
                 environment.DOME_TRUST_LINK = config.domeTrust;
                 environment.DOME_ABOUT_LINK = config.domeAbout;
-                environment.PURCHASE_ENABLED = config.purchaseEnabled;
+                environment.PURCHASE_ENABLED = config.purchaseEnabled ?? true;
                 environment.DOME_REGISTER_LINK = config.domeRegister;
                 environment.DOME_PUBLISH_LINK = config.domePublish;
                 environment.KB_ONBOARDING_GUIDELINES_URL = config.domeOnboardingGuidelines;
@@ -35,7 +35,8 @@ export class AppInitService {
                 environment.analytics = config.analytics ?? 'https://analytics.dome-marketplace-sbx.org/',
                 environment.feedbackCampaign = config.feedbackCampaign ?? false,
                 environment.feedbackCampaignExpiration = config.feedbackCampaign ?? moment().add(1, 'week').unix()
-                environment.providerThemeName = config.theme ?? 'default';
+                environment.providerThemeName = 'DOME';
+                environment.QUOTES_ENABLED = config.quotesEnabled ?? false
                 resolve(config);
             }),
             error: (error) => {
