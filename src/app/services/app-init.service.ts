@@ -36,7 +36,7 @@ export class AppInitService {
                 environment.feedbackCampaign = config.feedbackCampaign ?? false,
                 environment.feedbackCampaignExpiration = config.feedbackCampaign ?? moment().add(1, 'week').unix()
                 environment.providerThemeName = 'DOME';
-                environment.QUOTES_ENABLED = config.quotesEnabled ?? true
+                environment.QUOTES_ENABLED = config.quotesEnabled ?? false
                 resolve(config);
             }),
             error: (error) => {
