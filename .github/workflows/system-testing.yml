@@ -90,10 +90,13 @@ jobs:
 
           # Trigger E2E tests in E2E-DOME-BAE repository
           echo "Triggering E2E tests..."
-          curl -X POST \
+          HTTP_STATUS=$(curl -X POST \
             -H "Authorization: token ${{ secrets.ADMIN }}" \
             -H "Accept: application/vnd.github.everest-preview+json" \
             -H "Content-Type: application/json" \
+            -w "%{http_code}" \
+            -o /dev/null \
+            -s \
             -d "{
               \"event_type\": \"cross-repo-test\",
               \"client_payload\": {
@@ -107,6 +110,18 @@ jobs:
                 \"pull_request_url\": \"${{ github.event.pull_request.html_url }}\"
               }
             }" \
-            https://api.github.com/repos/sluFicodes/E2E-DOME-BAE/dispatches
+            https://api.github.com/repos/sluFicodes/E2E-DOME-BAE/dispatches)
 
-          echo "E2E tests triggered successfully!"
+          echo "HTTP Status: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" -eq 204 ] || [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "E2E tests triggered successfully!"
+          else
+            echo "Failed to trigger E2E tests. HTTP Status: $HTTP_STATUS"
+            if [ "$HTTP_STATUS" -eq 401 ]; then
+              echo "Error: Unauthorized. Check if the ADMIN token has the correct permissions."
+            elif [ "$HTTP_STATUS" -eq 404 ]; then
+              echo "Error: Repository not found or token doesn't have access."
+            fi
+            exit 1
+          fi
