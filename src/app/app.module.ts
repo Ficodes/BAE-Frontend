@@ -88,6 +88,7 @@ import {PricePlanDrawerComponent} from "./shared/price-plan-drawer/price-plan-dr
 import {OfferComponent} from "./shared/forms/offer/offer.component";
 import { ThemeService } from './services/theme.service';
 import { ThemeAwareTranslateLoader } from './services/theme-aware-translate.loader';
+import { RevenueReportComponent } from './shared/revenue-report/revenue-report.component'
 
 // Función Factory requerida para crear el cargador con sus dependencias
 export function createThemeAwareLoader(http: HttpClient, themeService: ThemeService) {
@@ -193,6 +194,7 @@ import { OperatorRevenueSharingComponent } from "src/app/pages/admin/operator-re
         MatomoRouterModule,
         CharacteristicComponent,
         PricePlanDrawerComponent,
+        RevenueReportComponent,
         OfferComponent,
         AboutDomeComponent,
         MarkdownTextareaComponent,
