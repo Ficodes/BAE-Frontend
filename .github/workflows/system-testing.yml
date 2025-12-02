@@ -110,7 +110,7 @@ jobs:
                 \"pull_request_url\": \"${{ github.event.pull_request.html_url }}\"
               }
             }" \
-            https://api.github.com/repos/sluFicodes/E2E-DOME-BAE/dispatches)
+            https://api.github.com/repos/Ficodes/E2E-DOME-BAE/dispatches)
 
           echo "HTTP Status: $HTTP_STATUS"
 
