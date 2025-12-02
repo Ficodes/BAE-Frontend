@@ -60,6 +60,9 @@ export class UpdateProductSpecComponent implements OnInit {
 
   stepsElements:string[]=['general-info','bundle','compliance','chars','resource','service','attach','relationships','summary'];
   stepsCircles:string[]=['general-circle','bundle-circle','compliance-circle','chars-circle','resource-circle','service-circle','attach-circle','relationships-circle','summary-circle'];
+  currentStep = 0;
+  highestStep = 0;
+  steps:any[] = [];
 
   showPreview:boolean=false;
   showEmoji:boolean=false;
@@ -215,6 +218,30 @@ export class UpdateProductSpecComponent implements OnInit {
   public files: NgxFileDropEntry[] = [];
 
   ngOnInit() {
+    if(this.BUNDLE_ENABLED){
+      this.steps = [
+        'General Info',
+        'Bundle',
+        'Compliance profile',
+        'Characteristics',
+        'Resource specifications',
+        'Service specifications',
+        'Attachments',
+        'Relationships',
+        'Summary'
+      ]
+    } else {
+      this.steps = [
+        'General Info',
+        'Compliance profile',
+        'Characteristics',
+        'Resource specifications',
+        'Service specifications',
+        'Attachments',
+        'Relationships',
+        'Summary'
+      ]
+    }
     this.initPartyInfo();
     console.log(this.prod)
     this.populateProductInfo();
@@ -729,7 +756,7 @@ export class UpdateProductSpecComponent implements OnInit {
                   }
                 });
               }
-              if(this.showAttach){
+              if((this.currentStep === 5 && !this.BUNDLE_ENABLED) || (this.currentStep === 6 && this.BUNDLE_ENABLED)){
                 console.log(file)
                 this.attachmentService.uploadFile(fileBody).subscribe({
                   next: data => {
@@ -1618,6 +1645,56 @@ export class UpdateProductSpecComponent implements OnInit {
     } else {
       return false
     }   
+  }
+
+  goToStep(index: number) {
+    
+    this.currentStep = index;
+    if(this.currentStep>this.highestStep){
+      this.highestStep=this.currentStep
+    }
+    this.refreshChars();
+    //Resource
+    if((this.currentStep==4 && this.BUNDLE_ENABLED) || (this.currentStep==3 && !this.BUNDLE_ENABLED)){
+      this.getResSpecs(false);
+    }
+    //Service
+    if((this.currentStep==5 && this.BUNDLE_ENABLED) || (this.currentStep==4 && !this.BUNDLE_ENABLED)){
+      this.getServSpecs(false);
+    }
+    //Attachment
+    if((this.currentStep==6 && this.BUNDLE_ENABLED) || (this.currentStep==5 && !this.BUNDLE_ENABLED)){
+      setTimeout(() => {        
+        initFlowbite();   
+      }, 100);
+    }
+    //rels
+    if((this.currentStep==7 && this.BUNDLE_ENABLED) || (this.currentStep==6 && !this.BUNDLE_ENABLED)){
+      this.getProdSpecsRel(false);
+    }
+    //finish
+    if((this.currentStep==8 && this.BUNDLE_ENABLED) || (this.currentStep==7 && !this.BUNDLE_ENABLED)){
+      this.showFinish();
+    }
+  }
+
+  validateCurrentStep(): boolean {
+    switch (this.currentStep) {
+      case 0: // General Info
+        return this.generalForm?.valid || false;
+      default:
+        return true;
+    }
+  }
+
+  canNavigate(index: number) {
+    return this.generalForm?.valid
+  }  
+
+  handleStepClick(index: number): void {
+    if (this.canNavigate(index)) {
+      this.goToStep(index);
+    }
   }
 
 }

@@ -23,6 +23,12 @@ export class CreateCatalogComponent implements OnInit {
 
   stepsElements:string[]=['general-info','summary'];
   stepsCircles:string[]=['general-circle','summary-circle'];
+  currentStep = 0;
+  highestStep = 0;
+  steps = [
+    'General Info',
+    'Summary'
+  ];
 
   //markdown variables:
   showPreview:boolean=false;
@@ -288,5 +294,46 @@ export class CreateCatalogComponent implements OnInit {
     } else {
       return false
     }   
+  }
+
+  goToStep(index: number) {
+    // Solo validar en modo creación
+    if (index > this.currentStep) {
+      // Validar el paso actual
+      const currentStepValid = this.validateCurrentStep();
+      if (!currentStepValid) {
+        return; // No permitir avanzar si el paso actual no es válido
+      }
+    }
+    
+    this.currentStep = index;
+    if(this.currentStep>this.highestStep){
+      this.highestStep=this.currentStep
+    }
+
+    if(this.currentStep==1){
+      this.showFinish();
+    }
+  }
+
+  validateCurrentStep(): boolean {
+    switch (this.currentStep) {
+      case 0: // General Info
+        return this.generalForm?.valid || false;
+      case 1: // Product Specification
+        return true;
+      default:
+        return true;
+    }
+  }
+
+  canNavigate(index: number) {
+    return (this.generalForm?.valid &&  (index <= this.currentStep)) || (this.generalForm?.valid &&  (index <= this.highestStep));
+  }  
+
+  handleStepClick(index: number): void {
+    if (this.canNavigate(index)) {
+      this.goToStep(index);
+    }
   }
 }

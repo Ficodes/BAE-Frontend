@@ -25,6 +25,12 @@ export class UpdateCatalogComponent implements OnInit {
 
   stepsElements:string[]=['general-info','summary'];
   stepsCircles:string[]=['general-circle','summary-circle'];
+  currentStep = 0;
+  highestStep = 0;
+  steps = [
+    'General Info',
+    'Summary'
+  ];
 
   //markdown variables:
   showPreview:boolean=false;
@@ -296,6 +302,39 @@ export class UpdateCatalogComponent implements OnInit {
     } else {
       return false
     }   
+  }
+
+  goToStep(index: number) {
+    
+    this.currentStep = index;
+    if(this.currentStep>this.highestStep){
+      this.highestStep=this.currentStep
+    }
+
+    if(this.currentStep==1){
+      this.showFinish();
+    }
+  }
+
+  validateCurrentStep(): boolean {
+    switch (this.currentStep) {
+      case 0: // General Info
+        return this.generalForm?.valid || false;
+      case 1: // Product Specification
+        return true;
+      default:
+        return true;
+    }
+  }
+
+  canNavigate(index: number) {
+    return this.generalForm?.valid
+  }  
+
+  handleStepClick(index: number): void {
+    if (this.canNavigate(index)) {
+      this.goToStep(index);
+    }
   }
 }
 
