@@ -59,6 +59,7 @@ export class PriceComponentDrawerComponent implements OnInit {
     setTimeout(() => {
       this.isOpen = true;
       this.initialized = true;
+      document.body.style.overflow = 'hidden';
     }, 50);
 
     for(let i=0;i<this.prodChars.length;i++){
@@ -241,6 +242,7 @@ export class PriceComponentDrawerComponent implements OnInit {
 
   closeDrawer() {
     this.isOpen = false;
+    document.body.style.overflow = '';
     // If editing, do nothing; if creating, clear form
     setTimeout(() => this.close.emit(null), 500);
   }
