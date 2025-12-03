@@ -27,6 +27,13 @@ export class CreateServiceSpecComponent implements OnInit {
 
   stepsElements:string[]=['general-info','chars','summary'];
   stepsCircles:string[]=['general-circle','chars-circle','summary-circle'];
+  currentStep = 0;
+  highestStep = 0;
+  steps = [
+    'General Info',
+    'Characteristics',
+    'Summary'
+  ];
 
   //markdown variables:
   showPreview:boolean=false;
@@ -460,6 +467,46 @@ export class CreateServiceSpecComponent implements OnInit {
     } else {
       return false
     }   
+  }
+
+  goToStep(index: number) {
+    // Solo validar en modo creación
+    if (index > this.currentStep) {
+      // Validar el paso actual
+      const currentStepValid = this.validateCurrentStep();
+      if (!currentStepValid) {
+        return; // No permitir avanzar si el paso actual no es válido
+      }
+    }
+    
+    this.currentStep = index;
+    if(this.currentStep>this.highestStep){
+      this.highestStep=this.currentStep
+    }
+    this.refreshChars();
+    //finish
+    if(this.currentStep==2){
+      this.showFinish();
+    }
+  }
+
+  validateCurrentStep(): boolean {
+    switch (this.currentStep) {
+      case 0: // General Info
+        return this.generalForm?.valid || false;
+      default:
+        return true;
+    }
+  }
+
+  canNavigate(index: number) {
+      return (this.generalForm?.valid &&  (index <= this.currentStep)) || (this.generalForm?.valid &&  (index <= this.highestStep));
+  }  
+
+  handleStepClick(index: number): void {
+    if (this.canNavigate(index)) {
+      this.goToStep(index);
+    }
   }
 
 }

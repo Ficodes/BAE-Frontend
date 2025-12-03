@@ -29,6 +29,13 @@ export class UpdateServiceSpecComponent implements OnInit {
 
   stepsElements:string[]=['general-info','chars','summary'];
   stepsCircles:string[]=['general-circle','chars-circle','summary-circle'];
+  currentStep = 0;
+  highestStep = 0;
+  steps = [
+    'General Info',
+    'Characteristics',
+    'Summary'
+  ];
 
   //markdown variables:
   showPreview:boolean=false;
@@ -464,6 +471,43 @@ export class UpdateServiceSpecComponent implements OnInit {
     } else {
       return false
     }   
+  }
+
+  goToStep(index: number) {    
+    this.currentStep = index;
+    if(this.currentStep>this.highestStep){
+      this.highestStep=this.currentStep
+    }
+    this.refreshChars();
+    //chars
+    if(this.currentStep==1){
+      setTimeout(() => {        
+        initFlowbite();   
+      }, 100);
+    }
+    //finish
+    if(this.currentStep==2){
+      this.showFinish();
+    }
+  }
+
+  validateCurrentStep(): boolean {
+    switch (this.currentStep) {
+      case 0: // General Info
+        return this.generalForm?.valid || false;
+      default:
+        return true;
+    }
+  }
+
+  canNavigate(index: number) {
+    return this.generalForm?.valid
+  }  
+
+  handleStepClick(index: number): void {
+    if (this.canNavigate(index)) {
+      this.goToStep(index);
+    }
   }
 
 }

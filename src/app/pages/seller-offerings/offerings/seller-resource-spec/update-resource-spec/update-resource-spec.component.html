@@ -26,47 +26,27 @@
   <!-- End Breadcrumb -->
 
   <div class="bg-secondary-50 dark:bg-secondary-100 border border-secondary-50 dark:border-gray-800 mt-4 p-8 rounded-lg">
-    <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white">{{ 'UPDATE_RES_SPEC._update_res' | translate }}</h2>
-    <hr class="h-px m-4 bg-gray-300 dark:bg-gray-200 border-0">
-    <div class="md:grid md:grid-cols-25/75 xl:grid-cols-20/80">
-        <div class="flex sm:flex-row md:flex-col md:mr-4 w-full overflow-x-auto max-w-[calc(100vw-5rem)]">
-            <h2 class="hidden md:block text-xl font-bold text-black mb-4 dark:text-white">{{ 'UPDATE_RES_SPEC._steps' | translate }}</h2>
-            <button id="general-info" (click)="toggleGeneral()"
-            class="grid sm:grid-rows-2 md:grid-rows-1 md:grid-cols-25/75 xl:grid-cols-20/80 mb-2 mr-2 md:mr-0 text-primary-100 dark:text-primary-50 justify-items-center md:justify-items-start">
-                <span id="general-circle" class="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 border border-2 border-primary-100 dark:border-primary-50 rounded-full shrink-0">
-                    1
-                </span>
-                <span>
-                    <h3 class="flex leading-tight justify-start">{{ 'UPDATE_RES_SPEC._general' | translate }}</h3>
-                    <p class="hidden xl:flex text-xs justify-start">{{ 'UPDATE_RES_SPEC._general_info' | translate }}</p>
-                </span>
-            </button>
-            <hr class="h-px mb-2 bg-gray-300 dark:bg-gray-200 border-0">
-            <button id="chars" (click)="toggleChars()" [disabled]="generalForm.invalid"
-            class="grid sm:grid-rows-2 md:grid-rows-1 md:grid-cols-25/75 xl:grid-cols-20/80 mb-2 mr-2 md:mr-0 text-gray-500 justify-items-center md:justify-items-start">
-                <span id="chars-circle" class="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 border border-2 border-gray-400 rounded-full shrink-0">
-                    2
-                </span>
-                <span>
-                    <h3 class="flex leading-tight justify-start">{{ 'UPDATE_RES_SPEC._chars' | translate }}</h3>
-                    <p class="hidden xl:flex text-xs justify-start">{{ 'UPDATE_RES_SPEC._chars_info' | translate }}</p>
-                </span>
-            </button>
-            <hr class="h-px mb-2 bg-gray-300 dark:bg-gray-200 border-0">
-            <button id="summary" (click)="showFinish()" [disabled]="generalForm.invalid"
-            class="grid sm:grid-rows-2 md:grid-rows-1 md:grid-cols-25/75 xl:grid-cols-20/80 mb-2 mr-2 md:mr-0 text-gray-500 justify-items-center md:justify-items-start">
-                <span id="summary-circle" class="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 border border-2 border-gray-400 rounded-full shrink-0">
-                    3
-                </span>
-                <span>
-                    <h3 class="flex leading-tight justify-start">{{ 'CREATE_PROD_SPEC._finish' | translate }}</h3>
-                    <p class="hidden xl:flex text-xs justify-start">{{ 'CREATE_PROD_SPEC._summary' | translate }}</p>
-                </span>
-            </button>
-        </div>
+    <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white pb-4">{{ 'UPDATE_RES_SPEC._update_res' | translate }}</h2>
+    <ol class="flex items-start w-full text-sm font-medium text-center text-gray-500 dark:text-gray-400">
+        @for (step of steps; track i; let i = $index) {
+          <li 
+              (click)="handleStepClick(i)"
+              [class.cursor-not-allowed]="!canNavigate(i)"
+              [class.opacity-50]="!canNavigate(i)"          
+              [class.text-primary-100]="currentStep === i"
+              class="flex-1 cursor-pointer">
+            <span class="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 mx-auto border-2 border-primary-100 dark:border-primary-50 shrink-0 rounded-full"
+                  [class.bg-primary-100]="currentStep === i"
+                  [class.text-white]="currentStep === i">
+              {{ i + 1 }}
+            </span>
+            <span class="md:block mt-2 hidden">{{ step }}</span>
+          </li>
+        }
+      </ol>
+    <div class="md:p-8">
         <div>
-            @if(showGeneral){
-                <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white">{{ 'UPDATE_RES_SPEC._general' | translate }}</h2>
+            @if (currentStep === 0) {
                     <form class="m-4 gap-4" [formGroup]="generalForm">
                         <label for="prod-name" class="font-bold text-lg dark:text-white">{{ 'UPDATE_RES_SPEC._name' | translate }}</label>
                         <input formControlName="name" type="text" id="prod-name" maxLength="100"
@@ -156,7 +136,7 @@
 
                     </form>
                     <div class="flex w-full justify-items-end justify-end">
-                        <button data-cy="resSpecUpdateNextGeneral" type="button" (click)="toggleChars();" [disabled]="!generalForm.valid" [ngClass]="!generalForm.valid ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        <button data-cy="resSpecUpdateNextGeneral" type="button" (click)="goToStep(currentStep + 1)" [disabled]="!generalForm.valid" [ngClass]="!generalForm.valid ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                             {{ 'UPDATE_RES_SPEC._next' | translate }}
                             <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
@@ -164,45 +144,7 @@
                         </button>
                     </div>
             }
-            @if(showChars){
-                <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white">{{ 'UPDATE_RES_SPEC._chars' | translate }}</h2>
-                <!--<div class="flex">
-                    <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white">{{ 'UPDATE_RES_SPEC._chars' | translate }}</h2>
-                    <div class="flex inline-flex ml-2 align-middle">
-                        <svg data-popover-target="popover-chars" class="flex self-center w-6 h-6 text-primary-100" clip-rule="evenodd" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
-                        </svg>
-                    </div>
-                </div>
-                <div data-popover id="popover-chars" role="tooltip" class="absolute z-20 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
-                    <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
-                        <h3 class="font-semibold text-gray-900 dark:text-white">Characteristics</h3>
-                    </div>
-                    <div class="px-3 py-2 inline-block">
-                        <p class="inline-block">Create the characteristics that will define the resource.
-                        </p>
-                    </div>
-                    <div data-popper-arrow></div>
-                </div>
-                <div class="inline-flex items-center justify-center w-full m-4">
-                    <div class="mx-auto bg-white dark:bg-secondary-300 border border-gray-200 dark:border-gray-800 rounded-lg shadow w-full">
-                        <div class="bg-primary-100 dark:bg-secondary-200 rounded-t-lg w-full">
-                            <h5 class="flex justify-center mb-2 p-2 text-2xl font-bold tracking-tight text-white">Characteristics</h5>
-                        </div>
-                        <p class="flex justify-center mb-2 p-2 font-normal text-gray-700 dark:text-gray-200">Create the characteristics that will define the resource.</p>
-                    </div>
-                </div>
-                <div class="flex justify-center w-full m-4">
-                    <div class="flex w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">
-                    <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-                    </svg>
-                    <span class="sr-only">Info</span>
-                    <div>
-                        Create the characteristics that will define the resource.
-                    </div>
-                    </div>
-                </div>-->
+            @if (currentStep === 1) {
                 @if (prodChars.length === 0){
                     <div class="flex justify-center w-full m-4">
                       <div class="flex w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">
@@ -434,7 +376,7 @@
                     </div>
                 }
                 <div class="flex w-full justify-items-end justify-end ml-4 mt-4">
-                    <button data-cy="resSpecUpdateNextChars" type="button" (click)="showFinish();" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                    <button data-cy="resSpecUpdateNextChars" type="button" (click)="goToStep(currentStep + 1)" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                         {{ 'UPDATE_RES_SPEC._next' | translate }}
                         <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
@@ -443,8 +385,7 @@
                 </div>
             }
 
-            @if(showSummary){
-                <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white">{{ 'CREATE_PROD_SPEC._finish' | translate }}</h2>
+            @if (currentStep === 2) {
                 <div class="m-8">
                     @if(loading){
                         <div role="status" class="w-full h-full flex justify-center align-middle">

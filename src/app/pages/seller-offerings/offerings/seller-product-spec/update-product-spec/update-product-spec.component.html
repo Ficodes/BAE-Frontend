@@ -159,7 +159,7 @@
                         </button>
                     </div>
                 }
-                @if ((currentStep === 1 && !BUNDLE_ENABLED) || (currentStep === 2 && BUNDLE_ENABLED)) {
+                @if (currentStep === 1 && BUNDLE_ENABLED) {
                     <div class="col-span-2 flex align-items-middle h-fit m-4">
                         <label for="prod-brand" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._is_bundled' | translate }}</label>
                         <label class="inline-flex items-center me-5 ml-4">
@@ -268,7 +268,6 @@
                     </div>
                 }
                 @if ((currentStep === 1 && !BUNDLE_ENABLED) || (currentStep === 2 && BUNDLE_ENABLED)) {
-                    <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white">{{ 'UPDATE_PROD_SPEC._comp_profile' | translate }}</h2>
                     <h3 class="font-bold text-primary-100 dark:text-primary-50 text-left ml-4">
                         {{ 'UPDATE_PROD_SPEC._self_attestation' | translate }}
                     </h3>
