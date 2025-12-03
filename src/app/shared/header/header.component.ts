@@ -153,6 +153,32 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
       this.headerLinks = theme?.links?.headerLinks || [];
       this.themeAuthUrls = theme?.authUrls;
       // Podrías hacer más cosas aquí cuando el tema cambia si es necesario
+
+      if(theme?.links?.headerLinks){
+            // Recorremos recursivamente todos los links y actualizamos URL si tiene environmentName
+        const updateLinks = (links: NavLink[]) => {
+          return links.map(link => {
+            const updatedLink = { ...link };
+
+            // Actualizamos url dinámicamente
+            if (link.environmentName) {
+              updatedLink.url = (environment as any)[link.environmentName] || '';
+            }
+
+            // Si tiene children, hacemos la misma operación recursivamente
+            if (link.children?.length) {
+              updatedLink.children = updateLinks(link.children);
+            }
+
+            return updatedLink;
+          });
+        };
+
+        this.headerLinks = updateLinks(theme.links.headerLinks);
+
+        // opcionalmente también actualizar el objeto theme si lo necesitas
+        theme.links.headerLinks = this.headerLinks;
+      }
     });
 
 

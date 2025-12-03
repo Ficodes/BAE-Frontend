@@ -10,6 +10,7 @@ export interface ThemeAssetConfig {
 export interface NavLink {
   label: string; // Text to be shown, ie. 'About Us', 'Contact'
   id?: string; // dropdown ID, ie: 'browseDropdown'
+  environmentName?: string;
 
   // simple link
   url?: string;   // URL or router link
