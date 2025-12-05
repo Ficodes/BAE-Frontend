@@ -2,8 +2,12 @@
 <div class="fixed inset-0 bg-black bg-opacity-50 flex justify-end transition-opacity duration-1000 z-50"
      [ngClass]="{'opacity-100': isOpen, 'opacity-0 pointer-events-none': !isOpen}">
 
+  <!-- Overlay when child drawer is open - covers entire viewport and dims parent -->
+  <div *ngIf="showPriceComponentDrawer"
+       class="fixed inset-0 bg-black bg-opacity-30 pointer-events-none z-[51]"></div>
+
   <!-- Drawer Content -->
-  <div class="w-full md:w-5/6 bg-secondary-50 dark:bg-gray-800 h-full p-6 overflow-y-auto transform transition-transform duration-1000"
+  <div class="w-full md:w-5/6 bg-secondary-50 dark:bg-gray-800 h-full p-6 overflow-y-auto transform transition-transform duration-1000 relative z-50"
        [ngClass]="{'translate-x-0': isOpen, 'translate-x-full': !isOpen, '-translate-x-full': !initialized}">
 
     <!-- Header -->
@@ -237,6 +241,7 @@
         </div>
 
     </div>
+  </div>
 
     <!-- Drawer para editar Price Components -->
     <app-price-component-drawer *ngIf="showPriceComponentDrawer"
@@ -247,5 +252,4 @@
                                 (close)="closePriceComponentDrawer($event)">
     </app-price-component-drawer>
 
-  </div>
 </div>
