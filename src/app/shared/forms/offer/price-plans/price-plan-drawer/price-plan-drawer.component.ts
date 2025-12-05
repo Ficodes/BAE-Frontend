@@ -55,6 +55,7 @@ export class PricePlanDrawerComponent implements OnInit {
     setTimeout(() => {
       this.isOpen = true;
       this.initialized = true;
+      document.body.style.overflow = 'hidden';
     }, 50);
 
     if (!this.formGroup) {
@@ -143,6 +144,7 @@ export class PricePlanDrawerComponent implements OnInit {
 
   closeDrawer() {
     this.isOpen = false;
+    document.body.style.overflow = '';
     // If editing, do nothing; if creating, clear form
     setTimeout(() => this.close.emit(), 500);
   }
