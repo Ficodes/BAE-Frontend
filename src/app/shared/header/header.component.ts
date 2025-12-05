@@ -136,23 +136,43 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
 
   async ngOnInit(){
     this.langs = this.translate.getLangs();
-    console.log('langs')
-    console.log(this.langs)
-    //this.defaultLang = this.translate.getDefaultLang();
+
     let currLang = this.localStorage.getItem('current_language')
     if(!currLang || currLang == null) {
       this.defaultLang = this.translate.getDefaultLang();
     } else {
       this.defaultLang = currLang;
     }
-    console.log('default')
-    console.log(this.defaultLang)
 
     this.themeSubscription = this.themeService.currentTheme$.subscribe(theme => {
       this.currentTheme = theme;
       this.headerLinks = theme?.links?.headerLinks || [];
       this.themeAuthUrls = theme?.authUrls;
-      // Podrías hacer más cosas aquí cuando el tema cambia si es necesario
+
+      if(theme?.links?.headerLinks){
+            // Recorremos recursivamente todos los links y actualizamos URL si tiene environmentName
+        const updateLinks = (links: NavLink[]) => {
+          return links.map(link => {
+            const updatedLink = { ...link };
+
+            // Actualizamos url dinámicamente
+            if (link.environmentName) {
+              updatedLink.url = (environment as any)[link.environmentName] || '';
+            }
+
+            // Si tiene children, hacemos la misma operación recursivamente
+            if (link.children?.length) {
+              updatedLink.children = updateLinks(link.children);
+            }
+
+            return updatedLink;
+          });
+        };
+
+        this.headerLinks = updateLinks(theme.links.headerLinks);
+
+        theme.links.headerLinks = this.headerLinks;
+      }
     });
 
 
