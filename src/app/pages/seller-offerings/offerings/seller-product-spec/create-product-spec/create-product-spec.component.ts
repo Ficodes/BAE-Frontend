@@ -1463,6 +1463,27 @@ export class CreateProductSpecComponent implements OnInit {
     }
   }
 
+  isStepDisabled(): boolean {
+    switch (this.currentStep) {
+      case 0: // General Info
+        return !this.generalForm?.valid || false;
+      case 1:
+        if(this.BUNDLE_ENABLED){
+          return this.prodSpecsBundle.length<2 && this.bundleChecked
+        } else {
+          return this.checkValidISOS()
+        }
+      case 2:
+        if(this.BUNDLE_ENABLED){
+          return this.checkValidISOS()
+        } else {
+          return false
+        }
+      default:
+        return false;
+    }
+  }
+
   canNavigate(index: number) {
       return (this.generalForm?.valid &&  (index <= this.currentStep)) || (this.generalForm?.valid &&  (index <= this.highestStep));
   }  

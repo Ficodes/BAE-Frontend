@@ -1451,6 +1451,23 @@ export class UpdateProductSpecComponent implements OnInit {
   }
 
   showFinish() {
+    this.setProductData();
+    this.selectStep('summary','summary-circle');
+    this.showBundle=false;
+    this.showGeneral=false;
+    this.showCompliance=false;
+    this.showChars=false;
+    this.showResource=false;
+    this.showService=false;
+    this.showAttach=false;
+    this.showRelationships=false;
+    this.showSummary=true;
+    this.showPreview=false;
+    this.refreshChars();
+    initFlowbite();
+  }
+
+  setProductData(){
     for(let i=0; i< this.prodChars.length; i++){
       const index = this.finishChars.findIndex(item => item.name === this.prodChars[i].name);
       if (index == -1) {
@@ -1510,19 +1527,6 @@ export class UpdateProductSpecComponent implements OnInit {
         serviceSpecification: this.selectedServiceSpecs  
       }
     }
-    this.selectStep('summary','summary-circle');
-    this.showBundle=false;
-    this.showGeneral=false;
-    this.showCompliance=false;
-    this.showChars=false;
-    this.showResource=false;
-    this.showService=false;
-    this.showAttach=false;
-    this.showRelationships=false;
-    this.showSummary=true;
-    this.showPreview=false;
-    this.refreshChars();
-    initFlowbite();
   }
 
   isProdValid(){
@@ -1542,6 +1546,7 @@ export class UpdateProductSpecComponent implements OnInit {
   }
 
   updateProduct(){
+    this.setProductData();
     this.loading=true;
     this.prodSpecService.updateProdSpec(this.productSpecToUpdate, this.prod.id).subscribe({
       next: data => {
@@ -1564,6 +1569,27 @@ export class UpdateProductSpecComponent implements OnInit {
         }, 3000);
       }
     });
+  }
+
+  isStepDisabled(): boolean {
+    switch (this.currentStep) {
+      case 0: // General Info
+        return !this.generalForm?.valid || false;
+      case 1:
+        if(this.BUNDLE_ENABLED){
+          return this.prodSpecsBundle.length<2 && this.bundleChecked
+        } else {
+          return this.checkValidISOS()
+        }
+      case 2:
+        if(this.BUNDLE_ENABLED){
+          return this.checkValidISOS()
+        } else {
+          return false
+        }
+      default:
+        return false;
+    }
   }
 
   //Markdown actions:

@@ -57,14 +57,14 @@
                         <app-markdown-textarea data-cy="servSpecDescription" formControlName="description"></app-markdown-textarea>
 
                     </form>
-                    <div class="flex w-full justify-items-end justify-end">
+                    <!--<div class="flex w-full justify-items-end justify-end">
                         <button data-cy="servSpecNextGeneral" type="button" (click)="goToStep(currentStep + 1)" [disabled]="!generalForm.valid" [ngClass]="!generalForm.valid ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                             {{ 'CREATE_SERV_SPEC._next' | translate }}
                             <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
                             </svg>
                         </button>
-                    </div>
+                    </div>-->
             }
             @if (currentStep === 1) {
                 @if (prodChars.length === 0){
@@ -298,14 +298,14 @@
 
                     </div>
                 }
-                <div class="flex w-full justify-items-end justify-end ml-4 mt-4">
+                <!--<div class="flex w-full justify-items-end justify-end ml-4 mt-4">
                     <button data-cy="servSpecNextChars" type="button" (click)="goToStep(currentStep + 1)" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                         {{ 'CREATE_SERV_SPEC._next' | translate }}
                         <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
                         </svg>
                     </button>
-                </div>
+                </div>-->
             }
 
             @if (currentStep === 2) {
@@ -416,16 +416,57 @@
                         </div>
                     }
                     }
-                    <div class="flex w-full justify-items-end justify-end ml-4">
+                    <!--<div class="flex w-full justify-items-end justify-end ml-4">
                         <button data-cy="servSpecFinish" type="button" (click)="createService();" [disabled]="loading" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
                             {{ 'CREATE_SERV_SPEC._create_serv' | translate }}
                             <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
                             </svg>
                         </button>
-                    </div>
+                    </div>-->
                     
                 </div>
+            }
+        </div>
+        <!-- Navigation Buttons -->
+        <div class="flex justify-end mt-6 space-x-4">
+            <button (click)="goToStep(currentStep - 1)"
+                    [disabled]="currentStep === 0"
+                    [ngClass]="{
+                    'text-gray-500 dark:text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white': currentStep !== 0,
+                    'text-gray-300 dark:text-gray-600 cursor-not-allowed': currentStep === 0
+                    }"
+                    class="px-4 py-2 flex items-center justify-center text-base font-medium rounded-lg  bg-white border border-gray-300 dark:bg-gray-800 dark:border-gray-700 ">
+                <svg class="min-w-4 w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                <path fill="currentColor"
+                        d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3
+                        256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"/>
+                </svg>
+                {{ 'CREATE_OFFER._previous' | translate }}
+            </button>
+    
+            <button (click)="goToStep(currentStep + 1)"
+                    [disabled]="currentStep === steps.length - 1 || !validateCurrentStep() || !canNavigate(currentStep)"
+                    [ngClass]="{
+                    'hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white': currentStep !== steps.length - 1 && (validateCurrentStep() || canNavigate(currentStep)),
+                    'cursor-not-allowed opacity-50': currentStep === steps.length - 1 || (!validateCurrentStep() || !canNavigate(currentStep))
+                    }"
+                    class="px-4 py-2 flex items-center justify-center text-base font-medium rounded-lg text-gray-500 bg-white border border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400">
+                {{ 'CREATE_OFFER._next_step' | translate }}
+            <svg class="min-w-4 w-4 h-4 ml-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                <path fill="currentColor"
+                    d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7
+                    256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/>
+            </svg>
+            </button>
+            @if (currentStep === 2) {
+            <button  (click)="createService()"
+            [disabled]="!generalForm.valid || loading"
+            [ngClass]="loading || !generalForm.valid ? 'opacity-50' : 'hover:bg-primary-50'"
+    
+            class="px-4 py-2 text-base font-medium text-white rounded-lg bg-primary-100">
+                Create Service
+            </button>
             }
         </div>
     </div>

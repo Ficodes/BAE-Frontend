@@ -278,6 +278,16 @@ export class UpdateResourceSpecComponent implements OnInit {
   }
 
   showFinish(){
+    this.setResourceData();
+    this.showChars=false;
+    this.showGeneral=false;
+    this.showSummary=true;
+    this.selectStep('summary','summary-circle');
+    this.refreshChars();
+    this.showPreview=false;
+  }
+
+  setResourceData(){
     if(this.generalForm.value.name!=null){
       this.resourceToUpdate={
         name: this.generalForm.value.name,
@@ -285,16 +295,11 @@ export class UpdateResourceSpecComponent implements OnInit {
         lifecycleStatus: this.resStatus,
         resourceSpecCharacteristic: this.prodChars
       }
-      this.showChars=false;
-      this.showGeneral=false;
-      this.showSummary=true;
-      this.selectStep('summary','summary-circle');
-      this.refreshChars();
     }
-    this.showPreview=false;
   }
 
   updateResource(){
+    this.setResourceData();
     this.loading=true;
     this.resSpecService.updateResSpec(this.resourceToUpdate,this.res.id).subscribe({
       next: data => {

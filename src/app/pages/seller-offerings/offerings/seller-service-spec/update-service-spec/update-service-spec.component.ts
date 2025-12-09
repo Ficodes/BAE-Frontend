@@ -274,6 +274,16 @@ export class UpdateServiceSpecComponent implements OnInit {
   }
 
   showFinish(){
+    this.setServiceData();
+    this.showChars=false;
+    this.showGeneral=false;
+    this.showSummary=true;
+    this.selectStep('summary','summary-circle');
+    this.refreshChars();
+    this.showPreview=false;
+  }
+
+  setServiceData(){
     if(this.generalForm.value.name!=null){
       this.serviceToUpdate={
         name: this.generalForm.value.name,
@@ -281,16 +291,11 @@ export class UpdateServiceSpecComponent implements OnInit {
         lifecycleStatus: this.servStatus,
         specCharacteristic: this.prodChars
       }
-      this.showChars=false;
-      this.showGeneral=false;
-      this.showSummary=true;
-      this.selectStep('summary','summary-circle');
-      this.refreshChars();
     }
-    this.showPreview=false;
   }
 
   updateService(){
+    this.setServiceData();
     this.loading=true;
     this.servSpecService.updateServSpec(this.serviceToUpdate,this.serv.id).subscribe({
       next: data => {

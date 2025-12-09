@@ -104,6 +104,14 @@ export class CreateCatalogComponent implements OnInit {
 
   showFinish(){
     this.finishDone=true;
+    this.setCatalogData();
+    this.showGeneral=false;
+    this.showSummary=true;
+    this.selectStep('summary','summary-circle');
+    this.showPreview=false;
+  }
+
+  setCatalogData(){
     if(this.generalForm.value.name!=null){
       this.catalogToCreate={
         name: this.generalForm.value.name,
@@ -120,14 +128,11 @@ export class CreateCatalogComponent implements OnInit {
       }
       console.log('CATALOG TO CREATE:')
       console.log(this.catalogToCreate)
-      this.showGeneral=false;
-      this.showSummary=true;
-      this.selectStep('summary','summary-circle');
     }
-    this.showPreview=false;
   }
 
   createCatalog(){
+    this.setCatalogData();
     this.loading=true;
     this.api.postCatalog(this.catalogToCreate).subscribe({
       next: data => {

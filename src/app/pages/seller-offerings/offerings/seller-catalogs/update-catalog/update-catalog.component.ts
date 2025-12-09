@@ -118,6 +118,14 @@ export class UpdateCatalogComponent implements OnInit {
   }
 
   showFinish(){
+    this.setCatalogData();
+    this.showGeneral=false;
+    this.showSummary=true;
+    this.selectStep('summary','summary-circle');
+    this.showPreview=false;
+  }
+
+  setCatalogData(){
     if(this.generalForm.value.name!=null){
       this.catalogToUpdate={
         description: this.generalForm.value.description != null ? this.generalForm.value.description : '',
@@ -126,16 +134,11 @@ export class UpdateCatalogComponent implements OnInit {
       if(this.cat.name != this.generalForm.value.name){
         this.catalogToUpdate.name=this.generalForm.value.name;
       }
-      console.log('CATALOG TO UPDATE:')
-      console.log(this.catalogToUpdate)
-      this.showGeneral=false;
-      this.showSummary=true;
-      this.selectStep('summary','summary-circle');
     }
-    this.showPreview=false;
   }
 
   createCatalog(){
+    this.showFinish();
     this.loading=true;
     this.api.updateCatalog(this.catalogToUpdate,this.cat.id).subscribe({
       next: data => {
