@@ -157,7 +157,7 @@
                 </svg>
                 </button>
                 @if(currentStep === 1){
-                <button (click)="createCatalog()"
+                <button data-cy=catalogFinish (click)="createCatalog()"
                 [disabled]="!generalForm.valid || loading"
                 [ngClass]="loading || !generalForm.valid ? 'opacity-50' : 'hover:bg-primary-50'"
         
