@@ -29,6 +29,13 @@ export class UpdateResourceSpecComponent implements OnInit {
 
   stepsElements:string[]=['general-info','chars','summary'];
   stepsCircles:string[]=['general-circle','chars-circle','summary-circle'];
+  currentStep = 0;
+  highestStep = 0;
+  steps = [
+    'General Info',
+    'Characteristics',
+    'Summary'
+  ];
 
   //markdown variables:
   showPreview:boolean=false;
@@ -271,6 +278,16 @@ export class UpdateResourceSpecComponent implements OnInit {
   }
 
   showFinish(){
+    this.setResourceData();
+    this.showChars=false;
+    this.showGeneral=false;
+    this.showSummary=true;
+    this.selectStep('summary','summary-circle');
+    this.refreshChars();
+    this.showPreview=false;
+  }
+
+  setResourceData(){
     if(this.generalForm.value.name!=null){
       this.resourceToUpdate={
         name: this.generalForm.value.name,
@@ -278,16 +295,11 @@ export class UpdateResourceSpecComponent implements OnInit {
         lifecycleStatus: this.resStatus,
         resourceSpecCharacteristic: this.prodChars
       }
-      this.showChars=false;
-      this.showGeneral=false;
-      this.showSummary=true;
-      this.selectStep('summary','summary-circle');
-      this.refreshChars();
     }
-    this.showPreview=false;
   }
 
   updateResource(){
+    this.setResourceData();
     this.loading=true;
     this.resSpecService.updateResSpec(this.resourceToUpdate,this.res.id).subscribe({
       next: data => {
@@ -468,6 +480,43 @@ export class UpdateResourceSpecComponent implements OnInit {
     } else {
       return false
     }   
+  }
+
+  goToStep(index: number) {    
+    this.currentStep = index;
+    if(this.currentStep>this.highestStep){
+      this.highestStep=this.currentStep
+    }
+    this.refreshChars();
+    //chars
+    if(this.currentStep==1){
+      setTimeout(() => {        
+        initFlowbite();   
+      }, 100);
+    }
+    //finish
+    if(this.currentStep==2){
+      this.showFinish();
+    }
+  }
+
+  validateCurrentStep(): boolean {
+    switch (this.currentStep) {
+      case 0: // General Info
+        return this.generalForm?.valid || false;
+      default:
+        return true;
+    }
+  }
+
+  canNavigate(index: number) {
+    return this.generalForm?.valid
+  }  
+
+  handleStepClick(index: number): void {
+    if (this.canNavigate(index)) {
+      this.goToStep(index);
+    }
   }
 
 }

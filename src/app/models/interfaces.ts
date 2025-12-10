@@ -297,3 +297,11 @@ export interface PricePlanChangeState extends FormChangeState {
     };
   }[];
 }
+
+export interface Report {
+  label?: string;
+  text?: string;
+  link?: string;
+  items?: Report[];
+}
+

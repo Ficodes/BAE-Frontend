@@ -25,6 +25,12 @@ export class UpdateCatalogComponent implements OnInit {
 
   stepsElements:string[]=['general-info','summary'];
   stepsCircles:string[]=['general-circle','summary-circle'];
+  currentStep = 0;
+  highestStep = 0;
+  steps = [
+    'General Info',
+    'Summary'
+  ];
 
   //markdown variables:
   showPreview:boolean=false;
@@ -112,6 +118,14 @@ export class UpdateCatalogComponent implements OnInit {
   }
 
   showFinish(){
+    this.setCatalogData();
+    this.showGeneral=false;
+    this.showSummary=true;
+    this.selectStep('summary','summary-circle');
+    this.showPreview=false;
+  }
+
+  setCatalogData(){
     if(this.generalForm.value.name!=null){
       this.catalogToUpdate={
         description: this.generalForm.value.description != null ? this.generalForm.value.description : '',
@@ -120,16 +134,11 @@ export class UpdateCatalogComponent implements OnInit {
       if(this.cat.name != this.generalForm.value.name){
         this.catalogToUpdate.name=this.generalForm.value.name;
       }
-      console.log('CATALOG TO UPDATE:')
-      console.log(this.catalogToUpdate)
-      this.showGeneral=false;
-      this.showSummary=true;
-      this.selectStep('summary','summary-circle');
     }
-    this.showPreview=false;
   }
 
   createCatalog(){
+    this.showFinish();
     this.loading=true;
     this.api.updateCatalog(this.catalogToUpdate,this.cat.id).subscribe({
       next: data => {
@@ -296,6 +305,39 @@ export class UpdateCatalogComponent implements OnInit {
     } else {
       return false
     }   
+  }
+
+  goToStep(index: number) {
+    
+    this.currentStep = index;
+    if(this.currentStep>this.highestStep){
+      this.highestStep=this.currentStep
+    }
+
+    if(this.currentStep==1){
+      this.showFinish();
+    }
+  }
+
+  validateCurrentStep(): boolean {
+    switch (this.currentStep) {
+      case 0: // General Info
+        return this.generalForm?.valid || false;
+      case 1: // Product Specification
+        return true;
+      default:
+        return true;
+    }
+  }
+
+  canNavigate(index: number) {
+    return this.generalForm?.valid
+  }  
+
+  handleStepClick(index: number): void {
+    if (this.canNavigate(index)) {
+      this.goToStep(index);
+    }
   }
 }
 

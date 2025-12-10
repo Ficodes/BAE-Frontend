@@ -66,6 +66,9 @@ export class CreateProductSpecComponent implements OnInit {
 
   stepsElements:string[]=['general-info','bundle','compliance','chars','resource','service','attach','relationships','summary'];
   stepsCircles:string[]=['general-circle','bundle-circle','compliance-circle','chars-circle','resource-circle','service-circle','attach-circle','relationships-circle','summary-circle'];
+  currentStep = 0;
+  highestStep = 0;
+  steps:any[] = [];
 
   showPreview:boolean=false;
   showEmoji:boolean=false;
@@ -217,6 +220,31 @@ export class CreateProductSpecComponent implements OnInit {
   public files: NgxFileDropEntry[] = [];
 
   ngOnInit() {
+    if(this.BUNDLE_ENABLED){
+      this.steps = [
+        'General Info',
+        'Bundle',
+        'Compliance profile',
+        'Characteristics',
+        'Resource specifications',
+        'Service specifications',
+        'Attachments',
+        'Relationships',
+        'Summary'
+      ]
+    } else {
+      this.steps = [
+        'General Info',
+        'Compliance profile',
+        'Characteristics',
+        'Resource specifications',
+        'Service specifications',
+        'Attachments',
+        'Relationships',
+        'Summary'
+      ]
+    }
+    console.log(this.steps)
     this.initPartyInfo();
   }
 
@@ -525,7 +553,7 @@ export class CreateProductSpecComponent implements OnInit {
                   }
                 });
               }
-              if(this.showAttach){
+              if((this.currentStep === 5 && !this.BUNDLE_ENABLED) || (this.currentStep === 6 && this.BUNDLE_ENABLED)){
                 console.log(file)
                 this.attachmentService.uploadFile(fileBody).subscribe({
                   next: data => {
@@ -1385,6 +1413,85 @@ export class CreateProductSpecComponent implements OnInit {
     } else {
       return false
     }   
+  }
+
+  goToStep(index: number) {
+    // Solo validar en modo creación
+    if (index > this.currentStep) {
+      // Validar el paso actual
+      const currentStepValid = this.validateCurrentStep();
+      if (!currentStepValid) {
+        return; // No permitir avanzar si el paso actual no es válido
+      }
+    }
+    
+    this.currentStep = index;
+    if(this.currentStep>this.highestStep){
+      this.highestStep=this.currentStep
+    }
+    this.refreshChars();
+    //Resource
+    if((this.currentStep==4 && this.BUNDLE_ENABLED) || (this.currentStep==3 && !this.BUNDLE_ENABLED)){
+      this.getResSpecs(false);
+    }
+    //Service
+    if((this.currentStep==5 && this.BUNDLE_ENABLED) || (this.currentStep==4 && !this.BUNDLE_ENABLED)){
+      this.getServSpecs(false);
+    }
+    //Attachment
+    if((this.currentStep==6 && this.BUNDLE_ENABLED) || (this.currentStep==5 && !this.BUNDLE_ENABLED)){
+      setTimeout(() => {        
+        initFlowbite();   
+      }, 100);
+    }
+    //rels
+    if((this.currentStep==7 && this.BUNDLE_ENABLED) || (this.currentStep==6 && !this.BUNDLE_ENABLED)){
+      this.getProdSpecsRel(false);
+    }
+    //finish
+    if((this.currentStep==8 && this.BUNDLE_ENABLED) || (this.currentStep==7 && !this.BUNDLE_ENABLED)){
+      this.showFinish();
+    }
+  }
+
+  validateCurrentStep(): boolean {
+    switch (this.currentStep) {
+      case 0: // General Info
+        return this.generalForm?.valid || false;
+      default:
+        return true;
+    }
+  }
+
+  isStepDisabled(): boolean {
+    switch (this.currentStep) {
+      case 0: // General Info
+        return !this.generalForm?.valid || false;
+      case 1:
+        if(this.BUNDLE_ENABLED){
+          return this.prodSpecsBundle.length<2 && this.bundleChecked
+        } else {
+          return this.checkValidISOS()
+        }
+      case 2:
+        if(this.BUNDLE_ENABLED){
+          return this.checkValidISOS()
+        } else {
+          return false
+        }
+      default:
+        return false;
+    }
+  }
+
+  canNavigate(index: number) {
+      return (this.generalForm?.valid &&  (index <= this.currentStep)) || (this.generalForm?.valid &&  (index <= this.highestStep));
+  }  
+
+  handleStepClick(index: number): void {
+    if (this.canNavigate(index)) {
+      this.goToStep(index);
+    }
   }
 
 }

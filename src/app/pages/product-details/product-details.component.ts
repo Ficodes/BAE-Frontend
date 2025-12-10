@@ -102,6 +102,8 @@ export class ProductDetailsComponent implements OnInit {
   stepsCircles:string[]=['circle-chars','circle-price','circle-terms','circle-checkout'];
   licenseTerm:any=undefined;
   isLoaded = false;
+  private isManualScroll = false;
+  private scrollTimeout: any;
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -167,39 +169,41 @@ export class ProductDetailsComponent implements OnInit {
 
   @HostListener('window:scroll', ['$event'])
   updateTabs(event:any) {
-    let tabs_container = document.getElementById('tabs-container');
-    let tabsOffset = 0;
-    if(tabs_container){
-      tabsOffset=tabs_container.offsetHeight
+    // Skip if user manually clicked a tab and scroll is in progress
+    if (this.isManualScroll) {
+      return;
     }
-    let details_container = document.getElementById('details-container')
-    let chars_container = document.getElementById('chars-container')
-    let attach_container = document.getElementById('attach-container')
-    let agreements_container = document.getElementById('agreements-container')
-    let relationships_container = document.getElementById('agreements-container')
 
-    let detailsOffset=tabsOffset
-    if(details_container && (details_container.getBoundingClientRect().bottom <= window.innerHeight)){
-      this.goToDetails(false)
-      detailsOffset=details_container.getBoundingClientRect().bottom
+    const sections = [
+      { id: 'details-container', tab: 'details-button', handler: () => this.goToDetails(false) },
+      { id: 'chars-container', tab: 'chars-button', handler: () => this.goToChars(false) },
+      { id: 'attach-container', tab: 'attach-button', handler: () => this.goToAttach(false) },
+      { id: 'agreements-container', tab: 'agreements-button', handler: () => this.goToAgreements(false) },
+      { id: 'relationships-container', tab: 'relationships-button', handler: () => this.goToRelationships(false) }
+    ];
+
+    const TARGET_TOP = 150; // Sticky header offset + some buffer
+    let activeSection = null;
+
+    // Iterate through sections in reverse order (bottom to top) to prioritize later sections when scrolling down
+    for (let i = sections.length - 1; i >= 0; i--) {
+      const section = sections[i];
+      const element = document.getElementById(section.id);
+      if (!element) continue;
+
+      const rect = element.getBoundingClientRect();
+
+      // Check if the section contains or is past the target line
+      if (rect.top <= TARGET_TOP && rect.bottom > TARGET_TOP) {
+        activeSection = section;
+        break;
+      } else if (rect.top > TARGET_TOP) {
+        activeSection = section;
+      }
     }
-    let charsOffset=detailsOffset;
-    if(this.charsContent!=undefined && chars_container && (chars_container.getBoundingClientRect().top >= detailsOffset && chars_container.getBoundingClientRect().bottom <= window.innerHeight)){
-      this.goToChars(false)
-      charsOffset=chars_container.getBoundingClientRect().bottom
-    }
-    let attOffsett=charsOffset;
-    if(this.attachContent!=undefined && attach_container && (attach_container.getBoundingClientRect().top >= charsOffset && attach_container.getBoundingClientRect().bottom <= window.innerHeight)){
-      this.goToAttach(false)
-      attOffsett=attach_container.getBoundingClientRect().bottom
-    }
-    let agreeOffset=attOffsett;
-    if(this.agreementsContent!= undefined && agreements_container && (agreements_container.getBoundingClientRect().top >= attOffsett && agreements_container.getBoundingClientRect().bottom <= window.innerHeight)){
-      this.goToAgreements(false)
-      agreeOffset=agreements_container.offsetHeight
-    }
-    if(this.relationshipsContent!= undefined && relationships_container && (relationships_container.getBoundingClientRect().top >= agreeOffset && relationships_container.getBoundingClientRect().bottom <= window.innerHeight)){
-      this.goToRelationships(false)
+
+    if (activeSection) {
+      activeSection.handler();
     }
   }
 
@@ -674,9 +678,11 @@ async deleteProduct(product: Product | undefined){
   }
 
   goToDetails(scroll:boolean){
-    //const targetElement = this.elementRef.nativeElement.querySelector('#detailsContent');
     if (scroll) {
-      //this.detailsScrollAnchor.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Set flag to prevent scroll listener from interfering
+      this.isManualScroll = true;
+      clearTimeout(this.scrollTimeout);
+
       const anchor = this.detailsScrollAnchor?.nativeElement;
       if (!anchor) return;
     
@@ -687,6 +693,11 @@ async deleteProduct(product: Product | undefined){
       // Or: explicitly scroll the document
       const y = anchor.getBoundingClientRect().top + window.scrollY - 88; // adjust for sticky header
       window.scrollTo({ top: y, behavior: 'smooth' });
+
+      // Re-enable scroll listener after animation completes
+      this.scrollTimeout = setTimeout(() => {
+        this.isManualScroll = false;
+      }, 1000);
     }
 
     let details_button = document.getElementById('details-button')
@@ -704,7 +715,14 @@ async deleteProduct(product: Product | undefined){
 
   goToChars(scroll:boolean){
     if (scroll) {
+      this.isManualScroll = true;
+      clearTimeout(this.scrollTimeout);
+
       this.charsScrollAnchor.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      this.scrollTimeout = setTimeout(() => {
+        this.isManualScroll = false;
+      }, 1000);
     }
 
     let details_button = document.getElementById('details-button')
@@ -722,7 +740,14 @@ async deleteProduct(product: Product | undefined){
 
   goToAttach(scroll:boolean){
     if (scroll) {
+      this.isManualScroll = true;
+      clearTimeout(this.scrollTimeout);
+
       this.attachScrollAnchor.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      this.scrollTimeout = setTimeout(() => {
+        this.isManualScroll = false;
+      }, 1000);
     }
 
     let details_button = document.getElementById('details-button')
@@ -740,8 +765,14 @@ async deleteProduct(product: Product | undefined){
 
   goToAgreements(scroll:boolean){
     if (scroll) {
-      //this.agreementsContent.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start'});
+      this.isManualScroll = true;
+      clearTimeout(this.scrollTimeout);
+
       this.agreementsScrollAnchor.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      this.scrollTimeout = setTimeout(() => {
+        this.isManualScroll = false;
+      }, 1000);
     }
 
     let details_button = document.getElementById('details-button')
@@ -759,7 +790,14 @@ async deleteProduct(product: Product | undefined){
 
   goToRelationships(scroll:boolean){
     if (scroll) {
+      this.isManualScroll = true;
+      clearTimeout(this.scrollTimeout);
+
       this.relScrollAnchor.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      this.scrollTimeout = setTimeout(() => {
+        this.isManualScroll = false;
+      }, 1000);
     }
 
     let details_button = document.getElementById('details-button')

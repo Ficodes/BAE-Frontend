@@ -575,6 +575,10 @@ export class OfferComponent implements OnInit, OnDestroy{
       if(plan?.priceType == 'custom'){
         price.priceType='custom'
       }
+    } else if(plan?.newValue?.priceType){
+      if(plan?.newValue?.priceType == 'custom'){
+        price.priceType='custom'
+      }
     }
 
     if (plan.prodSpecCharValueUse) {
