@@ -571,7 +571,11 @@ export class OfferComponent implements OnInit, OnDestroy{
       bundledPopRelationship: compRel
     };
 
-    if(plan?.newValue?.priceType){
+    if(plan?.priceType){
+      if(plan?.priceType == 'custom'){
+        price.priceType='custom'
+      }
+    } else if(plan?.newValue?.priceType){
       if(plan?.newValue?.priceType == 'custom'){
         price.priceType='custom'
       }
