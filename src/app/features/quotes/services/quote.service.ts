@@ -1,16 +1,40 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
+import { Observable, map, forkJoin } from 'rxjs';
 import { Quote, Quote_Create, Quote_Update, QuoteStateType } from 'src/app/models/quote.model';
+import { Tender } from 'src/app/models/tender.model';
+import { ApiRole, API_ROLES } from 'src/app/models/roles.constants';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class QuoteService {
-  private apiUrl = environment.quoteApi;
 
-  constructor(private http: HttpClient) {}
+  // Use getter to always get the current value (in case it's updated by app-init)
+  // If quoteApi is a relative path, prepend BASE_URL
+  private get apiUrl(): string {
+    const quoteApi = environment.quoteApi;
+    // If it's already an absolute URL, use it as-is
+    if (quoteApi.startsWith('http://') || quoteApi.startsWith('https://')) {
+      return quoteApi;
+    }
+    // Otherwise, prepend BASE_URL for relative paths
+    return `${environment.BASE_URL}${quoteApi}`;
+  }
+
+  // Get HTTP headers with Bearer token for quote API calls
+  private get httpOptions() {
+    return {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    };
+  }
+
+  constructor(private http: HttpClient) {
+    console.log('🔍 [DEBUG] QuoteService constructor - BASE_URL:', environment.BASE_URL);
+  }
 
   // TMF 648 Quote Management API methods
   
@@ -19,7 +43,7 @@ export class QuoteService {
    * POST /quote
    */
   createQuote(quote: Quote_Create): Observable<Quote> {
-    return this.http.post<Quote>(`${this.apiUrl}/quote`, quote);
+    return this.http.post<Quote>(`${this.apiUrl}/quote`, quote, this.httpOptions);
   }
 
   /**
@@ -32,7 +56,7 @@ export class QuoteService {
     providerIdRef: string;
     productOfferingId: string;
   }): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}${environment.quoteEndpoints.createQuote}`, requestData);
+    return this.http.post<any>(`${this.apiUrl}${environment.quoteEndpoints.createQuote}`, requestData, this.httpOptions);
   }
 
   /**
@@ -45,7 +69,7 @@ export class QuoteService {
     if (offset !== undefined) params = params.set('offset', offset.toString());
     if (limit !== undefined) params = params.set('limit', limit.toString());
     
-    return this.http.get<Quote[]>(`${this.apiUrl}/quote`, { params });
+    return this.http.get<Quote[]>(`${this.apiUrl}/quote`, { params, ...this.httpOptions });
   }
 
   /**
@@ -59,7 +83,7 @@ export class QuoteService {
     // URL encode the ID to handle special characters like colons
     const encodedId = encodeURIComponent(id);
     console.log('Retrieving quote with URL:', `${this.apiUrl}/quoteById/${encodedId}`);
-    return this.http.get<Quote>(`${this.apiUrl}/quoteById/${encodedId}`, { params });
+    return this.http.get<Quote>(`${this.apiUrl}/quoteById/${encodedId}`, { params, ...this.httpOptions });
   }
 
   /**
@@ -69,7 +93,7 @@ export class QuoteService {
   patchQuote(id: string, quote: Quote_Update): Observable<Quote> {
     const encodedId = encodeURIComponent(id);
     console.log('Updating quote with URL:', `${this.apiUrl}/updateQuoteStatus/${encodedId}`);
-    return this.http.patch<Quote>(`${this.apiUrl}/updateQuoteStatus/${encodedId}`, quote);
+    return this.http.patch<Quote>(`${this.apiUrl}/updateQuoteStatus/${encodedId}`, quote, this.httpOptions);
   }
 
   /**
@@ -79,7 +103,7 @@ export class QuoteService {
   deleteQuote(id: string): Observable<void> {
     const encodedId = encodeURIComponent(id);
     console.log('Deleting quote with URL:', `${this.apiUrl}/quote/${encodedId}`);
-    return this.http.delete<void>(`${this.apiUrl}/quote/${encodedId}`);
+    return this.http.delete<void>(`${this.apiUrl}/quote/${encodedId}`, this.httpOptions);
   }
 
   // Convenience methods for common operations
@@ -123,7 +147,7 @@ export class QuoteService {
     
     const encodedId = encodeURIComponent(id);
     console.log('Adding note to quote with URL:', `${this.apiUrl}/addNoteToQuote/${encodedId}`);
-    return this.http.patch<Quote>(`${this.apiUrl}/addNoteToQuote/${encodedId}`, null, { params });
+    return this.http.patch<Quote>(`${this.apiUrl}/addNoteToQuote/${encodedId}`, null, { params, ...this.httpOptions });
   }
 
   /**
@@ -153,7 +177,7 @@ export class QuoteService {
     
     const encodedUserId = encodeURIComponent(userId);
     console.log('Getting quotes by user with URL:', `${this.apiUrl}/quoteByUser/${encodedUserId}`);
-    return this.http.get<Quote[]>(`${this.apiUrl}/quoteByUser/${encodedUserId}`, { params });
+    return this.http.get<Quote[]>(`${this.apiUrl}/quoteByUser/${encodedUserId}`, { params, ...this.httpOptions });
   }
 
   /**
@@ -208,14 +232,20 @@ export class QuoteService {
     console.log('Updating quote status with URL:', `${this.apiUrl}/updateQuoteStatus/${encodedId}`);
     console.log('Status value:', status);
     
-    return this.http.patch<Quote>(`${this.apiUrl}/updateQuoteStatus/${encodedId}`, null, { params });
+    return this.http.patch<Quote>(`${this.apiUrl}/updateQuoteStatus/${encodedId}`, null, { params, ...this.httpOptions });
   }
 
   /**
    * Update quote completion date using the specific updateQuoteDate endpoint
    * PATCH /updateQuoteDate/{id}?date={date}&dateType={dateType}
+   * 
+   * Date types:
+   * - 'requested' → requestedQuoteCompletionDate
+   * - 'expected' → expectedQuoteCompletionDate
+   * - 'effective' → effectiveQuoteCompletionDate
+   * - 'expectedFulfillment' → expectedFulfillmentStartDate
    */
-  updateQuoteDate(id: string, date: string, dateType: 'requested' | 'expected'): Observable<Quote> {
+  updateQuoteDate(id: string, date: string, dateType: 'requested' | 'expected' | 'effective' | 'expectedFulfillment'): Observable<Quote> {
     let params = new HttpParams();
     params = params.set('date', date);
     params = params.set('dateType', dateType);
@@ -224,7 +254,7 @@ export class QuoteService {
     console.log('Updating quote date with URL:', `${this.apiUrl}/updateQuoteDate/${encodedId}`);
     console.log('Date:', date, 'DateType:', dateType);
     
-    return this.http.patch<Quote>(`${this.apiUrl}/updateQuoteDate/${encodedId}`, null, { params });
+    return this.http.patch<Quote>(`${this.apiUrl}/updateQuoteDate/${encodedId}`, null, { params, ...this.httpOptions });
   }
 
   /**
@@ -236,6 +266,11 @@ export class QuoteService {
 
   /**
    * Add attachment to quote (file upload)
+   * PATCH /addAttachmentToQuote/{id}
+   * 
+   * @param id - Quote ID
+   * @param file - PDF file (max 100MB)
+   * @param description - Optional description of the attachment
    */
   addAttachmentToQuote(id: string, file: File, description?: string): Observable<Quote> {
     const formData = new FormData();
@@ -245,7 +280,7 @@ export class QuoteService {
     }
     
     const encodedId = encodeURIComponent(id);
-    console.log('Adding attachment to quote with URL:', `${this.apiUrl}/addAttachmentToQuote/${encodedId}`);
+    
     return this.http.patch<Quote>(`${this.apiUrl}/addAttachmentToQuote/${encodedId}`, formData);
   }
 
@@ -346,5 +381,232 @@ export class QuoteService {
    */
   updateQuote(id: string, quote: Partial<Quote>): Observable<Quote> {
     return this.patchQuote(id, quote as Quote_Update);
+  }
+
+  // ========================================
+  // TENDERING-SPECIFIC METHODS
+  // ========================================
+
+  /**
+   * Create a coordinator quote (for managing tendering processes)
+   * POST /quoteManagement/tendering/createCoordinatorQuote
+   */
+  createCoordinatorQuote(customerIdRef: string, customerMessage: string): Observable<Tender> {
+    const payload = {
+      customerMessage,
+      customerIdRef
+    };
+    
+    const fullUrl = `${this.apiUrl}/tendering/createCoordinatorQuote`;
+    console.log('🔍 [DEBUG] QuoteService.createCoordinatorQuote:');
+    console.log('🔍 [DEBUG]   this.apiUrl:', this.apiUrl);
+    console.log('🔍 [DEBUG]   Full URL being called:', fullUrl);
+    console.log('🔍 [DEBUG]   environment.quoteApi:', environment.quoteApi);
+    
+    return this.http.post<Quote>(fullUrl, payload, this.httpOptions).pipe(
+      map(quote => this.mapQuoteToTender(quote))
+    );
+  }
+
+  /**
+   * Create a tendering quote (child tender for specific provider)
+   * POST /quoteManagement/tendering/createQuote
+   */
+  createTenderingQuote(
+    customerIdRef: string, 
+    providerIdRef: string, 
+    externalId: string,
+    customerMessage?: string
+  ): Observable<Tender> {
+    const payload = {
+      customerMessage: customerMessage || '',
+      customerIdRef,
+      providerIdRef,
+      externalId
+    };
+    
+    return this.http.post<Quote>(`${this.apiUrl}/tendering/createQuote`, payload, this.httpOptions).pipe(
+      map(quote => this.mapQuoteToTender(quote))
+    );
+  }
+
+  /**
+   * Create multiple tendering quotes for multiple providers
+   */
+  createMultipleTenderingQuotes(
+    customerIdRef: string,
+    providerIds: string[],
+    externalId: string,
+    customerMessage?: string
+  ): Observable<Tender[]> {
+    const requests = providerIds.map(providerId => 
+      this.createTenderingQuote(customerIdRef, providerId, externalId, customerMessage)
+    );
+    
+    return forkJoin(requests);
+  }
+
+  /**
+   * Get coordinator tenders for a user
+   * GET /quoteManagement/tendering/coordinatorQuotes/{userId}
+   */
+  getCoordinatorQuotesByUser(userId: string): Observable<Tender[]> {
+    const encodedUserId = encodeURIComponent(userId);
+    console.log('Getting coordinator quotes for user:', encodedUserId);
+    return this.http.get<Quote[]>(`${this.apiUrl}/tendering/coordinatorQuotes/${encodedUserId}`, this.httpOptions).pipe(
+      map(quotes => quotes.map(quote => this.mapQuoteToTender(quote)))
+    );
+  }
+
+  /**
+   * Get tendering quotes for a user by role
+   * GET /quoteManagement/tendering/quotes/{userId}?role={role}&externalId={externalId}
+   */
+  getTenderingQuotesByUser(
+    userId: string, 
+    role: ApiRole = API_ROLES.SELLER,
+    externalId?: string
+  ): Observable<Tender[]> {
+    const encodedUserId = encodeURIComponent(userId);
+    let params = new HttpParams().set('role', role);
+    
+    if (externalId) {
+      params = params.set('externalId', externalId);
+    }
+    
+    console.log('Getting tendering quotes for user:', encodedUserId, 'role:', role, 'externalId:', externalId);
+    return this.http.get<Quote[]>(`${this.apiUrl}/tendering/quotes/${encodedUserId}`, { params, ...this.httpOptions }).pipe(
+      map(quotes => quotes.map(quote => this.mapQuoteToTender(quote)))
+    );
+  }
+
+  /**
+   * Get tendering quotes by external ID
+   * GET /quoteManagement/tendering/quotes/{userId}?role={role}&externalId={externalId}
+   */
+  getTenderingQuotesByExternalId(userId: string, externalId: string, role: ApiRole): Observable<Quote[]> {
+    const encodedUserId = encodeURIComponent(userId);
+    let params = new HttpParams()
+      .set('role', role)
+      .set('externalId', externalId);
+    
+    console.log('Getting tendering quotes by external ID:', externalId);
+    return this.http.get<Quote[]>(`${this.apiUrl}/tendering/quotes/${encodedUserId}`, { params, ...this.httpOptions });
+  }
+
+  /**
+   * Broadcast message to all tendering quotes with the same external ID
+   * POST /quoteManagement/tendering/broadcastMessage
+   */
+  broadcastMessage(externalId: string, userId: string, messageContent: string): Observable<any> {
+    const payload = {
+      externalId,
+      userId,
+      messageContent
+    };
+    
+    console.log('Broadcasting message to external ID:', externalId);
+    return this.http.post<any>(`${this.apiUrl}/tendering/broadcastMessage`, payload, this.httpOptions);
+  }
+
+  /**
+   * Update tender status (alias for updateQuoteStatus but returns Tender)
+   */
+  updateTenderStatus(id: string, status: string): Observable<Tender> {
+    return this.updateQuoteStatus(id, status).pipe(
+      map(quote => this.mapQuoteToTender(quote))
+    );
+  }
+
+  // ========================================
+  // MAPPING METHODS
+  // ========================================
+
+  /**
+   * Map backend Quote to frontend Tender model
+   */
+  private mapQuoteToTender(quote: Quote): Tender {
+    // Extract response deadline from quote
+    const responseDeadline = quote.expectedFulfillmentStartDate || 
+                            quote.effectiveQuoteCompletionDate || 
+                            new Date().toISOString();
+
+    // Extract tender title from quote.description (this is where the title is saved)
+    const tenderNote = quote.description || undefined;
+
+    // Extract attachment from quote items
+    let attachment = undefined;
+    if (quote.quoteItem && quote.quoteItem.length > 0) {
+      const firstItem = quote.quoteItem[0];
+      if (firstItem.attachment && firstItem.attachment.length > 0) {
+        const att = firstItem.attachment[0];
+        attachment = {
+          name: att.name || 'attachment.pdf',
+          mimeType: att.mimeType || 'application/pdf',
+          content: att.content || '',
+          size: att.size?.amount
+        };
+      }
+    }
+
+    // Extract selected providers from related parties
+    const selectedProviders = quote.relatedParty
+      ?.filter(party => party.role?.toLowerCase() === API_ROLES.SELLER.toLowerCase())
+      .map(party => party.id) || [];
+
+    // Map quote category to tender category
+    let category: 'coordinator' | 'tendering' = 'coordinator';
+    if (quote.category === 'tender') {
+      category = 'tendering';
+    } else if (quote.category === 'coordinator') {
+      category = 'coordinator';
+    }
+
+    // Extract state from quoteItem (this is where the actual state is stored)
+    let quoteItemState: string = 'pending';
+    if (quote.quoteItem && quote.quoteItem.length > 0) {
+      const firstItem = quote.quoteItem[0];
+      quoteItemState = (firstItem as any).state || quote.state || 'pending';
+    } else if (quote.state) {
+      quoteItemState = quote.state;
+    }
+
+    // Map quote state to tender state
+    // Backend states → Tender states → GUI display:
+    // - pending → draft → 'draft'
+    // - inProgress → pre-launched → 'pre-launched'
+    // - approved → sent → 'launched'
+    // - accepted/cancelled/rejected → closed → 'closed'
+    let state: 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed' = 'draft';
+    if (quoteItemState === 'pending') state = 'draft';
+    else if (quoteItemState === 'inProgress') state = 'pre-launched';
+    else if (quoteItemState === 'approved') state = 'sent';
+    else if (quoteItemState === 'accepted') state = 'closed';
+    else if (quoteItemState === 'cancelled') state = 'closed';
+    else if (quoteItemState === 'rejected') state = 'closed';
+
+    // Extract external_id and provider from quote
+    const external_id = quote.externalId;
+    const provider = quote.relatedParty
+      ?.find(party => party.role?.toLowerCase() === API_ROLES.SELLER.toLowerCase())
+      ?.name;
+
+    return {
+      id: quote.id,
+      category,
+      state,
+      responseDeadline,
+      tenderNote,
+      attachment,
+      selectedProviders,
+      external_id,
+      provider,
+      createdAt: quote.quoteDate,
+      updatedAt: quote.quoteDate,
+      effectiveQuoteCompletionDate: quote.effectiveQuoteCompletionDate,
+      expectedFulfillmentStartDate: quote.expectedFulfillmentStartDate,
+      expectedQuoteCompletionDate: quote.expectedQuoteCompletionDate,
+      requestedQuoteCompletionDate: quote.requestedQuoteCompletionDate
+    };
   }
 } 

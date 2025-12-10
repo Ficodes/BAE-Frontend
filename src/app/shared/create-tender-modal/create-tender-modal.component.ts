@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, inject, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,20 +7,10 @@ import { switchMap } from 'rxjs/operators';
 import { QuoteService } from 'src/app/features/quotes/services/quote.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
+import { ProviderService, Provider } from 'src/app/services/provider.service';
 import { Tender, TenderAttachment } from 'src/app/models/tender.model';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { API_ROLES } from 'src/app/models/roles.constants';
-
-// Temporary provider interface until we have proper provider service
-interface Provider {
-  id?: string;
-  tradingName?: string;
-  href?: string;
-  externalReference?: Array<{
-    name?: string;
-    externalReferenceType?: string;
-  }>;
-}
 
 @Component({
   selector: 'app-create-tender-modal',
@@ -358,15 +348,18 @@ interface Provider {
   `,
   styles: []
 })
-export class CreateTenderModalComponent implements OnInit {
+export class CreateTenderModalComponent implements OnInit, OnChanges {
   @Input() isOpen = false;
   @Input() customerId: string = '';
+  @Input() tenderToEdit: Tender | null = null;
   @Output() closeModal = new EventEmitter<void>();
   @Output() tenderCreated = new EventEmitter<Tender>();
+  @Output() tenderUpdated = new EventEmitter<void>();
 
   private quoteService = inject(QuoteService);
   private notificationService = inject(NotificationService);
   private localStorage = inject(LocalStorageService);
+  private providerService = inject(ProviderService);
   private router = inject(Router);
 
   // Properties for tender creation modal
@@ -408,6 +401,57 @@ export class CreateTenderModalComponent implements OnInit {
         const loggedOrg = loginInfo.organizations.find((element: { id: any; }) => element.id == loginInfo.logged_as);
         this.currentUserId = loggedOrg?.partyId;
       }
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    // Check if tenderToEdit has changed and is not null
+    if (changes['tenderToEdit'] && this.tenderToEdit) {
+      this.loadTenderForEdit(this.tenderToEdit);
+    }
+    // Also check if modal was just opened and we have a tender to edit
+    if (changes['isOpen'] && this.isOpen && this.tenderToEdit) {
+      this.loadTenderForEdit(this.tenderToEdit);
+    }
+  }
+
+  loadTenderForEdit(tender: Tender) {
+    // Set basic fields
+    this.editingTenderId = tender.id || null;
+    this.createdQuoteId = tender.id || null;
+    this.tenderTitle = tender.tenderNote || '';
+    
+    // Set dates if they exist
+    if (tender.expectedFulfillmentStartDate) {
+      this.requestedCompletionDate = this.formatDateForInput(tender.expectedFulfillmentStartDate);
+      this.requestedDateSet = true;
+    }
+    
+    if (tender.effectiveQuoteCompletionDate) {
+      this.expectedCompletionDate = this.formatDateForInput(tender.effectiveQuoteCompletionDate);
+      this.expectedDateSet = true;
+    }
+    
+    // Set attachment if exists
+    if (tender.attachment) {
+      this.existingAttachment = tender.attachment;
+      this.pdfAttachmentSet = true;
+    }
+    
+    // Always start at step 2 when clicking EDIT to ensure proper initialization and API calls
+    this.tenderCreationStep = 2;
+  }
+
+  private formatDateForInput(isoDate: string): string {
+    try {
+      const date = new Date(isoDate);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return '';
     }
   }
 
@@ -493,12 +537,13 @@ export class CreateTenderModalComponent implements OnInit {
     this.tenderLoading = true;
     const formattedDate = this.formatDateForAPI(this.expectedCompletionDate);
     
-    this.quoteService.updateQuoteDate(this.createdQuoteId, formattedDate, 'expected').subscribe({
+    this.quoteService.updateQuoteDate(this.createdQuoteId, formattedDate, 'effective').subscribe({
       next: (updatedTender: any) => {
-        console.log('Effective completion date updated:', updatedTender);
         this.expectedDateSet = true;
         this.notificationService.showSuccess('Effective completion date set successfully!');
         this.tenderLoading = false;
+        // Emit update event so parent can refresh the tender list
+        this.tenderUpdated.emit();
       },
       error: (error: any) => {
         console.error('Error setting effective date:', error);
@@ -520,12 +565,13 @@ export class CreateTenderModalComponent implements OnInit {
     this.tenderLoading = true;
     const formattedDate = this.formatDateForAPI(this.requestedCompletionDate);
     
-    this.quoteService.updateQuoteDate(this.createdQuoteId, formattedDate, 'requested').subscribe({
+    this.quoteService.updateQuoteDate(this.createdQuoteId, formattedDate, 'expectedFulfillment').subscribe({
       next: (updatedTender: any) => {
-        console.log('Expected fulfillment start date updated:', updatedTender);
         this.requestedDateSet = true;
         this.notificationService.showSuccess('Expected fulfillment start date set successfully!');
         this.tenderLoading = false;
+        // Emit update event so parent can refresh the tender list
+        this.tenderUpdated.emit();
       },
       error: (error: any) => {
         console.error('Error setting expected fulfillment date:', error);
@@ -569,9 +615,29 @@ export class CreateTenderModalComponent implements OnInit {
     
     this.quoteService.addAttachmentToQuote(this.createdQuoteId, this.selectedPdfFile, '').subscribe({
       next: (updatedQuote: any) => {
-        console.log('PDF attachment uploaded:', updatedQuote);
         this.pdfAttachmentSet = true;
-        this.existingAttachment = updatedQuote.attachment || null;
+        
+        // Extract attachment from quoteItem (where it's actually stored)
+        if (updatedQuote.quoteItem && updatedQuote.quoteItem.length > 0) {
+          const firstItem = updatedQuote.quoteItem[0];
+          if (firstItem.attachment && firstItem.attachment.length > 0) {
+            const att = firstItem.attachment[0];
+            this.existingAttachment = {
+              name: att.name || 'attachment.pdf',
+              mimeType: att.mimeType || 'application/pdf',
+              content: att.content || '',
+              size: att.size?.amount
+            };
+          }
+        }
+        
+        // Reset the file input to show the updated state
+        this.selectedPdfFile = null;
+        const fileInput = document.getElementById('pdfFile') as HTMLInputElement;
+        if (fileInput) {
+          fileInput.value = '';
+        }
+        
         this.notificationService.showSuccess('PDF attachment uploaded successfully!');
         this.tenderLoading = false;
       },
@@ -607,23 +673,32 @@ export class CreateTenderModalComponent implements OnInit {
   }
 
   /**
-   * TODO: Load providers - needs to be implemented with proper provider service
-   * For now using placeholder
+   * Load providers from the provider API
    */
   loadTenderProviders() {
     this.tenderLoading = true;
     this.tenderError = null;
     
-    // TODO: Replace with actual provider service call
-    // For now, just load invited providers
-    console.warn('Provider loading not yet implemented - needs provider service');
-    this.tenderProviders = [];
-    this.tenderLoading = false;
+    console.log('Loading providers from API...');
     
-    // Load invited providers
-    if (this.tenderCreationStep === 3) {
-      this.loadInvitedProviders();
-    }
+    this.providerService.getProvidersForTender().subscribe({
+      next: (providers) => {
+        console.log('Providers loaded successfully:', providers.length);
+        this.tenderProviders = providers;
+        this.tenderLoading = false;
+        
+        // Load invited providers after providers are loaded
+        if (this.tenderCreationStep === 3) {
+          this.loadInvitedProviders();
+        }
+      },
+      error: (error) => {
+        console.error('Error loading providers:', error);
+        this.tenderError = 'Failed to load providers. Please try again.';
+        this.tenderProviders = [];
+        this.tenderLoading = false;
+      }
+    });
   }
 
   toggleProviderSelection(providerId: string) {

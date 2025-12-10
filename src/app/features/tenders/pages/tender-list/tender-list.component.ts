@@ -33,7 +33,7 @@ import { UI_ROLES, API_ROLES, UiRole, toApiRole } from 'src/app/models/roles.con
   template: `
     <app-notification></app-notification>
     
-    <div class="w-full max-w-7xl mx-auto px-4 py-8">
+    <div class="w-full mx-auto px-6 py-8">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Tenders</h1>
         <div class="flex space-x-3">
@@ -138,21 +138,21 @@ import { UI_ROLES, API_ROLES, UiRole, toApiRole } from 'src/app/models/roles.con
         
         <!-- Quotes Header -->
         <div *ngIf="filteredQuotes.length > 0" class="bg-gray-50 px-6 py-3">
-          <div class="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <div class="grid grid-cols-16 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
             <div class="col-span-1">DETAILS</div>
-            <div class="col-span-2">TITLE</div>
-            <div class="col-span-1">STATUS</div>
-            <div class="col-span-2">Expected Fulfillment Start Date</div>
-            <div class="col-span-2">Effective Quote Completion Date</div>
+            <div class="col-span-3">TITLE</div>
+            <div class="col-span-2">STATUS</div>
+            <div class="col-span-2">TENDER START DATE</div>
+            <div class="col-span-2">TENDER END DATE</div>
             <div class="col-span-2">ATTACHMENTS</div>
             <div class="col-span-1" *ngIf="selectedRole === UI_ROLES.SELLER">REQUEST</div>
-            <div [class.col-span-2]="selectedRole === UI_ROLES.BUYER" [class.col-span-1]="selectedRole === UI_ROLES.SELLER">ACTIONS</div>
+            <div [class.col-span-3]="selectedRole === UI_ROLES.BUYER" [class.col-span-2]="selectedRole === UI_ROLES.SELLER">ACTIONS</div>
           </div>
         </div>
         
         <!-- Quote Rows -->
         <div *ngFor="let quote of filteredQuotes" class="quote-row">
-          <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 border-b border-gray-100 transition-colors"
+          <div class="grid grid-cols-16 gap-4 items-center px-6 py-4 border-b border-gray-100 transition-colors"
                [class.bg-gray-50]="isQuoteFinalized(quote)"
                [class.hover:bg-gray-50]="!isQuoteFinalized(quote)"
                [attr.data-quote-id]="quote.id">
@@ -186,12 +186,12 @@ import { UI_ROLES, API_ROLES, UiRole, toApiRole } from 'src/app/models/roles.con
             </div>
             
             <!-- Title -->
-            <div class="col-span-2 text-sm font-medium text-gray-900">
+            <div class="col-span-3 text-sm font-medium text-gray-900">
               {{ quote.description || '(no title)' }}
             </div>
             
             <!-- Status -->
-            <div class="col-span-1">
+            <div class="col-span-2">
               <span class="status-badge px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                     [ngClass]="getStateClass(getQuoteItemState(quote))">
                 {{ getQuoteItemState(quote) }}
@@ -268,25 +268,31 @@ import { UI_ROLES, API_ROLES, UiRole, toApiRole } from 'src/app/models/roles.con
             </div>
             
             <!-- Actions -->
-            <div [class.col-span-2]="selectedRole === UI_ROLES.BUYER" [class.col-span-1]="selectedRole === UI_ROLES.SELLER" class="flex flex-wrap gap-1">
+            <div [class.col-span-3]="selectedRole === UI_ROLES.BUYER" [class.col-span-2]="selectedRole === UI_ROLES.SELLER" class="flex flex-wrap gap-1">
               <!-- Test: Start Tender (for coordinator quotes in pre-launched status) -->
               <button
                 *ngIf="quote.category === 'coordinator' && getPrimaryState(quote) === 'inProgress'"
                 (click)="simulateStartTender(quote)"
-                class="px-2 py-1 text-xs font-medium transition-colors rounded border text-orange-600 hover:text-orange-800 border-orange-200 hover:bg-orange-50"
+                class="px-2 py-1 text-xs font-medium transition-colors rounded border text-orange-600 hover:text-orange-800 border-orange-200 hover:bg-orange-50 flex items-center gap-1"
                 title="[TEST] Start tender - updates status to 'launched'"
               >
-                ðŸš€ Start Tender
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Start Tender
               </button>
 
               <!-- Test: Close Tender (for coordinator quotes in launched status) -->
               <button
                 *ngIf="quote.category === 'coordinator' && getPrimaryState(quote) === 'approved'"
                 (click)="simulateCloseTender(quote)"
-                class="px-2 py-1 text-xs font-medium transition-colors rounded border text-purple-600 hover:text-purple-800 border-purple-200 hover:bg-purple-50"
+                class="px-2 py-1 text-xs font-medium transition-colors rounded border text-purple-600 hover:text-purple-800 border-purple-200 hover:bg-purple-50 flex items-center gap-1"
                 title="[TEST] Close tender - updates status to 'closed'"
               >
-                ðŸ Close Tender
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Close Tender
               </button>
               
               <!-- Edit (only for coordinator quotes in pending/draft status) -->
@@ -641,8 +647,10 @@ import { UI_ROLES, API_ROLES, UiRole, toApiRole } from 'src/app/models/roles.con
     <app-create-tender-modal
       [isOpen]="showCreateTenderModal"
       [customerId]="currentUserId || ''"
+      [tenderToEdit]="tenderToEdit"
       (closeModal)="closeCreateTenderModal()"
       (tenderCreated)="onTenderCreated($event)"
+      (tenderUpdated)="onTenderUpdated()"
     ></app-create-tender-modal>
   `,
   styles: [`
@@ -749,6 +757,7 @@ export class TenderListComponent implements OnInit {
 
   // Create Tender Modal
   showCreateTenderModal = false;
+  tenderToEdit: Tender | null = null;
 
   // Expanded rows for coordinator quotes
   expandedQuoteIds: Set<string> = new Set();
@@ -847,6 +856,19 @@ export class TenderListComponent implements OnInit {
   }
 
   private mapTenderToQuote(tender: Tender): Quote {
+    // Build quoteItem with state and attachment (if exists)
+    const quoteItem: any = { state: this.mapTenderStateToQuoteState(tender.state) };
+    
+    // Include attachment if present in tender
+    if (tender.attachment) {
+      quoteItem.attachment = [{
+        name: tender.attachment.name,
+        mimeType: tender.attachment.mimeType,
+        content: tender.attachment.content,
+        size: tender.attachment.size ? { amount: tender.attachment.size, units: 'bytes' } : undefined
+      }];
+    }
+    
     return {
       id: tender.id,
       href: '',
@@ -855,7 +877,8 @@ export class TenderListComponent implements OnInit {
       effectiveQuoteCompletionDate: tender.effectiveQuoteCompletionDate,
       expectedFulfillmentStartDate: tender.expectedFulfillmentStartDate,
       state: this.mapTenderStateToQuoteState(tender.state),
-      category: tender.category,
+      // Map category back: 'tendering' -> 'tender', 'coordinator' -> 'coordinator'
+      category: tender.category === 'tendering' ? 'tender' : tender.category,
       externalId: tender.external_id,
       relatedParty: tender.selectedProviders.map(id => ({
         id,
@@ -863,22 +886,20 @@ export class TenderListComponent implements OnInit {
         name: tender.provider,
         '@referredType': 'Organization'
       })),
-      // Provide a minimal quoteItem array carrying the state so the UI can display it.
-      // We intentionally cast to any to avoid enforcing the full TMF structure here.
-      quoteItem: [
-        { state: this.mapTenderStateToQuoteState(tender.state) } as any
-      ],
+      // Provide a minimal quoteItem array carrying the state and attachment
+      quoteItem: [quoteItem],
       note: []
     };
   }
 
   private mapTenderStateToQuoteState(tenderState: 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed'): QuoteStateType {
     switch (tenderState) {
-      case 'draft': return 'inProgress';
+      case 'draft': return 'pending';  // draft → pending → GUI shows 'draft'
+      case 'pre-launched': return 'inProgress';  // pre-launched → inProgress → GUI shows 'pre-launched'
       case 'pending': return 'pending';
-      case 'sent': return 'approved';
-      case 'closed': return 'accepted';
-      default: return 'inProgress';
+      case 'sent': return 'approved';  // sent → approved → GUI shows 'launched'
+      case 'closed': return 'accepted';  // closed → accepted → GUI shows 'closed'
+      default: return 'pending';
     }
   }
 
@@ -927,15 +948,15 @@ export class TenderListComponent implements OnInit {
           content: att.content || '',
           size: att.size?.amount
         };
-        console.log('Extracted attachment for edit:', attachment.name);
       }
     }
 
     // Convert Quote to Tender format for editing
+    const primaryState = this.getPrimaryState(quote) as QuoteStateType;
     const tender: Tender = {
       id: quote.id,
       category: quote.category === 'coordinator' ? 'coordinator' : 'tendering',
-      state: this.mapQuoteStateToTenderState(quote.state),
+      state: this.mapQuoteStateToTenderState(primaryState),
       responseDeadline: quote.expectedFulfillmentStartDate || quote.effectiveQuoteCompletionDate || new Date().toISOString(),
       tenderNote: quote.description || '',
       attachment: attachment,
@@ -944,21 +965,18 @@ export class TenderListComponent implements OnInit {
       expectedFulfillmentStartDate: quote.expectedFulfillmentStartDate
     };
 
-    console.log('Navigating to edit tender with data:', tender);
-
-    // Navigate to providers page with tender data
-    this.router.navigate(['/providers'], {
-      state: { tender }
-    });
+    // Open the Create Tender Modal in edit mode
+    this.tenderToEdit = tender;
+    this.showCreateTenderModal = true;
   }
 
   private mapQuoteStateToTenderState(quoteState: QuoteStateType | undefined): 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed' {
     if (!quoteState) return 'draft';
     
     switch (quoteState) {
-      case 'inProgress': return 'draft';
-      case 'pending': return 'pending';
-      case 'approved': return 'sent';
+      case 'pending': return 'draft';  // pending → draft
+      case 'inProgress': return 'pre-launched';  // inProgress → pre-launched
+      case 'approved': return 'sent';  // approved → sent (launched)
       case 'accepted':
       case 'cancelled':
       case 'rejected': return 'closed';
@@ -1014,6 +1032,7 @@ export class TenderListComponent implements OnInit {
 
   closeCreateTenderModal() {
     this.showCreateTenderModal = false;
+    this.tenderToEdit = null;
   }
 
   onTenderCreated(tender: Tender) {
@@ -1021,6 +1040,11 @@ export class TenderListComponent implements OnInit {
     // Refresh the quotes list to show the new tender
     this.loadQuotes();
     this.notificationService.showSuccess('Tender created successfully!');
+  }
+
+  onTenderUpdated() {
+    // Refresh the quotes list to show updated tender
+    this.loadQuotes();
   }
 
   sendBroadcastMessage() {
@@ -1940,3 +1964,4 @@ export class TenderListComponent implements OnInit {
     });
   }
 } 
+

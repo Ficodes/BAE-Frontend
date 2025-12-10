@@ -56,6 +56,7 @@ module.exports = {
       },
       gridTemplateColumns:
         {
+          '16': 'repeat(16, minmax(0, 1fr))',
           '60/40': '60% 40%',
           '80/20': '80% 20%',
           '40/60': '40% 60%',
