@@ -220,7 +220,7 @@
                 {{ 'CREATE_OFFER._previous' | translate }}
             </button>
     
-            <button data-cy=catalogNext (click)="goToStep(currentStep + 1)"
+            <button data-cy="catalogNext" (click)="goToStep(currentStep + 1)"
                     [disabled]="currentStep === steps.length - 1 || !canNavigate(currentStep) || !generalForm.valid"
                     [ngClass]="{
                     'hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white': currentStep !== steps.length - 1 && (validateCurrentStep() || canNavigate(currentStep)),
@@ -234,7 +234,7 @@
                     256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/>
             </svg>
             </button>
-            <button data-cy=catalogFinish (click)="createCatalog()"
+            <button data-cy="catalogUpdate" (click)="createCatalog()"
             [disabled]="!generalForm.valid || loading"
             [ngClass]="loading || !generalForm.valid ? 'opacity-50' : 'hover:bg-primary-50'"
     
