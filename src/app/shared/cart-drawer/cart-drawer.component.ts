@@ -143,7 +143,7 @@ export class CartDrawerComponent implements OnInit{
     const groupedByOwner: any[][] = Object.values(
       this.items.reduce((groups: any, item: any) => {
         const owner = item.relatedParty
-          ?.find((rp: any) => rp.role === 'Seller')
+          ?.find((rp: any) => rp.role === 'Owner')
           ?.id;
     
         if (owner) {
