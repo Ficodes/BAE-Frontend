@@ -234,12 +234,12 @@
                     256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/>
             </svg>
             </button>
-            <button data-cy=catalogFinish (click)="createCatalog()"
+            <button data-cy="catalogUpdate" (click)="createCatalog()"
             [disabled]="!generalForm.valid || loading"
             [ngClass]="loading || !generalForm.valid ? 'opacity-50' : 'hover:bg-primary-50'"
     
             class="px-4 py-2 text-base font-medium text-white rounded-lg bg-primary-100">
-                Update Catalogue
+                {{ 'UPDATE_CATALOG._update' | translate }}
             </button>
         </div>
     </div>

@@ -46,6 +46,7 @@
             <p class="text-lg capitalize text-heading lg:text-xl dark:text-white">{{ 'SHOPPING_CART._billingAddress' | translate }}</p></div>
           @if (billingAddresses.length > 0) {
             <button
+              data-cy="orderAddBill"
               (click)="addBill=true;$event.stopPropagation();"
               class="flex items-center text-sm font-semibold text-accent dark:text-white transition-colors duration-200 hover:text-accent-hover focus:text-accent-hover focus:outline-0">
               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-4 w-4 stroke-2 ltr:mr-0.5 rtl:ml-0.5">

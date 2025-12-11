@@ -38,11 +38,11 @@
                             class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
     
                     <label for="vc" class="font-bold text-lg dark:text-white">{{ 'ADMIN._vc' | translate }}</label>
-                    <textarea formControlName="vc" rows="8" class="block w-full min-h-fit px-0 text-sm text-gray-800 dark:text-gray-200 bg-white dark:bg-secondary-300 border-0" placeholder="Add credential..." ></textarea>
+                    <textarea data-cy="adminVerifiableCredential" formControlName="vc" rows="8" class="block w-full min-h-fit px-0 text-sm text-gray-800 dark:text-gray-200 bg-white dark:bg-secondary-300 border-0" placeholder="Add credential..." ></textarea>
                 </form>
 
                 <div class="flex w-full justify-items-end justify-end ml-4">
-                    <button type="button" (click)="verifyCredential();" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                    <button data-cy="adminAddCredential" type="button" (click)="verifyCredential();" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                         {{ 'ADMIN._add' | translate }}
                         <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>

@@ -62,7 +62,7 @@
                          (click)="$event.stopPropagation(); !isEditMode && toggleSelection(prod)">
                 </td>
 
-                <td class="px-6 py-4">{{ prod.name }}</td>
+                <td data-cy="offerProductSpecName" class="px-6 py-4">{{ prod.name }}</td>
                 <td class="px-6 py-4">
                   <span class="text-xs font-medium px-2.5 py-0.5 rounded border" [ngClass]="getBundleClass(prod.isBundle)">
                     {{ prod.isBundle ? ('OFFERINGS._bundle' | translate) : ('OFFERINGS._simple' | translate) }}
@@ -84,7 +84,7 @@
     }
     @if (prodSpecPageCheck) {
       <div class="flex pt-6 pb-2 justify-center align-middle">
-        <button (click)="nextProdSpec()"
+        <button data-cy="loadMore" (click)="nextProdSpec()"
                 class="flex cursor-pointer shadow-lg items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 dark:text-white bg-white dark:bg-primary-100 border rounded-lg hover:bg-gray-200"
                 [disabled]="loadingProdSpec_more">
           {{ 'CREATE_PROD_SPEC._load_more' | translate }}

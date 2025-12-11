@@ -20,7 +20,7 @@
 } @else {
   <!-- Stepper -->
   <form [formGroup]="productOfferForm">
-    <ol class="flex items-start w-full text-sm font-medium text-center text-gray-500 dark:text-gray-400">
+    <ol data-cy="offerSteps" class="flex items-start w-full text-sm font-medium text-center text-gray-500 dark:text-gray-400">
       @for (step of steps; track i; let i = $index) {
         <li 
             (click)="handleStepClick(i)"
@@ -141,7 +141,7 @@
   }
     <!-- Navigation Buttons -->
     <div class="flex justify-end mt-6 space-x-4">
-      <button (click)="goToStep(currentStep - 1)"
+      <button data-cy="offerPrevious" (click)="goToStep(currentStep - 1)"
               [disabled]="currentStep === 0"
               [ngClass]="{
                 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white': currentStep !== 0,

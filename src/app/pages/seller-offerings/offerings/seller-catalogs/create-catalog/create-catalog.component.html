@@ -157,12 +157,12 @@
                 </svg>
                 </button>
                 @if(currentStep === 1){
-                <button data-cy=catalogFinish (click)="createCatalog()"
+                <button data-cy="catalogFinish" (click)="createCatalog()"
                 [disabled]="!generalForm.valid || loading"
                 [ngClass]="loading || !generalForm.valid ? 'opacity-50' : 'hover:bg-primary-50'"
         
                 class="px-4 py-2 text-base font-medium text-white rounded-lg bg-primary-100">
-                    Create Catalog
+                    {{ 'CREATE_CATALOG._create' | translate }}
                 </button>
                 }
             </div>

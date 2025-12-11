@@ -1,6 +1,6 @@
 <div class="container mx-auto pt-2 mb-8">
 
-    <h1 class="mb-2 text-center mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-4xl lg:text-5xl dark:text-white w-full"><span class="underline underline-offset-3 decoration-8 decoration-primary-100 dark:decoration-primary-100">{{'CATALOGS._all_catalogs' | translate}}</span></h1>
+    <h1 data-cy="cataloguesAllHeader" class="mb-2 text-center mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-4xl lg:text-5xl dark:text-white w-full"><span class="underline underline-offset-3 decoration-8 decoration-primary-100 dark:decoration-primary-100">{{'CATALOGS._all_catalogs' | translate}}</span></h1>
     <p class="mb-8 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-secondary-50 text-center">{{'CATALOGS._choose' | translate}}</p>
 
     <!-- HEADER SEARCH BAR -->
@@ -33,30 +33,30 @@
 
             @for (cat of catalogs; track cat.id) {
 
-                <div (click)="goToCatalogSearch(cat.id)" class="block cursor-pointer rounded-lg bg-cover mb-4 md:mb-0" style="background-image: url(assets/logos/dome-logo-element-colour.png);" >
+                <div data-cy="cataloguesList" (click)="goToCatalogSearch(cat.id)" class="block cursor-pointer rounded-lg bg-cover mb-4 md:mb-0" style="background-image: url(assets/logos/dome-logo-element-colour.png);" >
                     <div class="block w-full h-full p-6 bg-opacity-100 bg-secondary-50 rounded-lg dark:bg-secondary-100 bg-secondary-50/90 dark:bg-secondary-100/90 bg-cover">
-                        <h5 [ngClass]="{
+                        <h5 data-cy="cataloguesTitle" [ngClass]="{
                           'break-all': hasLongWord(cat.name, 20),
                           'break-words': !hasLongWord(cat.name, 20)
                         }"  class="text-2xl font-bold tracking-tight line-clamp-4 text-primary-100 dark:text-white text-wrap break-words">{{cat.name}}</h5>
-                        <markdown class="line-clamp-[8] text-wrap break-all dark:text-white text-gray-900" [data]="cat.description ? cat.description : 'CATALOGS._no_desc' | translate"></markdown>
+                        <markdown data-cy="cataloguesDescription" class="line-clamp-[8] text-wrap break-all dark:text-white text-gray-900" [data]="cat.description ? cat.description : 'CATALOGS._no_desc' | translate"></markdown>
                         <!--<a (click)="showFullDesc(cat);$event.stopPropagation();" class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2">
                           <fa-icon [icon]="faEye" class="text-primary-50 mr-2"></fa-icon>
                           {{'CATALOGS._view_details' | translate}}
                         </a>-->
                         <hr class="h-px my-1 bg-primary-100 border-0 dark:bg-primary-100">
-                        <div class="">
+                        <div data-cy="cataloguesCategories" class="">
                           @for(category of cat.category; track category.id) {
                             <span [ngClass]="{
                               'break-all': hasLongWord(category.name, 20),
                               'break-words': !hasLongWord(category.name, 20)
                             }" class="inline-block bg-blue-300 text-primary-100 text-xs font-bold me-2 px-2.5 py-0.5 rounded-full w-fit text-wrap break-words">{{category.name}}</span>
                           } @empty {
-                            <span class="inline-block bg-blue-300 text-primary-100 text-xs font-bold me-2 px-2.5 py-0.5 rounded-full w-fit text-wrap break-words">{{'CATALOGS._no_cat' | translate}}</span>                            
+                            <span class="inline-block bg-blue-300 text-primary-100 text-xs font-bold me-2 px-2.5 py-0.5 rounded-full w-fit text-wrap break-words">{{'CATALOGS._no_cat' | translate}}</span>
                           }
                         </div>
                         <div class="flex sticky top-[100vh] justify-center align-items-bottom">
-                          <button (click)="showFullDesc(cat);$event.stopPropagation();" type="button" class="flex mt-2 items-center align-items-bottom text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-100 dark:hover:bg-primary-50 dark:focus:ring-primary-100 mr-1">
+                          <button data-cy="cataloguesViewDetails" (click)="showFullDesc(cat);$event.stopPropagation();" type="button" class="flex mt-2 items-center align-items-bottom text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-100 dark:hover:bg-primary-50 dark:focus:ring-primary-100 mr-1">
                             <svg class="w-[18px] h-[18px] text-white mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
                               <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                                 <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
@@ -104,7 +104,7 @@
   class="fixed inset-0 z-40 flex flex-col lg:flex-row justify-center overflow-y-auto overflow-x-hidden px-4 pt-[80px] lg:pt-0 lg:items-center">
 
   <div class="relative w-full max-w-4xl">
-    <div class="relative bg-white dark:bg-secondary-100 rounded-lg shadow-lg bg-cover bg-right-bottom overflow-y-auto max-h-[calc(100vh-160px)]"
+    <div data-cy="cataloguesDetailsContents" class="relative bg-white dark:bg-secondary-100 rounded-lg shadow-lg bg-cover bg-right-bottom overflow-y-auto max-h-[calc(100vh-160px)]"
          (click)="$event.stopPropagation();">
 
    <!-- HEADER -->
@@ -131,7 +131,7 @@
    <hr class="h-px my-1 bg-primary-100 border-0 dark:bg-primary-100" />
 
    <!-- CATEGORIES -->
-   <div class="p-4 flex flex-wrap gap-2">
+   <div data-cy="cataloguesCategoriesList" class="p-4 flex flex-wrap gap-2">
      @for(category of showingCat.category; track category.id) {
        <span [ngClass]="{
         'break-all': hasLongWord(category.name, 20),

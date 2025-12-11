@@ -54,7 +54,7 @@
         @for (prod of products; track prod.id; let index = $index) {
           <bae-off-card data-cy="baeCard" [productOff]=prod [cardId]="index" class="w-full h-full p-2"></bae-off-card>
         } @empty {
-          <div class="min-h-19 dark:text-gray-600 text-center">{{ 'DASHBOARD._not_found' | translate }}</div>
+          <div data-cy="searchNoOffersFound" class="min-h-19 dark:text-gray-600 text-center">{{ 'DASHBOARD._not_found' | translate }}</div>
         }
       </div>
       @if (!loading_more) {

@@ -201,7 +201,7 @@
                                                         </g>
                                                         </svg>
                                                 </button>
-                                              <button (click)="toggleDrawer(order);$event.stopPropagation();" type="button"
+                                              <button data-cy="orderNotesButton" (click)="toggleDrawer(order);$event.stopPropagation();" type="button"
                                                       class="text-white bg-primary-100 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
                                                 @if (hasNotes(order)) {
                                                   <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
@@ -265,7 +265,7 @@
                         </button>
                     </div>
                     <!-- Modal body -->
-                    <div class="w-full h-full">
+                    <div data-cy="orderDetailsModal" class="w-full h-full">
                         <div class="p-4 relative overflow-x-auto rounded-lg">
                             <div class="flex flex-row gap-2 pb-2 text-gray-600">
                                 <p class="w-fit text-base font-bold shrink-0 dark:text-white">
@@ -563,7 +563,7 @@
     </div>
 
     <!-- Display notes when available -->
-    <div *ngFor="let note of selectedOrder?.note" class="flex"
+    <div data-cy="orderNotesMessages" *ngFor="let note of selectedOrder?.note" class="flex"
          [ngClass]="{'justify-end': note.author === partyId, 'justify-start': note.author !== partyId}">
 
       <div class="max-w-xs p-3 rounded-lg shadow-md"
@@ -589,11 +589,11 @@
   <!-- Input for adding new notes (fixed at the bottom) -->
   <div class="border-t pt-3">
     <div class="flex flex-col">
-      <textarea [(ngModel)]="newNoteText"
+      <textarea data-cy="orderNotesTextField" [(ngModel)]="newNoteText"
                 class="w-full p-2 text-sm border rounded-lg resize-none h-20"
                 placeholder="Write a new note..."
                 (keyup.enter)="addNote()"></textarea>
-      <button (click)="addNote()"
+      <button data-cy="orderNotesSendButton" (click)="addNote()"
               class="mt-2 px-4 py-2 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600">
         {{ isUpdating ? 'Saving...' : 'Send' }}
       </button>

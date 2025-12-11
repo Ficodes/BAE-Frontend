@@ -445,7 +445,8 @@
                 {{ 'CREATE_OFFER._previous' | translate }}
             </button>
     
-            <button (click)="goToStep(currentStep + 1)"
+            <button data-cy="servSpecNext"
+                    (click)="goToStep(currentStep + 1)"
                     [disabled]="currentStep === steps.length - 1 || !validateCurrentStep() || !canNavigate(currentStep)"
                     [ngClass]="{
                     'hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white': currentStep !== steps.length - 1 && (validateCurrentStep() || canNavigate(currentStep)),
@@ -460,12 +461,14 @@
             </svg>
             </button>
             @if (currentStep === 2) {
-            <button  (click)="createService()"
+            <button
+            data-cy="servSpecFinish"
+            (click)="createService()"
             [disabled]="!generalForm.valid || loading"
             [ngClass]="loading || !generalForm.valid ? 'opacity-50' : 'hover:bg-primary-50'"
     
             class="px-4 py-2 text-base font-medium text-white rounded-lg bg-primary-100">
-                Create Service
+                {{ 'CREATE_SERV_SPEC._create_serv' | translate }}
             </button>
             }
         </div>

@@ -202,7 +202,7 @@
 
       <!-- Descuento -->
       <div class="flex items-center mb-4">
-        <input
+        <input data-cy="offerPriceComponentDiscount"
           type="checkbox"
           [(ngModel)]="showDiscount"
           [ngModelOptions]="{ standalone: true }"
@@ -222,6 +222,7 @@
           </label>
           <div class="flex space-x-2">
             <input
+              data-cy="offerDiscountAmount"
               formControlName="discountValue"
               type="number"
               placeholder="Amount"
@@ -229,6 +230,7 @@
               [ngClass]="(priceComponentForm.get('discountValue')?.invalid == true && priceComponentForm.value.discountValue!='') || (priceComponentForm.get('discountValue')?.touched && priceComponentForm.value.discountValue=='') ? 'border-red-600' : 'dark:border-gray-600'"
             >
             <select
+              data-cy="offerDiscountUnit"
               formControlName="discountUnit"
               class="w-1/2 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
             >
@@ -262,6 +264,7 @@
           </label>
           <div class="flex space-x-2">
             <input
+              data-cy="offerDiscountDuration"
               formControlName="discountDuration"
               type="number"
               placeholder="Duration"
@@ -269,6 +272,7 @@
               [ngClass]="(priceComponentForm.get('discountDuration')?.invalid == true && priceComponentForm.value.discountDuration!='') || (priceComponentForm.get('discountDuration')?.touched && priceComponentForm.value.discountDuration=='') ? 'border-red-600' : 'dark:border-gray-600'"
             >
             <select
+              data-cy="offerDiscountDurationUnit"
               formControlName="discountDurationUnit"
               class="w-1/2 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
             >
@@ -294,7 +298,7 @@
       }
       <!-- Botones -->
       <div class="flex justify-end space-x-3 mt-6">
-        <button type="button" (click)="closeDrawer()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 dark-text:white rounded">{{ 'FORMS.PRICE_PLAN_COMPONENT._cancel' | translate }}</button>
+        <button data-cy="cancelPriceComponent" type="button" (click)="closeDrawer()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 dark-text:white rounded">{{ 'FORMS.PRICE_PLAN_COMPONENT._cancel' | translate }}</button>
         <button data-cy="savePriceComponent" type="submit" [disabled]="priceComponentForm.invalid" [ngClass]="priceComponentForm.invalid ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" class="px-4 py-2 bg-blue-500 text-white rounded">{{ 'FORMS.PRICE_PLAN_COMPONENT._save' | translate }}</button>
       </div>
       </form>
