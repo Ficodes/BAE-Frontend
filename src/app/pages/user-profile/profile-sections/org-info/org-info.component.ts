@@ -31,6 +31,7 @@ export class OrgInfoComponent implements OnInit {
   token:string='';
   email:string='';
   selectedDate:any;
+  isReadOnly:boolean=false;
   profileForm = new FormGroup({
     name: new FormControl('', [Validators.required]),
     website: new FormControl(''),
@@ -130,20 +131,34 @@ export class OrgInfoComponent implements OnInit {
     today.setMonth(today.getMonth()-1);
     this.selectedDate = today.toISOString();
     this.initPartyInfo();
-    setTimeout(() => {        
-      initFlowbite();   
+    if(this.isReadOnly && this.profileForm.value.description) {
+      this.description = this.profileForm.value.description;
+    }
+    setTimeout(() => {
+      initFlowbite();
     }, 500);
   }
 
   initPartyInfo(){
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
     if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
-      let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as)
-      this.partyId = loggedOrg.partyId;
+      if (aux.logged_as !== aux.id) {
+        let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as)
+        this.partyId = loggedOrg.partyId;
+
+        // Check if user has orgAdmin role for edit permission
+        if(loggedOrg && loggedOrg.roles){
+          const orgRoles = loggedOrg.roles.map((role: any) => role.name);
+          const hasOrgAdminRole = orgRoles.some((role: any) => role === 'orgAdmin');
+          this.isReadOnly = !hasOrgAdminRole;
+        }
+      } else {
+        this.partyId = aux.partyId;
+        this.isReadOnly = false;
+      }
 
       this.token=aux.token;
       this.email=aux.email;
-      //this.partyId = aux.partyId;
       this.profileForm.reset();
       this.getProfile();
     }

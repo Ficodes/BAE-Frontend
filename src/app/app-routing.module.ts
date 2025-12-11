@@ -72,7 +72,7 @@ const routes: Routes = [
   },
   { path: 'profile',
   component: UserProfileComponent,
-  canActivate: [AuthGuard], data: { roles: ['individual','orgAdmin'] }
+  canActivate: [AuthGuard], data: { roles: [] }
   },
   { path: 'my-offerings',
   component: SellerOfferingsComponent,
