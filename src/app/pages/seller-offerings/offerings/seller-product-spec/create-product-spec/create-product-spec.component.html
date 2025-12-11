@@ -215,10 +215,10 @@
                         </p>
                         
                         <div class="flex items-center justify-between">
-                            <button (click)="toggleUploadSelfAtt();$event.stopPropagation();" type="button" class="text-white file-select-button mr-4 bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
+                            <button data-cy="productSpecUploadFirst" (click)="toggleUploadSelfAtt();$event.stopPropagation();" type="button" class="text-white file-select-button mr-4 bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
                                 <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v9m-5 0H5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-2M8 9l4-5 4 5m1 8h.01"/>
-                                </svg>                                                
+                                </svg>
                             </button>
                             @if(selfAtt){
                                 <button (click)="removeSelfAtt()" type="button" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
@@ -247,7 +247,7 @@
                                                 <label for="checkbox-item-1" class="ms-2 text-sm" [ngClass]="iso.domesupported == true ? 'text-primary-100 font-bold' : 'text-gray-900 dark:text-white font-medium'">
                                                     {{iso.name}}
                                                 </label>
-                                                <button (click)="addISO(iso)" type="button" class="text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
+                                                <button data-cy="productSpecCharAddISO" (click)="addISO(iso)" type="button" class="text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
                                                     <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24">
                                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
                                                     </svg>
@@ -290,15 +290,15 @@
                                             class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-2 border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" /> -->                                     
                                         </td>
                                         <td class="px-6 py-4 inline-flex">
-                                            <button (click)="toggleUploadFile(sel);$event.stopPropagation();" type="button" class="text-white file-select-button mr-4 bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
+                                            <button data-cy="productSpecUploadSecond" (click)="toggleUploadFile(sel);$event.stopPropagation();" type="button" class="text-white file-select-button mr-4 bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
                                                 <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v9m-5 0H5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-2M8 9l4-5 4 5m1 8h.01"/>
-                                                </svg>                                                
-                                            </button>                                          
-                                            <button (click)="removeISO(sel)" type="button" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
+                                                </svg>
+                                            </button>
+                                            <button data-cy="productSpecDeleteCompliance" (click)="removeISO(sel)" type="button" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
                                                 <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-                                                </svg>                                                                                                
+                                                </svg>
                                             </button>                                              
                                         </td>
                                     </tr>
@@ -692,7 +692,7 @@
                         @if (!loadingResourceSpec_more) {
                             @if (resourceSpecPageCheck) {
                             <div class="flex pt-6 pb-2 justify-center align-middle">
-                                <button (click)="nextRes()" class="flex cursor-pointer shadow-lg items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 dark:text-white bg-white dark:bg-primary-100 dark:hover:bg-secondary-100 border border-gray-300 dark:border-secondary-200 rounded-lg hover:bg-gray-200">
+                                <button data-cy="loadMore" (click)="nextRes()" class="flex cursor-pointer shadow-lg items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 dark:text-white bg-white dark:bg-primary-100 dark:hover:bg-secondary-100 border border-gray-300 dark:border-secondary-200 rounded-lg hover:bg-gray-200">
                                 {{ 'CREATE_PROD_SPEC._load_more' | translate }}
                                 <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
@@ -858,7 +858,7 @@
                                         </svg>
                                         <div class="flex w-full justify-center">
                                             <p class="text-gray-500 mr-2 w-fit">{{ 'CREATE_PROD_SPEC._drop_files' | translate }}
-                                                <button (click)="openFileSelector()" class="font-medium text-primary-100 dark:text-primary-50 hover:underline">{{ 'CREATE_PROD_SPEC._select_files' | translate }}</button>
+                                                <button data-cy="productSpecAttachSelectFile" (click)="openFileSelector()" class="font-medium text-primary-100 dark:text-primary-50 hover:underline">{{ 'CREATE_PROD_SPEC._select_files' | translate }}</button>
                                             </p> 
                                         </div>
                                     </div>
@@ -954,7 +954,7 @@
                     }
                     @if(showNewAtt==false){
                         <div class="flex w-full justify-items-center justify-center">
-                            <button type="button" (click)="showNewAtt=!showNewAtt" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                            <button data-cy="productSpecAddNewAttachment" type="button" (click)="showNewAtt=!showNewAtt" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                                 {{ 'CREATE_PROD_SPEC._new_att' | translate }}
                                 <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
@@ -1084,11 +1084,11 @@
                                                     {{rel.productSpec.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}} 
                                                 </td>
                                                 <td class="px-6 py-4">
-                                                    <button (click)="deleteRel(rel)" class="font-bold text-white bg-red-500 rounded-3xl">
+                                                    <button data-cy="productSpecDeleteRelationship" (click)="deleteRel(rel)" class="font-bold text-white bg-red-500 rounded-3xl">
                                                         <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-                                                        </svg>                                  
-                                                    </button>    
+                                                        </svg>
+                                                    </button>
                                                 </td>
                                             </tr>
                                         }
@@ -1098,11 +1098,11 @@
                         }
                         @if(showCreateRel==false){
                             <div class="flex w-full justify-items-center justify-center">
-                                <button type="button" (click)="showCreateRel=!showCreateRel" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                                <button data-cy="productSpecAddRelationship" type="button" (click)="showCreateRel=!showCreateRel" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                                     {{ 'CREATE_PROD_SPEC._add_relationship' | translate }}
                                     <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
-                                    </svg>                                  
+                                    </svg>
                                 </button>
                             </div>
                         } @else {
@@ -1198,11 +1198,11 @@
                                 }
                             }
                             <div class="flex w-full justify-items-center justify-center mt-4">
-                                <button type="button" (click)="saveRel()" [disabled]="prodSpecRels.length==0 || selectedProdSpec.id == ''" [ngClass]="prodSpecRels.length==0 || selectedProdSpec.id == '' ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                                <button data-cy="productSpecSaveRelationship" type="button" (click)="saveRel()" [disabled]="prodSpecRels.length==0 || selectedProdSpec.id == ''" [ngClass]="prodSpecRels.length==0 || selectedProdSpec.id == '' ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                                     {{ 'CREATE_PROD_SPEC._save_relationship' | translate }}
                                     <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M11 16h2m6.707-9.293-2.414-2.414A1 1 0 0 0 16.586 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.414a1 1 0 0 0-.293-.707ZM16 20v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v6h8ZM9 4h6v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4Z"/>
-                                    </svg>                                                                   
+                                    </svg>
                                 </button>
                             </div>
                         }
@@ -1610,17 +1610,17 @@
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2"/>
                         </svg>                        
                         <p class="text-gray-500 mr-4">{{ 'CREATE_PROD_SPEC._drop_files' | translate }}
-                            <button (click)="openFileSelector()" class="font-medium text-primary-100 dark:text-primary-50 hover:underline">{{ 'CREATE_PROD_SPEC._select_files' | translate }}</button>
+                            <button data-cy="productSpecSelectFile" (click)="openFileSelector()" class="font-medium text-primary-100 dark:text-primary-50 hover:underline">{{ 'CREATE_PROD_SPEC._select_files' | translate }}</button>
                         </p>                       
                     </ng-template>
                 </ngx-file-drop>  
 
               
                 <div class="flex justify-center items-center space-x-4">
-                    <button (click)="showUploadFile=false;$event.stopPropagation();" type="button" class="py-2 px-3 text-sm font-medium text-gray-500 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10">
+                    <button data-cy="productSpecCancelUpload" (click)="showUploadFile=false;$event.stopPropagation();" type="button" class="py-2 px-3 text-sm font-medium text-gray-500 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10">
                         {{ 'CREATE_PROD_SPEC._cancel' | translate }}
                     </button>
-                    <button (click)="uploadFile()" type="submit" class="py-2 px-3 text-sm font-medium text-center text-white bg-primary-100 hover:bg-primary-50 rounded-lg focus:ring-4 focus:outline-none focus:ring-primary-50">
+                    <button data-cy="productSpecConfirmUpload" (click)="uploadFile()" type="submit" class="py-2 px-3 text-sm font-medium text-center text-white bg-primary-100 hover:bg-primary-50 rounded-lg focus:ring-4 focus:outline-none focus:ring-primary-50">
                         {{ 'CREATE_PROD_SPEC._upload' | translate }}
                     </button>
                 </div>

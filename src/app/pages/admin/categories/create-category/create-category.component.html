@@ -66,7 +66,7 @@
                         <app-markdown-textarea formControlName="description"></app-markdown-textarea>
                         <label class="font-bold text-lg dark:text-white">{{ 'CREATE_CATEGORIES._choose_parent' | translate }}</label>
                         <label class="inline-flex items-center me-5 cursor-pointer ml-4">
-                            <input type="checkbox" (change)="toggleParent()" [checked]="parentSelectionCheck" class="sr-only peer">
+                            <input data-cy="adminToggleParentCategory" type="checkbox" (change)="toggleParent()" [checked]="parentSelectionCheck" class="sr-only peer">
                             <div class="relative w-11 h-6 bg-gray-400 dark:bg-gray-700 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-100 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-100"></div>
                         </label>
                         @if(parentSelectionCheck){
@@ -128,7 +128,7 @@
 
                     </form>
                     <div class="flex w-full justify-items-end justify-end">
-                        <button type="button" (click)="showFinish();generalDone=true;" [disabled]="!generalForm.valid || (parentSelectionCheck == true && selectedCategory==undefined)" [ngClass]="!generalForm.valid || (parentSelectionCheck == true && selectedCategory==undefined) ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        <button data-cy="adminCategoryNext" type="button" (click)="showFinish();generalDone=true;" [disabled]="!generalForm.valid || (parentSelectionCheck == true && selectedCategory==undefined)" [ngClass]="!generalForm.valid || (parentSelectionCheck == true && selectedCategory==undefined) ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                             {{ 'CREATE_CATEGORIES._next' | translate }}
                             <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
@@ -176,7 +176,7 @@
                     
                     
                     <div class="flex w-full justify-items-end justify-end ml-4">
-                        <button type="button" (click)="createCategory();" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        <button data-cy="adminCreateCategory" type="button" (click)="createCategory();" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                             {{ 'CREATE_CATEGORIES._create' | translate }}
                             <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>

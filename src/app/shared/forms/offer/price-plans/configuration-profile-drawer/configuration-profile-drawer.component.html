@@ -42,7 +42,7 @@
               </div>
             }@else{
               <!-- Dropdown Selector -->
-              <select *ngIf="!char.value.options?.[0]?.valueFrom"
+              <select data-cy="offerProfileSelect" *ngIf="!char.value.options?.[0]?.valueFrom"
                       class="mb-2 bg-gray-50 dark:bg-secondary-300 border text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:text-gray-100"
                       (change)="changeProfileValue($index, $event)">
                 <option *ngFor="let opt of char.value.options" [value]="opt.value" [selected]="opt.isDefault">
@@ -55,8 +55,8 @@
       </div>
       <!-- Action Buttons -->
       <div class="flex justify-end space-x-3 p-4">
-        <button type="button" (click)="closeDrawer()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded dark:text-white">{{ 'FORMS.PRICE_PLANS._cancel' | translate }}</button>
-        <button type="button" (click)="saveProfile()"
+        <button data-cy="offerProfileCancel" type="button" (click)="closeDrawer()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded dark:text-white">{{ 'FORMS.PRICE_PLANS._cancel' | translate }}</button>
+        <button data-cy="offerProfileSave" type="button" (click)="saveProfile()"
                 class="px-4 py-2 rounded text-white transition"
                 [ngClass]="{'bg-primary-100 hover:bg-primary-50': form.valid, 'bg-gray-400 cursor-not-allowed': form.invalid}">
           {{ 'FORMS.PRICE_PLANS._save' | translate }}

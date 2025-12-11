@@ -24,11 +24,11 @@
                   <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" [attr.aria-labelledby]="link.id!">
                     <li *ngFor="let childLink of link.children">
                       <!-- Enlace externo -->
-                      <a *ngIf="!childLink.isRouterLink" [href]="childLink.url" target="_blank" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                      <a *ngIf="!childLink.isRouterLink" [attr.data-cy]="childLink.label === 'HEADER._guidelines' ? 'guidelinesRegister' : childLink.label === 'HEADER._registration' ? 'registrationForm' : childLink.label === 'HEADER._guideline_publish' ? 'guidelinePublish' : null" [href]="childLink.url" target="_blank" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                         {{ childLink.label | translate }}
                       </a>
                       <!-- Enlace interno (botón que navega) -->
-                      <button *ngIf="childLink.isRouterLink" (click)="goTo(childLink.url!)" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                      <button *ngIf="childLink.isRouterLink" [attr.data-cy]="childLink.label === 'HEADER._services' ? 'browseServices' : childLink.label === 'HEADER._catalogs' ? 'browseCatalogs' : null" (click)="goTo(childLink.url!)" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                         {{ childLink.label | translate }}
                       </button>
                     </li>

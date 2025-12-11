@@ -149,7 +149,7 @@
               <span class="font-medium">{{ 'FORMS.PRICE_PLANS._profile_desc' | translate }}</span>
             </div>
             <div class="px-4">              
-              <button type="button" (click)="openConfigurationProfileDrawer()"
+              <button data-cy="configProfile" type="button" (click)="openConfigurationProfileDrawer()"
                       class="mt-2 px-4 py-1 bg-blue-500 text-white rounded flex items-center">
                 <svg class="min-w-4 w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                   <path fill="currentColor"
@@ -218,7 +218,7 @@
 
         <!-- Action Buttons -->
         <div class="flex justify-end space-x-3">
-          <button type="button" (click)="closeDrawer()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded">
+          <button data-cy="cancelPricePlan" type="button" (click)="closeDrawer()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded">
             {{ 'FORMS.PRICE_PLANS._cancel' | translate }}
           </button>
           <button type="submit"
