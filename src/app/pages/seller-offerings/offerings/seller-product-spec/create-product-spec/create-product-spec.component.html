@@ -1562,7 +1562,8 @@
                     {{ 'CREATE_OFFER._previous' | translate }}
                 </button>
         
-                <button (click)="goToStep(currentStep + 1)"
+                <button data-cy="btnNext"
+                        (click)="goToStep(currentStep + 1)"
                         [disabled]="currentStep === steps.length - 1 || !validateCurrentStep() || !canNavigate(currentStep) || isStepDisabled()"
                         [ngClass]="{
                         'hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white': currentStep !== steps.length - 1 && (validateCurrentStep() || canNavigate(currentStep)),
@@ -1577,12 +1578,13 @@
                 </svg>
                 </button>
                 @if ((currentStep === 7 && !BUNDLE_ENABLED) || (currentStep === 8 && BUNDLE_ENABLED)) {
-                    <button (click)="createProduct()"
+                    <button data-cy="btnCreateProduct"
+                    (click)="createProduct()"
                     [disabled]="isStepDisabled() || loading"
                     [ngClass]="loading || isStepDisabled() ? 'opacity-50' : 'hover:bg-primary-50'"
             
                     class="px-4 py-2 text-base font-medium text-white rounded-lg bg-primary-100">
-                        Create Product
+                        {{ 'CREATE_PROD_SPEC._create_prod' | translate }}
                     </button>
                 }
             </div>          
