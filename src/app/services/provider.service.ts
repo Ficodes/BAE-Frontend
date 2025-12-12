@@ -20,7 +20,7 @@ export interface Provider {
 })
 export class ProviderService {
   private http = inject(HttpClient);
-  private readonly endpoint = `${environment.BASE_URL}/party/party/v4/organization`;
+  private readonly endpoint = `${environment.BASE_URL}/party/v4/organization`;
   //TODO FOR DEV ONLY
   //private readonly endpoint = `${environment.BASE_URL}/party/organization`;
 
