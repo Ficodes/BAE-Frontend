@@ -89,6 +89,7 @@ interface PricePlanChange {
 export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAccessor {
   @Input() form!: FormGroup;  // Recibe el formulario del padre
   @Input() prodSpec: any | null = null;  // Y con este se acceder a prodSpec
+  @Input() custom:boolean = false;
   @Output() formChange = new EventEmitter<FormChangeState>();
 
   pricePlansForm = this.fb.array<FormGroup>([], { validators: [] });

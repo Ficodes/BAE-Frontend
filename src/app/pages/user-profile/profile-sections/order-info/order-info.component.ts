@@ -42,7 +42,7 @@ export class OrderInfoComponent implements OnInit {
   filters: any[]=[];
   check_custom:boolean=false;
   isSeller:boolean=false;
-  role:any='Customer'
+  role:any=environment.BUYER_ROLE;
 
   protected readonly faIdCard = faIdCard;
   protected readonly faSort = faSort;
@@ -85,13 +85,13 @@ export class OrderInfoComponent implements OnInit {
   initPartyInfo(){
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
     if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
-      if(aux.logged_as==aux.id){
+      if(aux.logged_as == aux.id){
         this.partyId = aux.partyId;
         let userRoles = aux.roles.map((elem: any) => {
           return elem.name
         })
-        if (userRoles.includes("seller")) {
-          this.isSeller=true;
+        if (userRoles.includes(environment.SELLER_ROLE)) {
+          this.isSeller = true;
         }
       } else {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as);
@@ -99,8 +99,8 @@ export class OrderInfoComponent implements OnInit {
         let orgRoles = loggedOrg.roles.map((elem: any) => {
           return elem.name
         })
-        if (orgRoles.includes("seller")) {
-          this.isSeller=true;
+        if (orgRoles.includes(environment.SELLER_ROLE)) {
+          this.isSeller = true;
         }
       }
       //this.partyId = aux.partyId;
@@ -248,8 +248,7 @@ export class OrderInfoComponent implements OnInit {
   }
 
   async onRoleChange(event: any) {
-    this.role=event.target.value;
+    this.role = event.target.value == 'Customer' ? environment.BUYER_ROLE : environment.SELLER_ROLE;
     await this.getOrders(false);
   }
-
 }

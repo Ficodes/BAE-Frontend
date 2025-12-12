@@ -16,7 +16,7 @@ describe('/my-offerings',{
         const status = 'Active'
         const newCatalog = { id: 'test', href: 'test',name: name, description: description, lifecycleStatus: status, relatedParty: {
             id: local_items.partyId,
-            role: 'Owner',
+            role: 'Seller',
             '@referredType': ''
         }}
         let calls = 0
@@ -52,12 +52,12 @@ describe('/my-offerings',{
         const status = 'Active'
         const newCatalog = { id: 'test', href: 'test',name: name, description: description, lifecycleStatus: status, relatedParty: {
             id: local_items.partyId,
-            role: 'Owner',
+            role: 'Seller',
             '@referredType': ''
         }}
         const getCatalog = { id: 'test', href: 'test',name: check, description: description, lifecycleStatus: status, relatedParty: {
             id: local_items.partyId,
-            role: 'Owner',
+            role: 'Seller',
             '@referredType': ''
         }}
         let calls = 0

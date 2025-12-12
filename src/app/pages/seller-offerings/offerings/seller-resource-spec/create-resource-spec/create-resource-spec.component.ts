@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
 
 import {components} from "src/app/models/resource-catalog";
+import { environment } from 'src/environments/environment';
 type ResourceSpecification_Create = components["schemas"]["ResourceSpecification_Create"];
 type CharacteristicValueSpecification = components["schemas"]["ResourceSpecificationCharacteristicValue"];
 type ResourceSpecificationCharacteristic = components["schemas"]["ResourceSpecificationCharacteristic"];
@@ -270,7 +271,7 @@ export class CreateResourceSpecComponent implements OnInit {
           {
               id: this.partyId,
               //href: "http://proxy.docker:8004/party/individual/urn:ngsi-ld:individual:803ee97b-1671-4526-ba3f-74681b22ccf3",
-              role: "Owner",
+              role: environment.SELLER_ROLE,
               "@referredType": ''
           }
         ],

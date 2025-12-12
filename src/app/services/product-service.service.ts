@@ -141,8 +141,8 @@ export class ApiServiceService {
     return lastValueFrom(this.http.get<any>(url));
   }
 
-  getProductOfferByOwner(page:any,status:any[],partyId:any,sort:any,isBundle:any) {
-    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering?limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}&relatedParty=${partyId}`;
+  getProductOfferByOwner(page:any, status:any[], partyId:any, sort:any, isBundle:any) {
+    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering?limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}&relatedParty.id=${partyId}`;
 
     if(sort!=undefined){
       url=url+'&sort='+sort
@@ -340,6 +340,9 @@ export class ApiServiceService {
   postProductOffering(prod:any,catalogId:any){
     //POST - El item va en el body de la petición
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog/${catalogId}/productOffering`;
+    if(!catalogId){
+      url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering`;
+    }    
     return this.http.post<any>(url, prod);
   }
 

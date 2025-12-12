@@ -13,6 +13,8 @@ import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "../../services/event-message.service";
 import * as moment from 'moment';
 import { environment } from 'src/environments/environment';
+import { lastValueFrom } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-user-profile',
@@ -34,7 +36,8 @@ export class UserProfileComponent implements OnInit{
   constructor(
     private localStorage: LocalStorageService,
     private cdr: ChangeDetectorRef,
-    private eventMessage: EventMessageService
+    private eventMessage: EventMessageService,
+    private http: HttpClient
   ) {
     this.eventMessage.messages$.subscribe(ev => {
       if(ev.type === 'ChangedSession') {
@@ -118,6 +121,15 @@ export class UserProfileComponent implements OnInit{
     this.show_revenue=true;
     this.cdr.detectChanges();
     initFlowbite();
+  }
+
+  getPayment() {
+    const paymentInfoUrl = `${environment.BASE_URL}/paymentInfo`;
+
+    lastValueFrom(this.http.get<any>(paymentInfoUrl)).then(data => {
+      window.open(data.providerUrl, '_blank');
+    }).catch(() => {
+    });
   }
 
   goToOrders(){

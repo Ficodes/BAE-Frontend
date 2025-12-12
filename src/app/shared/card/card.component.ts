@@ -618,7 +618,7 @@ async deleteProduct(product: Product | undefined){
     let parties = this.prodSpec?.relatedParty;
     if(parties)
     for(let i=0; i<parties.length;i++){
-      if(parties[i].role=='Owner'){
+      if(parties[i].role == environment.SELLER_ROLE){
         if(parties[i].id.includes('organization')){
           this.accService.getOrgInfo(parties[i].id).then(org => {
             this.orgInfo=org;

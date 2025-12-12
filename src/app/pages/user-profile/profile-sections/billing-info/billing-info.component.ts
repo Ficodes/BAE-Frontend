@@ -104,13 +104,13 @@ export class BillingInfoComponent implements OnInit{
           id: this.partyId,
           name: loggedOrg.name,
           href : this.partyId,
-          role: "Owner"
+          role: environment.SELLER_ROLE
         }
 
         // Check if user has orgAdmin role for edit permission
         if(loggedOrg && loggedOrg.roles){
           const orgRoles = loggedOrg.roles.map((role: any) => role.name);
-          const hasOrgAdminRole = orgRoles.some((role: any) => role === 'orgAdmin');
+          const hasOrgAdminRole = orgRoles.some((role: any) => role === environment.ORG_ADMIN_ROLE);
           this.isReadOnly = !hasOrgAdminRole;
         }
       } else {
@@ -121,7 +121,7 @@ export class BillingInfoComponent implements OnInit{
           id: this.partyId,
           name: aux.user,
           href : this.partyId,
-          role: "Owner"
+          role: environment.SELLER_ROLE
         }
         this.isReadOnly = false;
       }

@@ -161,12 +161,12 @@
             <li>
               <button id="userProfile" (click)="goTo('/profile')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faAddressCard" class="mr-2"></fa-icon>{{ 'HEADER._profile' | translate }}</button>
             </li>
-            @if(roles.includes('seller')){
+            @if(roles.includes(sellerRole)){
               <li>
                 <button id="myOfferings" (click)="goTo('/my-offerings')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faHandHoldingBox" class="mr-2"></fa-icon>{{ 'HEADER._offerings' | translate }}</button>
               </li>
             }
-            @if((isAdmin && loggedAsOrg == false) || roles.includes('certifier')) {
+            @if((isAdmin && loggedAsOrg == false) || roles.includes(certifierRole)) {
               <li>
                 <button id="administration" (click)="goTo('/admin')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faCogs" class="mr-2"></fa-icon>{{ 'HEADER._admin' | translate }}</button>
               </li>

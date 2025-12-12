@@ -24,6 +24,7 @@ import {getCountries, getCountryCallingCode, CountryCode} from 'libphonenumber-j
 import {parsePhoneNumber} from 'libphonenumber-js/max'
 import {TranslateModule} from "@ngx-translate/core";
 import { getLocaleId } from '@angular/common';
+import { environment } from 'src/environments/environment';
 
 
 @Component({
@@ -139,7 +140,7 @@ export class BillingAccountFormComponent implements OnInit {
           id: this.partyId,
           name: aux.user,
           href : this.partyId,
-          role: "Owner"
+          role: environment.SELLER_ROLE
         }
       } else {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as)
@@ -150,7 +151,7 @@ export class BillingAccountFormComponent implements OnInit {
           id: this.partyId,
           name: loggedOrg.name,
           href : this.partyId,
-          role: "Owner"
+          role: environment.SELLER_ROLE
         }
       }
     }

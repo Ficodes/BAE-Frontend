@@ -74,7 +74,8 @@ export class SearchCatalogComponent implements OnInit, OnDestroy{
     this.api.getCatalog(this.id).then(catalog => {
       this.catalog=catalog;
       this.cdr.detectChanges();
-      const owner = this.catalog.relatedParty.find((item: { role: string; }) => item.role === 'Owner');
+      const owner = this.catalog.relatedParty.find((item: { role: string; }) => item.role === environment.SELLER_ROLE);
+
       if(owner.id.startsWith('urn:ngsi-ld:individual')){
         this.accService.getUserInfo(owner.id).then(info  => {
           console.log('info')

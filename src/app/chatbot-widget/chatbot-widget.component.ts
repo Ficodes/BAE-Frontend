@@ -62,14 +62,14 @@ export class ChatbotWidgetComponent {
 
     // Build the message depending on the user role
     let name = "guest"
-    let role = "Customer" // FIXME: Default role must be guest when supported
+    let role = environment.BUYER_ROLE; // FIXME: Default role must be guest when supported
 
     const userInfo = this.localStorage.getObject('login_items') as LoginInfo;
 
     // The user is logged in
     if (userInfo.id) {
       let roles = []
-      role = "Customer"
+      role = environment.BUYER_ROLE;
       name = userInfo.username
 
       if (userInfo.logged_as !== userInfo.id) {
@@ -83,7 +83,7 @@ export class ChatbotWidgetComponent {
         })
       }
 
-      if (roles.includes("seller")) {
+      if (roles.includes(environment.SELLER_ROLE)) {
         role = "Provider"
       }
     }

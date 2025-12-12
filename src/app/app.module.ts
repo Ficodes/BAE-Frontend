@@ -86,6 +86,7 @@ import { MultipleSelectComponent } from './shared/multiple-select/multiple-selec
 import {CharacteristicComponent} from "./shared/characteristic/characteristic.component";
 import {PricePlanDrawerComponent} from "./shared/price-plan-drawer/price-plan-drawer.component";
 import {OfferComponent} from "./shared/forms/offer/offer.component";
+import {CustomOfferComponent} from "./shared/forms/offer/custom-offer/custom-offer.component"
 import { ThemeService } from './services/theme.service';
 import { ThemeAwareTranslateLoader } from './services/theme-aware-translate.loader';
 import { RevenueReportComponent } from './shared/revenue-report/revenue-report.component'
@@ -196,6 +197,7 @@ import { OperatorRevenueSharingComponent } from "src/app/pages/admin/operator-re
         PricePlanDrawerComponent,
         RevenueReportComponent,
         OfferComponent,
+        CustomOfferComponent,
         AboutDomeComponent,
         MarkdownTextareaComponent,
         ProviderRevenueSharingComponent,

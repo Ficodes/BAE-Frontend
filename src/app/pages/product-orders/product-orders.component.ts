@@ -49,7 +49,7 @@ export class ProductOrdersComponent implements OnInit {
   filters: any[]=[];
   check_custom:boolean=false;
   isSeller:boolean=false;
-  role:any='Customer'
+  role:any=environment.BUYER_ROLE
 
   show_orders: boolean = true;
   show_invoices: boolean = false;
@@ -107,8 +107,8 @@ export class ProductOrdersComponent implements OnInit {
         let userRoles = aux.roles.map((elem: any) => {
           return elem.name
         })
-        if (userRoles.includes("seller")) {
-          this.isSeller=true;
+        if (userRoles.includes(environment.SELLER_ROLE)) {
+          this.isSeller = true;
         }
       } else {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as);
@@ -116,8 +116,8 @@ export class ProductOrdersComponent implements OnInit {
         let orgRoles = loggedOrg.roles.map((elem: any) => {
           return elem.name
         })
-        if (orgRoles.includes("seller")) {
-          this.isSeller=true;
+        if (orgRoles.includes(environment.SELLER_ROLE)) {
+          this.isSeller = true;
         }
       }
       //this.partyId = aux.partyId;

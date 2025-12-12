@@ -6,7 +6,7 @@ import { LoginInfo } from 'src/app/models/interfaces';
 export interface EventMessage {
   type: 'AddedFilter' | 'RemovedFilter' | 'AddedCartItem' | 'RemovedCartItem' | 'FilterShown' | 'ToggleCartDrawer' | 'LoginProcess' | 'BillAccChanged' |
   'SellerProductSpec' | 'SellerCreateProductSpec' |  'SellerServiceSpec' | 'SellerCreateServiceSpec' | 'SellerResourceSpec' | 'SellerCreateResourceSpec' |
-  'SellerOffer' | 'SellerCreateOffer' | 'SellerUpdateProductSpec' | 'SellerUpdateServiceSpec' | 'SellerUpdateResourceSpec' | 'SellerUpdateOffer' |
+  'SellerOffer' | 'SellerCreateOffer' | 'SellerUpdateProductSpec' | 'SellerUpdateServiceSpec' | 'SellerUpdateResourceSpec' | 'SellerUpdateOffer' | 'SellerCreateCustomOffer' |
   'SellerCatalog' | 'SellerCatalogCreate' | 'SellerCatalogUpdate' | 'CategoryAdded' | 'CategoryRemoved' | 'ChangedSession' | 'CloseCartCard'|
   'AdminCategories' | 'CreateCategory' | 'UpdateCategory' | 'ShowCartToast' | 'HideCartToast' | 'CloseContact' | 'OpenServiceDetails' | 'OpenResourceDetails' | 'OpenProductInvDetails' |
   'SavePricePlan' | 'UpdatePricePlan' | 'ToggleEditPrice' | 'ToggleNewPrice' |
@@ -107,6 +107,10 @@ export class EventMessageService {
 
   emitSellerUpdateOffer(offer:any){
     this.eventMessageSubject.next({ type: 'SellerUpdateOffer', value: offer });
+  }
+
+  emitSellerCreateCustomOffer(offer:any){
+    this.eventMessageSubject.next({type: 'SellerCreateCustomOffer', value: offer})
   }
 
   emitSellerCatalog(show:boolean){    
