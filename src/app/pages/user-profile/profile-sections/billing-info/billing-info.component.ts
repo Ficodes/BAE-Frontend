@@ -110,7 +110,7 @@ export class BillingInfoComponent implements OnInit{
         // Check if user has orgAdmin role for edit permission
         if(loggedOrg && loggedOrg.roles){
           const orgRoles = loggedOrg.roles.map((role: any) => role.name);
-          const hasOrgAdminRole = orgRoles.some((role: any) => role === 'orgAdmin');
+          const hasOrgAdminRole = orgRoles.some((role: any) => role === environment.ORG_ADMIN_ROLE);
           this.isReadOnly = !hasOrgAdminRole;
         }
       } else {
