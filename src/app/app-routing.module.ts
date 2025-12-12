@@ -72,7 +72,7 @@ const routes: Routes = [
   },
   { path: 'profile',
   component: UserProfileComponent,
-  canActivate: [AuthGuard], data: { roles: ['individual', 'orgAdmin'] }
+  canActivate: [AuthGuard], data: { roles: [] }
   },
   { path: 'my-offerings',
   component: SellerOfferingsComponent,
@@ -92,6 +92,12 @@ const routes: Routes = [
   { path: 'quote-list',
     component: QuoteListComponent,
     canActivate: [AuthGuard, quoteGuardGuard], data: { roles: [] }
+  },
+  { 
+    path: 'tenders',
+    loadChildren: () => import('./features/tenders/tenders.module').then(m => m.TendersModule),
+    canActivate: [AuthGuard, quoteGuardGuard], 
+    data: { roles: [] }
   },
   {
     path: 'usage-spec',

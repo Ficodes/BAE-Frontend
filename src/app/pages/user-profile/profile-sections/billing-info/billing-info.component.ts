@@ -41,6 +41,7 @@ export class BillingInfoComponent implements OnInit{
   selectedDate:any;
   countries: any[] = countries;
   preferred:boolean=false;
+  isReadOnly:boolean=false;
 
   errorMessage:any='';
   showError:boolean=false;
@@ -105,6 +106,13 @@ export class BillingInfoComponent implements OnInit{
           href : this.partyId,
           role: environment.SELLER_ROLE
         }
+
+        // Check if user has orgAdmin role for edit permission
+        if(loggedOrg && loggedOrg.roles){
+          const orgRoles = loggedOrg.roles.map((role: any) => role.name);
+          const hasOrgAdminRole = orgRoles.some((role: any) => role === 'orgAdmin');
+          this.isReadOnly = !hasOrgAdminRole;
+        }
       } else {
         this.partyId = aux.partyId;
         console.log('init party info')
@@ -115,6 +123,7 @@ export class BillingInfoComponent implements OnInit{
           href : this.partyId,
           role: environment.SELLER_ROLE
         }
+        this.isReadOnly = false;
       }
       this.getBilling();
     }
