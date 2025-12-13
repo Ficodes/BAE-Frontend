@@ -20,9 +20,7 @@ export interface Provider {
 })
 export class ProviderService {
   private http = inject(HttpClient);
-  private readonly endpoint = `${environment.BASE_URL}/party/v4/organization`;
-  //TODO FOR DEV ONLY
-  //private readonly endpoint = `${environment.BASE_URL}/party/organization`;
+  private readonly endpoint = `${environment.BASE_URL}/party/organization`;
 
   getProviders(params: { fields?: string; offset?: number; limit?: number } = {}): Observable<Provider[]> {
     let httpParams = new HttpParams();
