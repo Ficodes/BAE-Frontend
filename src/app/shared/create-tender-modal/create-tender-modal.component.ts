@@ -11,11 +11,14 @@ import { ProviderService, Provider } from 'src/app/services/provider.service';
 import { Tender, TenderAttachment } from 'src/app/models/tender.model';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { API_ROLES } from 'src/app/models/roles.constants';
+import { SearchOrganizationsFilters, countryName, complianceLevelsName } from 'src/app/models/search-organizations-filters.model';
+import { FormControl } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-create-tender-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   template: `
     <!-- Tender Creation Modal -->
     <div *ngIf="isOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" (click)="closeTenderModal()">
@@ -263,8 +266,57 @@ import { API_ROLES } from 'src/app/models/roles.constants';
                 Select Providers to Invite
               </label>
               
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                <!-- Responsive grid for filters -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                  <!-- Countries -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Countries</label>
+                    <select multiple [formControl]="countriesCtrl"
+                            class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white px-3 py-2 text-sm shadow-sm
+                                   focus:border-blue-500 focus:ring focus:ring-blue-200">
+                      <option *ngFor="let c of countriesOptions" [value]="c" (mousedown)="toggleFromSelect(countriesCtrl, c, $event)">{{ countryName(c) }}</option>
+                    </select>
+                  </div>
+
+                  <!-- Categories -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Categories</label>
+                    <select multiple [formControl]="categoriesCtrl"
+                            class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white px-3 py-2 text-sm shadow-sm
+                                   focus:border-blue-500 focus:ring focus:ring-blue-200">
+                      <option *ngFor="let cat of categoriesOptions" [value]="cat" (mousedown)="toggleFromSelect(categoriesCtrl, cat, $event)">{{ cat }}</option>
+                    </select>
+                  </div>
+
+                  <!-- Compliance Levels -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Compliance Levels</label>
+                    <select multiple [formControl]="complianceLevelsCtrl"
+                            class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white px-3 py-2 text-sm shadow-sm
+                                   focus:border-blue-500 focus:ring focus:ring-blue-200">
+                      <option *ngFor="let cl of complianceLevelsOptions" [value]="cl" (mousedown)="toggleFromSelect(complianceLevelsCtrl, cl, $event)">{{ complianceLevelsName(cl) }}</option>
+                    </select>
+                  </div>
+
+                  <!-- Clear/Search buttons -->
+                  <div class="md:col-span-2 flex justify-start gap-x-2 mb-2 mt-2 md:mt-0">
+                    <button type="button"
+                            (click)="clearFilters()"
+                            class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600">
+                      Clear Filters
+                    </button>
+                    <button type="button"
+                            (click)="emitFilters()"
+                            class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50">
+                      Search
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
               <div class="max-h-96 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg">
-                <div *ngFor="let provider of getAvailableProviders()" 
+                <div *ngFor="let provider of _safeInvitedList" 
                      class="flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-600 last:border-b-0">
                   <input 
                     *ngIf="provider.id"
@@ -286,8 +338,39 @@ import { API_ROLES } from 'src/app/models/roles.constants';
                   </label>
                 </div>
                 
-                <div *ngIf="getAvailableProviders().length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">
-                  <p class="text-sm">No more providers available. All providers have been invited.</p>
+                <div *ngFor="let provider of availableProviders" 
+                     class="flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-600 last:border-b-0">
+                  <input 
+                    *ngIf="provider.id"
+                    type="checkbox" 
+                    [id]="'provider-' + provider.id"
+                    [checked]="selectedProviders.has(provider.id)"
+                    (change)="toggleProviderSelection(provider.id)"
+                    class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                  <label *ngIf="provider.id" [for]="'provider-' + provider.id" class="ml-3 flex-1 cursor-pointer">
+                    <div>
+                      <p class="text-sm font-medium text-gray-900 dark:text-white">
+                        {{ provider.tradingName || 'Unnamed Provider' }}
+                      </p>
+                      <p *ngIf="provider.externalReference?.[0]?.name" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {{ provider.externalReference?.[0]?.name }}
+                      </p>
+                    </div>
+                  </label>
+                </div>
+                
+                <div *ngIf="availableProviders.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">
+                  <ng-container *ngIf="!hasActiveFilters(); else filteredEmpty">
+                    <p class="text-sm">
+                      No more providers available. All providers have been invited.
+                    </p>
+                  </ng-container>
+                  <ng-template #filteredEmpty>
+                    <p class="text-sm">
+                      No filters Selected. Adjust Countries/Categories and click <strong>Search</strong>.
+                    </p>
+                  </ng-template>
                 </div>
               </div>
 
@@ -370,6 +453,31 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   tenderError: string | null = null;
   currentUserId: string | null = null;
 
+  // Filter options
+  countriesOptions: string[] = [];
+  categoriesOptions: string[] = [];
+  complianceLevelsOptions: string[] = [];
+  _safeInvitedList: Provider[] = [];
+
+  // Form controls for filters
+  countriesCtrl = new FormControl<string[]>([], { nonNullable: true });
+  categoriesCtrl = new FormControl<string[]>([], { nonNullable: true });
+  complianceLevelsCtrl = new FormControl<string[]>([], { nonNullable: true });
+
+  // Default organization search filters
+  orgFilters: SearchOrganizationsFilters = {
+    categories: [],
+    countries: [],
+    complianceLevels: []
+  };
+  
+  // Helper functions for display
+  complianceLevelsName = complianceLevelsName;
+  countryName = countryName;
+
+  // Available providers list
+  availableProviders: Provider[] = [];
+
   // Tender form fields - Step 1: Title only
   tenderTitle: string = '';
   
@@ -402,6 +510,9 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
         this.currentUserId = loggedOrg?.partyId;
       }
     }
+    
+    // Load filter options
+    this.loadFilterOptions();
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -681,32 +792,107 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
     
     console.log('Loading providers from API...');
     
-    this.providerService.getProvidersForTender().subscribe({
+    this.providerService.getProvidersForTenderNew(this.orgFilters).subscribe({
       next: (providers) => {
-        console.log('Providers loaded successfully:', providers.length);
         this.tenderProviders = providers;
         this.tenderLoading = false;
+        this.updateAvailableProviders();
         
-        // Load invited providers after providers are loaded
+        // After providers are loaded, load invited providers (if in edit mode)
         if (this.tenderCreationStep === 3) {
           this.loadInvitedProviders();
         }
       },
-      error: (error) => {
-        console.error('Error loading providers:', error);
-        this.tenderError = 'Failed to load providers. Please try again.';
-        this.tenderProviders = [];
+      error: (err) => {
+        this.tenderError = 'Failed to load providers: ' + (err.message || 'Unknown error');
         this.tenderLoading = false;
+        console.error('Error loading tender providers:', err);
       }
     });
   }
 
+  /**
+   * Emit filter changes and reload providers
+   */
+  emitFilters(): void {
+    const newFilters: SearchOrganizationsFilters = {
+      countries: this.countriesCtrl.value ?? [],
+      categories: this.categoriesCtrl.value ?? [],
+      complianceLevels: this.complianceLevelsCtrl.value ?? []
+    };
+    console.log(newFilters);
+    this.orgFilters = newFilters;
+    this.loadTenderProviders();
+  }
+
+  /**
+   * Are any filters currently active?
+   */
+  hasActiveFilters(): boolean {
+    const hasCountries = (this.orgFilters.countries?.length ?? 0) == 0;
+    const hasCategories = (this.orgFilters.categories?.length ?? 0) == 0;
+    const hasComplianceLevels = (this.orgFilters.complianceLevels?.length ?? 0) == 0;
+
+    return hasCountries && hasCategories && hasComplianceLevels;
+  }
+
+  /**
+   * Clear all filters
+   */
+  clearFilters() {
+    // Reset both controls to empty arrays (and emit change)
+    this.countriesCtrl.setValue([], { emitEvent: true });
+    this.categoriesCtrl.setValue([], { emitEvent: true });
+    this.complianceLevelsCtrl.setValue([], { emitEvent: true });
+
+    // If you rely on (change) only, also call emit explicitly:
+    this.emitFilters();
+  }
+
   toggleProviderSelection(providerId: string) {
-    if (this.selectedProviders.has(providerId)) {
-      this.selectedProviders.delete(providerId);
+    // find in local safe list (which stores { provider, quoteId })
+    const idx = this._safeInvitedList.findIndex(x => x?.id === providerId);
+
+    if (idx >= 0) {
+      // UNCHECK → remove from local safe list
+      this._safeInvitedList.splice(idx, 1);
     } else {
-      this.selectedProviders.add(providerId);
+      // CHECK → add to local safe list
+      const p = this.tenderProviders.find(tp => tp.id === providerId);
+      if (p) {
+        this._safeInvitedList.push(p);
+      }
     }
+
+    // Re-derive selectedProviders + available list in one place
+    this.rebuildSelectionAndAvailable();
+  }
+
+  private rebuildSelectionAndAvailable(): Provider[] {
+    // 1) selectedProviders = IDs from local safe list
+    this.selectedProviders = new Set(
+      this._safeInvitedList
+        .map(x => x?.id)
+        .filter((id): id is string => !!id)
+    );
+
+    // 2) all IDs that must be excluded from availability (server invited + locally selected)
+    const excludeIds = new Set<string>([
+      ...this.invitedProviders
+        .map(ip => ip?.provider?.id)
+        .filter((id): id is string => !!id),
+      ...Array.from(this.selectedProviders),
+    ]);
+
+    // 3) compute available list
+    const available = this.tenderProviders
+      .filter(p => !!p?.id && !excludeIds.has(p.id!))
+      .map(p => ({ ...p } as Provider));
+
+    // keep a cached copy if you want to bind directly in template
+    this.availableProviders = available;
+
+    return available;
   }
 
   /**
@@ -780,11 +966,18 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   }
 
   /**
+   * Update available providers list
+   */
+  updateAvailableProviders(): void {
+    this.availableProviders = this.getAvailableProviders();
+  }
+
+  /**
    * Get available providers (excluding already invited ones)
    */
   getAvailableProviders(): Provider[] {
-    const invitedProviderIds = new Set(this.invitedProviders.map(ip => ip.provider.id));
-    return this.tenderProviders.filter(p => p.id && !invitedProviderIds.has(p.id));
+    // Simple and clean — everything is handled by the helper
+    return this.rebuildSelectionAndAvailable();
   }
 
   /**
@@ -807,41 +1000,45 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
 
     console.log('Creating tendering quotes for providers:', providerIds);
 
-    // Create tendering quotes for multiple providers
-    this.quoteService.createMultipleTenderingQuotes(
-      this.currentUserId,
-      providerIds,
-      this.createdQuoteId,
-      customerMessage
-    ).subscribe({
-      next: (createdTenders) => {
-        console.log('Tendering quotes created:', createdTenders);
-        
+    // Create tendering quotes one by one to capture individual quote IDs
+    const requests = providerIds.map(providerId => {
+      const provider = this._safeInvitedList.find(p => p.id === providerId);
+
+      return this.quoteService.createTenderingQuote(
+        this.currentUserId!,
+        providerId,
+        this.createdQuoteId!,
+        customerMessage
+      ).toPromise().then(tender => {
+        if (!tender || !tender.id || !provider) {
+          throw new Error('Failed to create quote for provider');
+        }
+        return {
+          provider: provider,
+          quoteId: tender.id
+        };
+      });
+    });
+
+    Promise.all(requests)
+      .then(results => {
+        console.log('Tendering quotes created:', results);
+
         // Add to invited providers list
-        createdTenders.forEach((tender, index) => {
-          if (tender.id) {
-            const provider = this.tenderProviders.find(p => p.id === providerIds[index]);
-            if (provider) {
-              this.invitedProviders.push({
-                provider: provider,
-                quoteId: tender.id
-              });
-            }
-          }
-        });
-        
-        // Clear selection
+        this.invitedProviders.push(...results);
+
+        // Clear selection and safe list
         this.selectedProviders.clear();
-        
+        this._safeInvitedList = [];
+
         this.notificationService.showSuccess(`${providerIds.length} provider(s) invited successfully!`);
         this.tenderLoading = false;
-      },
-      error: (error) => {
+      })
+      .catch(error => {
         console.error('Error creating tendering quotes:', error);
         this.notificationService.showError('Failed to invite providers: ' + (error.message || 'Unknown error'));
         this.tenderLoading = false;
-      }
-    });
+      });
   }
 
   /**
@@ -945,4 +1142,37 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
       }
     });
   }
+
+  /**
+   * Load filter options (countries, categories, compliance levels)
+   */
+  private loadFilterOptions(): void {
+    this.clearFilters();
+    this.providerService.getFilterOptions().subscribe({
+      next: ({ categories, countries, complianceLevels }) => {
+        this.categoriesOptions = categories ?? [];
+        this.countriesOptions = countries ?? [];
+        this.complianceLevelsOptions = complianceLevels ?? [];
+      },
+      error: (err) => {
+        console.warn('Failed to load filter options', err);
+      }
+    });
+  }
+
+  /**
+   * Toggle selection in multi-select dropdown
+   */
+  toggleFromSelect(ctrl: FormControl<string[]>, value: string, event: MouseEvent) {
+    event.preventDefault(); // stop native multi-select behavior
+    event.stopPropagation();
+
+    const cur = ctrl.value ?? [];
+    const next = cur.includes(value)
+      ? cur.filter(v => v !== value)
+      : [...cur, value];
+
+    ctrl.setValue(next);
+  }
 }
+
