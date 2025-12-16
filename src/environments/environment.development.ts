@@ -19,6 +19,9 @@ export const environment = {
     BILLING: '/billing',
     CHARGING: '/charging',
 
+    searchOrganizationsEndpoint: 'http://dome-search-svc.search-engine.svc.cluster.local:8080/api/searchOrganizations',
+    //searchOrganizationsEndpoint: 'org-api/searchOrganizations',
+
     CUSTOMER_BILLING:'/customerBill',
     CONSUMER_BILLING_URL: 'http://localhost:8640',
     INVOICE_LIMIT: 100,

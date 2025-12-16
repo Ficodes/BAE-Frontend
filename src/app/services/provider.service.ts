@@ -1,7 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map, catchError, of } from 'rxjs';
+import { Observable, map, catchError, of, forkJoin } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { FilterOptions } from '../models/filter-options.model';
+import { SearchOrganizationsFilters } from '../models/search-organizations-filters.model';
 
 export interface Provider {
   id?: string;
@@ -18,9 +20,7 @@ export interface Provider {
 })
 export class ProviderService {
   private http = inject(HttpClient);
-  private readonly endpoint = `${environment.BASE_URL}/party/v4/organization`;
-  //TODO FOR DEV ONLY
-  //private readonly endpoint = `${environment.BASE_URL}/party/organization`;
+  private readonly endpoint = `${environment.BASE_URL}/party/organization`;
 
   getProviders(params: { fields?: string; offset?: number; limit?: number } = {}): Observable<Provider[]> {
     let httpParams = new HttpParams();
@@ -85,5 +85,57 @@ export class ProviderService {
       })
     );
   }
+
+  
+  getProvidersForTenderNew(filters: SearchOrganizationsFilters): Observable<Provider[]> {
+    const url = environment.searchOrganizationsEndpoint;
+
+    return this.http.post<any>(url, filters).pipe(
+      map((response) => {
+        if (Array.isArray(response)) return response as Provider[];
+        if (response?.data && Array.isArray(response.data)) return response.data as Provider[];
+        return [];
+      }),
+      catchError((error) => {
+        console.warn('Providers for tender (new) API failed:', error);
+        return of([]);
+      })
+    );
+  }
+
+  //Methods for the search engine
+  getFilterOptions(): Observable<FilterOptions> {
+    const base = environment.searchOrganizationsEndpoint.replace(/\/searchOrganizations$/, '');
+    const categories$ = this.http.get<any>(`${base}/categories`).pipe(
+      map(res => (Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [])),
+      catchError(err => {
+        console.warn('Categories API failed:', err);
+        return of<string[]>([]);
+      })
+    );
+  
+    const countries$ = this.http.get<any>(`${base}/countries`).pipe(
+      map(res => (Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [])),
+      catchError(err => {
+        console.warn('Countries API failed:', err);
+        return of<string[]>([]);
+      })
+    );
+  
+    const complianceLevels$ = this.http.get<any>(`${base}/complianceLevels`).pipe(
+      map(res => (Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [])),
+      catchError(err => {
+        console.warn('ComplianceLevels API failed:', err);
+        return of<string[]>([]);
+      })
+    );
+  
+    return forkJoin({
+      categories: categories$,
+      countries: countries$,
+      complianceLevels: complianceLevels$,
+    });
+  }
+
 }
 
