@@ -191,8 +191,6 @@ export class UserProfileComponent implements OnInit{
     if(elem != null){
       if(elem.className.match(cls)){
         this.removeClass(elem,cls)
-      } else {
-        console.log('already unselected')
       }
     }
   }
@@ -200,7 +198,6 @@ export class UserProfileComponent implements OnInit{
   selectMenu(elem:HTMLElement| null,cls:string){
     if(elem != null){
       if(elem.className.match(cls)){
-        console.log('already selected')
       } else {
         this.addClass(elem,cls)
       }

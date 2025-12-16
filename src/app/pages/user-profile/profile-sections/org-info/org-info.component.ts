@@ -168,8 +168,6 @@ export class OrgInfoComponent implements OnInit {
   getProfile(){
     this.contactmediums=[];
     this.accountService.getOrgInfo(this.partyId).then(data=> {
-      console.log('--org info--')
-      console.log(data)
       this.profile=data;
       this.loadProfileData(this.profile)
       this.loading=false;
@@ -207,7 +205,6 @@ export class OrgInfoComponent implements OnInit {
       })       
     }
     for(let i=0; i<this.contactmediums.length; i++){
-      console.log(this.contactmediums)
       if(this.contactmediums[i].mediumType == 'Email'){
         mediums.push({
           mediumType: 'Email',
@@ -217,7 +214,6 @@ export class OrgInfoComponent implements OnInit {
             emailAddress: this.contactmediums[i].characteristic.emailAddress
           }
         })
-        console.log(this.contactmediums[i])
       } else if(this.contactmediums[i].mediumType == 'PostalAddress'){
         mediums.push({
           mediumType: this.contactmediums[i].mediumType,
@@ -248,7 +244,6 @@ export class OrgInfoComponent implements OnInit {
       "contactMedium": mediums,
       "partyCharacteristic": chars
     }
-    console.log(profile)
     this.accountService.updateOrgInfo(this.partyId,profile).subscribe({
       next: data => {
         this.profileForm.reset();
@@ -262,7 +257,6 @@ export class OrgInfoComponent implements OnInit {
       error: error => {
           console.error('There was an error while updating!', error);
           if(error.error.error){
-            console.log(error)
             this.errorMessage='Error: '+error.error.error;
           } else {
             this.errorMessage='There was an error while updating profile!';
@@ -339,7 +333,6 @@ export class OrgInfoComponent implements OnInit {
             const phoneNumber = parsePhoneNumber(this.phonePrefix.code + this.mediumForm.value.telephoneNumber);
             if (phoneNumber) {
             if (!phoneNumber.isValid()) {
-                console.log('NUMERO INVALIDO')
                 this.mediumForm.controls['telephoneNumber'].setErrors({'invalidPhoneNumber': true});
                 this.toastVisibility = true;
                 setTimeout(() => {
@@ -405,7 +398,6 @@ export class OrgInfoComponent implements OnInit {
       }
     }
     this.mediumForm.reset();
-    console.log(this.contactmediums)
   }
 
   removeMedium(medium:any){
@@ -467,7 +459,6 @@ export class OrgInfoComponent implements OnInit {
                 const phoneNumber = parsePhoneNumber(this.phonePrefix.code + this.mediumForm.value.telephoneNumber);
                 if (phoneNumber) {
                   if (!phoneNumber.isValid()) {
-                    console.log('NUMERO INVALIDO')
                     this.mediumForm.controls['telephoneNumber'].setErrors({'invalidPhoneNumber': true});
                     this.toastVisibility = true;
                     setTimeout(() => {
@@ -531,7 +522,6 @@ export class OrgInfoComponent implements OnInit {
   }
 
   selectPrefix(pref:any) {
-    console.log(pref)
     this.prefixCheck = false;
     this.phonePrefix = pref;
   }
@@ -604,32 +594,22 @@ export class OrgInfoComponent implements OnInit {
       this.mediumForm.get('telephoneNumber')?.setValue('');
       this.cdr.detectChanges();
     }
-    console.log(this.mediumForm)
-    console.log(this.printAllActiveValidators());
 
   }
   showMedium(){
-    console.log('--- SHOW MEDIUM')
-    console.log(this.mediumForm)
-    console.log(this.printAllActiveValidators());
-    console.log('--value')
-    console.log(this.mediumForm.get('email')?.value)
   }
 
   printActiveValidators(controlName: string) {
     const control = this.mediumForm.get(controlName);
     if (!control || !control.validator) {
-      console.log(`No active validators for ${controlName}`);
       return;
     }
   
     const validatorFn = control.validator({} as AbstractControl);
     if (!validatorFn) {
-      console.log(`No active validators for ${controlName}`);
       return;
     }
   
-    console.log(`Active validators for ${controlName}:`, Object.keys(validatorFn));
   }
 
   printAllActiveValidators() {
@@ -648,14 +628,11 @@ export class OrgInfoComponent implements OnInit {
       if (droppedFile.fileEntry.isFile) {
         const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
         fileEntry.file((file: File) => {
-          console.log('dropped')       
 
           if (file) {
             const reader = new FileReader();
             reader.onload = (e: any) => {
               const base64String: string = e.target.result.split(',')[1];
-              console.log('BASE 64....')
-              console.log(base64String); // You can use this base64 string as needed
               let fileBody = {
                 content: {
                   name: 'orglogo'+file.name,
@@ -685,7 +662,6 @@ export class OrgInfoComponent implements OnInit {
               }
               this.attachmentService.uploadFile(fileBody).subscribe({
                 next: data => {
-                    console.log(data)
                     if(sel=='img'){
                       if(file.type.startsWith("image")){
                         this.showImgPreview=true;
@@ -699,12 +675,10 @@ export class OrgInfoComponent implements OnInit {
                       }
                     }
                     this.cdr.detectChanges();
-                    console.log('uploaded')
                 },
                 error: error => {
                     console.error('There was an error while uploading!', error);
                     if(error.error.error){
-                      console.log(error)
                       this.errorMessage='Error: '+error.error.error;
                     } else {
                       this.errorMessage='There was an error while uploading the file!';
@@ -726,7 +700,6 @@ export class OrgInfoComponent implements OnInit {
       } else {
         // It was a directory (empty directories are added, otherwise only files)
         const fileEntry = droppedFile.fileEntry as FileSystemDirectoryEntry;
-        console.log(droppedFile.relativePath, fileEntry);
       }
     }
   }
@@ -736,12 +709,9 @@ export class OrgInfoComponent implements OnInit {
   }
  
   public fileOver(event: any){
-    console.log(event);
   }
  
   public fileLeave(event: any){
-    console.log('leave')
-    console.log(event);
   }
 
   saveImgFromURL(){

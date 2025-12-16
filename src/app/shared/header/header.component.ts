@@ -177,13 +177,10 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
 
 
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
-    console.log('aux: ' + aux)
     if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
       this.loginInfo=aux;
       this.is_logged=true;
       this.orgs=aux.organizations;
-      console.log('--roles')
-      console.log(aux.roles)
       for(let i=0; i < aux.roles.length; i++){
         if(aux.roles[i].name == 'admin'){
           this.isAdmin=true;
@@ -197,11 +194,8 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
         for(let i=0;i<aux.roles.length;i++){
           this.roles.push(aux.roles[i].name)
         }
-        console.log(this.roles)
       } else {
         let loggedOrg = this.orgs.find((element: { id: any; }) => element.id == aux.logged_as)
-        console.log('loggedOrg')
-        console.log(loggedOrg)
         this.loggedAsOrg=true;
         this.username=loggedOrg.name;
         this.usercharacters=(loggedOrg.name.slice(0, 2)).toUpperCase();
@@ -209,7 +203,6 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
         for(let i=0;i<loggedOrg.roles.length;i++){
           this.roles.push(loggedOrg.roles[i].name)
         }
-        console.log(this.roles)
       }
       this.cdr.detectChanges();
     }
@@ -248,8 +241,6 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
             }
           } else {
             let loggedOrg = this.orgs.find((element: { id: any; }) => element.id == aux.logged_as)
-            console.log('loggedOrg')
-            console.log(loggedOrg)
             this.loggedAsOrg=true;
             this.username=loggedOrg.name;
             this.usercharacters=(loggedOrg.name.slice(0, 2)).toUpperCase();
@@ -320,7 +311,6 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   }
 
   async toggleLogin(){
-    console.log('login')
     this.showLogin=true;
     //this.api.getLogin()
     //await (window.location.href='http://localhost:8004/login');
@@ -429,7 +419,6 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
 
         // Get the final URL string
         let finalUrl = newUrl.toString();
-        console.group(finalUrl)
 
         verifierUrl = `${verifierUrl}&client_callback=${finalUrl}`
         this.qrWindow = this.qrVerifier.launchPopup(verifierUrl,  'Scan QR code',  500, 500);

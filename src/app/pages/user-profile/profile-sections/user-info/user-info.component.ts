@@ -71,10 +71,7 @@ export class UserInfoComponent implements OnInit {
       } else {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as)
         this.partyId = loggedOrg.partyId
-        console.log(aux.organizations)
         this.accountService.getOrgInfo(this.partyId).then(data=> {
-          console.log('org')
-          console.log(data)
         })
       }
       this.token=aux.token;
@@ -87,7 +84,6 @@ export class UserInfoComponent implements OnInit {
 
   getProfile(){
     this.accountService.getUserInfo(this.partyId).then(data=> {
-      console.log(data)
       this.profile=data;
       this.loadProfileData(this.profile)
       this.loading=false;
@@ -111,8 +107,7 @@ export class UserInfoComponent implements OnInit {
       "placeOfBirth": this.userProfileForm.value.city,
       "title": this.userProfileForm.value.treatment,
       "birthDate": this.userProfileForm.value.birthdate
-    }
-    console.log(profile)
+  }
     this.accountService.updateUserInfo(this.partyId,profile).subscribe({
       next: data => {
         this.userProfileForm.reset();
