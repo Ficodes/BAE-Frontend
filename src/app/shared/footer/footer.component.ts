@@ -8,6 +8,8 @@ import {EventMessageService} from "../../services/event-message.service";
 import {LocalStorageService} from "../../services/local-storage.service";
 import { LoginInfo } from 'src/app/models/interfaces';
 import * as moment from 'moment';
+import {Subject} from "rxjs";
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'bae-footer',
@@ -19,6 +21,7 @@ export class FooterComponent implements OnInit, OnDestroy {
   protected readonly faLinkedin = faLinkedin;
   protected readonly faYoutube = faYoutube;
   protected readonly faXTwitter = faXTwitter;
+  private destroy$ = new Subject<void>();
 
   // Propiedades dinámicas del tema
   public footerLinks: NavLink[] = [];
@@ -32,7 +35,9 @@ export class FooterComponent implements OnInit, OnDestroy {
               private eventMessage: EventMessageService,
               private localStorage: LocalStorageService,
               private themeService: ThemeService) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'CloseFeedback') {
         this.feedback = false;
       }
@@ -71,6 +76,8 @@ export class FooterComponent implements OnInit, OnDestroy {
     if (this.themeSubscription) {
       this.themeSubscription.unsubscribe();
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
 

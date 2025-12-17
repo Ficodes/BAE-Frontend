@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, HostListener, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit} from '@angular/core';
 import {firstValueFrom, lastValueFrom} from 'rxjs';
 import {TranslateModule} from "@ngx-translate/core";
 import {LocalStorageService} from "../../services/local-storage.service";
@@ -20,6 +20,8 @@ import {BillingAccountFormComponent} from "../../shared/billing-account-form/bil
 import { PaymentService } from 'src/app/services/payment.service';
 import { v4 as uuidv4 } from 'uuid';
 import { data } from 'jquery';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 
 @Component({
@@ -27,7 +29,7 @@ import { data } from 'jquery';
   templateUrl: './checkout.component.html',
   styleUrl: './checkout.component.css'
 })
-export class CheckoutComponent implements OnInit {
+export class CheckoutComponent implements OnInit, OnDestroy {
   protected readonly faCartShopping = faCartShopping;
   public static BASE_URL: String = environment.BASE_URL;
   PURCHASE_ENABLED: boolean = environment.PURCHASE_ENABLED;
@@ -52,6 +54,7 @@ export class CheckoutComponent implements OnInit {
   providerId:any = null;
   loadingItems:boolean=false;
   orderNote: string = '';
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
@@ -67,7 +70,9 @@ export class CheckoutComponent implements OnInit {
     private route: ActivatedRoute) {
     // Bind the method to preserve context
     this.orderProduct = this.orderProduct.bind(this);
-    this.eventMessage.messages$.subscribe(async ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(async ev => {
       if (ev.type === 'BillAccChanged') {
         this.getBilling();
       }
@@ -361,6 +366,11 @@ export class CheckoutComponent implements OnInit {
     } else {
       this.initCheckoutData();
     }
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   async initCheckoutData() {

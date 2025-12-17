@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnDestroy } from '@angular/core';
 import { LoginInfo, billingAccountCart } from 'src/app/models/interfaces';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
@@ -13,13 +13,15 @@ import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "src/app/services/event-message.service";
 import * as moment from 'moment';
 import { environment } from 'src/environments/environment';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'billing-info',
   templateUrl: './billing-info.component.html',
   styleUrl: './billing-info.component.css'
 })
-export class BillingInfoComponent implements OnInit{
+export class BillingInfoComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   orders:any[]=[];
   profile:any;
@@ -46,6 +48,8 @@ export class BillingInfoComponent implements OnInit{
   errorMessage:any='';
   showError:boolean=false;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private localStorage: LocalStorageService,
     private api: ApiServiceService,
@@ -55,7 +59,9 @@ export class BillingInfoComponent implements OnInit{
     private orderService: ProductOrderService,
     private eventMessage: EventMessageService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'BillAccChanged') {
         this.getBilling();
       }
@@ -90,6 +96,11 @@ export class BillingInfoComponent implements OnInit{
     today.setMonth(today.getMonth()-1);
     this.selectedDate = today.toISOString();
     this.initPartyInfo();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){

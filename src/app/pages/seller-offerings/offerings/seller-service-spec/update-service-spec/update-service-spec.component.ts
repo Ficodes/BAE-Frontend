@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import {LocalStorageService} from "src/app/services/local-storage.service";
 import {EventMessageService} from "src/app/services/event-message.service";
@@ -9,6 +9,8 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 import * as moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import {components} from "src/app/models/service-catalog";
 type ServiceSpecification_Update = components["schemas"]["ServiceSpecification_Update"];
@@ -20,7 +22,7 @@ type ProductSpecificationCharacteristic = components["schemas"]["CharacteristicS
   templateUrl: './update-service-spec.component.html',
   styleUrl: './update-service-spec.component.css'
 })
-export class UpdateServiceSpecComponent implements OnInit {
+export class UpdateServiceSpecComponent implements OnInit, OnDestroy {
   @Input() serv: any;
 
   partyId:any='';
@@ -77,6 +79,7 @@ export class UpdateServiceSpecComponent implements OnInit {
   fromValue: string = '';
   toValue: string = '';
   rangeUnit: string = '';
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -86,7 +89,9 @@ export class UpdateServiceSpecComponent implements OnInit {
     private elementRef: ElementRef,
     private servSpecService: ServiceSpecServiceService,
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -105,6 +110,11 @@ export class UpdateServiceSpecComponent implements OnInit {
     this.initPartyInfo();
     console.log(this.serv)
     this.populateResInfo();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){

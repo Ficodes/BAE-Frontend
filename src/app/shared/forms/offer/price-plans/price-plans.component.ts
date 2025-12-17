@@ -16,7 +16,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { NgClass } from "@angular/common";
 import { EventMessageService } from "src/app/services/event-message.service";
 import { FormChangeState, PricePlanChangeState } from "src/app/models/interfaces";
-import { Subscription, debounceTime, distinctUntilChanged, filter } from "rxjs";
+import { Subscription, debounceTime, distinctUntilChanged, filter, Subject } from "rxjs";
+import { takeUntil } from 'rxjs/operators';
 
 interface PriceComponent {
   id: string;
@@ -108,6 +109,7 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
   private originalPricePlans: PricePlan[] = [];
   private originalPriceComponents: { [key: string]: any[] } = {};
   private lastKnownState: PricePlan[] = [];
+  private destroy$ = new Subject<void>();
 
   constructor(private fb: FormBuilder, private cdr: ChangeDetectorRef, private eventMessage: EventMessageService) {}
 
@@ -199,7 +201,8 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
       .pipe(
         debounceTime(500),
         distinctUntilChanged(),
-        filter(() => this.pricePlansForm.dirty)
+        filter(() => this.pricePlansForm.dirty),
+        takeUntil(this.destroy$)
       )
       .subscribe((newValue) => {
         console.log('📊 Form array value changed:', newValue);
@@ -211,7 +214,8 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
       control.valueChanges
         .pipe(
           debounceTime(500),
-          distinctUntilChanged()
+          distinctUntilChanged(),
+          takeUntil(this.destroy$)
         )
         .subscribe((newValue) => {
           console.log(`📈 Price plan ${index} changed:`, newValue);
@@ -224,6 +228,8 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
     if (this.formSubscription) {
       this.formSubscription.unsubscribe();
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private checkChanges() {

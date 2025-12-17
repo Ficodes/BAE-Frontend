@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import { NgClass } from '@angular/common';
 import {TranslateModule} from "@ngx-translate/core";
 import {LocalStorageService} from "../../services/local-storage.service";
@@ -8,6 +8,8 @@ import {faAddressCard} from "@fortawesome/sharp-solid-svg-icons";
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {faFilterList} from "@fortawesome/pro-regular-svg-icons";
 import {faTag} from "@fortawesome/pro-solid-svg-icons";
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'bae-categories-panel',
@@ -20,12 +22,15 @@ import {faTag} from "@fortawesome/pro-solid-svg-icons";
   templateUrl: './categories-panel.component.html',
   styleUrl: './categories-panel.component.css'
 })
-export class CategoriesPanelComponent implements OnInit {
+export class CategoriesPanelComponent implements OnInit, OnDestroy {
   selected: Category[] = [];
+  private destroy$ = new Subject<void>();
 
   constructor(private localStorage: LocalStorageService, private eventMessage: EventMessageService) {
     this.selected = [];
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'AddedFilter') {
         const cat = ev.value as Category; 
         const index = this.selected.findIndex(item => item.id === cat.id);
@@ -44,6 +49,11 @@ export class CategoriesPanelComponent implements OnInit {
   ngOnInit(): void {
     const stored:any = this.localStorage.getObject('selected_categories')
     this.selected = Array.isArray(stored) ? stored as Category[] : []
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   notifyDismiss(cat: Category) {

@@ -16,6 +16,9 @@ import { FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoginInfo, FeedbackInfo } from 'src/app/models/interfaces';
 import * as moment from 'moment';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+
 
 @Component({
   selector: 'bae-search',
@@ -40,6 +43,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   feedback:boolean=false;
   providerThemeName=environment.providerThemeName;
   private navigatingToDetail = false;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private api: ApiServiceService,
@@ -52,14 +56,18 @@ export class SearchComponent implements OnInit, OnDestroy {
     private paginationService: PaginationService,
     private state: SearchStateService
     ) {
-    this.eventMessage.messages$.subscribe(async ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(async ev => {
       if(ev.type === 'AddedFilter' || ev.type === 'RemovedFilter') {
         console.log('event filter')
         await this.getProducts(false);
-        this.checkPanel();
+        this.checkPanel();        
       }
     })
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'CloseFeedback') {
         this.feedback = false;
       }
@@ -68,7 +76,9 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
 
-    this.router.events.subscribe(event => {
+    this.router.events
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(event => {
       if (event instanceof NavigationStart) {
         // Detecta navegación al detalle del producto
         if (event.url.startsWith('/search/urn:ngsi-ld:product-offering')) {
@@ -206,6 +216,11 @@ export class SearchComponent implements OnInit, OnDestroy {
       this.localStorage.removeCategoryFilter(storedFilters[i]);
       this.eventMessage.emitRemovedFilter(storedFilters[i]);
     }
+
+    this.state.clear();
+
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   async getProducts(next:boolean){
@@ -233,7 +248,7 @@ export class SearchComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.loading_more = false;
       
-        // SAVE STATE 🔥🔥🔥
+        // SAVE STATE
         this.state.save({
           products: this.products,
           nextProducts: this.nextProducts,

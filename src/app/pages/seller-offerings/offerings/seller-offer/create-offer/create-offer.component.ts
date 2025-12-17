@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import {components} from "src/app/models/product-catalog";
 import { environment } from 'src/environments/environment';
@@ -18,7 +18,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { currencies } from 'currencies.json';
 import { certifications } from 'src/app/models/certification-standards.const';
 import {ProductOfferingPrice_DTO} from 'src/app/models/interfaces';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 type ProductOffering_Create = components["schemas"]["ProductOffering_Create"];
 type BundledProductOffering = components["schemas"]["BundledProductOffering"];
@@ -31,7 +32,7 @@ type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
   templateUrl: './create-offer.component.html',
   styleUrl: './create-offer.component.css'
 })
-export class CreateOfferComponent implements OnInit {
+export class CreateOfferComponent implements OnInit, OnDestroy {
 
   //PAGE SIZES:
   PROD_SPEC_LIMIT: number = environment.PROD_SPEC_LIMIT;
@@ -204,6 +205,8 @@ export class CreateOfferComponent implements OnInit {
   //FINAL OFFER USING API CALL STRUCTURE
   offerToCreate:ProductOffering_Create | undefined;
 
+  private destroy$ = new Subject<void>();
+
   @ViewChild('updatemetric') updatemetric!: ElementRef;
   @ViewChild('responsemetric') responsemetric!: ElementRef;
   @ViewChild('delaymetric') delaymetric!: ElementRef;
@@ -224,7 +227,9 @@ export class CreateOfferComponent implements OnInit {
     private resSpecService: ResourceSpecServiceService,
     private paginationService: PaginationService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'CategoryAdded') {
         this.addCategory(ev.value);
       }
@@ -272,6 +277,11 @@ export class CreateOfferComponent implements OnInit {
 
   ngOnInit() {
     this.initPartyInfo();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, Input, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import {components} from "src/app/models/product-catalog";
 import { environment } from 'src/environments/environment';
@@ -18,13 +18,15 @@ import { v4 as uuidv4 } from 'uuid';
 import { currencies } from 'currencies.json';
 import { certifications } from 'src/app/models/certification-standards.const';
 import {ProductOfferingPrice_DTO} from 'src/app/models/interfaces';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'update-price-plan',
   templateUrl: './update-price-plan.component.html',
   styleUrl: './update-price-plan.component.css'
 })
-export class UpdatePricePlanComponent implements OnInit {
+export class UpdatePricePlanComponent implements OnInit, OnDestroy {
 
   //currencies=currencies;
   //Only allowing EUR for the moment
@@ -81,6 +83,7 @@ export class UpdatePricePlanComponent implements OnInit {
 
   @Input() selectedProdSpec: any | {id:''};
   @Input() priceToUpdate: ProductOfferingPrice_DTO | undefined;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -95,7 +98,9 @@ export class UpdatePricePlanComponent implements OnInit {
     private resSpecService: ResourceSpecServiceService,
     private paginationService: PaginationService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -116,6 +121,11 @@ export class UpdatePricePlanComponent implements OnInit {
   ngOnInit() {
     this.initPartyInfo();
     this.checkPriceInfo();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   checkPriceInfo(){

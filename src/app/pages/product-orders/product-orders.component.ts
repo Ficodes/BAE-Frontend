@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { LoginInfo, billingAccountCart } from 'src/app/models/interfaces';
 import { ApiServiceService } from 'src/app/services/product-service.service';
@@ -21,6 +21,8 @@ import { TranslateModule } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { OrderInfoComponent } from "./sections/order-info/order-info.component";
 import { InvoicesInfoComponent } from "./sections/invoices-info/invoices-info.component";
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-product-orders',
@@ -30,7 +32,7 @@ import { InvoicesInfoComponent } from "./sections/invoices-info/invoices-info.co
   templateUrl: './product-orders.component.html',
   styleUrl: './product-orders.component.css'
 })
-export class ProductOrdersComponent implements OnInit {
+export class ProductOrdersComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   orders:any[]=[];
   nextOrders:any[]=[];
@@ -57,6 +59,7 @@ export class ProductOrdersComponent implements OnInit {
   protected readonly faIdCard = faIdCard;
   protected readonly faSort = faSort;
   protected readonly faSwatchbook = faSwatchbook;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
@@ -67,7 +70,9 @@ export class ProductOrdersComponent implements OnInit {
     private eventMessage: EventMessageService,
     private paginationService: PaginationService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -97,6 +102,11 @@ export class ProductOrdersComponent implements OnInit {
     this.unselectMenu(invoices_button,'text-white bg-primary-100');
 
     this.initPartyInfo();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){

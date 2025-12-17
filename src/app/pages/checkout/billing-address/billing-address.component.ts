@@ -1,4 +1,4 @@
-import {Component, EventEmitter, HostListener, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {billingAccountCart} from "../../../models/interfaces";
 import {TranslateModule} from "@ngx-translate/core";
 import {NgClass} from "@angular/common";
@@ -6,13 +6,15 @@ import {BillingAccountFormComponent} from "../../../shared/billing-account-form/
 import { AccountServiceService } from 'src/app/services/account-service.service';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
 import {EventMessageService} from "../../../services/event-message.service";
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-billing-address',
   templateUrl: './billing-address.component.html',
   styleUrl: './billing-address.component.css'
 })
-export class BillingAddressComponent {
+export class BillingAddressComponent implements OnDestroy {
   @Input() position: number = 0;
   @Input() data: billingAccountCart = {
     id: '',
@@ -32,13 +34,16 @@ export class BillingAddressComponent {
   };
   @Output() selectedEvent= new EventEmitter<billingAccountCart>();
   @Output() deletedEvent= new EventEmitter<billingAccountCart>();
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
     private accountService: AccountServiceService,
     private eventMessage: EventMessageService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.value == false){
         this.editBill=false;
       }
@@ -83,5 +88,10 @@ export class BillingAddressComponent {
     } else {
       return false
     }   
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

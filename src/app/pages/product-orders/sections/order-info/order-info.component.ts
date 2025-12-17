@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { LoginInfo, billingAccountCart } from 'src/app/models/interfaces';
 import { ApiServiceService } from 'src/app/services/product-service.service';
@@ -21,7 +21,8 @@ import { TranslateModule } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {SharedModule} from "../../../../shared/shared.module";
 import { v4 as uuidv4 } from 'uuid';
-import { from, Observable } from 'rxjs';
+import { from, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-order-info',
@@ -31,7 +32,7 @@ import { from, Observable } from 'rxjs';
   templateUrl: './order-info.component.html',
   styleUrl: './order-info.component.css'
 })
-export class OrderInfoComponent implements OnInit, AfterViewInit {
+export class OrderInfoComponent implements OnInit, AfterViewInit, OnDestroy {
   loading: boolean = false;
   orders:any[]=[];
   nextOrders:any[]=[];
@@ -79,6 +80,7 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
   protected readonly faIdCard = faIdCard;
   protected readonly faSort = faSort;
   protected readonly faSwatchbook = faSwatchbook;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
@@ -90,7 +92,9 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
     private eventMessage: EventMessageService,
     private paginationService: PaginationService,
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -202,6 +206,11 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
     this.selectedDate = today.toISOString();
     this.dateRange.setValue('month');
     this.initPartyInfo();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){

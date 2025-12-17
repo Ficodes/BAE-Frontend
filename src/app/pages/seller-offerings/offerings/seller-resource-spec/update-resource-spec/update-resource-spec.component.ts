@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import {LocalStorageService} from "src/app/services/local-storage.service";
 import {EventMessageService} from "src/app/services/event-message.service";
@@ -8,6 +8,8 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 import * as moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import {components} from "src/app/models/resource-catalog";
 import { initFlowbite } from 'flowbite';
@@ -20,7 +22,7 @@ type ResourceSpecificationCharacteristic = components["schemas"]["ResourceSpecif
   templateUrl: './update-resource-spec.component.html',
   styleUrl: './update-resource-spec.component.css'
 })
-export class UpdateResourceSpecComponent implements OnInit {
+export class UpdateResourceSpecComponent implements OnInit, OnDestroy {
   @Input() res: any;
 
   partyId:any='';
@@ -77,6 +79,7 @@ export class UpdateResourceSpecComponent implements OnInit {
   fromValue: string = '';
   toValue: string = '';
   rangeUnit: string = '';
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -86,7 +89,9 @@ export class UpdateResourceSpecComponent implements OnInit {
     private elementRef: ElementRef,
     private resSpecService: ResourceSpecServiceService,
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -106,6 +111,11 @@ export class UpdateResourceSpecComponent implements OnInit {
     console.log(this.res)
     this.populateResInfo();
     initFlowbite();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){

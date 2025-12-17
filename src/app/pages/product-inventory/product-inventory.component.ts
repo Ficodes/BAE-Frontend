@@ -1,15 +1,17 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnDestroy } from '@angular/core';
 import {components} from "../../models/product-catalog";
 import { initFlowbite } from 'flowbite';
 type ProductOffering = components["schemas"]["ProductOffering"];
 import {EventMessageService} from "../../services/event-message.service";
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-product-inventory',
   templateUrl: './product-inventory.component.html',
   styleUrl: './product-inventory.component.css'
 })
-export class ProductInventoryComponent implements OnInit, AfterViewInit {
+export class ProductInventoryComponent implements OnInit, AfterViewInit, OnDestroy {
   show_prods:boolean = true;
   show_serv:boolean = false;
   show_res:boolean = false;
@@ -17,12 +19,15 @@ export class ProductInventoryComponent implements OnInit, AfterViewInit {
   openServiceId:any=undefined;
   openResourceId:any=undefined;
   openProdId:any=undefined;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private cdr: ChangeDetectorRef,
     private eventMessage: EventMessageService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'OpenServiceDetails') {
         this.openServiceId=(ev.value as any)?.serviceId;
         this.openProdId=(ev.value as any)?.prodId; 
@@ -42,6 +47,11 @@ export class ProductInventoryComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     initFlowbite();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngAfterViewInit() {

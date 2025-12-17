@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnDestroy } from '@angular/core';
 import { LoginInfo, billingAccountCart } from 'src/app/models/interfaces';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
@@ -13,13 +13,15 @@ import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "../../services/event-message.service";
 import * as moment from 'moment';
 import { environment } from 'src/environments/environment';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-user-profile',
   templateUrl: './user-profile.component.html',
   styleUrl: './user-profile.component.css'
 })
-export class UserProfileComponent implements OnInit{
+export class UserProfileComponent implements OnInit, OnDestroy {
   show_profile: boolean = true;
   show_org_profile:boolean=false;
   show_orders: boolean = false;
@@ -30,13 +32,16 @@ export class UserProfileComponent implements OnInit{
   partyId:any='';
   token:string='';
   email:string='';
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
     private cdr: ChangeDetectorRef,
     private eventMessage: EventMessageService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -50,6 +55,11 @@ export class UserProfileComponent implements OnInit{
     setTimeout(() => {        
       initFlowbite();   
     }, 100);
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){

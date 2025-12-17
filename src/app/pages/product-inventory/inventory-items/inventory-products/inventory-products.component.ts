@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, Input } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, Input, OnDestroy } from '@angular/core';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { ProductInventoryServiceService } from 'src/app/services/product-inventory-service.service';
 import { ApiServiceService } from 'src/app/services/product-service.service';
@@ -16,13 +16,15 @@ import * as moment from 'moment';
 import { FormControl } from '@angular/forms';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'inventory-products',
   templateUrl: './inventory-products.component.html',
   styleUrl: './inventory-products.component.css'
 })
-export class InventoryProductsComponent implements OnInit {
+export class InventoryProductsComponent implements OnInit, OnDestroy {
 
   protected readonly faIdCard = faIdCard;
   protected readonly faSort = faSort;
@@ -59,6 +61,7 @@ export class InventoryProductsComponent implements OnInit {
   showDetails:boolean=false;
   checkCustom:boolean=false;
   checkFrom:boolean=true;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private inventoryService: ProductInventoryServiceService,
@@ -71,7 +74,9 @@ export class InventoryProductsComponent implements OnInit {
     private eventMessage: EventMessageService,
     private paginationService: PaginationService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initInventory();
       }
@@ -83,6 +88,11 @@ export class InventoryProductsComponent implements OnInit {
       this.checkFrom=false;
     }
     this.initInventory();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initInventory(){
