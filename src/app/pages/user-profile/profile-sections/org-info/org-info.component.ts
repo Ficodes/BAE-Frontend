@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnChanges } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnChanges, OnDestroy } from '@angular/core';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
@@ -15,6 +15,8 @@ import {parsePhoneNumber} from 'libphonenumber-js/max'
 import {AttachmentServiceService} from "src/app/services/attachment-service.service";
 import { NgxFileDropEntry, FileSystemFileEntry, FileSystemDirectoryEntry } from 'ngx-file-drop';
 import { environment } from 'src/environments/environment';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 type OrganizationUpdate = components["schemas"]["Organization_Update"];
 
@@ -23,7 +25,7 @@ type OrganizationUpdate = components["schemas"]["Organization_Update"];
   templateUrl: './org-info.component.html',
   styleUrl: './org-info.component.css'
 })
-export class OrgInfoComponent implements OnInit {
+export class OrgInfoComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   orders:any[]=[];
   profile:any;
@@ -109,6 +111,7 @@ export class OrgInfoComponent implements OnInit {
   @ViewChild('imgURL') imgURL!: ElementRef;
 
   public files: NgxFileDropEntry[] = [];
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
@@ -118,7 +121,9 @@ export class OrgInfoComponent implements OnInit {
     private eventMessage: EventMessageService,
     private attachmentService: AttachmentServiceService,
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -137,6 +142,11 @@ export class OrgInfoComponent implements OnInit {
     setTimeout(() => {
       initFlowbite();
     }, 500);
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){

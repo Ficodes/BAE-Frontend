@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, Input, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, Input, AfterViewInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import {components} from "src/app/models/product-catalog";
 import { environment } from 'src/environments/environment';
@@ -20,6 +20,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { QrVerifierService } from 'src/app/services/qr-verifier.service';
 import { jwtDecode } from "jwt-decode";
 import { noWhitespaceValidator } from 'src/app/validators/validators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 
 type CharacteristicValueSpecification = components["schemas"]["CharacteristicValueSpecification"];
@@ -36,7 +38,7 @@ type AttachmentRefOrValue = components["schemas"]["AttachmentRefOrValue"];
   templateUrl: './update-product-spec.component.html',
   styleUrl: './update-product-spec.component.css'
 })
-export class UpdateProductSpecComponent implements OnInit {
+export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   @Input() prod: any;
 
   //PAGE SIZES:
@@ -175,6 +177,7 @@ export class UpdateProductSpecComponent implements OnInit {
   rangeUnit: string = '';
 
   filenameRegex = /^[A-Za-z0-9_.-]+$/;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -193,7 +196,9 @@ export class UpdateProductSpecComponent implements OnInit {
     for(let i=0; i<certifications.length; i++){
       this.availableISOS.push(certifications[i])
     }
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -246,6 +251,11 @@ export class UpdateProductSpecComponent implements OnInit {
     console.log(this.prod)
     this.populateProductInfo();
     initFlowbite();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){

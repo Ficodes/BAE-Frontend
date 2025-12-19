@@ -1,17 +1,18 @@
-import {Component, EventEmitter, Input, OnInit, Output, ChangeDetectorRef} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, ChangeDetectorRef, OnDestroy} from '@angular/core';
 import {faCircleCheck} from "@fortawesome/pro-solid-svg-icons";
 import {faCircle} from "@fortawesome/pro-regular-svg-icons";
 import {Category} from "../../models/interfaces";
 import {Subject} from "rxjs";
 import {EventMessageService} from "../../services/event-message.service";
 import {LocalStorageService} from "../../services/local-storage.service";
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'bae-category-item',
   templateUrl: './category-item.component.html',
   styleUrl: './category-item.component.css'
 })
-export class CategoryItemComponent implements OnInit {
+export class CategoryItemComponent implements OnInit, OnDestroy {
 
   protected readonly faCircleCheck = faCircleCheck;
   protected readonly faCircle = faCircle;
@@ -37,8 +38,12 @@ export class CategoryItemComponent implements OnInit {
   @Input() isFirst = false;
   @Input() isLast = false;
 
+  private destroy$ = new Subject<void>();
+
   constructor(private localStorage: LocalStorageService, private eventMessage: EventMessageService, private cdr: ChangeDetectorRef) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       const cat = ev.value as Category;      
       if(ev.type === 'AddedFilter' && cat?.id === this.data?.id) {
           this.checked = true;
@@ -78,6 +83,11 @@ export class CategoryItemComponent implements OnInit {
       this.labelClass = 'flex items-center justify-between w-full px-5 py-3 font-medium rtl:text-right text-gray-500 border border-b-0 border-gray-200 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3 peer-checked:border-primary-50 dark:peer-checked:bg-primary-50 dark:peer-checked:text-secondary-100 peer-checked:text-gray-600';
     else if(this.isParent && this.isLast)
       this.labelClass = 'flex items-center justify-between w-full px-5 py-3 font-medium rtl:text-right text-gray-500 border border-gray-200 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3 peer-checked:border-primary-50 dark:peer-checked:bg-primary-50 dark:peer-checked:text-secondary-100 peer-checked:text-gray-600';
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onClick(checked:boolean){

@@ -6,7 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
 import { LoginInfo } from 'src/app/models/interfaces';
 import * as moment from 'moment';
-import { interval, Subscription} from 'rxjs';
+import { interval, Subscription, Subject} from 'rxjs';
 import { RefreshLoginServiceService } from "src/app/services/refresh-login-service.service"
 import { StatsServiceService } from "src/app/services/stats-service.service"
 import { LoginServiceService } from "src/app/services/login-service.service"
@@ -15,6 +15,7 @@ import { initFlowbite } from 'flowbite';
 import { environment } from 'src/environments/environment';
 import {ThemeService} from "../../services/theme.service";
 import {ThemeConfig} from "../../themes";
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-dashboard',
@@ -37,6 +38,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   currentTheme: ThemeConfig | null = null;
   private themeSubscription: Subscription = new Subscription();
   providerThemeName=environment.providerThemeName;
+  private destroy$ = new Subject<void>();
 
   //loginSubscription: Subscription = new Subscription();;
   constructor(private localStorage: LocalStorageService,
@@ -49,7 +51,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
               private cdr: ChangeDetectorRef,
               private themeService: ThemeService,
               private refreshApi: RefreshLoginServiceService) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'FilterShown') {
         this.isFilterPanelShown = ev.value as boolean;
       }
@@ -75,9 +79,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    this.themeSubscription = this.themeService.currentTheme$.subscribe(theme => {
+    this.themeSubscription = this.themeService.currentTheme$
+    .subscribe(theme => {
       this.currentTheme = theme;
     });
+    this.destroy$.next();
+    this.destroy$.complete();
 
     this.statsService.getStats().then(data=> {
       this.services=data?.services || [];

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import {faIdCard, faSort, faSwatchbook, faSparkles} from "@fortawesome/pro-solid-svg-icons";
@@ -11,13 +11,15 @@ import { LoginInfo } from 'src/app/models/interfaces';
 import {EventMessageService} from "src/app/services/event-message.service";
 import { initFlowbite } from 'flowbite';
 import { PriceServiceService } from 'src/app/services/price-service.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'seller-offer',
   templateUrl: './seller-offer.component.html',
   styleUrl: './seller-offer.component.css'
 })
-export class SellerOfferComponent implements OnInit{
+export class SellerOfferComponent implements OnInit, OnDestroy {
   protected readonly faIdCard = faIdCard;
   protected readonly faSort = faSort;
   protected readonly faSwatchbook = faSwatchbook;
@@ -38,6 +40,7 @@ export class SellerOfferComponent implements OnInit{
   sort:any=undefined;
   isBundle:any=undefined;
   customMap: Record<string, boolean> = {};
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -48,7 +51,9 @@ export class SellerOfferComponent implements OnInit{
     private paginationService: PaginationService,
     private priceService: PriceServiceService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initOffers();
       }
@@ -57,6 +62,11 @@ export class SellerOfferComponent implements OnInit{
 
   ngOnInit() {
     this.initOffers();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initOffers(){
@@ -121,14 +131,11 @@ export class SellerOfferComponent implements OnInit{
       this.page=data.page;
       this.loading=false;
       this.loading_more=false;
-      console.log('offers...')
-      console.log(this.offers)
+
       this.customMap={}
       for (const offer of this.offers) {
         this.customMap[offer.id] = await this.priceService.isCustomOffering(offer);
       }
-      console.log('custom map')
-      console.log(this.customMap)
     })
 
   }

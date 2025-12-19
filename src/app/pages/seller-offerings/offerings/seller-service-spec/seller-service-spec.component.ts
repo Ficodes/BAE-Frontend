@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
@@ -11,13 +11,15 @@ import {LocalStorageService} from "src/app/services/local-storage.service";
 import {EventMessageService} from "src/app/services/event-message.service";
 import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'seller-service-spec',
   templateUrl: './seller-service-spec.component.html',
   styleUrl: './seller-service-spec.component.css'
 })
-export class SellerServiceSpecComponent implements OnInit {
+export class SellerServiceSpecComponent implements OnInit, OnDestroy {
   protected readonly faIdCard = faIdCard;
   protected readonly faSort = faSort;
   protected readonly faSwatchbook = faSwatchbook;
@@ -35,6 +37,7 @@ export class SellerServiceSpecComponent implements OnInit {
   status:any[]=['Active','Launched'];
   partyId:any;
   sort:any=undefined;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -45,7 +48,9 @@ export class SellerServiceSpecComponent implements OnInit {
     private eventMessage: EventMessageService,
     private paginationService: PaginationService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initServices();
       }
@@ -54,6 +59,11 @@ export class SellerServiceSpecComponent implements OnInit {
 
   ngOnInit() {
     this.initServices();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initServices(){

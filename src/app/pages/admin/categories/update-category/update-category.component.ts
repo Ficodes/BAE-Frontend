@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, Input, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import {LocalStorageService} from "src/app/services/local-storage.service";
@@ -7,6 +7,8 @@ import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import * as moment from 'moment';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import {components} from "src/app/models/product-catalog";
 type Category_Update = components["schemas"]["Category_Update"];
@@ -16,7 +18,7 @@ type Category_Update = components["schemas"]["Category_Update"];
   templateUrl: './update-category.component.html',
   styleUrl: './update-category.component.css'
 })
-export class UpdateCategoryComponent implements OnInit {
+export class UpdateCategoryComponent implements OnInit, OnDestroy {
   @Input() category: any;
 
   partyId:any='';
@@ -55,6 +57,7 @@ export class UpdateCategoryComponent implements OnInit {
 
   errorMessage:any='';
   showError:boolean=false;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -64,7 +67,9 @@ export class UpdateCategoryComponent implements OnInit {
     private elementRef: ElementRef,
     private api: ApiServiceService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -84,6 +89,11 @@ export class UpdateCategoryComponent implements OnInit {
 
   ngOnInit() {
     this.initPartyInfo();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){

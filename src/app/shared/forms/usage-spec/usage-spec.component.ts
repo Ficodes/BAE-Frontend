@@ -17,6 +17,8 @@ import { AccountServiceService } from 'src/app/services/account-service.service'
 import { UsageServiceService } from 'src/app/services/usage-service.service'
 import { v4 as uuidv4 } from 'uuid';
 import { environment } from 'src/environments/environment';
+import {Subject} from "rxjs";
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'usage-spec-form',
@@ -32,7 +34,7 @@ import { environment } from 'src/environments/environment';
   templateUrl: './usage-spec.component.html',
   styleUrl: './usage-spec.component.css'
 })
-export class UsageSpecComponent implements OnInit {
+export class UsageSpecComponent implements OnInit, OnDestroy {
 
   @Input() formType: 'create' | 'update' = 'create';
   @Input() usageSpec: any = {};
@@ -54,6 +56,7 @@ export class UsageSpecComponent implements OnInit {
 
   private formChanges: { [key: string]: FormChangeState } = {};
   private formSubscription: Subscription | null = null;
+  private destroy$ = new Subject<void>();
   hasChanges: boolean = false;
 
   constructor(private api: ApiServiceService,
@@ -68,12 +71,16 @@ export class UsageSpecComponent implements OnInit {
     });
 
     // Subscribe to form validation changes
-    this.usageSpecForm.statusChanges.subscribe(status => {
+    this.usageSpecForm.statusChanges
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(status => {
       this.isFormValid = status === 'VALID';
     });
 
     // Subscribe to subform changes
-    this.formSubscription = this.eventMessage.messages$.subscribe(message => {
+    this.formSubscription = this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(message => {
       if (message.type === 'SubformChange') {
         const changeState = message.value as FormChangeState;
         console.log('Received subform change:', changeState);
@@ -94,6 +101,8 @@ export class UsageSpecComponent implements OnInit {
     if (this.formSubscription) {
       this.formSubscription.unsubscribe();
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   goToStep(index: number) {

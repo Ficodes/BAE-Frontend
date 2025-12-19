@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
@@ -11,13 +11,15 @@ import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "../../services/event-message.service";
 import * as moment from 'moment';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-seller-offerings',
   templateUrl: './seller-offerings.component.html',
   styleUrl: './seller-offerings.component.css'
 })
-export class SellerOfferingsComponent implements OnInit {
+export class SellerOfferingsComponent implements OnInit, OnDestroy {
 
   show_catalogs: boolean = true;
   show_prod_specs: boolean = false;
@@ -52,13 +54,16 @@ export class SellerOfferingsComponent implements OnInit {
   };
   //partyIdCustom:string='urn:ngsi-ld:organization:02922d6d-2e7e-4235-a1aa-4f393a75bc52'
   //partyIdCustom:any=null
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
     private cdr: ChangeDetectorRef,
     private eventMessage: EventMessageService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'SellerProductSpec') {   
         if(ev.value == true && (JSON.stringify(this.userInfo) != '{}' && (((this.userInfo.expire - moment().unix())-4) > 0))) {
           this.feedback=true;
@@ -130,6 +135,11 @@ export class SellerOfferingsComponent implements OnInit {
     if (saved && this.sectionActions[saved]) {
       this.sectionActions[saved].call(this); // bind `this` context
     }
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   setActiveSection(section: string) {

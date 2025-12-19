@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {EventMessageService} from "src/app/services/event-message.service";
@@ -6,8 +6,9 @@ import {LocalStorageService} from "src/app/services/local-storage.service";
 import { DomeBlogServiceService } from "src/app/services/dome-blog-service.service"
 import { LoginInfo } from 'src/app/models/interfaces';
 import * as moment from 'moment';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, Subject } from 'rxjs';
 import { MarkdownComponent } from "ngx-markdown";
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-dome-blog',
@@ -16,7 +17,7 @@ import { MarkdownComponent } from "ngx-markdown";
   templateUrl: './dome-blog.component.html',
   styleUrl: './dome-blog.component.css'
 })
-export class DomeBlogComponent implements OnInit {
+export class DomeBlogComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private eventMessage: EventMessageService,
@@ -32,6 +33,7 @@ export class DomeBlogComponent implements OnInit {
 
   partyId:any='';
   checkAdmin:boolean=false;
+  private destroy$ = new Subject<void>();
 
   entries:any[]=[ ]
 
@@ -39,6 +41,11 @@ export class DomeBlogComponent implements OnInit {
     this.initPartyInfo();
     let entries = await this.domeBlogService.getBlogEntries();
     this.entries=entries;
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){

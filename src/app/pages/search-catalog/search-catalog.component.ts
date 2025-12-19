@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, HostListener, OnDestroy } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, NavigationStart } from '@angular/router';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { PriceServiceService } from 'src/app/services/price-service.service';
 import { PaginationService } from 'src/app/services/pagination.service';
@@ -13,6 +13,9 @@ import {Category, LoginInfo} from "../../models/interfaces";
 import { environment } from 'src/environments/environment';
 import { Router } from '@angular/router';
 import * as moment from 'moment';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { SearchStateService } from "../../services/search-state.service"
 
 @Component({
   selector: 'app-search-catalog',
@@ -29,19 +32,26 @@ export class SearchCatalogComponent implements OnInit, OnDestroy{
     private eventMessage: EventMessageService,
     private localStorage: LocalStorageService,
     private router: Router,
-    private paginationService: PaginationService
+    private paginationService: PaginationService,
+    private state: SearchStateService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'AddedFilter' || ev.type === 'RemovedFilter') {
         this.checkPanel();
       }
     })
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'CloseFeedback') {
         this.feedback = false;
       }
     })
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'AddedFilter' || ev.type === 'RemovedFilter') {
         this.getProducts(false);
       }
@@ -65,6 +75,8 @@ export class SearchCatalogComponent implements OnInit, OnDestroy{
   feedback:boolean=false;
   providerThemeName=environment.providerThemeName;
   logo='';
+  private destroy$ = new Subject<void>();
+  private navigatingToDetail = false;
 
 
   async ngOnInit() {
@@ -112,6 +124,19 @@ export class SearchCatalogComponent implements OnInit, OnDestroy{
       console.log(this.catalog)
     })
 
+    // 1. Restaurar estado
+    if (this.state.hasState()) {
+      console.log("Restoring state…");
+
+      this.products = this.state.products;
+      this.nextProducts = this.state.nextProducts;
+      this.page = this.state.page;
+      this.page_check = this.state.page_check;
+
+      return; // <-- IMPORTANTE: evitar volver a cargar desde cero
+    }
+
+    // Si no hay estado, entonces sí iniciar búsqueda normal
     await this.getProducts(false);
 
 
@@ -123,6 +148,19 @@ export class SearchCatalogComponent implements OnInit, OnDestroy{
     if ((JSON.stringify(userInfo) != '{}' && (((userInfo.expire - moment().unix())-4) > 0))) {
       this.feedback=true;
     }
+
+    this.router.events
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(event => {
+      if (event instanceof NavigationStart) {
+        // Detecta navegación al detalle del producto
+        if (event.url.startsWith('/search/urn:ngsi-ld:product-offering')) {
+          this.navigatingToDetail = true;
+        } else {
+          this.navigatingToDetail = false;
+        }
+      }
+    });
   }
 
   @HostListener('document:click')
@@ -137,12 +175,22 @@ export class SearchCatalogComponent implements OnInit, OnDestroy{
     this.router.navigate([path]);
   }
 
+
   ngOnDestroy(){
+    if (this.navigatingToDetail) {
+      return;
+    }
+
     let storedFilters = this.localStorage.getObject('selected_categories') as Category[] || [];
     for(let i=0;i<storedFilters.length;i++){
       this.localStorage.removeCategoryFilter(storedFilters[i]);
       this.eventMessage.emitRemovedFilter(storedFilters[i]);
     }
+
+    this.state.clear();
+
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   async getProducts(next:boolean){
@@ -167,6 +215,14 @@ export class SearchCatalogComponent implements OnInit, OnDestroy{
         this.page=data.page;
         this.loading=false;
         this.loading_more=false;
+
+        // SAVE STATE
+        this.state.save({
+          products: this.products,
+          nextProducts: this.nextProducts,
+          page: this.page,
+          page_check: this.page_check
+        });
     })
   }
 

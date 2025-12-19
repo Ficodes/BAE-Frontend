@@ -30,6 +30,8 @@ import { environment } from 'src/environments/environment';
 import {ThemeConfig} from "../../themes";
 import {Subscription} from "rxjs";
 import {ThemeService} from "../../services/theme.service";
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'bae-off-card',
@@ -86,6 +88,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   currentTheme: ThemeConfig | null = null;
   private themeSubscription: Subscription = new Subscription();
+  private destroy$ = new Subject<void>();
 
 
   productAlreadyInCart:boolean=false;
@@ -107,7 +110,9 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.targetModal = document.getElementById('details-modal');
       this.modal = new Modal(this.targetModal);
 
-      this.eventMessage.messages$.subscribe(ev => {
+      this.eventMessage.messages$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(ev => {
         if(ev.type === 'CloseCartCard') {
           this.hideCartSelection();
           //TOGGLE TOAST
@@ -209,6 +214,8 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.themeSubscription) {
       this.themeSubscription.unsubscribe();
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   async ngOnInit() {

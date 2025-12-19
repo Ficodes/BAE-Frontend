@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnDestroy } from '@angular/core';
 import { LoginInfo, billingAccountCart } from 'src/app/models/interfaces';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
@@ -16,6 +16,8 @@ import {EventMessageService} from "src/app/services/event-message.service";
 import * as moment from 'moment';
 import { environment } from 'src/environments/environment';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'order-info',
@@ -23,7 +25,7 @@ import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
   styleUrl: './order-info.component.css'
 })
 
-export class OrderInfoComponent implements OnInit {
+export class OrderInfoComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   orders:any[]=[];
   nextOrders:any[]=[];
@@ -48,6 +50,8 @@ export class OrderInfoComponent implements OnInit {
   protected readonly faSort = faSort;
   protected readonly faSwatchbook = faSwatchbook;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private localStorage: LocalStorageService,
     private api: ApiServiceService,
@@ -57,7 +61,9 @@ export class OrderInfoComponent implements OnInit {
     private eventMessage: EventMessageService,
     private paginationService: PaginationService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -80,6 +86,11 @@ export class OrderInfoComponent implements OnInit {
     this.selectedDate = today.toISOString();
     this.dateRange.setValue('month');
     this.initPartyInfo();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){

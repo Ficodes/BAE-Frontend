@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, NgModule } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, NgModule, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
 import { LoginInfo, billingAccountCart } from 'src/app/models/interfaces';
@@ -20,6 +20,8 @@ import { environment } from 'src/environments/environment';
 import {faIdCard, faSort, faSwatchbook, faEdit, faSave} from "@fortawesome/pro-solid-svg-icons";
 import { TranslateModule } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-invoices-info',
@@ -29,7 +31,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
   templateUrl: './invoices-info.component.html',
   styleUrl: './invoices-info.component.css'
 })
-export class InvoicesInfoComponent implements OnInit {
+export class InvoicesInfoComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   invoices:any[]=[];
   nextInvoices:any[]=[];
@@ -67,6 +69,7 @@ export class InvoicesInfoComponent implements OnInit {
   protected readonly faSwatchbook = faSwatchbook;
   protected readonly faEdit = faEdit;
   protected readonly faSave = faSave;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
@@ -78,7 +81,9 @@ export class InvoicesInfoComponent implements OnInit {
     private paginationService: PaginationService,
     private router: Router
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -101,6 +106,11 @@ export class InvoicesInfoComponent implements OnInit {
     this.selectedDate = today.toISOString();
     this.dateRange.setValue('month');
     this.initPartyInfo();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){

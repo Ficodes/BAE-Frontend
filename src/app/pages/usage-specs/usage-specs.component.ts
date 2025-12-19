@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { LoginInfo, billingAccountCart } from 'src/app/models/interfaces';
 import { ApiServiceService } from 'src/app/services/product-service.service';
@@ -22,6 +22,8 @@ import { UsageListComponent } from "src/app/pages/usage-specs/usage-sections/usa
 import { UsageSpecComponent } from "src/app/shared/forms/usage-spec/usage-spec.component"
 import { CreateUsageSpecComponent } from "./usage-sections/create-usage-spec/create-usage-spec.component"
 import { UpdateUsageSpecComponent } from './usage-sections/update-usage-spec/update-usage-spec.component'
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-usage-specs',
@@ -39,20 +41,23 @@ import { UpdateUsageSpecComponent } from './usage-sections/update-usage-spec/upd
   templateUrl: './usage-specs.component.html',
   styleUrl: './usage-specs.component.css'
 })
-export class UsageSpecsComponent implements OnInit {
+export class UsageSpecsComponent implements OnInit, OnDestroy {
 
   userInfo:any;
   show_usage_specs:boolean=true;
   show_create_usage:boolean=false;
   show_update_usage:boolean=false;
   usageSpecToUpdate:any;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
     private cdr: ChangeDetectorRef,
     private eventMessage: EventMessageService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'UsageSpecList' && ev.value == true) {        
         this.goToUsageSpec();
       } else if(ev.type === 'UpdateUsageSpec' && ev.value) {  
@@ -70,6 +75,11 @@ export class UsageSpecsComponent implements OnInit {
 
   ngOnInit(): void {
     this.userInfo = this.localStorage.getObject('login_items') as LoginInfo;
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   goToUsageSpec(){
