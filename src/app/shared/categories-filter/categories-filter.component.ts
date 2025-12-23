@@ -72,32 +72,28 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
     console.log('selected categories')
     console.log(this.selected)
     if(this.catalogId!=undefined){
-      this.api.getCatalog(this.catalogId).then(data => {
-        if(data.category){
-          for (let i=0; i<data.category.length; i++){
-            this.api.getCategoryById(data.category[i].id).then(categoryInfo => {
-              this.findChildrenByParent(categoryInfo);
-            })
-          }
-          initFlowbite();
-        } else {
-          this.api.getLaunchedCategories().then(data => {
-            for(let i=0; i < data.length; i++){
-              this.findChildren(data[i],data)
-            }
-            this.cdr.detectChanges();
-            initFlowbite();
-          })           
+      let data = await this.api.getCatalog(this.catalogId);
+      if(data.category){
+        for (let i=0; i<data.category.length; i++){
+          let categoryInfo = await this.api.getCategoryById(data.category[i].id)
+          await this.findChildrenByParent(categoryInfo);
         }
-      })
-    } else {
-      await this.api.getLaunchedCategories().then(data => {
-        for(let i=0; i < data.length; i++){
-          this.findChildren(data[i],data)
-        }
-        this.cdr.detectChanges();
         initFlowbite();
-      }) 
+      } else {
+        let launched = await this.api.getLaunchedCategories()
+          for(let i=0; i < launched.length; i++){
+            this.findChildren(launched[i],launched)
+          }
+          this.cdr.detectChanges();
+          initFlowbite();
+      }
+    } else {
+      let data = await this.api.getLaunchedCategories()
+      for(let i=0; i < data.length; i++){
+        this.findChildren(data[i],data)
+      }
+      this.cdr.detectChanges();
+      initFlowbite();
     }
   }
 
@@ -125,9 +121,9 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
     }
   }
 
-  findChildrenByParent(parent:any){
+  async findChildrenByParent(parent:any){
     let childs: any[] = []
-    this.api.getCategoriesByParentId(parent.id).then(c => {
+    let c = await this.api.getCategoriesByParentId(parent.id)
       childs=c;
       parent["children"] = childs;
       if(parent.isRoot == true){
@@ -137,11 +133,10 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
       }
       if(childs.length != 0){
         for(let i=0; i < childs.length; i++){
-          this.findChildrenByParent(childs[i])
+          await this.findChildrenByParent(childs[i])
         }
       }
       initFlowbite();
-    })
 
   }
 
