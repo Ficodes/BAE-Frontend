@@ -172,9 +172,9 @@ export class QuoteService {
   getQuotesByUserAndRole(userId: string, role: 'customer' | 'seller'): Observable<Quote[]> {
     let params = new HttpParams();
     // API expects 'Customer' or 'Seller' (capitalized)
-    const apiRole = role === 'customer' ? 'Customer' : 'Seller';
+    const apiRole = role === 'customer' ? environment.BUYER_ROLE : environment.SELLER_ROLE;
     params = params.set('role', apiRole);
-    
+
     const encodedUserId = encodeURIComponent(userId);
     console.log('Getting quotes by user with URL:', `${this.apiUrl}/quoteByUser/${encodedUserId}`);
     return this.http.get<Quote[]>(`${this.apiUrl}/quoteByUser/${encodedUserId}`, { params, ...this.httpOptions });

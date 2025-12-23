@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, Output, OnInit, HostListener, SimpleChanges, OnChanges} from '@angular/core';
+import {Component, EventEmitter, Input, Output, OnInit, HostListener, SimpleChanges, OnChanges, OnDestroy} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MarkdownTextareaComponent} from "../../../markdown-textarea/markdown-textarea.component";
 import {TranslateModule} from "@ngx-translate/core";
@@ -9,6 +9,8 @@ import {currencies} from "currencies.json";
 import {
   ConfigurationProfileDrawerComponent
 } from "../configuration-profile-drawer/configuration-profile-drawer.component";
+import {Subject} from "rxjs";
+import { takeUntil } from 'rxjs/operators';
 
 
 @Component({
@@ -28,7 +30,7 @@ import {
   ],
   styleUrl: './price-plan-drawer.component.css'
 })
-export class PricePlanDrawerComponent implements OnInit {
+export class PricePlanDrawerComponent implements OnInit, OnDestroy {
   @Input() formGroup!: FormGroup;  // Receive the parent form
   @Input() prodSpec: any | null = null;  // Access to prodSpec
 
@@ -44,6 +46,7 @@ export class PricePlanDrawerComponent implements OnInit {
   //protected readonly currencies = currencies;
   //Only allowing EUR for the moment
   protected readonly  currencies=[currencies[2]];
+  private destroy$ = new Subject<void>();
 
   constructor(private fb: FormBuilder) {}
 
@@ -64,7 +67,9 @@ export class PricePlanDrawerComponent implements OnInit {
     }
 
     // 🔹 Ensure dynamic updates work
-    this.formGroup.get('paymentOnline')?.valueChanges.subscribe(value => {
+    this.formGroup.get('paymentOnline')?.valueChanges
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(value => {
       if (!value) {
         this.formGroup.get('priceType')?.setValue('custom');
       } else {
@@ -73,7 +78,9 @@ export class PricePlanDrawerComponent implements OnInit {
     });
 
     // 🔹 Mark the form as touched when changes occur
-    this.formGroup.valueChanges.subscribe(() => {
+    this.formGroup.valueChanges
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(() => {
       this.formGroup.markAsTouched();
     });
 
@@ -82,6 +89,11 @@ export class PricePlanDrawerComponent implements OnInit {
     if (paymentOnlineControl) {
       paymentOnlineControl.disable();
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   savePricePlan() {

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, OnDestroy } from '@angular/core';
 import {
   faCartShopping
 } from "@fortawesome/sharp-solid-svg-icons";
@@ -13,13 +13,16 @@ import { AccountServiceService } from 'src/app/services/account-service.service'
 import { cartProduct } from '../../models/interfaces';
 import { TYPES } from 'src/app/models/types.const';
 import { Router } from '@angular/router';
+import { environment } from 'src/environments/environment';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-cart-drawer',
   templateUrl: './cart-drawer.component.html',
   styleUrl: './cart-drawer.component.css'
 })
-export class CartDrawerComponent implements OnInit{
+export class CartDrawerComponent implements OnInit, OnDestroy {
   protected readonly faCartShopping = faCartShopping;
   items: any[] = [];
   totalPrice:any;
@@ -28,6 +31,8 @@ export class CartDrawerComponent implements OnInit{
   loading:boolean=false;
   errorMessage:string='';
   showError:boolean=false;
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
@@ -50,7 +55,9 @@ export class CartDrawerComponent implements OnInit{
     this.showBackDrop=true;
     this.getCart();
 
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'AddedCartItem') {
         console.log('Elemento añadido')
         this.loading=true;
@@ -62,6 +69,11 @@ export class CartDrawerComponent implements OnInit{
     })
     console.log('Elementos en el carrito....')
     console.log(this.items)
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get objectKeys() {
@@ -112,6 +124,12 @@ export class CartDrawerComponent implements OnInit{
     this.eventMessage.emitToggleDrawer(false);
   }
 
+  getSellerId(providerItem: any) {
+    let partyRef = providerItem.relatedParty.find((party: any) => {
+      return party.role === environment.SELLER_ROLE
+    });
+    return partyRef.id;
+  }
 
   goToShoppingCart(id:any) {
     this.hideCart();
@@ -143,7 +161,7 @@ export class CartDrawerComponent implements OnInit{
     const groupedByOwner: any[][] = Object.values(
       this.items.reduce((groups: any, item: any) => {
         const owner = item.relatedParty
-          ?.find((rp: any) => rp.role === 'Owner')
+          ?.find((rp: any) => rp.role === environment.SELLER_ROLE)
           ?.id;
     
         if (owner) {

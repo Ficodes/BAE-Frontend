@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, Input, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import {components} from "src/app/models/product-catalog";
 import { environment } from 'src/environments/environment';
@@ -16,7 +16,8 @@ import { FormGroup, FormControl, Validators, AbstractControl, ValidationErrors, 
 import * as moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 import { currencies } from 'currencies.json';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 type ProductOffering_Update = components["schemas"]["ProductOffering_Update"];
 type BundledProductOffering = components["schemas"]["BundledProductOffering"];
@@ -28,7 +29,7 @@ type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
   templateUrl: './update-offer.component.html',
   styleUrl: './update-offer.component.css'
 })
-export class UpdateOfferComponent implements OnInit{
+export class UpdateOfferComponent implements OnInit, OnDestroy {
   @Input() offer: any;
 
   //PAGE SIZES:
@@ -194,6 +195,8 @@ export class UpdateOfferComponent implements OnInit{
   availableCountries:any[]=['Austria','Belgium','Germany','Hungary','Luxembourg','Poland','Romania','Spain']
   availableMarketplaces:any[]=['BEIA Software Services','CloudFerro','CSI Piemonte','digitanimal','Digitel TS','DOME']
 
+  private destroy$ = new Subject<void>();
+
   @ViewChild('updatemetric') updatemetric!: ElementRef;
   @ViewChild('responsemetric') responsemetric!: ElementRef;
   @ViewChild('delaymetric') delaymetric!: ElementRef;
@@ -214,7 +217,9 @@ export class UpdateOfferComponent implements OnInit{
     private resSpecService: ResourceSpecServiceService,
     private paginationService: PaginationService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'CategoryAdded') {
         this.addCategory(ev.value);
       }
@@ -261,6 +266,11 @@ export class UpdateOfferComponent implements OnInit{
     console.log(this.offer)
     this.editPrice=false;
     this.showCreatePrice=false;
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){

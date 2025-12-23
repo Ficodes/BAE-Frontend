@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {CardComponent} from "../../shared/card/card.component";
 import {components} from "../../models/product-catalog";
@@ -6,18 +6,20 @@ type ProductOffering = components["schemas"]["ProductOffering"];
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import {ThemeService} from "../../services/theme.service";
 import {ThemeConfig} from "../../themes";
-import { Subscription } from 'rxjs';
+import { Subscription, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'bae-off-gallery',
   templateUrl: './gallery.component.html',
   styleUrl: './gallery.component.css'
 })
-export class GalleryComponent implements OnInit {
+export class GalleryComponent implements OnInit, OnDestroy {
 
   products: ProductOffering[]=[];
   private themeSubscription: Subscription = new Subscription();
   currentTheme: ThemeConfig | null = null;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private api: ApiServiceService,
@@ -29,7 +31,9 @@ export class GalleryComponent implements OnInit {
   gallery_limit=4;
 
   ngOnInit() {
-    this.themeSubscription = this.themeService.currentTheme$.subscribe(theme => {
+    this.themeSubscription = this.themeService.currentTheme$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(theme => {
       this.currentTheme = theme;
     });
     console.log('API RESPONSE:')
@@ -105,6 +109,11 @@ export class GalleryComponent implements OnInit {
 
     console.log('Productos...')
     console.log(this.products)
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
 }

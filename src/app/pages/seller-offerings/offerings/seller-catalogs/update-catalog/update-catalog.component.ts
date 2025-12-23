@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, Input, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import {LocalStorageService} from "src/app/services/local-storage.service";
@@ -7,6 +7,8 @@ import { LoginInfo } from 'src/app/models/interfaces';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import * as moment from 'moment';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import {components} from "src/app/models/product-catalog";
 type Catalog_Update = components["schemas"]["Catalog_Update"];
@@ -16,7 +18,7 @@ type Catalog_Update = components["schemas"]["Catalog_Update"];
   templateUrl: './update-catalog.component.html',
   styleUrl: './update-catalog.component.css'
 })
-export class UpdateCatalogComponent implements OnInit {
+export class UpdateCatalogComponent implements OnInit, OnDestroy {
   @Input() cat: any;
 
   partyId:any='';
@@ -53,6 +55,7 @@ export class UpdateCatalogComponent implements OnInit {
   errorMessage:any='';
   showError:boolean=false;
   loading:boolean=false;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -62,7 +65,9 @@ export class UpdateCatalogComponent implements OnInit {
     private elementRef: ElementRef,
     private api: ApiServiceService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -80,6 +85,11 @@ export class UpdateCatalogComponent implements OnInit {
   ngOnInit() {
     this.initPartyInfo();
     this.populateCatInfo();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   populateCatInfo(){

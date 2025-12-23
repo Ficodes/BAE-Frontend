@@ -24,7 +24,7 @@ describe('/my-offerings',{
 
         const newCatalog = { id: 'test', href: 'test',name: 'catalogTest', description: '', lifecycleStatus: 'Launched', relatedParty: [{
             id: local_items.partyId,
-            role: 'Owner',
+            role: 'Seller',
             '@referredType': ''
         }]}
 
@@ -75,7 +75,7 @@ describe('/my-offerings',{
 
         const newCatalog = { id: 'catalogId', href: 'catalogId',name: 'catalogTest', description: '', lifecycleStatus: 'Launched', relatedParty: [{
             id: local_items.partyId,
-            role: 'Owner',
+            role: 'Seller',
             '@referredType': ''
         }]}
 
@@ -154,7 +154,7 @@ describe('/my-offerings',{
 
         const newCatalog = { id: 'catalogId', href: 'catalogId',name: 'catalogTest', description: '', lifecycleStatus: 'Launched', relatedParty: [{
             id: local_items.partyId,
-            role: 'Owner',
+            role: 'Seller',
             '@referredType': ''
         }]}
 
@@ -168,7 +168,7 @@ describe('/my-offerings',{
                     {
                         "id": "mock:organization",
                         "href": "mock:organization",
-                        "role": "owner",
+                        "role": "Seller",
                         "@referredType": null
                     }
                 ],
@@ -262,7 +262,7 @@ describe('/my-offerings',{
 
         const newCatalog = { id: 'catalogId', href: 'catalogId',name: 'catalogTest', description: '', lifecycleStatus: 'Launched', relatedParty: [{
             id: local_items.partyId,
-            role: 'Owner',
+            role: 'Seller',
             '@referredType': ''
         }]}
 

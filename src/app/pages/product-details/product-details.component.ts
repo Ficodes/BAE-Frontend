@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild,ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild,ChangeDetectorRef, HostListener, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import {components} from "../../models/product-catalog";
@@ -18,14 +18,15 @@ import {EventMessageService} from "../../services/event-message.service";
 import * as moment from 'moment';
 import { environment } from 'src/environments/environment';
 import { Location } from '@angular/common';
-import {firstValueFrom} from "rxjs";
+import {firstValueFrom, Subject} from "rxjs";
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-product-details',
   templateUrl: './product-details.component.html',
   styleUrl: './product-details.component.css'
 })
-export class ProductDetailsComponent implements OnInit {
+export class ProductDetailsComponent implements OnInit, OnDestroy {
 
   @ViewChild('relationshipsContent')
   relationshipsContent: ElementRef | undefined;
@@ -104,6 +105,7 @@ export class ProductDetailsComponent implements OnInit {
   isLoaded = false;
   private isManualScroll = false;
   private scrollTimeout: any;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -119,7 +121,9 @@ export class ProductDetailsComponent implements OnInit {
     private location: Location
   ) {
     this.showTermsMore=false;
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'CloseCartCard') {
         this.hideCartSelection();
         //TOGGLE TOAST
@@ -165,6 +169,11 @@ export class ProductDetailsComponent implements OnInit {
         })
       }
     })
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   @HostListener('window:scroll', ['$event'])
@@ -852,10 +861,10 @@ async deleteProduct(product: Product | undefined){
     let parties = this.prodSpec?.relatedParty;
     if(parties)
     for(let i=0; i<parties.length;i++){
-      if(parties[i].role=='Owner'){
+      if(parties[i].role == environment.SELLER_ROLE){
         if(parties[i].id.includes('organization')){
           this.accService.getOrgInfo(parties[i].id).then(org => {
-            this.orgInfo=org;
+            this.orgInfo = org;
             console.log(this.orgInfo)
           })
         }

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnDestroy } from '@angular/core';
 import { LoginInfo, billingAccountCart } from 'src/app/models/interfaces';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
@@ -16,6 +16,8 @@ import {EventMessageService} from "src/app/services/event-message.service";
 import * as moment from 'moment';
 import { environment } from 'src/environments/environment';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'order-info',
@@ -23,7 +25,7 @@ import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
   styleUrl: './order-info.component.css'
 })
 
-export class OrderInfoComponent implements OnInit {
+export class OrderInfoComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   orders:any[]=[];
   nextOrders:any[]=[];
@@ -42,11 +44,13 @@ export class OrderInfoComponent implements OnInit {
   filters: any[]=[];
   check_custom:boolean=false;
   isSeller:boolean=false;
-  role:any='Customer'
+  role:any=environment.BUYER_ROLE;
 
   protected readonly faIdCard = faIdCard;
   protected readonly faSort = faSort;
   protected readonly faSwatchbook = faSwatchbook;
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
@@ -57,7 +61,9 @@ export class OrderInfoComponent implements OnInit {
     private eventMessage: EventMessageService,
     private paginationService: PaginationService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -82,16 +88,21 @@ export class OrderInfoComponent implements OnInit {
     this.initPartyInfo();
   }
 
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   initPartyInfo(){
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
     if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
-      if(aux.logged_as==aux.id){
+      if(aux.logged_as == aux.id){
         this.partyId = aux.partyId;
         let userRoles = aux.roles.map((elem: any) => {
           return elem.name
         })
-        if (userRoles.includes("seller")) {
-          this.isSeller=true;
+        if (userRoles.includes(environment.SELLER_ROLE)) {
+          this.isSeller = true;
         }
       } else {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as);
@@ -99,8 +110,8 @@ export class OrderInfoComponent implements OnInit {
         let orgRoles = loggedOrg.roles.map((elem: any) => {
           return elem.name
         })
-        if (orgRoles.includes("seller")) {
-          this.isSeller=true;
+        if (orgRoles.includes(environment.SELLER_ROLE)) {
+          this.isSeller = true;
         }
       }
       //this.partyId = aux.partyId;
@@ -248,8 +259,7 @@ export class OrderInfoComponent implements OnInit {
   }
 
   async onRoleChange(event: any) {
-    this.role=event.target.value;
+    this.role = event.target.value == 'Customer' ? environment.BUYER_ROLE : environment.SELLER_ROLE;
     await this.getOrders(false);
   }
-
 }

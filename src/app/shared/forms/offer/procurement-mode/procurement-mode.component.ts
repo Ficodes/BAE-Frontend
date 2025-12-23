@@ -8,7 +8,8 @@ import {FormChangeState} from "../../../../models/interfaces";
 import {EventMessageService} from "src/app/services/event-message.service";
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { lastValueFrom, Subscription } from 'rxjs';
+import { lastValueFrom, Subscription, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 interface ProcurementMode {
   id: string;
@@ -54,6 +55,7 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
   private hasBeenModified: boolean = false;
   private isEditMode: boolean = false;
   private formSub?: Subscription;
+  private destroy$ = new Subject<void>();
 
   showProcurementError:boolean=false;
   errorMessage:string = '';
@@ -62,7 +64,9 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
 
   constructor(private cdr: ChangeDetectorRef, private eventMessage: EventMessageService, private http: HttpClient) {
     console.log('🔄 Initializing ProcurementModeComponent');
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'UpdateOffer') {
         if (this.isEditMode && this.hasBeenModified && this.originalValue) {
           const currentValue = {
@@ -160,7 +164,9 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
     }
 
     // Suscribirse a los cambios del formulario
-    this.formSub = this.form.valueChanges.subscribe(value => {
+    this.formSub = this.form.valueChanges
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(value => {
       console.log('📝 Form value changed in subscription:', value);
 
       if (value && value.mode) {
@@ -246,5 +252,7 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
         });
       }
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
