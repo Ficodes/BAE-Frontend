@@ -380,7 +380,7 @@ export class OfferComponent implements OnInit, OnDestroy{
                 priceComp.discountUnit='percentage'
               }else{
                 priceComp.discountValue=alter?.price?.value
-                priceComp.discountUnit=alter?.price?.unit
+                priceComp.discountUnit='fixed'
               }            
               priceComp.discountDuration = alter?.unitOfMeasure?.amount            
               priceComp.discountDurationUnit = alter?.unitOfMeasure?.units            
