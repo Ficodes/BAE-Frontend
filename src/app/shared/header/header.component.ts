@@ -65,6 +65,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   }
   providerThemeName = environment.providerThemeName;
   quotesEnabled = environment.QUOTES_ENABLED;
+  tenderEnabled = environment.TENDER_ENABLED;
   qrWindow: Window | null = null;
   statePair:string
   catalogs: any[] | undefined  = [];

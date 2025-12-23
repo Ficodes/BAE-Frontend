@@ -83,6 +83,7 @@ export const environment = {
         deleteQuote: '/quote'
     },
     QUOTES_ENABLED: true,
+    TENDER_ENABLED: true,
     analytics: '',
     feedbackCampaign: false,
     feedbackCampaignExpiration: 0,
