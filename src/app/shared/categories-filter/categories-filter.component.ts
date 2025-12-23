@@ -64,36 +64,13 @@ export class CategoriesFilterComponent implements OnInit {
     for(let i=0; i<this.selected.length;i++){
       this.checkedCategories.push(this.selected[i].id)
     }
-    console.log('selected categories')
-    console.log(this.selected)
-    if(this.catalogId!=undefined){
-      this.api.getCatalog(this.catalogId).then(data => {
-        if(data.category){
-          for (let i=0; i<data.category.length; i++){
-            this.api.getCategoryById(data.category[i].id).then(categoryInfo => {
-              this.findChildrenByParent(categoryInfo);
-            })
-          }
-          initFlowbite();
-        } else {
-          this.api.getLaunchedCategories().then(data => {
-            for(let i=0; i < data.length; i++){
-              this.findChildren(data[i],data)
-            }
-            this.cdr.detectChanges();
-            initFlowbite();
-          })           
-        }
-      })
-    } else {
-      await this.api.getLaunchedCategories().then(data => {
-        for(let i=0; i < data.length; i++){
-          this.findChildren(data[i],data)
-        }
-        this.cdr.detectChanges();
-        initFlowbite();
-      }) 
-    }
+    await this.api.getLaunchedCategories().then(data => {
+      for(let i=0; i < data.length; i++){
+        this.findChildren(data[i],data)
+      }
+      this.cdr.detectChanges();
+      initFlowbite();
+    })
   }
 
   ngAfterViewInit() {
