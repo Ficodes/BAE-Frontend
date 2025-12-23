@@ -121,6 +121,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   disableCompNext:boolean=true;
   selfAtt:any;
   showUploadAtt:boolean=false;
+  isoToCreate:string='';
 
   //SERVICE INFO:
   serviceSpecPage=0;
@@ -489,7 +490,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
                 }, 3000);
                 return;
               }
-              if(this.showCompliance && !this.showUploadAtt){
+              if(((this.currentStep === 1 && !this.BUNDLE_ENABLED) || (this.currentStep === 2 && this.BUNDLE_ENABLED)) && !this.showUploadAtt){
                 const index = this.selectedISOS.findIndex(item => item.name === sel.name);
                 this.attachmentService.uploadFile(fileBody).subscribe({
                   next: data => {
@@ -518,7 +519,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
                   }
                 });
               }
-              if(this.showUploadAtt){
+              if(((this.currentStep === 1 && !this.BUNDLE_ENABLED) || (this.currentStep === 2 && this.BUNDLE_ENABLED)) && this.showUploadAtt){
                 const index = this.finishChars.findIndex(item => item.name === this.selfAtt.name);
                 this.attachmentService.uploadFile(fileBody).subscribe({
                   next: data => {
