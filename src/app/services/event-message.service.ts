@@ -126,14 +126,10 @@ export class EventMessageService {
   }
 
   emitCategoryAdded(cat:Category){
-    console.log('event emitter category')
-    console.log(cat)
     this.eventMessageSubject.next({ type: 'CategoryAdded', value: cat });
   }
 
   emitChangedSession(session:any){
-    console.log('event eChangedSession')
-    console.log(session)
     this.eventMessageSubject.next({ type: 'ChangedSession', value: session });
   }
 

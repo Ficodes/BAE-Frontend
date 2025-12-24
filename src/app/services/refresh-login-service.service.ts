@@ -25,20 +25,8 @@ export class RefreshLoginServiceService {
   startInterval(intervalDuration: number, data:any): void {
     this.intervalObservable = interval(intervalDuration);
 
-    console.log('start interval')
-    console.log(intervalDuration)
-
     this.intervalSubscription = this.intervalObservable.subscribe(() => {
-      console.log('login subscription')
-      console.log(data.expire - moment().unix())
-      console.log(data.expire - moment().unix() <= 5)
-      console.log((data.expire - moment().unix()) - 5)
-
       let aux = this.localStorage.getObject('login_items') as LoginInfo;
-
-      console.log('usuario antes')
-      console.log(aux)
-
       this.api.getLogin(aux['token']).then(refreshed => {
         this.stopInterval()
 
@@ -54,9 +42,6 @@ export class RefreshLoginServiceService {
           "logged_as": aux['logged_as']
         });
 
-        console.log('usuario despues')
-        console.log(this.localStorage.getObject('login_items') as LoginInfo)
-
         // Start the interval only if the token has been really refreshed
         // Otherwise close the session
         if (refreshed.expire > moment().unix() + 4) {
@@ -65,16 +50,11 @@ export class RefreshLoginServiceService {
           this.stopInterval();
           this.localStorage.setObject('login_items',{});
           this.api.logout().catch((err) => {
-            console.log('Something happened')
-            console.log(err)
           })
 
           this.router.navigate(['/dashboard']).then(() => {
-            console.log('LOGOUT MADE')
             window.location.reload()
           }).catch((err) => {
-            console.log('Something happened router')
-            console.log(err)
           })
         }
       })
@@ -83,7 +63,6 @@ export class RefreshLoginServiceService {
 
   stopInterval(): void {
     if (this.intervalSubscription) {
-      console.log('stop interval')
       this.intervalSubscription.unsubscribe();
     }
   }
