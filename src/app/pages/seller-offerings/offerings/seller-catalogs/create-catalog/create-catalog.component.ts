@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import {LocalStorageService} from "src/app/services/local-storage.service";
@@ -7,8 +7,11 @@ import { LoginInfo } from 'src/app/models/interfaces';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import * as moment from 'moment';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import {components} from "src/app/models/product-catalog";
+import { environment } from 'src/environments/environment';
 type Catalog_Create = components["schemas"]["Catalog_Create"];
 
 @Component({
@@ -16,7 +19,7 @@ type Catalog_Create = components["schemas"]["Catalog_Create"];
   templateUrl: './create-catalog.component.html',
   styleUrl: './create-catalog.component.css'
 })
-export class CreateCatalogComponent implements OnInit {
+export class CreateCatalogComponent implements OnInit, OnDestroy {
   partyId:any='';
 
   catalogToCreate:Catalog_Create | undefined;
@@ -51,6 +54,7 @@ export class CreateCatalogComponent implements OnInit {
 
   errorMessage:any='';
   showError:boolean=false;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -60,7 +64,9 @@ export class CreateCatalogComponent implements OnInit {
     private elementRef: ElementRef,
     private api: ApiServiceService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -77,6 +83,11 @@ export class CreateCatalogComponent implements OnInit {
 
   ngOnInit() {
     this.initPartyInfo();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){
@@ -121,7 +132,7 @@ export class CreateCatalogComponent implements OnInit {
           {
               id: this.partyId,
               //href: "http://proxy.docker:8004/party/individual/urn:ngsi-ld:individual:803ee97b-1671-4526-ba3f-74681b22ccf3",
-              role: "Owner",
+              role: environment.SELLER_ROLE,
               "@referredType": ''
           }
         ],

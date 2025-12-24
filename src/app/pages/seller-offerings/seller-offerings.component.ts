@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
@@ -11,13 +11,15 @@ import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "../../services/event-message.service";
 import * as moment from 'moment';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-seller-offerings',
   templateUrl: './seller-offerings.component.html',
   styleUrl: './seller-offerings.component.css'
 })
-export class SellerOfferingsComponent implements OnInit {
+export class SellerOfferingsComponent implements OnInit, OnDestroy {
 
   show_catalogs: boolean = true;
   show_prod_specs: boolean = false;
@@ -34,6 +36,7 @@ export class SellerOfferingsComponent implements OnInit {
   show_update_res_spec:boolean=false;
   show_update_offer:boolean=false;
   show_update_catalog:boolean=false;
+  show_create_custom_offer:boolean=false;
   prod_to_update:any;
   serv_to_update:any;
   res_to_update:any;
@@ -49,13 +52,18 @@ export class SellerOfferingsComponent implements OnInit {
     servicespec: this.goToServiceSpec,
     resourcespec: this.goToResourceSpec
   };
+  //partyIdCustom:string='urn:ngsi-ld:organization:02922d6d-2e7e-4235-a1aa-4f393a75bc52'
+  //partyIdCustom:any=null
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
     private cdr: ChangeDetectorRef,
     private eventMessage: EventMessageService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'SellerProductSpec') {   
         if(ev.value == true && (JSON.stringify(this.userInfo) != '{}' && (((this.userInfo.expire - moment().unix())-4) > 0))) {
           this.feedback=true;
@@ -105,6 +113,10 @@ export class SellerOfferingsComponent implements OnInit {
         this.offer_to_update=ev.value;
         this.goToUpdateOffer();
       }
+      if(ev.type === 'SellerCreateCustomOffer') {
+        this.offer_to_update=ev.value;
+        this.goToCreateCustomOffer();
+      }
       if(ev.type === 'SellerCatalogUpdate') {
         this.catalog_to_update=ev.value;
         this.goToUpdateCatalog();
@@ -123,6 +135,11 @@ export class SellerOfferingsComponent implements OnInit {
     if (saved && this.sectionActions[saved]) {
       this.sectionActions[saved].call(this); // bind `this` context
     }
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   setActiveSection(section: string) {
@@ -146,6 +163,7 @@ export class SellerOfferingsComponent implements OnInit {
     this.show_update_serv_spec=false;
     this.show_update_offer=false;
     this.show_create_catalog=false;
+    this.show_create_custom_offer=false;
     this.cdr.detectChanges();
   }
 
@@ -165,6 +183,7 @@ export class SellerOfferingsComponent implements OnInit {
     this.show_update_offer=false;
     this.show_update_catalog=false;
     this.show_create_catalog=false;
+    this.show_create_custom_offer=false;
     this.cdr.detectChanges();  
   }
 
@@ -184,6 +203,7 @@ export class SellerOfferingsComponent implements OnInit {
     this.show_update_offer=false;
     this.show_update_catalog=false;
     this.show_create_catalog=true;
+    this.show_create_custom_offer=false;
     this.cdr.detectChanges();
   }
 
@@ -203,6 +223,7 @@ export class SellerOfferingsComponent implements OnInit {
     this.show_update_offer=false;
     this.show_create_catalog=false;
     this.show_update_catalog=true;
+    this.show_create_custom_offer=false;
     this.cdr.detectChanges();
   }
 
@@ -225,6 +246,26 @@ export class SellerOfferingsComponent implements OnInit {
     this.cdr.detectChanges();  
   }
 
+  goToCreateCustomOffer(){
+    this.show_catalogs=false;
+    this.show_prod_specs=false;
+    this.show_service_specs=false;
+    this.show_resource_specs=false;
+    this.show_offers=false;
+    this.show_create_prod_spec=false;
+    this.show_create_serv_spec=false;
+    this.show_create_res_spec=false;
+    this.show_create_offer=false;
+    this.show_update_prod_spec=false;
+    this.show_update_res_spec=false;
+    this.show_update_serv_spec=false;
+    this.show_update_offer=false;
+    this.show_update_catalog=false;
+    this.show_create_catalog=false;
+    this.show_create_custom_offer=true;
+    this.cdr.detectChanges();  
+  }
+
   goToUpdateServiceSpec(){
     this.show_catalogs=false;
     this.show_prod_specs=false;
@@ -241,6 +282,7 @@ export class SellerOfferingsComponent implements OnInit {
     this.show_update_offer=false;
     this.show_update_catalog=false;
     this.show_create_catalog=false;
+    this.show_create_custom_offer=false;
     this.cdr.detectChanges(); 
   }
 
@@ -260,6 +302,7 @@ export class SellerOfferingsComponent implements OnInit {
     this.show_update_offer=false;
     this.show_update_catalog=false;
     this.show_create_catalog=false;
+    this.show_create_custom_offer=false;
     this.cdr.detectChanges(); 
   }
 
@@ -279,6 +322,7 @@ export class SellerOfferingsComponent implements OnInit {
     this.show_update_offer=false;
     this.show_update_catalog=false;
     this.show_create_catalog=false;
+    this.show_create_custom_offer=false;
     this.cdr.detectChanges();
   }
 
@@ -298,6 +342,7 @@ export class SellerOfferingsComponent implements OnInit {
     this.show_update_offer=false;
     this.show_update_catalog=false;
     this.show_create_catalog=false;
+    this.show_create_custom_offer=false;
     this.cdr.detectChanges();
   }
 
@@ -317,6 +362,7 @@ export class SellerOfferingsComponent implements OnInit {
     this.show_update_offer=false;
     this.show_update_catalog=false;
     this.show_create_catalog=false;
+    this.show_create_custom_offer=false;
     this.cdr.detectChanges();
   }
 
@@ -338,6 +384,7 @@ export class SellerOfferingsComponent implements OnInit {
     this.show_update_offer=false;
     this.show_update_catalog=false;
     this.show_create_catalog=false;
+    this.show_create_custom_offer=false;
     this.cdr.detectChanges();
   }
 
@@ -373,6 +420,7 @@ export class SellerOfferingsComponent implements OnInit {
     this.show_update_offer=false;
     this.show_update_catalog=false;
     this.show_create_catalog=false;
+    this.show_create_custom_offer=false;
     this.cdr.detectChanges();
   }
 
@@ -408,6 +456,7 @@ export class SellerOfferingsComponent implements OnInit {
     this.show_update_offer=false;
     this.show_update_catalog=false;
     this.show_create_catalog=false;
+    this.show_create_custom_offer=false;
     this.cdr.detectChanges();
   }
 
@@ -443,6 +492,7 @@ export class SellerOfferingsComponent implements OnInit {
     this.show_update_offer=false;
     this.show_update_catalog=false;
     this.show_create_catalog=false;
+    this.show_create_custom_offer=false;
     this.cdr.detectChanges();
   }
 
@@ -478,6 +528,7 @@ export class SellerOfferingsComponent implements OnInit {
     this.show_update_offer=false;
     this.show_update_catalog=false;
     this.show_create_catalog=false;
+    this.show_create_custom_offer=false;
     this.cdr.detectChanges();
   }
 

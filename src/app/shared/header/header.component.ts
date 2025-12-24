@@ -32,6 +32,8 @@ import { TranslateService } from '@ngx-translate/core';
 import {ShoppingCartServiceService} from "../../services/shopping-cart-service.service";
 import {ThemeService} from "../../services/theme.service";
 import {NavLink, ThemeAuthUrlsConfig, ThemeConfig, ThemeLinkConfig} from "../../themes";
+import {Subject} from "rxjs";
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'bae-header',
@@ -63,6 +65,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   }
   providerThemeName = environment.providerThemeName;
   quotesEnabled = environment.QUOTES_ENABLED;
+  tenderEnabled = environment.TENDER_ENABLED;
   qrWindow: Window | null = null;
   statePair:string
   catalogs: any[] | undefined  = [];
@@ -98,8 +101,11 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   private themeSubscription: Subscription = new Subscription();
   public headerLinks: NavLink[] = [];
   public themeAuthUrls: ThemeAuthUrlsConfig | undefined;
+  private destroy$ = new Subject<void>();
 
-
+  sellerRole: string = environment.SELLER_ROLE;
+  orgAdminRole: string = environment.ORG_ADMIN_ROLE;
+  certifierRole: string = environment.CERTIFIER_ROLE;
 
   ngOnDestroy(): void {
       this.qrWindow?.close()
@@ -107,6 +113,8 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
       if (this.themeSubscription) {
         this.themeSubscription.unsubscribe();
       }
+      this.destroy$.next();
+      this.destroy$.complete();
   }
 
   ngDoCheck(): void {
@@ -182,7 +190,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
       this.is_logged=true;
       this.orgs=aux.organizations;
       for(let i=0; i < aux.roles.length; i++){
-        if(aux.roles[i].name == 'admin'){
+        if(aux.roles[i].name == environment.ADMIN_ROLE){
           this.isAdmin=true;
           this.cdr.detectChanges();
         }
@@ -207,7 +215,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
       this.cdr.detectChanges();
     }
 
-    this.sc.cart$.subscribe(cart => {
+    this.sc.cart$.pipe(takeUntil(this.destroy$)).subscribe(cart => {
       this.cartCount = cart.length; // Updates counter on icon
     });
 
@@ -218,7 +226,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
       }
     })
 
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$.pipe(takeUntil(this.destroy$)).subscribe(ev => {
       if(ev.type === 'LoginProcess') {
         let aux = this.localStorage.getObject('login_items') as LoginInfo;
         if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
@@ -227,7 +235,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
           this.cdr.detectChanges();
           this.orgs=aux.organizations;
           for(let i=0; i < aux.roles.length; i++){
-            if(aux.roles[i].name == 'admin'){
+            if(aux.roles[i].name == environment.ADMIN_ROLE){
               this.isAdmin=true;
               this.cdr.detectChanges();
             }

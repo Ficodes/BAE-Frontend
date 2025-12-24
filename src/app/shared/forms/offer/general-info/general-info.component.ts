@@ -8,6 +8,8 @@ import {FormChangeState} from "../../../../models/interfaces";
 import {Subscription} from "rxjs";
 import {debounceTime} from "rxjs/operators";
 import { noWhitespaceValidator } from 'src/app/validators/validators';
+import {Subject} from "rxjs";
+import { takeUntil } from 'rxjs/operators';
 
 interface GeneralInfo {
   name: string;
@@ -37,6 +39,7 @@ export class GeneralInfoComponent implements OnInit, OnDestroy {
   private originalValue: GeneralInfo;
   private hasBeenModified: boolean = false;
   private isEditMode: boolean = false;
+  private destroy$ = new Subject<void>();
 
   constructor(private eventMessage: EventMessageService) {
     console.log('🔄 Initializing GeneralInfoComponent');
@@ -96,7 +99,8 @@ export class GeneralInfoComponent implements OnInit, OnDestroy {
     // Subscribe to form changes only in edit mode
     if (this.isEditMode) {
       this.formGroup.valueChanges.pipe(
-        debounceTime(500) // Esperar 500ms después del último cambio antes de emitir
+        debounceTime(500), // Esperar 500ms después del último cambio antes de emitir
+        takeUntil(this.destroy$)
       ).subscribe((newValue) => {
         console.log('📝 Form value changed:', newValue);
         const dirtyFields = this.getDirtyFields(newValue);
@@ -121,6 +125,8 @@ export class GeneralInfoComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     console.log('🗑️ Destroying GeneralInfoComponent');
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private getDirtyFields(currentValue: GeneralInfo): string[] {

@@ -6,7 +6,8 @@ import {
   ViewChild,
   AfterViewInit,
   HostListener,
-  Input
+  Input,
+  OnDestroy
 } from '@angular/core';
 import {FormGroup, FormControl, Validators, ReactiveFormsModule} from '@angular/forms';
 import {AccountServiceService} from 'src/app/services/account-service.service';
@@ -24,6 +25,9 @@ import {getCountries, getCountryCallingCode, CountryCode} from 'libphonenumber-j
 import {parsePhoneNumber} from 'libphonenumber-js/max'
 import {TranslateModule} from "@ngx-translate/core";
 import { getLocaleId } from '@angular/common';
+import { environment } from 'src/environments/environment';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 
 @Component({
@@ -31,7 +35,7 @@ import { getLocaleId } from '@angular/common';
   templateUrl: './billing-account-form.component.html',
   styleUrl: './billing-account-form.component.css'
 })
-export class BillingAccountFormComponent implements OnInit {
+export class BillingAccountFormComponent implements OnInit, OnDestroy {
 
   @Input() billAcc: billingAccountCart | undefined;
   @Input() preferred: boolean | undefined;
@@ -97,6 +101,8 @@ export class BillingAccountFormComponent implements OnInit {
     { code: 'SE', name: 'Sweden' }
   ];
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private localStorage: LocalStorageService,
     private cdr: ChangeDetectorRef,
@@ -105,7 +111,9 @@ export class BillingAccountFormComponent implements OnInit {
     private eventMessage: EventMessageService
   ) {
     getLocaleId;
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initUserData();
       }
@@ -128,6 +136,11 @@ export class BillingAccountFormComponent implements OnInit {
 
   }
 
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   initUserData(){
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
     if (JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix()) - 4) > 0)) {
@@ -139,7 +152,7 @@ export class BillingAccountFormComponent implements OnInit {
           id: this.partyId,
           name: aux.user,
           href : this.partyId,
-          role: "Owner"
+          role: environment.SELLER_ROLE
         }
       } else {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as)
@@ -150,7 +163,7 @@ export class BillingAccountFormComponent implements OnInit {
           id: this.partyId,
           name: loggedOrg.name,
           href : this.partyId,
-          role: "Owner"
+          role: environment.SELLER_ROLE
         }
       }
     }

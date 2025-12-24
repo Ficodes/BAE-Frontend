@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, NgModule } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, NgModule, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
 import { LoginInfo, billingAccountCart } from 'src/app/models/interfaces';
@@ -20,6 +20,8 @@ import { environment } from 'src/environments/environment';
 import {faIdCard, faSort, faSwatchbook, faEdit, faSave} from "@fortawesome/pro-solid-svg-icons";
 import { TranslateModule } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-invoices-info',
@@ -29,7 +31,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
   templateUrl: './invoices-info.component.html',
   styleUrl: './invoices-info.component.css'
 })
-export class InvoicesInfoComponent implements OnInit {
+export class InvoicesInfoComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   invoices:any[]=[];
   nextInvoices:any[]=[];
@@ -46,11 +48,15 @@ export class InvoicesInfoComponent implements OnInit {
   page_check:boolean = true;
   page: number=0;
   INVOICE_LIMIT: number = environment.INVOICE_LIMIT;
-  filters: any[]=[];
-  check_custom:boolean=false;
-  isSeller:boolean=false;
-  role:any='Customer'
-  name:any=''
+
+  sellerRole: string = environment.SELLER_ROLE;
+  buyerRole: string = environment.BUYER_ROLE;
+
+  filters: any[] = [];
+  check_custom:boolean = false;
+  isSeller:boolean = false;
+  role:any = this.buyerRole;
+  name:any = ''
 
   show_orders: boolean = true;
   show_billing: boolean = false;
@@ -63,6 +69,7 @@ export class InvoicesInfoComponent implements OnInit {
   protected readonly faSwatchbook = faSwatchbook;
   protected readonly faEdit = faEdit;
   protected readonly faSave = faSave;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
@@ -74,7 +81,9 @@ export class InvoicesInfoComponent implements OnInit {
     private paginationService: PaginationService,
     private router: Router
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -99,6 +108,11 @@ export class InvoicesInfoComponent implements OnInit {
     this.initPartyInfo();
   }
 
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   initPartyInfo(){
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
     if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
@@ -107,8 +121,8 @@ export class InvoicesInfoComponent implements OnInit {
         let userRoles = aux.roles.map((elem: any) => {
           return elem.name
         })
-        if (userRoles.includes("seller")) {
-          this.isSeller=true;
+        if (userRoles.includes(this.sellerRole)) {
+          this.isSeller = true;
         }
       } else {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as);
@@ -116,13 +130,13 @@ export class InvoicesInfoComponent implements OnInit {
         let orgRoles = loggedOrg.roles.map((elem: any) => {
           return elem.name
         })
-        if (orgRoles.includes("seller")) {
-          this.isSeller=true;
+        if (orgRoles.includes(this.sellerRole)) {
+          this.isSeller = true;
         }
       }
       //this.partyId = aux.partyId;
-      this.page=0;
-      this.invoices=[];
+      this.page = 0;
+      this.invoices = [];
       this.getInvoices(false);
     }
     initFlowbite();
@@ -262,10 +276,10 @@ export class InvoicesInfoComponent implements OnInit {
     return totalPrice
   }
 
-  async toggleShowDetails(invoice:any){
+  async toggleShowDetails(invoice: any){
     console.log(invoice)
-    this.showInvoiceDetails=true;
-    this.invoiceToShow=invoice;
+    this.showInvoiceDetails = true;
+    this.invoiceToShow = invoice;
     this.appliedCustomerBillingRates = [];
     this.loadingACBRs = true;
 
@@ -280,8 +294,8 @@ export class InvoicesInfoComponent implements OnInit {
   }
 
   async onRoleChange(role: any) {
-    this.role=role;
-    console.log('ROLE',this.role);
+    this.role = role;
+    console.log('ROLE', this.role);
     await this.getInvoices(false);
   }
 
@@ -291,23 +305,30 @@ export class InvoicesInfoComponent implements OnInit {
 
   editInvoice(index: number, invoice: any) {
     this.editingIndex = index;
-    this.editableInvoiceName = invoice.name;
+    this.editableInvoiceName = invoice.billNo;
   }
 
   saveInvoice(index: number, invoice: any) {
-    let oldName = invoice.name;
-    invoice.name = this.editableInvoiceName;
-    this.invoicesService.updateInvoice(invoice, invoice.id).subscribe({
+    let oldName = invoice.billNo;
+    invoice.billNo = this.editableInvoiceName;
+    this.invoicesService.updateInvoice({
+      billNo: this.editableInvoiceName
+    }, invoice.id).subscribe({
       next: data => {
         console.log('actualizado invoice')
       },
       error: error => {
-        invoice.name = oldName;
+        invoice.billNo = oldName;
         console.error('There was an error while updating!', error);
       }
     });   
     this.editingIndex = null;
   }
 
+  downloadInvoice(invoice: any) {
+    console.log('Downloading invoice')
+    let url = `${environment.BASE_URL}/invoicing/invoices/${invoice.id}`
 
+    window.open(url, '_blank');
+  }
 }

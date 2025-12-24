@@ -1,10 +1,11 @@
-import {Component, HostListener, OnInit, ChangeDetectorRef} from '@angular/core';
+import {Component, HostListener, OnInit, ChangeDetectorRef, OnDestroy} from '@angular/core';
 import { FormGroup, FormControl, Validators, FormArray } from '@angular/forms';
 import {faHandsHoldingHeart} from "@fortawesome/pro-solid-svg-icons";
 import { environment } from 'src/environments/environment';
 import {ThemeService} from "../../services/theme.service";
 import {ThemeConfig} from "../../themes";
-import { Subscription } from 'rxjs';
+import { Subscription, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-contact-us-form',
@@ -12,7 +13,7 @@ import { Subscription } from 'rxjs';
   styleUrl: './contact-us-form.component.css'
 })
 
-export class ContactUsFormComponent implements OnInit {
+export class ContactUsFormComponent implements OnInit, OnDestroy {
   contactForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email, Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$'), Validators.maxLength(320)]),
     name: new FormControl('', [Validators.required, Validators.maxLength(100)]),
@@ -34,11 +35,19 @@ export class ContactUsFormComponent implements OnInit {
   showThanksMessage:boolean=false;
   currentTheme: ThemeConfig | null = null;
   private themeSubscription: Subscription = new Subscription();
+  private destroy$ = new Subject<void>();
   
   ngOnInit() {
-    this.themeSubscription = this.themeService.currentTheme$.subscribe(theme => {
+    this.themeSubscription = this.themeService.currentTheme$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(theme => {
       this.currentTheme = theme;
     });
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   sendMail() {

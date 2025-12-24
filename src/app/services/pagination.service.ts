@@ -88,12 +88,7 @@ export class PaginationService {
     } catch(err) {
       console.log(err)
     } finally {
-      let page_check=true;
-      if(nextItems.length>0){
-        page_check=true;
-      } else {
-        page_check=false;
-      }
+      let page_check = nextItems.some(item => item != null);
 
       let info = {
         "page": page,

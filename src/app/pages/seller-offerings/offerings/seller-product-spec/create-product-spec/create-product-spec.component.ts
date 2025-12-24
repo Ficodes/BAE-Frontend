@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import {components} from "src/app/models/product-catalog";
 import { environment } from 'src/environments/environment';
@@ -18,6 +18,8 @@ import { certifications } from 'src/app/models/certification-standards.const'
 import * as moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 type CharacteristicValueSpecification = components["schemas"]["CharacteristicValueSpecification"];
 type ProductSpecification_Create = components["schemas"]["ProductSpecification_Create"];
@@ -33,7 +35,7 @@ type AttachmentRefOrValue = components["schemas"]["AttachmentRefOrValue"];
   templateUrl: './create-product-spec.component.html',
   styleUrl: './create-product-spec.component.css'
 })
-export class CreateProductSpecComponent implements OnInit {
+export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
   //PAGE SIZES:
   PROD_SPEC_LIMIT: number = environment.PROD_SPEC_LIMIT;
@@ -177,6 +179,7 @@ export class CreateProductSpecComponent implements OnInit {
   rangeUnit: string = '';
 
   filenameRegex = /^[A-Za-z0-9_.-]+$/;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -194,7 +197,9 @@ export class CreateProductSpecComponent implements OnInit {
     for(let i=0; i<certifications.length; i++){
       this.availableISOS.push(certifications[i])
     }
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -246,6 +251,11 @@ export class CreateProductSpecComponent implements OnInit {
     }
     console.log(this.steps)
     this.initPartyInfo();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){
@@ -1285,7 +1295,7 @@ export class CreateProductSpecComponent implements OnInit {
           {
               id: this.partyId,
               //href: "http://proxy.docker:8004/party/individual/urn:ngsi-ld:individual:803ee97b-1671-4526-ba3f-74681b22ccf3",
-              role: "Owner",
+              role: environment.SELLER_ROLE,
               "@referredType": ''
           }
         ],
