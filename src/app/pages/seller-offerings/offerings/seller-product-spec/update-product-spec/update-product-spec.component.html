@@ -372,7 +372,7 @@
                                             'break-all': hasLongWord(sel.name, 20),
                                             'break-words': !hasLongWord(sel.name, 20)
                                             }" class="px-6 py-4 text-wrap break-words">
-                                            {{sel.name}}
+                                            {{normalizeName(sel.name)}}
                                         </td>
                                         <td class="px-6 py-4 text-wrap break-all">
                                             {{sel.url}}                                      
@@ -451,54 +451,116 @@
                             </button>-->
                         </div>
                     </div>
-                    <!--<div class="m-4 w-full">
-                        <div class="lg:flex lg:grid lg:grid-cols-2 w-full gap-4 align-items-middle align-middle border border-gray-200 rounded-lg p-4">                            
-                            <div class="h-fit">
-                                <label for="cert-name" class="font-bold text-lg dark:text-white">{{ 'PROFILE._name' | translate }}</label>
-                                <input #certificationName type="text" id="cert-name" [formControl]="certFileName"
-                                [ngClass]="certFileName.invalid == true ? 'border-red-600' : 'border-gray-300'"
-                                class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />    
-                            </div>
-                            @if(isoToCreate==''){
-                                <ngx-file-drop class="p-4 w-full" dropZoneLabel="Drop files here" (onFileDrop)="dropped($event,'attach')" (onFileOver)="fileOver($event)" (onFileLeave)="fileLeave($event)">
-                                    <ng-template class="w-full" ngx-file-drop-content-tmp let-openFileSelector="openFileSelector">
-                                        <div class="w-full flex flex-col justify-items-center justify-center">
-                                            <svg class="w-12 h-12 text-primary-100 mx-auto" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2"/>
-                                            </svg>
-                                            <div class="flex w-full justify-center">
-                                                <p class="text-gray-500 mr-2 w-fit">{{ 'UPDATE_PROD_SPEC._drop_files' | translate }}
-                                                    <button (click)="openFileSelector()" class="font-medium text-primary-100 dark:text-primary-50 hover:underline">{{ 'UPDATE_PROD_SPEC._select_files' | translate }}</button>
-                                                </p> 
+                    @if(additionalISOS.length>0){
+                        <h3 class="font-bold text-primary-100 dark:text-primary-50 text-left ml-4">
+                            You added the following additional certifications:
+                        </h3>
+                        <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white dark:bg-secondary-300 m-4"> 
+                        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">
+                                        {{ 'UPDATE_PROD_SPEC._product_name' | translate }}
+                                    </th>
+                                    <th scope="col" class="px-6 py-3">
+                                        {{ 'UPDATE_PROD_SPEC._value' | translate }}
+                                    </th>
+                                    <th scope="col" class="px-6 py-3">
+                                        {{ 'UPDATE_PROD_SPEC._actions' | translate }}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (cert of additionalISOS; track cert.name; let idx = $index) {
+                                    <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                                        <td [ngClass]="{
+                                            'break-all': hasLongWord(cert.name, 20),
+                                            'break-words': !hasLongWord(cert.name, 20)
+                                            }" class="px-6 py-4 text-wrap break-words">
+                                            {{normalizeName(cert.name)}}
+                                        </td>
+                                        <td class="px-6 py-4 text-wrap break-all">
+                                            {{cert.url}}                                      
+                                        </td>
+                                        <td class="px-6 py-4 inline-flex">                                        
+                                            <button (click)="removeCert(cert)" type="button" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
+                                                <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+                                                </svg>                                                                                                
+                                            </button>                                              
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        </div>
+                    }
+                    @if(showCert==false){
+                        <div class="flex w-full justify-items-center justify-center">
+                            <button type="button" (click)="showCert=!showCert" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                                Add an additional certification
+                                <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+                                </svg>                                  
+                            </button>
+                        </div>
+                    } @else {
+                        <div class="m-4 w-full">
+                            <h3 class="font-bold text-primary-100 dark:text-primary-50 text-left ml-4">
+                                Add an additional certification:
+                            </h3>
+                            <div class="lg:flex lg:grid lg:grid-cols-2 w-full gap-4 align-items-middle align-middle border border-gray-200 rounded-lg p-4">                            
+                                <div class="h-fit">
+                                    <label for="cert-name" class="font-bold text-lg dark:text-white">{{ 'PROFILE._name' | translate }}</label>
+                                    <input #certificationName type="text" id="cert-name" [formControl]="certFileName"
+                                    [ngClass]="certFileName.invalid == true ? 'border-red-600' : 'border-gray-300'"
+                                    class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />    
+                                </div>
+                                @if(isoToCreate==''){
+                                    <ngx-file-drop class="p-4 w-full" dropZoneLabel="Drop files here" (onFileDrop)="dropped($event,'attach')" (onFileOver)="fileOver($event)" (onFileLeave)="fileLeave($event)">
+                                        <ng-template class="w-full" ngx-file-drop-content-tmp let-openFileSelector="openFileSelector">
+                                            <div class="w-full flex flex-col justify-items-center justify-center">
+                                                <svg class="w-12 h-12 text-primary-100 mx-auto" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2"/>
+                                                </svg>
+                                                <div class="flex w-full justify-center">
+                                                    <p class="text-gray-500 mr-2 w-fit">{{ 'UPDATE_PROD_SPEC._drop_files' | translate }}
+                                                        <button (click)="openFileSelector()" class="font-medium text-primary-100 dark:text-primary-50 hover:underline">{{ 'UPDATE_PROD_SPEC._select_files' | translate }}</button>
+                                                    </p> 
+                                                </div>
                                             </div>
-                                        </div>
-                                    </ng-template>
-                                </ngx-file-drop> 
-                            } @else {
-                                <div class="relative w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">
-                                    <span class="sr-only">Info</span>
-                                    <label class="text-wrap break-all">
-                                        {{isoToCreate}}
-                                    </label>
-                                    <button (click)="clearAdditionalCert()" class="z-10 absolute top-2 right-2 p-1 font-bold text-white bg-red-500 rounded-3xl">
-                                        <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-                                        </svg>                                  
+                                        </ng-template>
+                                    </ngx-file-drop> 
+                                } @else {
+                                    <div class="relative w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">
+                                        <span class="sr-only">Info</span>
+                                        <label class="text-wrap break-all">
+                                            {{isoToCreate}}
+                                        </label>
+                                        <button (click)="clearAdditionalCert(true)" class="z-10 absolute top-2 right-2 p-1 font-bold text-white bg-red-500 rounded-3xl">
+                                            <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+                                            </svg>                                  
+                                        </button>
+                                    </div>
+                                }
+                                </div>
+                                <div class="flex w-full justify-items-center justify-center mt-4">
+                                    <button type="button" (click)="saveAdditionalCert()"
+                                    [disabled]="!certFileName.valid || isoToCreate == ''" [ngClass]="!certFileName.valid || isoToCreate == '' ? 'opacity-50' : 'hover:bg-primary-50'"
+                                    class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                                        Save
+                                        <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M11 16h2m6.707-9.293-2.414-2.414A1 1 0 0 0 16.586 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.414a1 1 0 0 0-.293-.707ZM16 20v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v6h8ZM9 4h6v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4Z"/>
+                                        </svg>                                                                   
+                                    </button>
+                                    <button type="button" (click)="clearAdditionalCert(false);showCert=false;"                                    
+                                    class="flex ml-4 text-gray-900 justify-end bg-gray-400 hover:bg-primary-50 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                                        Discard                                                                 
                                     </button>
                                 </div>
-                            }
-                            </div>
-                            <div class="flex w-full justify-items-center justify-center mt-4">
-                                <button type="button" (click)="saveAdditionalCert()"
-                                [disabled]="!certFileName.valid" [ngClass]="!certFileName.valid ? 'opacity-50' : 'hover:bg-primary-50'"
-                                class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
-                                    {{ 'CREATE_PROD_SPEC._save_att' | translate }}
-                                    <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M11 16h2m6.707-9.293-2.414-2.414A1 1 0 0 0 16.586 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.414a1 1 0 0 0-.293-.707ZM16 20v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v6h8ZM9 4h6v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4Z"/>
-                                    </svg>                                                                   
-                                </button>
-                            </div>
-                    </div>-->
+                        </div>
+                    }
     
                 }
                 @if ((currentStep === 2 && !BUNDLE_ENABLED) || (currentStep === 3 && BUNDLE_ENABLED)) {

@@ -120,6 +120,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   checkExistingSelfAtt:boolean=false;
   showUploadAtt:boolean=false;
   isoToCreate:string='';
+  showCert:boolean=false;
 
   //SERVICE INFO:
   serviceSpecPage=0;
@@ -337,7 +338,15 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
         }
 
 
-        const index = this.availableISOS.findIndex(item => item.name === this.prod.productSpecCharacteristic[i].name);
+        //const index = this.availableISOS.findIndex(item => item.name === this.prod.productSpecCharacteristic[i].name);
+        const cleanedName = this.prod.productSpecCharacteristic[i].name
+          .replace('Compliance:', '')
+          .trim();
+
+        const index = this.availableISOS.findIndex(
+          item => item.name === cleanedName
+        );
+
         if (index !== -1) {
           console.log('adding sel iso')
           this.selectedISOS.push({
@@ -347,10 +356,16 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
             domesupported: this.availableISOS[index].domesupported
           });
           this.availableISOS.splice(index, 1);
-        }
-        if (this.prod.productSpecCharacteristic[i].name == 'Compliance:SelfAtt') {
+        } else if (this.prod.productSpecCharacteristic[i].name == 'Compliance:SelfAtt') {
           this.selfAtt=this.prod.productSpecCharacteristic[i]
           this.checkExistingSelfAtt=true;
+        } else {
+          console.log('--- additional isos')
+          console.log(this.prod.productSpecCharacteristic[i])
+          this.additionalISOS.push({
+            name: this.prod.productSpecCharacteristic[i].name,
+            url: this.prod.productSpecCharacteristic[i].productSpecCharacteristicValue[0].value
+          })
         }
       }
       console.log('selected isos')
@@ -571,7 +586,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       console.log('seleccionar')
       this.availableISOS.splice(index, 1);
-      this.selectedISOS.push({name: iso.name, url: '', mandatory: iso.mandatory, domesupported: iso.domesupported});
+      this.selectedISOS.push({name: 'Compliance:'+iso.name, url: '', mandatory: iso.mandatory, domesupported: iso.domesupported});
     }
     this.buttonISOClicked=!this.buttonISOClicked;
     this.cdr.detectChanges();
@@ -580,11 +595,14 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   removeISO(iso:any){
+    const cleanedName = iso.name
+    .replace('Compliance:', '')
+    .trim();
     const index = this.selectedISOS.findIndex(item => item.name === iso.name);
     if (index !== -1) {
       console.log('seleccionar')
       this.selectedISOS.splice(index, 1);
-      this.availableISOS.push({name: iso.name, mandatory: iso.mandatory, domesupported: iso.domesupported});
+      this.availableISOS.push({name: cleanedName, mandatory: iso.mandatory, domesupported: iso.domesupported});
 
       //if (iso.name in this.verifiedISO) {
       //  delete this.verifiedISO[iso.name]
@@ -592,6 +610,16 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     }  
     this.cdr.detectChanges();
     console.log(this.prodSpecsBundle)    
+  }
+
+  removeCert(iso:any){
+    const index = this.additionalISOS.findIndex(item => item.name === iso.name);
+    if (index !== -1) {
+      console.log('eliminar additional cert')
+      this.additionalISOS.splice(index, 1);
+      console.log(this.additionalISOS)
+    }  
+    this.cdr.detectChanges();
   }
 
   removeSelfAtt(){
@@ -1107,15 +1135,20 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   saveAdditionalCert(){
     console.log('saving')
     this.additionalISOS.push({
-      name: this.certificationName.nativeElement.value,
+      name: 'Compliance:'+this.certificationName.nativeElement.value,
       url: this.isoToCreate
     })
     this.certificationName.nativeElement.value='';
     this.isoToCreate='';
     this.certFileName.reset();
+    this.showCert=false;
   }
 
-  clearAdditionalCert(){
+  clearAdditionalCert(urlonly:boolean){
+    if(!urlonly){
+      this.certificationName.nativeElement.value='';
+      this.certFileName.reset();
+    }    
     this.isoToCreate='';
   }
 
@@ -1501,10 +1534,35 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   setProductData(){
+    console.log('--- set product data')
+    console.log(this.prodChars)
     for(let i=0; i< this.prodChars.length; i++){
       const index = this.finishChars.findIndex(item => item.name === this.prodChars[i].name);
       if (index == -1) {
-        this.finishChars.push(this.prodChars[i])
+        const cleanedName = this.prodChars[i]?.name
+        ?.replace('Compliance:', '')
+        .trim();
+  
+        const checkIso = this.availableISOS.findIndex(
+          item => item.name === cleanedName
+        );
+        if (checkIso == -1) {
+          if (this.prodChars[i].name != 'Compliance:SelfAtt') {
+            console.log('--- check if deleted additional cert')
+            console.log(this.prodChars[i].name)    
+            const checkAdditional = this.additionalISOS.findIndex(
+              item => item.name === cleanedName
+            );
+            if(checkAdditional != -1){
+              this.finishChars.push(this.prodChars[i])
+            }
+          } else {
+            this.finishChars.push(this.prodChars[i])
+          }
+        } else {
+          this.finishChars.push(this.prodChars[i])
+        }
+        
       }
     }
     // Load compliance profile
@@ -1523,6 +1581,10 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     }
 
     for(let i=0; i<this.additionalISOS.length;i++){
+      console.log('- finish chars antes')
+      console.log(this.finishChars)
+      console.log('añadiendo additional a finish chars')
+      console.log(this.additionalISOS)
       const index = this.finishChars.findIndex(item => item.name === this.additionalISOS[i].name);
       if (index == -1) {
         this.finishChars.push({
@@ -1534,6 +1596,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
           }]
         })
       }
+      console.log(this.finishChars)
     }
 
     // Load compliance VCs
@@ -1774,5 +1837,9 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       this.goToStep(index);
     }
   }
+
+  normalizeName(name?: string): string {
+    return name?.replace(/compliance:/i, '').trim() ?? '';
+  }  
 
 }

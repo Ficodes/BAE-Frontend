@@ -116,12 +116,14 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   buttonISOClicked:boolean=false;
   availableISOS:any[]=[];
   selectedISOS:any[]=[];
+  additionalISOS:any[]=[];
   selectedISO:any;
   showUploadFile:boolean=false;
   disableCompNext:boolean=true;
   selfAtt:any;
   showUploadAtt:boolean=false;
   isoToCreate:string='';
+  showCert:boolean=false;
 
   //SERVICE INFO:
   serviceSpecPage=0;
@@ -161,6 +163,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   prodAttachments:AttachmentRefOrValue[]=[];
   attachToCreate:AttachmentRefOrValue={url:'',attachmentType:''};
   attFileName = new FormControl('', [Validators.required, Validators.pattern('[a-zA-Z0-9 _.-]*')]);
+  certFileName = new FormControl('', [Validators.required, Validators.pattern('[a-zA-Z0-9 _.-]*')]);
   attImageName = new FormControl('', [Validators.required, Validators.pattern('^https?:\\/\\/.*\\.(?:png|jpg|jpeg|gif|bmp|webp)$')])
 
   //FINAL PRODUCT USING API CALL STRUCTURE
@@ -221,6 +224,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
   @ViewChild('attachName') attachName!: ElementRef;
   @ViewChild('imgURL') imgURL!: ElementRef;
+  @ViewChild('certificationName') certificationName!: ElementRef;
   
 
   public files: NgxFileDropEntry[] = [];
@@ -399,7 +403,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       console.log('seleccionar')
       this.availableISOS.splice(index, 1);
-      this.selectedISOS.push({name: iso.name, url: '', mandatory: iso.mandatory, domesupported: iso.domesupported});
+      this.selectedISOS.push({name: 'Compliance:'+iso.name, url: '', mandatory: iso.mandatory, domesupported: iso.domesupported});
     }
     this.buttonISOClicked=!this.buttonISOClicked;
     this.cdr.detectChanges();
@@ -408,13 +412,31 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   removeISO(iso:any){
+    const cleanedName = iso.name
+    .replace('Compliance:', '')
+    .trim();
     const index = this.selectedISOS.findIndex(item => item.name === iso.name);
     if (index !== -1) {
       console.log('seleccionar')
       this.selectedISOS.splice(index, 1);
-      this.availableISOS.push({name: iso.name, mandatory: iso.mandatory, domesupported: iso.domesupported});
+      this.availableISOS.push({name: cleanedName, mandatory: iso.mandatory, domesupported: iso.domesupported});
+
+      //if (iso.name in this.verifiedISO) {
+      //  delete this.verifiedISO[iso.name]
+      //}
     }  
-    this.cdr.detectChanges(); 
+    this.cdr.detectChanges();
+    console.log(this.prodSpecsBundle)    
+  }
+
+  removeCert(iso:any){
+    const index = this.additionalISOS.findIndex(item => item.name === iso.name);
+    if (index !== -1) {
+      console.log('eliminar additional cert')
+      this.additionalISOS.splice(index, 1);
+      console.log(this.additionalISOS)
+    }  
+    this.cdr.detectChanges();
   }
 
   removeSelfAtt(){
@@ -494,12 +516,15 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
                 const index = this.selectedISOS.findIndex(item => item.name === sel.name);
                 this.attachmentService.uploadFile(fileBody).subscribe({
                   next: data => {
-                      console.log(data)
+                    if(index!==-1){
                       this.selectedISOS[index].url=data.content;
                       //this.selectedISOS[index].attachmentType=file.type;
                       this.showUploadFile=false;
                       this.cdr.detectChanges();
                       console.log('uploaded')
+                    } else {
+                      this.isoToCreate=data.content;
+                    }
                   },
                   error: error => {
                       console.error('There was an error while uploading the file!', error);
@@ -887,6 +912,26 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     this.attachToCreate={url:'',attachmentType:''};
   }
 
+  saveAdditionalCert(){
+    console.log('saving')
+    this.additionalISOS.push({
+      name: 'Compliance:'+this.certificationName.nativeElement.value,
+      url: this.isoToCreate
+    })
+    this.certificationName.nativeElement.value='';
+    this.isoToCreate='';
+    this.certFileName.reset();
+    this.showCert=false;
+  }
+
+  clearAdditionalCert(urlonly:boolean){
+    if(!urlonly){
+      this.certificationName.nativeElement.value='';
+      this.certFileName.reset();
+    }    
+    this.isoToCreate='';
+  }
+
   toggleRelationship(){
     this.prodSpecRels=[];
     this.prodSpecRelPage=0;
@@ -1249,13 +1294,39 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   showFinish(){
     this.relationshipDone=true;
     this.finishDone=true;
+    console.log('--- set product data')
+    console.log(this.prodChars)
     for(let i=0; i< this.prodChars.length; i++){
       const index = this.finishChars.findIndex(item => item.name === this.prodChars[i].name);
       if (index == -1) {
-        this.finishChars.push(this.prodChars[i])
+        const cleanedName = this.prodChars[i]?.name
+        ?.replace('Compliance:', '')
+        .trim();
+  
+        const checkIso = this.availableISOS.findIndex(
+          item => item.name === cleanedName
+        );
+        if (checkIso == -1) {
+          if (this.prodChars[i].name != 'Compliance:SelfAtt') {
+            console.log('--- check if deleted additional cert')
+            console.log(this.prodChars[i].name)    
+            const checkAdditional = this.additionalISOS.findIndex(
+              item => item.name === cleanedName
+            );
+            if(checkAdditional != -1){
+              this.finishChars.push(this.prodChars[i])
+            }
+          } else {
+            this.finishChars.push(this.prodChars[i])
+          }
+        } else {
+          this.finishChars.push(this.prodChars[i])
+        }
+        
       }
     }
-    for(let i=0; i<this.selectedISOS.length;i++){
+    // Load compliance profile
+    for(let i = 0; i < this.selectedISOS.length; i++){
       const index = this.finishChars.findIndex(item => item.name === this.selectedISOS[i].name);
       if (index == -1) {
         this.finishChars.push({
@@ -1267,6 +1338,25 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
           }]
         })
       }
+    }
+
+    for(let i=0; i<this.additionalISOS.length;i++){
+      console.log('- finish chars antes')
+      console.log(this.finishChars)
+      console.log('añadiendo additional a finish chars')
+      console.log(this.additionalISOS)
+      const index = this.finishChars.findIndex(item => item.name === this.additionalISOS[i].name);
+      if (index == -1) {
+        this.finishChars.push({
+          id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
+          name: this.additionalISOS[i].name,
+          productSpecCharacteristicValue: [{
+            isDefault: true,
+            value: this.additionalISOS[i].url
+          }]
+        })
+      }
+      console.log(this.finishChars)
     }
     let rels = [];
     for(let i=0; i<this.prodRelationships.length;i++){
@@ -1504,5 +1594,9 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       this.goToStep(index);
     }
   }
+
+  normalizeName(name?: string): string {
+    return name?.replace(/compliance:/i, '').trim() ?? '';
+  }  
 
 }
