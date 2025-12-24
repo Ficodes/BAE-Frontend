@@ -57,6 +57,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   attatchments: AttachmentRefOrValue[]  = [];
   prodSpec:ProductSpecification = {};
   complianceProf:any[] = [];
+  additionalCerts:any[] = [];
   complianceLevel:string='NL';
   complianceDescription:string='No level. This product hasnt reached any compliance level yet.'
   serviceSpecs:any[] = [];
@@ -259,25 +260,48 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     if(this.prodSpec.productSpecCharacteristic != undefined) {
       // Avoid displaying the compliance credential && Avoid showing "- enabled" chars
       this.prodChars = this.prodSpec.productSpecCharacteristic.filter((char: any) => {
-        return char.name != 'Compliance:VC' && char.name != 'Compliance:SelfAtt' && !char.name?.endsWith(' - enabled')
+        return !char.name.startsWith('Compliance:') && !char.name?.endsWith(' - enabled')
       })
 
-      for(let i=0; i<certifications.length; i++){
-        //Now we only show the certifications that are attached when creating/updating the product
-        let compProf = this.prodSpec.productSpecCharacteristic.find((p => {
-          return p.name === certifications[i].name
-        }));
-        if(compProf){
-          let cert:any = certifications[i]
-          cert.href = compProf.productSpecCharacteristicValue?.at(0)?.value
-          this.complianceProf.push(certifications[i])
+      this.additionalCerts = this.prodSpec.productSpecCharacteristic.filter((char: any) => {
+        const cleanedName = char.name.replace('Compliance:', '').trim();
+      
+        return (
+          char.name.startsWith('Compliance:') &&
+          !certifications.some(cert => cert.name === cleanedName) && char.name != 'Compliance:SelfAtt'
+        );
+      });
+      console.log('--- additional')
+      console.log(this.additionalCerts)
+
+      const normalizeName = (name?: string): string =>
+        name?.replace(/compliance:/i, '').trim() ?? '';      
+      
+      for (let i = 0; i < certifications.length; i++) {
+      
+        // Buscar característica quitando el prefijo "Compliance:"
+        let compProf = this.prodSpec.productSpecCharacteristic.find(p => {
+          return normalizeName(p.name) === certifications[i].name;
+        });
+      
+        if (compProf) {
+          let cert: any = certifications[i];
+          cert.href = compProf.productSpecCharacteristicValue?.at(0)?.value;
+          this.complianceProf.push(cert);
         }
-        //Deleting certifications out of characteristics' array
-        const index = this.prodChars.findIndex(item => item.name === certifications[i].name);
-        if(index!==-1){
+      
+        // Eliminar certificaciones del array de características
+        const index = this.prodChars.findIndex(item =>
+          normalizeName(item.name) === certifications[i].name
+        );
+      
+        if (index !== -1) {
           this.prodChars.splice(index, 1);
         }
       }
+
+      console.log(this.complianceProf)
+      
       
     }
 
@@ -893,5 +917,9 @@ async deleteProduct(product: Product | undefined){
       return false
     }   
   }
+
+  normalizeName(name?: string): string {
+    return name?.replace(/compliance:/i, '').trim() ?? '';
+  }  
 
 }

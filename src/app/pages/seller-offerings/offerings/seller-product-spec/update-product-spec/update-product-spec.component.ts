@@ -111,6 +111,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   buttonISOClicked:boolean=false;
   availableISOS:any[]=[];
   selectedISOS:any[]=[];
+  additionalISOS:any[]=[];
   verifiedISO:string[] = [];
   selectedISO:any;
   complianceVC:any = null;
@@ -118,6 +119,8 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   selfAtt:any;
   checkExistingSelfAtt:boolean=false;
   showUploadAtt:boolean=false;
+  isoToCreate:string='';
+  showCert:boolean=false;
 
   //SERVICE INFO:
   serviceSpecPage=0;
@@ -158,6 +161,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   prodAttachments:AttachmentRefOrValue[]=[];
   attachToCreate:AttachmentRefOrValue={url:'',attachmentType:''};
   attFileName = new FormControl('', [Validators.required, Validators.pattern('[a-zA-Z0-9 _.-]*')]);
+  certFileName = new FormControl('', [Validators.required, Validators.pattern('[a-zA-Z0-9 _.-]*')]);
   attImageName = new FormControl('', [Validators.required, Validators.pattern('^https?:\\/\\/.*\\.(?:png|jpg|jpeg|gif|bmp|webp)$')])
 
   //FINAL PRODUCT USING API CALL STRUCTURE
@@ -219,6 +223,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
 
   @ViewChild('attachName') attachName!: ElementRef;
   @ViewChild('imgURL') imgURL!: ElementRef;  
+  @ViewChild('certificationName') certificationName!: ElementRef;
 
   public files: NgxFileDropEntry[] = [];
 
@@ -333,7 +338,15 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
         }
 
 
-        const index = this.availableISOS.findIndex(item => item.name === this.prod.productSpecCharacteristic[i].name);
+        //const index = this.availableISOS.findIndex(item => item.name === this.prod.productSpecCharacteristic[i].name);
+        const cleanedName = this.prod.productSpecCharacteristic[i].name
+          .replace('Compliance:', '')
+          .trim();
+
+        const index = this.availableISOS.findIndex(
+          item => item.name === cleanedName
+        );
+
         if (index !== -1) {
           console.log('adding sel iso')
           this.selectedISOS.push({
@@ -343,10 +356,16 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
             domesupported: this.availableISOS[index].domesupported
           });
           this.availableISOS.splice(index, 1);
-        }
-        if (this.prod.productSpecCharacteristic[i].name == 'Compliance:SelfAtt') {
+        } else if (this.prod.productSpecCharacteristic[i].name == 'Compliance:SelfAtt') {
           this.selfAtt=this.prod.productSpecCharacteristic[i]
           this.checkExistingSelfAtt=true;
+        } else {
+          console.log('--- additional isos')
+          console.log(this.prod.productSpecCharacteristic[i])
+          this.additionalISOS.push({
+            name: this.prod.productSpecCharacteristic[i].name,
+            url: this.prod.productSpecCharacteristic[i].productSpecCharacteristicValue[0].value
+          })
         }
       }
       console.log('selected isos')
@@ -567,7 +586,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       console.log('seleccionar')
       this.availableISOS.splice(index, 1);
-      this.selectedISOS.push({name: iso.name, url: '', mandatory: iso.mandatory, domesupported: iso.domesupported});
+      this.selectedISOS.push({name: 'Compliance:'+iso.name, url: '', mandatory: iso.mandatory, domesupported: iso.domesupported});
     }
     this.buttonISOClicked=!this.buttonISOClicked;
     this.cdr.detectChanges();
@@ -576,11 +595,14 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   removeISO(iso:any){
+    const cleanedName = iso.name
+    .replace('Compliance:', '')
+    .trim();
     const index = this.selectedISOS.findIndex(item => item.name === iso.name);
     if (index !== -1) {
       console.log('seleccionar')
       this.selectedISOS.splice(index, 1);
-      this.availableISOS.push({name: iso.name, mandatory: iso.mandatory, domesupported: iso.domesupported});
+      this.availableISOS.push({name: cleanedName, mandatory: iso.mandatory, domesupported: iso.domesupported});
 
       //if (iso.name in this.verifiedISO) {
       //  delete this.verifiedISO[iso.name]
@@ -588,6 +610,16 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     }  
     this.cdr.detectChanges();
     console.log(this.prodSpecsBundle)    
+  }
+
+  removeCert(iso:any){
+    const index = this.additionalISOS.findIndex(item => item.name === iso.name);
+    if (index !== -1) {
+      console.log('eliminar additional cert')
+      this.additionalISOS.splice(index, 1);
+      console.log(this.additionalISOS)
+    }  
+    this.cdr.detectChanges();
   }
 
   removeSelfAtt(){
@@ -693,16 +725,20 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
                 }, 3000);
                 return;
               }
-              if(this.showCompliance && !this.showUploadAtt){
+              if(((this.currentStep === 1 && !this.BUNDLE_ENABLED) || (this.currentStep === 2 && this.BUNDLE_ENABLED)) && !this.showUploadAtt){
                 const index = this.selectedISOS.findIndex(item => item.name === sel.name);
                 this.attachmentService.uploadFile(fileBody).subscribe({
                   next: data => {
                       console.log(data)
-                      this.selectedISOS[index].url=data.content;
-                      //this.selectedISOS[index].attachmentType=file.type;
-                      this.showUploadFile=false;
-                      this.cdr.detectChanges();
-                      console.log('uploaded')
+                      if(index!==-1){
+                        this.selectedISOS[index].url=data.content;
+                        //this.selectedISOS[index].attachmentType=file.type;
+                        this.showUploadFile=false;
+                        this.cdr.detectChanges();
+                        console.log('uploaded')
+                      } else {
+                        this.isoToCreate=data.content;
+                      }
                   },
                   error: error => {
                       console.error('There was an error while uploading file!', error);
@@ -722,7 +758,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
                   }
                 });
               }
-              if(this.showUploadAtt){
+              if(((this.currentStep === 1 && !this.BUNDLE_ENABLED) || (this.currentStep === 2 && this.BUNDLE_ENABLED)) && this.showUploadAtt){
                 const index = this.finishChars.findIndex(item => item.name === this.selfAtt.name);
                 this.attachmentService.uploadFile(fileBody).subscribe({
                   next: data => {
@@ -1094,6 +1130,26 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
 
   clearAtt(){
     this.attachToCreate={url:'',attachmentType:''};
+  }
+
+  saveAdditionalCert(){
+    console.log('saving')
+    this.additionalISOS.push({
+      name: 'Compliance:'+this.certificationName.nativeElement.value,
+      url: this.isoToCreate
+    })
+    this.certificationName.nativeElement.value='';
+    this.isoToCreate='';
+    this.certFileName.reset();
+    this.showCert=false;
+  }
+
+  clearAdditionalCert(urlonly:boolean){
+    if(!urlonly){
+      this.certificationName.nativeElement.value='';
+      this.certFileName.reset();
+    }    
+    this.isoToCreate='';
   }
 
   toggleRelationship(){
@@ -1478,10 +1534,35 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   setProductData(){
+    console.log('--- set product data')
+    console.log(this.prodChars)
     for(let i=0; i< this.prodChars.length; i++){
       const index = this.finishChars.findIndex(item => item.name === this.prodChars[i].name);
       if (index == -1) {
-        this.finishChars.push(this.prodChars[i])
+        const cleanedName = this.prodChars[i]?.name
+        ?.replace('Compliance:', '')
+        .trim();
+  
+        const checkIso = this.availableISOS.findIndex(
+          item => item.name === cleanedName
+        );
+        if (checkIso == -1) {
+          if (this.prodChars[i].name != 'Compliance:SelfAtt') {
+            console.log('--- check if deleted additional cert')
+            console.log(this.prodChars[i].name)    
+            const checkAdditional = this.additionalISOS.findIndex(
+              item => item.name === cleanedName
+            );
+            if(checkAdditional != -1){
+              this.finishChars.push(this.prodChars[i])
+            }
+          } else {
+            this.finishChars.push(this.prodChars[i])
+          }
+        } else {
+          this.finishChars.push(this.prodChars[i])
+        }
+        
       }
     }
     // Load compliance profile
@@ -1497,6 +1578,25 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
           }]
         })
       }
+    }
+
+    for(let i=0; i<this.additionalISOS.length;i++){
+      console.log('- finish chars antes')
+      console.log(this.finishChars)
+      console.log('añadiendo additional a finish chars')
+      console.log(this.additionalISOS)
+      const index = this.finishChars.findIndex(item => item.name === this.additionalISOS[i].name);
+      if (index == -1) {
+        this.finishChars.push({
+          id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
+          name: this.additionalISOS[i].name,
+          productSpecCharacteristicValue: [{
+            isDefault: true,
+            value: this.additionalISOS[i].url
+          }]
+        })
+      }
+      console.log(this.finishChars)
     }
 
     // Load compliance VCs
@@ -1690,6 +1790,11 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       this.highestStep=this.currentStep
     }
     this.refreshChars();
+    if((this.currentStep === 1 && !this.BUNDLE_ENABLED) || (this.currentStep === 2 && this.BUNDLE_ENABLED)){
+      setTimeout(() => {        
+        initFlowbite();   
+      }, 100);
+    }
     //Resource
     if((this.currentStep==4 && this.BUNDLE_ENABLED) || (this.currentStep==3 && !this.BUNDLE_ENABLED)){
       this.getResSpecs(false);
@@ -1732,5 +1837,9 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       this.goToStep(index);
     }
   }
+
+  normalizeName(name?: string): string {
+    return name?.replace(/compliance:/i, '').trim() ?? '';
+  }  
 
 }
