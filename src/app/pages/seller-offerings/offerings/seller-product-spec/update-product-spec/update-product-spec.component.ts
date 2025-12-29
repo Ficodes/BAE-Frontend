@@ -359,7 +359,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
         } else if (this.prod.productSpecCharacteristic[i].name == 'Compliance:SelfAtt') {
           this.selfAtt=this.prod.productSpecCharacteristic[i]
           this.checkExistingSelfAtt=true;
-        } else {
+        } else if(this.prod.productSpecCharacteristic[i].name.startsWith('Compliance:')){
           console.log('--- additional isos')
           console.log(this.prod.productSpecCharacteristic[i])
           this.additionalISOS.push({
@@ -1433,6 +1433,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     }
     
     if(this.charsForm.value.name!=null){
+      console.log('saving char')
       this.prodChars.push({
         id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
         name: this.charsForm.value.name,
@@ -1461,6 +1462,8 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       }
     }
 
+    console.log('--- value of prodChars after saving')
+    console.log(this.prodChars)
     this.charsForm.reset();
     this.creatingChars=[];
     this.showCreateChar=false;
@@ -1554,6 +1557,9 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
               item => item.name === cleanedName
             );
             if(checkAdditional != -1){
+              this.finishChars.push(this.prodChars[i])
+            }
+            if(!this.prodChars[i].name?.startsWith('Compliance:')){
               this.finishChars.push(this.prodChars[i])
             }
           } else {

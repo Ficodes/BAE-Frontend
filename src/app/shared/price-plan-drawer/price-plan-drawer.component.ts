@@ -215,12 +215,13 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     // Filter out certifications, self-att, and disabled prefixes
     this.filteredCharacteristics = this.characteristics.filter(char => {
       const isCertification = certifications.some(cert => cert.name === char.name);
-      const isSelfAtt = char.name === 'Compliance:SelfAtt';
+      //const isSelfAtt = char.name === 'Compliance:SelfAtt';
+      const isCompliance = char?.name?.startsWith('Compliance:')
       /*const isDisabledByPrefix = disabledPrefixes.some(prefix =>
         char.name === prefix || char.name === `${prefix} - enabled`
       );*/
   
-      return !isCertification && !isSelfAtt;
+      return !isCertification && !isCompliance;
     });
   
     const characteristicsGroup = this.fb.group({});

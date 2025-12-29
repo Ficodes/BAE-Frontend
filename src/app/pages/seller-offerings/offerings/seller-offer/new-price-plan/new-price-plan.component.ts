@@ -143,7 +143,8 @@ export class NewPricePlanComponent implements OnInit, OnDestroy {
 
   checkPriceInfo(){
     for(let i=0;i<this.selectedProdSpec.productSpecCharacteristic.length;i++){
-      if (!certifications.some(certification => certification.name === this.selectedProdSpec.productSpecCharacteristic[i].name)) {
+      //if (!certifications.some(certification => certification.name === this.selectedProdSpec.productSpecCharacteristic[i].name)) {
+      if (!certifications.some(certification => certification.name === this.selectedProdSpec.productSpecCharacteristic[i].name) && !this.selectedProdSpec.productSpecCharacteristic[i].name.startsWith('Compliance:')) {
         this.createdPriceProfile.push(this.selectedProdSpec.productSpecCharacteristic[i]);
         this.filteredCharacteristics.push(this.selectedProdSpec.productSpecCharacteristic[i]);
       }

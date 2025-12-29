@@ -1316,6 +1316,9 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
             if(checkAdditional != -1){
               this.finishChars.push(this.prodChars[i])
             }
+            if(!this.prodChars[i].name?.startsWith('Compliance:')){
+              this.finishChars.push(this.prodChars[i])
+            }
           } else {
             this.finishChars.push(this.prodChars[i])
           }

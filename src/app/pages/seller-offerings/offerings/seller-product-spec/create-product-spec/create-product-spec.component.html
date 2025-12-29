@@ -493,6 +493,7 @@
                                 </thead>
                                 <tbody>
                                     @for (prod of prodChars; track prod;) {
+                                        @if(!prod.name?.startsWith('Compliance:')){
                                         <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
                                             <td [ngClass]="{
                                                 'break-all': hasLongWord(prod.name, 20),
@@ -539,6 +540,7 @@
                                                 </button>    
                                             </td>
                                         </tr>
+                                        }
                                     }
                                 </tbody>
                             </table>
