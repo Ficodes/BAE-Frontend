@@ -75,6 +75,7 @@ import { environment } from 'src/environments/environment';
 import { AppInitService } from './services/app-init.service';
 import { appConfigFactory } from './app-config-factory';
 import { VerificationComponent } from './pages/admin/verification/verification.component';
+import { EmailComponent } from './pages/admin/email/email.component';
 import { InventoryResourcesComponent } from './pages/product-inventory/inventory-resources/inventory-resources.component';
 import { InventoryServicesComponent } from './pages/product-inventory/inventory-services/inventory-services.component';
 import { ProductInvDetailComponent } from './pages/product-inventory/inventory-items/product-inv-detail/product-inv-detail.component';
@@ -158,6 +159,7 @@ import { OperatorRevenueSharingComponent } from "src/app/pages/admin/operator-re
     ContactUsComponent,
     ContactUsFormComponent,
     VerificationComponent,
+    EmailComponent,
     InventoryResourcesComponent,
     InventoryServicesComponent,
     ProductInvDetailComponent,

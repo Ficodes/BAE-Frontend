@@ -25,6 +25,12 @@
         <li>
           <a (click)="goToVerification()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'ADMIN._verification' | translate }}</a>
         </li>
+        <li>
+          <a (click)="goToRevenue()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'ADMIN._revenue' | translate }}</a>
+        </li>
+        <li>
+          <a (click)="goToEmail()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'ADMIN._email' | translate }}</a>
+        </li>
       </ul>
     </div>
     
@@ -39,6 +45,9 @@
             </button>
             <button (click)="goToRevenue()" id="revenue-button" class="block w-full px-4 py-2 border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
               {{ 'ADMIN._revenue' | translate }}
+            </button>
+            <button (click)="goToEmail()" id="email-button" class="block w-full px-4 py-2 border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+              {{ 'ADMIN._email' | translate }}
             </button>
           </div>
        </div>
@@ -57,6 +66,9 @@
         }
         @if(show_revenue){
           <operator-revenue-sharing></operator-revenue-sharing>
+        }
+        @if(show_email){
+          <email></email>
         }
     </div>
 </div>
