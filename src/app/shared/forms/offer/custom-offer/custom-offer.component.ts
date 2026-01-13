@@ -170,12 +170,18 @@ export class CustomOfferComponent implements OnInit {
       }));
 
       const license = this.offer.productOfferingTerm.find((t: { name: string; }) => t.name === 'License');
-  
+
+      let offerName = this.offer.name;
+      if (this.productOfferForm.get('partyInfo')?.value.tradingName) {
+        offerName = `${this.offer.name} - ${this.productOfferForm.get('partyInfo')?.value.tradingName}`;
+      }
+
       const offer: any = {
-        name: this.offer.name,
+        name: offerName,
         description: this.offer?.description || '',
         lifecycleStatus: 'Active',
         isBundle: this.bundleChecked,
+        isSellable: false, // Ad-Hoc offer cannot be generally purchased
         bundledProductOffering: this.offersBundle,
         place: [],
         version: this.offer.version,
