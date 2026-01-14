@@ -4,7 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import {components} from "../../models/product-catalog";
 type Product = components["schemas"]["ProductOffering"];
 type ProductSpecification = components["schemas"]["ProductSpecification"];
-import { QuoteService } from 'src/app/services/quote.service';
+import { QuoteService } from 'src/app/features/quotes/services/quote.service';
 import { EventMessageService } from 'src/app/services/event-message.service';
 
 export interface QuoteRequestData {

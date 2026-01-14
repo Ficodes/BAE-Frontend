@@ -284,6 +284,19 @@ import { LoginInfo } from 'src/app/models/interfaces';
                           [attr.d]="isQuoteCancelled(quote) ? 'M6 18L18 6M6 6l12 12' : 'M5 13l4 4L19 7'" />
                   </svg>
                 </button>
+
+                <!-- Create offer, Seller only when the quote is accepted -->
+                <button
+                  *ngIf="selectedRole === 'seller' && getPrimaryState(quote) === 'accepted'"
+                  [disabled]="isActionDisabled(quote, 'createOffer')"
+                  (click)="createOffer(quote)"
+                  [class]="getIconButtonClass(quote, 'createOffer', 'text-emerald-600 hover:text-emerald-700')"
+                  title="Create Offer"
+                >
+                  <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+                  </svg>
+                </button>
               </ng-container>
             </div>
           </div>
@@ -846,6 +859,13 @@ export class QuoteListComponent implements OnInit {
         this.notificationService.showError(`Error cancelling quote: ${error.message || 'Unknown error'}`);
       }
     });
+  }
+
+  createOffer(quote: Quote) {
+    // we send the current quote ID to open the proper from
+    this.router.navigate(['/my-offerings'], { state: {
+      quoteId: quote.id
+    } });
   }
 
   // Utility methods (migrated from QuoteRow.js)

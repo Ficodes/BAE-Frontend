@@ -109,8 +109,8 @@ export class EventMessageService {
     this.eventMessageSubject.next({ type: 'SellerUpdateOffer', value: offer });
   }
 
-  emitSellerCreateCustomOffer(offer:any){
-    this.eventMessageSubject.next({type: 'SellerCreateCustomOffer', value: offer})
+  emitSellerCreateCustomOffer(offer:any, partyId?:string){
+    this.eventMessageSubject.next({type: 'SellerCreateCustomOffer', value: {offer, partyId}})
   }
 
   emitSellerCatalog(show:boolean){    

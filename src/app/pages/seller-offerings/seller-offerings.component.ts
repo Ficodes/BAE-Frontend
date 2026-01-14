@@ -11,8 +11,9 @@ import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "../../services/event-message.service";
 import * as moment from 'moment';
-import { Subject } from 'rxjs';
+import { firstValueFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { QuoteService } from 'src/app/features/quotes/services/quote.service';
 
 @Component({
   selector: 'app-seller-offerings',
@@ -41,6 +42,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   serv_to_update:any;
   res_to_update:any;
   offer_to_update:any;
+  custom_offer_partyId:any=null;
   catalog_to_update:any;
   feedback:boolean=false;
   userInfo:any;
@@ -59,7 +61,10 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   constructor(
     private localStorage: LocalStorageService,
     private cdr: ChangeDetectorRef,
-    private eventMessage: EventMessageService
+    private eventMessage: EventMessageService,
+    private router: Router,
+    private quoteService: QuoteService,
+    private api: ApiServiceService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -114,7 +119,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
         this.goToUpdateOffer();
       }
       if(ev.type === 'SellerCreateCustomOffer') {
-        this.offer_to_update=ev.value;
+        const evValue = ev.value as {offer: any, partyId?: string};
+        this.offer_to_update = evValue.offer;
+        this.custom_offer_partyId = evValue.partyId || null;
         this.goToCreateCustomOffer();
       }
       if(ev.type === 'SellerCatalogUpdate') {
@@ -127,13 +134,30 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     })
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.userInfo = this.localStorage.getObject('login_items') as LoginInfo;
     const saved = localStorage.getItem('activeSection');
     console.log(saved)
     if (saved) this.activeSection = saved;
     if (saved && this.sectionActions[saved]) {
       this.sectionActions[saved].call(this); // bind `this` context
+    }
+
+    const state = history.state as { quoteId?: string };
+    console.log('Checking state')
+    console.log(state)
+    
+    if (state && state.quoteId) {
+      // If there's a quoteId in the state, open the offers section
+      const quote = await firstValueFrom(this.quoteService.getQuoteById(state.quoteId));
+      const offerId = quote?.quoteItem?.[0]?.productOffering?.id;
+      let offer:any = null;
+      if (offerId) {
+        offer = await this.api.getProductById(offerId);
+      }
+
+      const quoteBuyer = quote?.relatedParty?.find((party: any) => party.role.toLowerCase() === environment.BUYER_ROLE.toLowerCase());
+      this.eventMessage.emitSellerCreateCustomOffer(offer, quoteBuyer?.id);
     }
   }
 
