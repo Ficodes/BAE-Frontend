@@ -171,6 +171,7 @@ export class CustomOfferComponent implements OnInit {
 
       const license = this.offer.productOfferingTerm.find((t: { name: string; }) => t.name === 'License');
 
+      // Add the name of the organization/trading name to the offer name
       let offerName = this.offer.name;
       if (this.productOfferForm.get('partyInfo')?.value.tradingName) {
         offerName = `${this.offer.name} - ${this.productOfferForm.get('partyInfo')?.value.tradingName}`;
