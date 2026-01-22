@@ -1,32 +1,40 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { switchMap } from 'rxjs/operators';
 import { QuoteService } from 'src/app/features/quotes/services/quote.service';
 import { NotificationService } from '../../services/notification.service';
+import { AccountServiceService } from '../../services/account-service.service';
+import { ApiServiceService } from '../../services/product-service.service';
 import { Quote } from '../../models/quote.model';
+import { QUOTE_STATUS_MESSAGES, QUOTE_CHAT_MESSAGES, QUOTE_ACTION_BUTTON_TEXTS } from '../../models/quote.constants';
 import { NotificationComponent } from '../notification/notification.component';
+import { ChatModalComponent } from '../chat-modal/chat-modal.component';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-quote-details-modal',
   standalone: true,
-  imports: [CommonModule, NotificationComponent],
+  imports: [CommonModule, FormsModule, NotificationComponent, ChatModalComponent],
   template: `
     <!-- Modal Backdrop -->
-    <div 
-      *ngIf="isOpen" 
+    <div
+      *ngIf="isOpen"
       class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
       (click)="closeModal()"
     >
       <!-- Modal Content -->
-      <div 
-        class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white"
+      <div
+        class="relative top-10 mx-auto p-6 border w-11/12 max-w-3xl shadow-lg rounded-lg bg-white dark:bg-secondary-100"
         (click)="$event.stopPropagation()"
       >
         <!-- Modal Header -->
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-bold text-gray-900">Quote Details</h2>
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white">Quote Details</h2>
           <button
             (click)="closeModal()"
-            class="text-gray-400 hover:text-gray-600 focus:outline-none"
+            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -35,8 +43,8 @@ import { NotificationComponent } from '../notification/notification.component';
         </div>
 
         <!-- Loading State -->
-        <div *ngIf="isLoading" class="flex justify-center items-center py-8">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 fill-secondary-400"></div>
+        <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
         </div>
 
         <!-- Error State -->
@@ -45,26 +53,226 @@ import { NotificationComponent } from '../notification/notification.component';
         </div>
 
         <!-- Quote Content -->
-        <div *ngIf="!isLoading && !error && quote" class="max-h-96 overflow-y-auto">
-          <!-- Customer Message - Main Content -->
-          <div class="mb-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-3">Customer Message</h3>
-            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-md">
-              <p class="text-base text-gray-800 leading-relaxed whitespace-pre-wrap">{{ quote.description || 'No message provided' }}</p>
+        <div *ngIf="!isLoading && !error && quote" class="space-y-5 max-h-[70vh] overflow-y-auto pr-2">
+
+          <!-- Buyer Section -->
+          <div class="bg-gray-50 dark:bg-secondary-200 p-4 rounded-lg">
+            <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Buyer Information</p>
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Buyer -->
+              <div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Buyer:</p>
+                <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ buyerName }}</p>
+                <p class="text-xs text-gray-400 dark:text-gray-500">VAT ID: {{ buyerVatId }}</p>
+              </div>
+              <!-- Buyer Operator -->
+              <div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Buyer Operator:</p>
+                <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ buyerOperatorName }}</p>
+                <p class="text-xs text-gray-400 dark:text-gray-500">VAT ID: {{ buyerOperatorVatId }}</p>
+              </div>
             </div>
           </div>
-          
-          <!-- Creation Date - Secondary Info -->
-          <div class="text-sm text-gray-500 border-t pt-3">
-            <span class="font-medium">Created:</span> {{ quote.quoteDate | date:'dd/MM/yyyy' }}
+
+          <!-- Seller Section -->
+          <div class="bg-gray-50 dark:bg-secondary-200 p-4 rounded-lg">
+            <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Seller Information</p>
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Seller -->
+              <div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Seller:</p>
+                <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ sellerName }}</p>
+                <p class="text-xs text-gray-400 dark:text-gray-500">VAT ID: {{ sellerVatId }}</p>
+              </div>
+              <!-- Seller Operator -->
+              <div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Seller Operator:</p>
+                <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ sellerOperatorName }}</p>
+                <p class="text-xs text-gray-400 dark:text-gray-500">VAT ID: {{ sellerOperatorVatId }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product Info -->
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Product:</p>
+            <p class="text-base font-medium text-gray-900 dark:text-white">{{ productName }}</p>
+          </div>
+
+          <!-- Request Message -->
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Request:</p>
+            <div class="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 p-4 rounded-r-md overflow-hidden">
+              <p class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words overflow-wrap-anywhere">{{ quote.description || 'No message provided' }}</p>
+            </div>
+          </div>
+
+          <!-- Dates -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Requested Date:</p>
+              <p class="text-base font-medium text-gray-900 dark:text-white">
+                {{ quote.requestedQuoteCompletionDate ? (quote.requestedQuoteCompletionDate | date:'dd-MM-yyyy') : '--' }}
+              </p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Expected Date:</p>
+              <div class="flex items-center gap-2">
+                <p class="text-base font-medium text-gray-900 dark:text-white">
+                  {{ quote.expectedQuoteCompletionDate ? (quote.expectedQuoteCompletionDate | date:'dd-MM-yyyy') : '--' }}
+                </p>
+                <!-- Edit Expected Date Button (Provider only, when allowed) -->
+                <button
+                  *ngIf="canEditExpectedDate()"
+                  (click)="showExpectedDatePicker = true"
+                  class="text-blue-500 hover:text-blue-700 p-1"
+                  title="Set expected date"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Section -->
+          <div class="border-t dark:border-gray-700 pt-4">
+            <div class="flex items-center gap-2 mb-3">
+              <p class="text-sm text-gray-700 dark:text-gray-300">The quote is in status:</p>
+              <span class="px-3 py-1 text-sm font-semibold rounded-full"
+                    [ngClass]="getStatusBadgeClass()">
+                {{ getPrimaryState() }}
+              </span>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">{{ getStatusExplanation() }}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-500 italic">{{ getAvailableActionsText() }}</p>
+          </div>
+
+          <!-- Attachments Section -->
+          <div *ngIf="hasAttachment() || canUploadAttachment()" class="border-t dark:border-gray-700 pt-4">
+            <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Attachments</p>
+
+            <!-- Download Attachment -->
+            <div *ngIf="hasAttachment()" class="flex items-center gap-3 mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              <span class="text-sm text-gray-700 dark:text-gray-300">{{ getAttachmentName() }}</span>
+              <button
+                (click)="downloadAttachment()"
+                class="text-blue-500 hover:text-blue-700 text-sm font-medium"
+              >
+                Download
+              </button>
+            </div>
+
+            <!-- Upload Attachment (Provider only) -->
+            <div *ngIf="canUploadAttachment()" class="mt-3">
+              <label class="flex items-center gap-2 cursor-pointer text-sm text-green-600 hover:text-green-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Upload PDF attachment</span>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  class="hidden"
+                  (change)="onFileSelected($event)"
+                />
+              </label>
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Maximum file size: 2.5MB</p>
+              <p *ngIf="isUploading" class="text-sm text-gray-500 mt-2">Uploading...</p>
+            </div>
+          </div>
+
+          <!-- Action Buttons Section -->
+          <div *ngIf="!isQuoteFinalized()" class="border-t dark:border-gray-700 pt-4">
+            <div class="space-y-3">
+              <!-- Provider: Accept Quote (when pending) -->
+              <div *ngIf="currentUserRole === 'seller' && getPrimaryState() === 'pending'" class="flex items-center justify-between">
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ ACTION_TEXTS.ACCEPT_QUOTE_PROVIDER }}</p>
+                <button
+                  (click)="acceptQuote()"
+                  [disabled]="isProcessing || !canAcceptQuote()"
+                  [title]="getAcceptButtonTooltip()"
+                  class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Accept Quote
+                </button>
+              </div>
+
+              <!-- Customer: Accept Proposal (when approved) -->
+              <div *ngIf="currentUserRole === 'customer' && getPrimaryState() === 'approved'" class="flex items-center justify-between">
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ ACTION_TEXTS.ACCEPT_PROPOSAL_CUSTOMER }}</p>
+                <button
+                  (click)="acceptProposal()"
+                  [disabled]="isProcessing"
+                  class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Accept Quote
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cancel Quote (Always Available except when Accepted) -->
+          <div *ngIf="getPrimaryState() !== 'accepted' && getPrimaryState() !== 'cancelled'" class="border-t dark:border-gray-700 pt-4">
+            <div class="flex items-center justify-between">
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                {{ ACTION_TEXTS.CANCEL_QUOTE_PROVIDER }}
+              </p>
+              <button
+                (click)="rejectQuote()"
+                [disabled]="isProcessing"
+                class="flex items-center gap-2 px-4 py-2 bg-white text-red-600 border border-red-300 rounded-md hover:bg-red-50 disabled:opacity-50"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Cancel Quote
+              </button>
+            </div>
+          </div>
+
+          <!-- Create Offer Button (Provider only, when quote is accepted) -->
+          <div *ngIf="currentUserRole === 'seller' && getPrimaryState() === 'accepted'" class="border-t dark:border-gray-700 pt-4">
+            <div class="flex items-center justify-between">
+              <p class="text-sm text-gray-600 dark:text-gray-400">{{ ACTION_TEXTS.CREATE_OFFER }}</p>
+              <button
+                (click)="createOffer()"
+                class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Create Offer
+              </button>
+            </div>
           </div>
         </div>
 
         <!-- Modal Footer -->
-        <div class="flex justify-end mt-6 pt-4 border-t">
+        <div class="flex justify-between mt-6 pt-4 border-t dark:border-gray-700">
+          <!-- Chat Button -->
+          <button
+            (click)="openChat()"
+            class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8L3 21l1.8-4A7.96 7.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            Chat
+          </button>
           <button
             (click)="closeModal()"
-            class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 font-medium"
           >
             Close
           </button>
@@ -72,42 +280,118 @@ import { NotificationComponent } from '../notification/notification.component';
       </div>
     </div>
 
+    <!-- Chat Modal -->
+    <app-chat-modal
+      [isOpen]="showChatModal"
+      [quoteId]="quoteId"
+      (close)="closeChatModal()"
+    ></app-chat-modal>
 
+    <!-- Expected Date Picker Modal -->
+    <div *ngIf="showExpectedDatePicker" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[60] flex items-center justify-center">
+      <div class="bg-white dark:bg-secondary-100 p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Set Expected Completion Date</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Select when you expect to complete this quote:</p>
+        <input
+          type="date"
+          [(ngModel)]="selectedExpectedDate"
+          [min]="minDate"
+          class="w-full border border-gray-300 dark:border-gray-600 dark:bg-secondary-200 dark:text-white rounded-md px-3 py-2 mb-4"
+        />
+        <div class="flex justify-end gap-3">
+          <button
+            (click)="showExpectedDatePicker = false"
+            class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
+          >
+            Cancel
+          </button>
+          <button
+            (click)="saveExpectedDate()"
+            [disabled]="!selectedExpectedDate"
+            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
   `
 })
 export class QuoteDetailsModalComponent implements OnInit, OnChanges {
   @Input() isOpen = false;
   @Input() quoteId: string | null = null;
+  @Input() currentUserRole: 'customer' | 'seller' = 'customer';
+  @Input() currentUserId: string = '';
   @Output() close = new EventEmitter<void>();
-
-
-
+  @Output() quoteUpdated = new EventEmitter<Quote>();
 
   quote: Quote | null = null;
   isLoading = false;
   error: string | null = null;
+  isProcessing = false;
+  isUploading = false;
 
-  constructor(
-    public quoteService: QuoteService,
-    private notificationService: NotificationService
-  ) {}
+  // Data enrichment
+  buyerName = 'Loading...';
+  buyerVatId = 'N/A';
+  buyerOperatorName = 'Loading...';
+  buyerOperatorVatId = 'N/A';
+  sellerName = 'Loading...';
+  sellerVatId = 'N/A';
+  sellerOperatorName = 'Loading...';
+  sellerOperatorVatId = 'N/A';
+  productName = 'Loading...';
+
+  // Expected date picker
+  showExpectedDatePicker = false;
+  selectedExpectedDate = '';
+
+  // Chat modal
+  showChatModal = false;
+
+  // Expose constants to template
+  readonly ACTION_TEXTS = QUOTE_ACTION_BUTTON_TEXTS;
+
+  // Services
+  private quoteService = inject(QuoteService);
+  private notificationService = inject(NotificationService);
+  private accountService = inject(AccountServiceService);
+  private productService = inject(ApiServiceService);
+  private router = inject(Router);
+
+  get minDate(): string {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  }
 
   ngOnInit() {
-    // Load quote when modal opens and quoteId is provided
     if (this.isOpen && this.quoteId) {
       this.loadQuote(this.quoteId);
     }
   }
 
-  ngOnChanges() {
-    // Load quote when quoteId changes or modal opens
+  ngOnChanges(changes: SimpleChanges) {
     if (this.isOpen && this.quoteId) {
       this.loadQuote(this.quoteId);
     } else if (!this.isOpen) {
-      // Reset state when modal closes
-      this.quote = null;
-      this.error = null;
+      this.resetState();
     }
+  }
+
+  private resetState() {
+    this.quote = null;
+    this.error = null;
+    this.buyerName = 'Loading...';
+    this.buyerVatId = 'N/A';
+    this.buyerOperatorName = 'Loading...';
+    this.buyerOperatorVatId = 'N/A';
+    this.sellerName = 'Loading...';
+    this.sellerVatId = 'N/A';
+    this.sellerOperatorName = 'Loading...';
+    this.sellerOperatorVatId = 'N/A';
+    this.productName = 'Loading...';
+    this.showExpectedDatePicker = false;
+    this.selectedExpectedDate = '';
   }
 
   loadQuote(id: string) {
@@ -118,6 +402,7 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
       next: (quote) => {
         this.quote = quote;
         this.isLoading = false;
+        this.enrichQuoteData();
       },
       error: (error: Error) => {
         this.error = 'Failed to load quote. Please try again.';
@@ -127,7 +412,355 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
     });
   }
 
+  /**
+   * Check if an ID is an organization URN that can be fetched from the API
+   */
+  private isOrganizationId(id: string | undefined): boolean {
+    return !!id && id.startsWith('urn:ngsi-ld:organization:');
+  }
+
+  /**
+   * Fetch party name from API if it's an organization ID, otherwise use the ID as-is
+   */
+  private fetchPartyName(
+    partyId: string | undefined,
+    onSuccess: (name: string) => void,
+    fallbackValue: string = 'N/A'
+  ) {
+    if (!partyId) {
+      onSuccess(fallbackValue);
+      return;
+    }
+
+    if (this.isOrganizationId(partyId)) {
+      this.accountService.getOrgInfo(partyId).then(
+        (org: any) => {
+          onSuccess(org?.tradingName || org?.name || partyId);
+        },
+        () => {
+          onSuccess(partyId);
+        }
+      );
+    } else {
+      // Not an organization ID, use the ID value directly
+      onSuccess(partyId);
+    }
+  }
+
+  private enrichQuoteData() {
+    if (!this.quote) return;
+
+    // Extract all 4 parties from relatedParty
+    const buyer = this.quote.relatedParty?.find(p =>
+      p.role?.toLowerCase() === 'buyer'
+    );
+    const buyerOperator = this.quote.relatedParty?.find(p =>
+      p.role?.toLowerCase() === 'buyeroperator'
+    );
+    const seller = this.quote.relatedParty?.find(p =>
+      p.role?.toLowerCase() === 'seller'
+    );
+    const sellerOperator = this.quote.relatedParty?.find(p =>
+      p.role?.toLowerCase() === 'selleroperator'
+    );
+
+    // Get VAT IDs from relatedParty name field
+    this.buyerVatId = buyer?.name || 'N/A';
+    this.buyerOperatorVatId = buyerOperator?.name || 'N/A';
+    this.sellerVatId = seller?.name || 'N/A';
+    this.sellerOperatorVatId = sellerOperator?.name || 'N/A';
+
+    // Fetch party names (only calls API for organization IDs)
+    this.fetchPartyName(buyer?.id, (name) => this.buyerName = name);
+    this.fetchPartyName(buyerOperator?.id, (name) => this.buyerOperatorName = name);
+    this.fetchPartyName(seller?.id, (name) => this.sellerName = name);
+    this.fetchPartyName(sellerOperator?.id, (name) => this.sellerOperatorName = name);
+
+    // Fetch product info
+    const productOfferingId = this.quote.quoteItem?.[0]?.productOffering?.id;
+    if (productOfferingId) {
+      // First check if name is already in the quote data
+      const existingName = this.quote.quoteItem?.[0]?.productOffering?.name;
+      if (existingName) {
+        this.productName = existingName;
+      } else {
+        this.productService.getProductById(productOfferingId).then(
+          (product: any) => {
+            this.productName = product?.name || productOfferingId;
+          },
+          () => {
+            this.productName = productOfferingId;
+          }
+        );
+      }
+    }
+  }
+
+  getPrimaryState(): string {
+    if (!this.quote) return 'unknown';
+    if (Array.isArray(this.quote.quoteItem) && this.quote.quoteItem.length > 0) {
+      return this.quote.quoteItem[0].state || 'unknown';
+    }
+    return this.quote.state || 'unknown';
+  }
+
+  getStatusBadgeClass(): string {
+    const state = this.getPrimaryState();
+    const classes: Record<string, string> = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      inProgress: 'bg-blue-100 text-blue-800',
+      approved: 'bg-green-100 text-green-800',
+      accepted: 'bg-emerald-100 text-emerald-800',
+      rejected: 'bg-red-100 text-red-800',
+      cancelled: 'bg-gray-100 text-gray-800'
+    };
+    return classes[state] || 'bg-gray-100 text-gray-600';
+  }
+
+  getStatusExplanation(): string {
+    const state = this.getPrimaryState();
+    const role = this.currentUserRole === 'customer' ? 'buyer' : 'provider';
+    return QUOTE_STATUS_MESSAGES[state]?.[role]?.explanation || 'Status information unavailable.';
+  }
+
+  getAvailableActionsText(): string {
+    const state = this.getPrimaryState();
+    const role = this.currentUserRole === 'customer' ? 'buyer' : 'provider';
+    return QUOTE_STATUS_MESSAGES[state]?.[role]?.availableActions || '';
+  }
+
+  isQuoteFinalized(): boolean {
+    const state = this.getPrimaryState();
+    return state === 'cancelled' || state === 'accepted' || state === 'rejected';
+  }
+
+  hasAttachment(): boolean {
+    return this.quote?.quoteItem?.some(qi => qi.attachment && qi.attachment.length > 0) || false;
+  }
+
+  getAttachmentName(): string {
+    const attachment = this.quote?.quoteItem?.[0]?.attachment?.[0];
+    return attachment?.name || 'attachment.pdf';
+  }
+
+  canUploadAttachment(): boolean {
+    if (this.currentUserRole !== 'seller') return false;
+    const state = this.getPrimaryState();
+    return state === 'inProgress' || state === 'approved';
+  }
+
+  canEditExpectedDate(): boolean {
+    if (this.currentUserRole !== 'seller') return false;
+    const state = this.getPrimaryState();
+    return !this.isQuoteFinalized() && (state === 'pending' || state === 'inProgress' || state === 'approved');
+  }
+
+  canRejectOrCancel(): boolean {
+    const state = this.getPrimaryState();
+    if (this.currentUserRole === 'seller') {
+      // Sellers can cancel quotes in pending, inProgress, or approved states
+      return state === 'pending' || state === 'inProgress' || state === 'approved';
+    } else {
+      // Customers can reject quotes only in approved state
+      return state === 'approved';
+    }
+  }
+
+  canAcceptQuote(): boolean {
+    // Provider can only accept if expected date is set
+    if (this.currentUserRole === 'seller') {
+      return !!this.quote?.expectedQuoteCompletionDate;
+    }
+    return true;
+  }
+
+  getAcceptButtonTooltip(): string {
+    if (this.currentUserRole === 'seller' && !this.quote?.expectedQuoteCompletionDate) {
+      return this.ACTION_TEXTS.EXPECTED_DATE_REQUIRED;
+    }
+    return '';
+  }
+
+  downloadAttachment() {
+    if (!this.quote) return;
+    try {
+      this.quoteService.downloadAttachment(this.quote);
+      this.notificationService.showSuccess('Download started');
+    } catch (error: any) {
+      this.notificationService.showError(error.message || 'Error downloading attachment');
+    }
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length || !this.quote?.id) return;
+
+    const file = input.files[0];
+    if (file.type !== 'application/pdf') {
+      this.notificationService.showError('Only PDF files are allowed');
+      return;
+    }
+
+    // Check file size (2.5MB = 2.5 * 1024 * 1024 bytes)
+    const maxSizeBytes = 2.5 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      this.notificationService.showError('File size exceeds the maximum limit of 2.5MB');
+      return;
+    }
+
+    this.isUploading = true;
+    const fileName = file.name;
+    const quoteId = this.quote.id;
+
+    this.quoteService.addAttachmentToQuote(quoteId, file).pipe(
+      // Add note for attachment upload
+      switchMap((updatedQuote) => {
+        this.quote = updatedQuote;
+        return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.ATTACHMENT_UPLOADED(fileName), this.currentUserId).pipe(
+          switchMap(() => {
+            // Auto-approve if in progress
+            if (this.getPrimaryState() === 'inProgress') {
+              return this.quoteService.updateQuoteStatus(quoteId, 'approved').pipe(
+                switchMap((approvedQuote) => {
+                  this.quote = approvedQuote;
+                  return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE('approved'), this.currentUserId);
+                })
+              );
+            }
+            return [updatedQuote];
+          })
+        );
+      })
+    ).subscribe({
+      next: () => {
+        this.isUploading = false;
+        this.notificationService.showSuccess('Attachment uploaded successfully');
+        if (this.getPrimaryState() === 'approved') {
+          this.notificationService.showSuccess('Quote has been approved and sent to customer');
+        }
+        this.quoteUpdated.emit(this.quote!);
+      },
+      error: (error) => {
+        this.isUploading = false;
+        this.notificationService.showError('Failed to upload attachment');
+      }
+    });
+  }
+
+  acceptQuote() {
+    if (!this.quote?.id || this.isProcessing) return;
+
+    if (!confirm('Are you sure you want to accept this quote request?')) return;
+
+    this.isProcessing = true;
+    const quoteId = this.quote.id;
+
+    this.quoteService.updateQuoteStatus(quoteId, 'inProgress').pipe(
+      switchMap((updatedQuote) => {
+        this.quote = updatedQuote;
+        return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE('inProgress'), this.currentUserId);
+      })
+    ).subscribe({
+      next: () => {
+        this.isProcessing = false;
+        this.notificationService.showSuccess('Quote request accepted');
+        this.quoteUpdated.emit(this.quote!);
+      },
+      error: (error) => {
+        this.isProcessing = false;
+        this.notificationService.showError('Failed to accept quote');
+      }
+    });
+  }
+
+  acceptProposal() {
+    if (!this.quote?.id || this.isProcessing) return;
+
+    if (!confirm('Are you sure you want to accept this quote proposal?')) return;
+
+    this.isProcessing = true;
+    const quoteId = this.quote.id;
+
+    this.quoteService.updateQuoteStatus(quoteId, 'accepted').pipe(
+      switchMap((updatedQuote) => {
+        this.quote = updatedQuote;
+        return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE('accepted'), this.currentUserId);
+      })
+    ).subscribe({
+      next: () => {
+        this.isProcessing = false;
+        this.notificationService.showSuccess('Quote proposal accepted');
+        this.quoteUpdated.emit(this.quote!);
+      },
+      error: (error) => {
+        this.isProcessing = false;
+        this.notificationService.showError('Failed to accept proposal');
+      }
+    });
+  }
+
+  rejectQuote() {
+    if (!this.quote?.id || this.isProcessing) return;
+
+    if (!confirm('Are you sure you want to cancel this quote?')) return;
+
+    this.isProcessing = true;
+    const quoteId = this.quote.id;
+    const newStatus = 'cancelled';
+
+    this.quoteService.updateQuoteStatus(quoteId, newStatus).pipe(
+      switchMap((updatedQuote) => {
+        this.quote = updatedQuote;
+        return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE(newStatus), this.currentUserId);
+      })
+    ).subscribe({
+      next: () => {
+        this.isProcessing = false;
+        this.notificationService.showSuccess('Quote cancelled');
+        this.quoteUpdated.emit(this.quote!);
+      },
+      error: (error) => {
+        this.isProcessing = false;
+        this.notificationService.showError('Failed to cancel quote');
+      }
+    });
+  }
+
+  saveExpectedDate() {
+    if (!this.quote?.id || !this.selectedExpectedDate) return;
+
+    const dateObj = new Date(this.selectedExpectedDate);
+    const formattedDate = `${dateObj.getDate().toString().padStart(2, '0')}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getFullYear()}`;
+
+    this.quoteService.updateQuoteDate(this.quote.id, formattedDate, 'expected').subscribe({
+      next: (updatedQuote) => {
+        this.quote = updatedQuote;
+        this.showExpectedDatePicker = false;
+        this.selectedExpectedDate = '';
+        this.notificationService.showSuccess('Expected date updated');
+        this.quoteUpdated.emit(updatedQuote);
+      },
+      error: (error) => {
+        this.notificationService.showError('Failed to update expected date');
+      }
+    });
+  }
+
+  createOffer() {
+    if (!this.quote?.id) return;
+    this.closeModal();
+    this.router.navigate(['/my-offerings'], { state: { quoteId: this.quote.id } });
+  }
+
   closeModal() {
     this.close.emit();
   }
-} 
+
+  openChat() {
+    this.showChatModal = true;
+  }
+
+  closeChatModal() {
+    this.showChatModal = false;
+  }
+}
