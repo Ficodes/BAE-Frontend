@@ -1,5 +1,6 @@
 /**
  * Quote status constants and messages used throughout the application
+ * 
  */
 
 export interface StatusInfo {
