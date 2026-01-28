@@ -1172,6 +1172,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   saveChar(){
     if(this.charsForm.value.name!=null){
 
+      // In showFinish() only takes the first ocurrence in name for sending to proxy
+      // I validate the duplication here to prevent confusion in client when suddenly a characteristic with the same name dissapeared 
       if (this.prodChars.find((char)=> char.name === this.charsForm.value.name)){
         console.log('name duplicated error')
         this.errorMessage = 'Cannot save duplicated name in characteristics';
