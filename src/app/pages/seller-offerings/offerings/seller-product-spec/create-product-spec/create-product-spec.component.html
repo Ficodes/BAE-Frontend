@@ -569,6 +569,8 @@
                                     <option selected value="string">String</option>
                                     <option value="number">Number</option>
                                     <option value="range">Number range</option>
+                                    <option value="credentialsConfiguration">Credentials Configuration</option>
+                                    <option value="authorizationPolicy">Authorization Policy</option>
                                 </select>
                             </div>
                             <div class="col-span-2">
@@ -696,6 +698,19 @@
                                         <svg class="w-6 h-6 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
                                         </svg>
+                                    </button>
+                                </div>
+                            } @else if (credentialsConfigSelected || policyConfigSelected){
+                                <div class="flex flex-col w-full">
+                                    <label for="json-value" class="font-bold text-sm dark:text-white mb-2">{{ 'CREATE_PROD_SPEC._json_value' | translate }}</label>
+                                    <textarea id="json-value" [(ngModel)]="jsonValue" rows="10"
+                                    class="mb-2 min-h-fit bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-mono"
+                                    placeholder='{"example": "Enter your JSON here"}'></textarea>
+                                    <button (click)="addCharValue()" [disabled]="!jsonValue" [ngClass]="!jsonValue ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" type="button" class="text-white w-fit bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center inline-flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+                                        </svg>
+                                        {{ 'CREATE_PROD_SPEC._add_json' | translate }}
                                     </button>
                                 </div>
                             }

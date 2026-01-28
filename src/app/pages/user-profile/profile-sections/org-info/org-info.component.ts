@@ -38,7 +38,8 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
     name: new FormControl('', [Validators.required]),
     website: new FormControl(''),
     description: new FormControl(''),
-    country: new FormControl('',[Validators.required]),
+    country: new FormControl('', [Validators.required]),
+    did: new FormControl(''),
   });
   mediumForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email, Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$'), Validators.maxLength(320)]),
@@ -212,7 +213,13 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
       chars.push({
         name: 'country',
         value: this.profileForm.value.country
-      })       
+      })
+    }
+    if(this.profileForm.value.did != ''){
+      chars.push({
+        name: 'did',
+        value: this.profileForm.value.did
+      })
     }
     for(let i=0; i<this.contactmediums.length; i++){
       if(this.contactmediums[i].mediumType == 'Email'){
@@ -329,9 +336,11 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
           this.profileForm.controls['description'].setValue(profile.partyCharacteristic[i].value);
           this.description=profile.partyCharacteristic[i].value;
         }else if(profile.partyCharacteristic[i].name=='website') {
-          this.profileForm.controls['website'].setValue(profile.partyCharacteristic[i].value);    
+          this.profileForm.controls['website'].setValue(profile.partyCharacteristic[i].value);
         } else if(profile.partyCharacteristic[i].name=='country') {
           this.profileForm.controls['country'].setValue(profile.partyCharacteristic[i].value);
+        } else if(profile.partyCharacteristic[i].name=='did') {
+          this.profileForm.controls['did'].setValue(profile.partyCharacteristic[i].value);
         }
       }
     }
