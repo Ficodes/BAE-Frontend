@@ -1149,20 +1149,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
           unitOfMeasure:this.rangeUnit})
       } 
     } else {
-      console.log('boolean')
-      if(this.creatingChars.length==0){
-        this.creatingChars.push({
-          isDefault:true,
-          value:this.booleanValue as any
-        })
-      } else{
-        this.creatingChars.push({
-          isDefault:false,
-          value:this.booleanValue as any
-        })
-      }
+      console.log('nothing')
     }
-    this.booleanValue=false;
   }
 
   removeCharValue(char:any,idx:any){
@@ -1183,6 +1171,15 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
   saveChar(){
     if(this.charsForm.value.name!=null){
+
+      if (this.prodChars.find((char)=> char.name === this.charsForm.value.name)){
+        console.log('name duplicated error')
+        this.errorMessage = 'Cannot save duplicated name in characteristics';
+        this.showError = true;
+        setTimeout(() => {this.showError = false}, 3000);
+        return
+      }
+
       // Create the main characteristic
       this.prodChars.push({
         id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
