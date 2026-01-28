@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnDestroy } from '@angular/core';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
@@ -8,13 +8,15 @@ import { phoneNumbers, countries } from 'src/app/models/country.const'
 import {EventMessageService} from "src/app/services/event-message.service";
 import { initFlowbite } from 'flowbite';
 import * as moment from 'moment';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'user-info',
   templateUrl: './user-info.component.html',
   styleUrl: './user-info.component.css'
 })
-export class UserInfoComponent implements OnInit {
+export class UserInfoComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   orders:any[]=[];
   profile:any;
@@ -41,6 +43,8 @@ export class UserInfoComponent implements OnInit {
   showError:boolean=false;
   successVisibility:boolean=false;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private localStorage: LocalStorageService,
     private api: ApiServiceService,
@@ -48,7 +52,9 @@ export class UserInfoComponent implements OnInit {
     private accountService: AccountServiceService,
     private eventMessage: EventMessageService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -63,6 +69,11 @@ export class UserInfoComponent implements OnInit {
     this.initPartyInfo();
   }
 
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   initPartyInfo(){
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
     if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
@@ -71,10 +82,7 @@ export class UserInfoComponent implements OnInit {
       } else {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as)
         this.partyId = loggedOrg.partyId
-        console.log(aux.organizations)
         this.accountService.getOrgInfo(this.partyId).then(data=> {
-          console.log('org')
-          console.log(data)
         })
       }
       this.token=aux.token;
@@ -87,7 +95,6 @@ export class UserInfoComponent implements OnInit {
 
   getProfile(){
     this.accountService.getUserInfo(this.partyId).then(data=> {
-      console.log(data)
       this.profile=data;
       this.loadProfileData(this.profile)
       this.loading=false;
@@ -111,8 +118,7 @@ export class UserInfoComponent implements OnInit {
       "placeOfBirth": this.userProfileForm.value.city,
       "title": this.userProfileForm.value.treatment,
       "birthDate": this.userProfileForm.value.birthdate
-    }
-    console.log(profile)
+  }
     this.accountService.updateUserInfo(this.partyId,profile).subscribe({
       next: data => {
         this.userProfileForm.reset();

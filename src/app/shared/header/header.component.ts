@@ -32,6 +32,8 @@ import { TranslateService } from '@ngx-translate/core';
 import {ShoppingCartServiceService} from "../../services/shopping-cart-service.service";
 import {ThemeService} from "../../services/theme.service";
 import {NavLink, ThemeAuthUrlsConfig, ThemeConfig, ThemeLinkConfig} from "../../themes";
+import {Subject} from "rxjs";
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'bae-header',
@@ -62,6 +64,8 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
     this.themeToggleLightIcon = themeToggleLightIcon;
   }
   providerThemeName = environment.providerThemeName;
+  quotesEnabled = environment.QUOTES_ENABLED;
+  tenderEnabled = environment.TENDER_ENABLED;
   qrWindow: Window | null = null;
   statePair:string
   catalogs: any[] | undefined  = [];
@@ -97,8 +101,11 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   private themeSubscription: Subscription = new Subscription();
   public headerLinks: NavLink[] = [];
   public themeAuthUrls: ThemeAuthUrlsConfig | undefined;
+  private destroy$ = new Subject<void>();
 
-
+  sellerRole: string = environment.SELLER_ROLE;
+  orgAdminRole: string = environment.ORG_ADMIN_ROLE;
+  certifierRole: string = environment.CERTIFIER_ROLE;
 
   ngOnDestroy(): void {
       this.qrWindow?.close()
@@ -106,6 +113,8 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
       if (this.themeSubscription) {
         this.themeSubscription.unsubscribe();
       }
+      this.destroy$.next();
+      this.destroy$.complete();
   }
 
   ngDoCheck(): void {
@@ -135,36 +144,53 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
 
   async ngOnInit(){
     this.langs = this.translate.getLangs();
-    console.log('langs')
-    console.log(this.langs)
-    //this.defaultLang = this.translate.getDefaultLang();
+
     let currLang = this.localStorage.getItem('current_language')
     if(!currLang || currLang == null) {
       this.defaultLang = this.translate.getDefaultLang();
     } else {
       this.defaultLang = currLang;
     }
-    console.log('default')
-    console.log(this.defaultLang)
 
     this.themeSubscription = this.themeService.currentTheme$.subscribe(theme => {
       this.currentTheme = theme;
       this.headerLinks = theme?.links?.headerLinks || [];
       this.themeAuthUrls = theme?.authUrls;
-      // Podrías hacer más cosas aquí cuando el tema cambia si es necesario
+
+      if(theme?.links?.headerLinks){
+            // Recorremos recursivamente todos los links y actualizamos URL si tiene environmentName
+        const updateLinks = (links: NavLink[]) => {
+          return links.map(link => {
+            const updatedLink = { ...link };
+
+            // Actualizamos url dinámicamente
+            if (link.environmentName) {
+              updatedLink.url = (environment as any)[link.environmentName] || '';
+            }
+
+            // Si tiene children, hacemos la misma operación recursivamente
+            if (link.children?.length) {
+              updatedLink.children = updateLinks(link.children);
+            }
+
+            return updatedLink;
+          });
+        };
+
+        this.headerLinks = updateLinks(theme.links.headerLinks);
+
+        theme.links.headerLinks = this.headerLinks;
+      }
     });
 
 
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
-    console.log('aux: ' + aux)
     if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
       this.loginInfo=aux;
       this.is_logged=true;
       this.orgs=aux.organizations;
-      console.log('--roles')
-      console.log(aux.roles)
       for(let i=0; i < aux.roles.length; i++){
-        if(aux.roles[i].name == 'admin'){
+        if(aux.roles[i].name == environment.ADMIN_ROLE){
           this.isAdmin=true;
           this.cdr.detectChanges();
         }
@@ -176,11 +202,8 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
         for(let i=0;i<aux.roles.length;i++){
           this.roles.push(aux.roles[i].name)
         }
-        console.log(this.roles)
       } else {
         let loggedOrg = this.orgs.find((element: { id: any; }) => element.id == aux.logged_as)
-        console.log('loggedOrg')
-        console.log(loggedOrg)
         this.loggedAsOrg=true;
         this.username=loggedOrg.name;
         this.usercharacters=(loggedOrg.name.slice(0, 2)).toUpperCase();
@@ -188,12 +211,11 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
         for(let i=0;i<loggedOrg.roles.length;i++){
           this.roles.push(loggedOrg.roles[i].name)
         }
-        console.log(this.roles)
       }
       this.cdr.detectChanges();
     }
 
-    this.sc.cart$.subscribe(cart => {
+    this.sc.cart$.pipe(takeUntil(this.destroy$)).subscribe(cart => {
       this.cartCount = cart.length; // Updates counter on icon
     });
 
@@ -204,7 +226,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
       }
     })
 
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$.pipe(takeUntil(this.destroy$)).subscribe(ev => {
       if(ev.type === 'LoginProcess') {
         let aux = this.localStorage.getObject('login_items') as LoginInfo;
         if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
@@ -213,7 +235,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
           this.cdr.detectChanges();
           this.orgs=aux.organizations;
           for(let i=0; i < aux.roles.length; i++){
-            if(aux.roles[i].name == 'admin'){
+            if(aux.roles[i].name == environment.ADMIN_ROLE){
               this.isAdmin=true;
               this.cdr.detectChanges();
             }
@@ -227,8 +249,6 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
             }
           } else {
             let loggedOrg = this.orgs.find((element: { id: any; }) => element.id == aux.logged_as)
-            console.log('loggedOrg')
-            console.log(loggedOrg)
             this.loggedAsOrg=true;
             this.username=loggedOrg.name;
             this.usercharacters=(loggedOrg.name.slice(0, 2)).toUpperCase();
@@ -299,7 +319,6 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   }
 
   async toggleLogin(){
-    console.log('login')
     this.showLogin=true;
     //this.api.getLogin()
     //await (window.location.href='http://localhost:8004/login');
@@ -408,7 +427,6 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
 
         // Get the final URL string
         let finalUrl = newUrl.toString();
-        console.group(finalUrl)
 
         verifierUrl = `${verifierUrl}&client_callback=${finalUrl}`
         this.qrWindow = this.qrVerifier.launchPopup(verifierUrl,  'Scan QR code',  500, 500);

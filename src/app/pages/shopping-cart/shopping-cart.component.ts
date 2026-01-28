@@ -218,85 +218,6 @@ export class ShoppingCartComponent implements OnInit, AfterViewInit{
     this.cdr.detectChanges();
   }
 
-  /* async orderProduct(){
-    console.log('buying')
-    console.log(moment().utc())
-    let products = []
-    for(let i = 0; i<this.items.length; i++){
-      let char = [];
-      let opChars = this.items[i].options.characteristics
-      if(opChars != undefined){
-        for(let j = 0; j< opChars.length; j++){
-          char.push({
-            "name": opChars[j].characteristic.name,
-            "value": opChars[j].value?.value,
-            "valueType": opChars[j].characteristic.valueType
-          })
-        }
-      }
-
-      products.push({
-          "id": this.items[i].id,
-          "action": "add",
-          "state": "acknowledged",
-          "itemTotalPrice":[
-            {
-               "productOfferingPrice": {
-                  "id": this.items[i].options.pricing?.id,
-                  "href": this.items[i].options.pricing?.href,
-              }
-            }
-         ],
-          "productOffering": {
-              "id": this.items[i].id,
-              "href": this.items[i].id
-          },
-          "product": {
-            "productCharacteristic": char
-        }
-      })
-    }
-
-    let productOrder = {
-      "state": "acknowledged",
-      "productOrderItem": products,
-      "relatedParty": [
-        {
-            "id": this.relatedParty,
-            "href": this.relatedParty,
-            "role": "Customer"
-        }
-      ],
-      //priority??
-      "priority": '4',
-      "billingAccount": {
-        "id": this.selectedBilling.id,
-        "href": this.selectedBilling.id
-      },
-      "orderDate": moment().utc(),
-      "notificationContact": this.selectedBilling.email,
-    }
-    await this.orderService.postProductOrder(productOrder).subscribe({
-      next: data => {
-          console.log(data)
-          console.log('PROD ORDER DONE');
-          this.cartService.emptyShoppingCart().subscribe({
-            next: data => {
-                console.log(data)
-                console.log('EMPTY');
-            },
-            error: error => {
-                console.error('There was an error while updating!', error);
-            }
-          });
-          this.goToInventory();
-      },
-      error: error => {
-          console.error('There was an error while updating!', error);
-      }
-    });
-  } */
-
   async orderProduct() {
     console.log('buying');
     console.log(moment().utc());
@@ -368,7 +289,7 @@ export class ShoppingCartComponent implements OnInit, AfterViewInit{
         {
           id: this.relatedParty,
           href: this.relatedParty,
-          role: 'Customer',
+          role: environment.BUYER_ROLE
         },
       ],
       priority: '4',

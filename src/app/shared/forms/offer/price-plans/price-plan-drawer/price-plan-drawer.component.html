@@ -2,8 +2,12 @@
 <div class="fixed inset-0 bg-black bg-opacity-50 flex justify-end transition-opacity duration-1000 z-50"
      [ngClass]="{'opacity-100': isOpen, 'opacity-0 pointer-events-none': !isOpen}">
 
+  <!-- Overlay when child drawer is open - covers entire viewport and dims parent -->
+  <div *ngIf="showPriceComponentDrawer"
+       class="fixed inset-0 bg-black bg-opacity-30 pointer-events-none z-[51]"></div>
+
   <!-- Drawer Content -->
-  <div class="w-full md:w-5/6 bg-secondary-50 dark:bg-gray-800 h-full p-6 overflow-y-auto transform transition-transform duration-1000"
+  <div class="w-full md:w-5/6 bg-secondary-50 dark:bg-gray-800 h-full p-6 overflow-y-auto transform transition-transform duration-1000 relative z-50"
        [ngClass]="{'translate-x-0': isOpen, 'translate-x-full': !isOpen, '-translate-x-full': !initialized}">
 
     <!-- Header -->
@@ -145,7 +149,7 @@
               <span class="font-medium">{{ 'FORMS.PRICE_PLANS._profile_desc' | translate }}</span>
             </div>
             <div class="px-4">              
-              <button type="button" (click)="openConfigurationProfileDrawer()"
+              <button data-cy="configProfile" type="button" (click)="openConfigurationProfileDrawer()"
                       class="mt-2 px-4 py-1 bg-blue-500 text-white rounded flex items-center">
                 <svg class="min-w-4 w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                   <path fill="currentColor"
@@ -214,7 +218,7 @@
 
         <!-- Action Buttons -->
         <div class="flex justify-end space-x-3">
-          <button type="button" (click)="closeDrawer()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded">
+          <button data-cy="cancelPricePlan" type="button" (click)="closeDrawer()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded">
             {{ 'FORMS.PRICE_PLANS._cancel' | translate }}
           </button>
           <button type="submit"
@@ -237,6 +241,7 @@
         </div>
 
     </div>
+  </div>
 
     <!-- Drawer para editar Price Components -->
     <app-price-component-drawer *ngIf="showPriceComponentDrawer"
@@ -247,5 +252,4 @@
                                 (close)="closePriceComponentDrawer($event)">
     </app-price-component-drawer>
 
-  </div>
 </div>

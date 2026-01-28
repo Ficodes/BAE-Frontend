@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import {faIdCard, faSort, faSwatchbook, faSparkles} from "@fortawesome/pro-solid-svg-icons";
@@ -10,13 +10,16 @@ import {LocalStorageService} from "src/app/services/local-storage.service";
 import { LoginInfo } from 'src/app/models/interfaces';
 import {EventMessageService} from "src/app/services/event-message.service";
 import { initFlowbite } from 'flowbite';
+import { PriceServiceService } from 'src/app/services/price-service.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'seller-offer',
   templateUrl: './seller-offer.component.html',
   styleUrl: './seller-offer.component.css'
 })
-export class SellerOfferComponent implements OnInit{
+export class SellerOfferComponent implements OnInit, OnDestroy {
   protected readonly faIdCard = faIdCard;
   protected readonly faSort = faSort;
   protected readonly faSwatchbook = faSwatchbook;
@@ -36,6 +39,8 @@ export class SellerOfferComponent implements OnInit{
   partyId:any;
   sort:any=undefined;
   isBundle:any=undefined;
+  customMap: Record<string, boolean> = {};
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -43,9 +48,12 @@ export class SellerOfferComponent implements OnInit{
     private cdr: ChangeDetectorRef,
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
-    private paginationService: PaginationService
+    private paginationService: PaginationService,
+    private priceService: PriceServiceService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initOffers();
       }
@@ -54,6 +62,11 @@ export class SellerOfferComponent implements OnInit{
 
   ngOnInit() {
     this.initOffers();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initOffers(){
@@ -94,8 +107,12 @@ export class SellerOfferComponent implements OnInit{
     this.eventMessage.emitSellerUpdateOffer(offer);
   }
 
+  goToCreateCustom(offer:any){
+    this.eventMessage.emitSellerCreateCustomOffer(offer);
+  }
+
   async getOffers(next:boolean){
-    if(next==false){
+    if(next == false){
       this.loading=true;
     }
     
@@ -107,14 +124,20 @@ export class SellerOfferComponent implements OnInit{
     }
     
     this.paginationService.getItemsPaginated(this.page, this.PROD_SPEC_LIMIT, next, this.offers,this.nextOffers, options,
-      this.api.getProductOfferByOwner.bind(this.api)).then(data => {
+      this.api.getProductOfferByOwner.bind(this.api)).then(async data => {
       this.page_check=data.page_check;      
       this.offers=data.items;
       this.nextOffers=data.nextItems;
       this.page=data.page;
       this.loading=false;
       this.loading_more=false;
+
+      this.customMap={}
+      for (const offer of this.offers) {
+        this.customMap[offer.id] = await this.priceService.isCustomOffering(offer);
+      }
     })
+
   }
 
   async next(){
@@ -158,6 +181,14 @@ export class SellerOfferComponent implements OnInit{
 
   filterInventoryByKeywords(){
 
+  }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
   }
 
 }

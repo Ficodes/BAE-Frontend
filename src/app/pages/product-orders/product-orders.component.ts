@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { LoginInfo, billingAccountCart } from 'src/app/models/interfaces';
 import { ApiServiceService } from 'src/app/services/product-service.service';
@@ -21,6 +21,8 @@ import { TranslateModule } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { OrderInfoComponent } from "./sections/order-info/order-info.component";
 import { InvoicesInfoComponent } from "./sections/invoices-info/invoices-info.component";
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-product-orders',
@@ -30,7 +32,7 @@ import { InvoicesInfoComponent } from "./sections/invoices-info/invoices-info.co
   templateUrl: './product-orders.component.html',
   styleUrl: './product-orders.component.css'
 })
-export class ProductOrdersComponent implements OnInit {
+export class ProductOrdersComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   orders:any[]=[];
   nextOrders:any[]=[];
@@ -39,7 +41,6 @@ export class ProductOrdersComponent implements OnInit {
   showOrderDetails:boolean=false;
   orderToShow:any;
   dateRange = new FormControl();
-  selectedDate:any;
   countries: any[] = countries;
   preferred:boolean=false;
   loading_more: boolean = false;
@@ -49,7 +50,7 @@ export class ProductOrdersComponent implements OnInit {
   filters: any[]=[];
   check_custom:boolean=false;
   isSeller:boolean=false;
-  role:any='Customer'
+  role:any=environment.BUYER_ROLE
 
   show_orders: boolean = true;
   show_invoices: boolean = false;
@@ -57,6 +58,7 @@ export class ProductOrdersComponent implements OnInit {
   protected readonly faIdCard = faIdCard;
   protected readonly faSort = faSort;
   protected readonly faSwatchbook = faSwatchbook;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
@@ -67,7 +69,9 @@ export class ProductOrdersComponent implements OnInit {
     private eventMessage: EventMessageService,
     private paginationService: PaginationService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -85,10 +89,6 @@ export class ProductOrdersComponent implements OnInit {
 
   ngOnInit() {
     this.loading=true;
-    let today = new Date();
-    today.setMonth(today.getMonth()-1);
-    this.selectedDate = today.toISOString();
-    this.dateRange.setValue('month');
 
     let order_button = document.getElementById('order-button')
     let invoices_button = document.getElementById('bill-button')
@@ -99,6 +99,11 @@ export class ProductOrdersComponent implements OnInit {
     this.initPartyInfo();
   }
 
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   initPartyInfo(){
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
     if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
@@ -107,8 +112,8 @@ export class ProductOrdersComponent implements OnInit {
         let userRoles = aux.roles.map((elem: any) => {
           return elem.name
         })
-        if (userRoles.includes("seller")) {
-          this.isSeller=true;
+        if (userRoles.includes(environment.SELLER_ROLE)) {
+          this.isSeller = true;
         }
       } else {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as);
@@ -116,8 +121,8 @@ export class ProductOrdersComponent implements OnInit {
         let orgRoles = loggedOrg.roles.map((elem: any) => {
           return elem.name
         })
-        if (orgRoles.includes("seller")) {
-          this.isSeller=true;
+        if (orgRoles.includes(environment.SELLER_ROLE)) {
+          this.isSeller = true;
         }
       }
       //this.partyId = aux.partyId;
@@ -149,7 +154,6 @@ export class ProductOrdersComponent implements OnInit {
     let options = {
       "filters": this.filters,
       "partyId": this.partyId,
-      "selectedDate": this.selectedDate,
       "orders": this.orders,
       "role": this.role
     }
@@ -193,29 +197,6 @@ export class ProductOrdersComponent implements OnInit {
     } else {
       return false;
     }
-  }
-
-  filterOrdersByDate(){
-    if(this.dateRange.value == 'month'){
-      let today = new Date();
-      today.setDate(1);
-      today.setMonth(today.getMonth()-1);
-      this.selectedDate = today.toISOString();
-    } else if (this.dateRange.value == 'months'){
-      let today = new Date();
-      today.setDate(1);
-      today.setMonth(today.getMonth()-3);
-      this.selectedDate = today.toISOString();
-    } else if(this.dateRange.value == 'year'){
-      let today = new Date();
-      today.setDate(1);
-      today.setMonth(0);
-      today.setFullYear(today.getFullYear()-1);
-      this.selectedDate = today.toISOString();
-    } else {
-      this.selectedDate = undefined
-    }
-    this.getOrders(false);
   }
 
   getTotalPrice(items:any[]){

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import {LocalStorageService} from "src/app/services/local-storage.service";
 import {EventMessageService} from "src/app/services/event-message.service";
@@ -8,6 +8,8 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 import * as moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import {components} from "src/app/models/resource-catalog";
 import { initFlowbite } from 'flowbite';
@@ -20,7 +22,7 @@ type ResourceSpecificationCharacteristic = components["schemas"]["ResourceSpecif
   templateUrl: './update-resource-spec.component.html',
   styleUrl: './update-resource-spec.component.css'
 })
-export class UpdateResourceSpecComponent implements OnInit {
+export class UpdateResourceSpecComponent implements OnInit, OnDestroy {
   @Input() res: any;
 
   partyId:any='';
@@ -29,6 +31,13 @@ export class UpdateResourceSpecComponent implements OnInit {
 
   stepsElements:string[]=['general-info','chars','summary'];
   stepsCircles:string[]=['general-circle','chars-circle','summary-circle'];
+  currentStep = 0;
+  highestStep = 0;
+  steps = [
+    'General Info',
+    'Characteristics',
+    'Summary'
+  ];
 
   //markdown variables:
   showPreview:boolean=false;
@@ -70,6 +79,7 @@ export class UpdateResourceSpecComponent implements OnInit {
   fromValue: string = '';
   toValue: string = '';
   rangeUnit: string = '';
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -79,7 +89,9 @@ export class UpdateResourceSpecComponent implements OnInit {
     private elementRef: ElementRef,
     private resSpecService: ResourceSpecServiceService,
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -99,6 +111,11 @@ export class UpdateResourceSpecComponent implements OnInit {
     console.log(this.res)
     this.populateResInfo();
     initFlowbite();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){
@@ -271,6 +288,16 @@ export class UpdateResourceSpecComponent implements OnInit {
   }
 
   showFinish(){
+    this.setResourceData();
+    this.showChars=false;
+    this.showGeneral=false;
+    this.showSummary=true;
+    this.selectStep('summary','summary-circle');
+    this.refreshChars();
+    this.showPreview=false;
+  }
+
+  setResourceData(){
     if(this.generalForm.value.name!=null){
       this.resourceToUpdate={
         name: this.generalForm.value.name,
@@ -278,16 +305,11 @@ export class UpdateResourceSpecComponent implements OnInit {
         lifecycleStatus: this.resStatus,
         resourceSpecCharacteristic: this.prodChars
       }
-      this.showChars=false;
-      this.showGeneral=false;
-      this.showSummary=true;
-      this.selectStep('summary','summary-circle');
-      this.refreshChars();
     }
-    this.showPreview=false;
   }
 
   updateResource(){
+    this.setResourceData();
     this.loading=true;
     this.resSpecService.updateResSpec(this.resourceToUpdate,this.res.id).subscribe({
       next: data => {
@@ -460,6 +482,51 @@ export class UpdateResourceSpecComponent implements OnInit {
     } else {
       this.description=''
     }   
+  }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
+  }
+
+  goToStep(index: number) {    
+    this.currentStep = index;
+    if(this.currentStep>this.highestStep){
+      this.highestStep=this.currentStep
+    }
+    this.refreshChars();
+    //chars
+    if(this.currentStep==1){
+      setTimeout(() => {        
+        initFlowbite();   
+      }, 100);
+    }
+    //finish
+    if(this.currentStep==2){
+      this.showFinish();
+    }
+  }
+
+  validateCurrentStep(): boolean {
+    switch (this.currentStep) {
+      case 0: // General Info
+        return this.generalForm?.valid || false;
+      default:
+        return true;
+    }
+  }
+
+  canNavigate(index: number) {
+    return this.generalForm?.valid
+  }  
+
+  handleStepClick(index: number): void {
+    if (this.canNavigate(index)) {
+      this.goToStep(index);
+    }
   }
 
 }

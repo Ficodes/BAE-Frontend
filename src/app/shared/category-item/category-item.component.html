@@ -3,21 +3,27 @@
     <input [(ngModel)]="checked" type="checkbox" [id]="option" value="" class="hidden peer" #optioninput>
     <label [for]="option" [ngClass]="isParent && isFirst ? labelClassParentFirst : isParent && isLast ? labelClassParentLast : isParent ? labelClassParent : labelClass" (click)="onClick(optioninput.checked)">
       <div class="flex w-full justify-between items-center">
-        <div class="w-full text-base text-left font-semibold text-wrap break-all">{{ data?.name }}</div>
-        <fa-icon [icon]="checked ? faCircleCheck : faCircle" class="mr-7 text-2xl"></fa-icon>
+        <div data-cy="searchCategoryName" [ngClass]="{
+          'break-all': hasLongWord(data?.name, 20),
+          'break-words': !hasLongWord(data?.name, 20)
+          }" class="w-full text-base text-left font-semibold text-wrap break-words">{{ data?.name }}</div>
+        <fa-icon data-cy="searchCategorySelect" [icon]="checked ? faCircleCheck : faCircle" class="mr-7 text-2xl"></fa-icon>
       </div>
     </label>
   } @else {
     @if(data){
       <h2 [id]="'accordion-heading-'+simplifiedId">
         <div [ngClass]="checkClasses(isFirst,isLast,data)">
-          <span class="text-left justify-start text-wrap break-all">{{ data.name }}</span>
+          <span data-cy="searchCategoryName" [ngClass]="{
+            'break-all': hasLongWord(data.name, 20),
+            'break-words': !hasLongWord(data.name, 20)
+            }" class="text-left justify-start text-wrap break-words">{{ data.name }}</span>
           <div class="justify-end inline-flex">
-            <div class="justify-end" (click)="onClickCategory(data)">
+            <div data-cy="searchCategorySelect" class="justify-end" (click)="onClickCategory(data)">
               <input [checked]="isCheckedCategory(data)" type="checkbox" value="" class="hidden peer">
               <fa-icon [icon]="isCheckedCategory(data) ? faCircleCheck : faCircle" class="text-2xl"></fa-icon>
             </div>
-            <button type="button" class="ml-4" [attr.data-accordion-target]="'#accordion-body-'+simplifiedId" aria-expanded="false" [attr.aria-controls]="'accordion-body-'+simplifiedId">              
+            <button data-cy="searchCategoryDropdown" type="button" class="ml-4" [attr.data-accordion-target]="'#accordion-body-'+simplifiedId" aria-expanded="false" [attr.aria-controls]="'accordion-body-'+simplifiedId">
               <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
               </svg>

@@ -6,7 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
 import { LoginInfo } from 'src/app/models/interfaces';
 import * as moment from 'moment';
-import { interval, Subscription} from 'rxjs';
+import { interval, Subscription, Subject} from 'rxjs';
 import { RefreshLoginServiceService } from "src/app/services/refresh-login-service.service"
 import { StatsServiceService } from "src/app/services/stats-service.service"
 import { LoginServiceService } from "src/app/services/login-service.service"
@@ -15,6 +15,7 @@ import { initFlowbite } from 'flowbite';
 import { environment } from 'src/environments/environment';
 import {ThemeService} from "../../services/theme.service";
 import {ThemeConfig} from "../../themes";
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-dashboard',
@@ -37,6 +38,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   currentTheme: ThemeConfig | null = null;
   private themeSubscription: Subscription = new Subscription();
   providerThemeName=environment.providerThemeName;
+  private destroy$ = new Subject<void>();
 
   //loginSubscription: Subscription = new Subscription();;
   constructor(private localStorage: LocalStorageService,
@@ -49,7 +51,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
               private cdr: ChangeDetectorRef,
               private themeService: ThemeService,
               private refreshApi: RefreshLoginServiceService) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'FilterShown') {
         this.isFilterPanelShown = ev.value as boolean;
       }
@@ -75,9 +79,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    this.themeSubscription = this.themeService.currentTheme$.subscribe(theme => {
+    this.themeSubscription = this.themeService.currentTheme$
+    .subscribe(theme => {
       this.currentTheme = theme;
     });
+    this.destroy$.next();
+    this.destroy$.complete();
 
     this.statsService.getStats().then(data=> {
       this.services=data?.services || [];
@@ -85,15 +92,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.startTagTransition();
     })
     this.isFilterPanelShown = JSON.parse(this.localStorage.getItem('is_filter_panel_shown') as string);
-    //this.route.snapshot.paramMap.get('id');
-    console.log('--- route data')
-    console.log(this.route.queryParams)
-    console.log(this.route.snapshot.queryParamMap.get('token'))
     if(this.route.snapshot.queryParamMap.get('token') != null){
       this.loginService.getLogin(this.route.snapshot.queryParamMap.get('token')).then(data => {
-        console.log('---- loginangular response ----')
-        console.log(data)
-        console.log(data.username)
         let info = {
           "id": data.id,
           "user": data.username,
@@ -113,30 +113,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.localStorage.addLoginInfo(info);
         this.eventMessage.emitLogin(info);
         initFlowbite();
-        console.log('----')
         //this.refreshApi.stopInterval();
         //this.refreshApi.startInterval(((data.expire - moment().unix())-4)*1000, data);
         //this.refreshApi.startInterval(3000, data);
       })
       this.router.navigate(['/dashboard'])
     } else {
-      console.log('sin token')
       //this.localStorage.clear()
       let aux = this.localStorage.getObject('login_items') as LoginInfo;
-      if (JSON.stringify(aux) != '{}') {
-        console.log(aux)
-        console.log('moment')
-        console.log(aux['expire'])
-        console.log(moment().unix())
-        console.log(aux['expire'] - moment().unix())
-        console.log(aux['expire'] - moment().unix() <= 5)
-      }
+      // keep stored session data if present
     }
 
     this.showContact = true;
 
     this.cdr.detectChanges();
-    console.log('----')
   }
 
   ngOnDestroy(): void {
@@ -156,6 +146,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   goTo(path:string) {
     this.router.navigate([path]);
+  }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
   }
 
 }

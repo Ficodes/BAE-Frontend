@@ -46,7 +46,11 @@
                     <b class="text-secondary-100 dark:text-primary-50">{{entry.author}}</b> 
                     on {{entry.date | date:'EEEE, dd/MM/yy, HH:mm'}}.
                 </h4>
-                <markdown class="dark:text-secondary-50 line-clamp-4 text-wrap break-all"
+                <markdown                     
+                [ngClass]="{
+                    'break-all': hasLongWord(entry.content, 20),
+                    'break-words': !hasLongWord(entry.content, 20)
+                    }" class="dark:text-secondary-50 line-clamp-4 text-wrap break-words"
                 [data]="entry.content">
                 </markdown>
                 <button type="button" (click)="goToDetails(entry._id)" 

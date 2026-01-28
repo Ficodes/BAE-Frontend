@@ -121,4 +121,12 @@ export class CatalogueComponent implements ControlValueAccessor, OnInit, AfterVi
       : "bg-white dark:bg-secondary-300";
   }
 
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
+  }
+
 }

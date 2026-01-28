@@ -21,21 +21,28 @@ export class AppInitService {
                 environment.MATOMO_TRACKER_URL = config.matomoUrl;
                 environment.KNOWLEDGE_BASE_URL = config.knowledgeBaseUrl;
                 environment.TICKETING_SYSTEM_URL = config.ticketingUrl;
-                environment.SEARCH_ENABLED = config.searchEnabled;
+                environment.SEARCH_ENABLED = true;
                 environment.DOME_TRUST_LINK = config.domeTrust;
                 environment.DOME_ABOUT_LINK = config.domeAbout;
-                environment.PURCHASE_ENABLED = config.purchaseEnabled;
+                environment.PURCHASE_ENABLED = config.purchaseEnabled ?? true;
                 environment.DOME_REGISTER_LINK = config.domeRegister;
                 environment.DOME_PUBLISH_LINK = config.domePublish;
                 environment.KB_ONBOARDING_GUIDELINES_URL = config.domeOnboardingGuidelines;
                 environment.KB_GUIDELNES_URL = config.domeGuidelines;
                 environment.REGISTRATION_FORM_URL = config.domeRegistrationForm;
                 environment.DFT_CATALOG_ID = config.defaultId;
+                environment.SELLER_ROLE = config.roles.seller;
+                environment.BUYER_ROLE = config.roles.customer;
+                environment.ADMIN_ROLE = config.roles.admin;
+                environment.ORG_ADMIN_ROLE = config.roles.orgAdmin;
+                environment.CERTIFIER_ROLE = config.roles.certifier;
                 environment.quoteApi = config.quoteApi ?? 'http://localhost:8080/quoteManagement';
                 environment.analytics = config.analytics ?? 'https://analytics.dome-marketplace-sbx.org/',
                 environment.feedbackCampaign = config.feedbackCampaign ?? false,
                 environment.feedbackCampaignExpiration = config.feedbackCampaign ?? moment().add(1, 'week').unix()
                 environment.providerThemeName = config.theme ?? 'default';
+                environment.QUOTES_ENABLED = config.quotesEnabled ?? false
+                environment.TENDER_ENABLED = config.tenderingEnabled ?? false
                 resolve(config);
             }),
             error: (error) => {

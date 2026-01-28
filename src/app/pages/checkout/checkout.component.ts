@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, HostListener, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit} from '@angular/core';
 import {firstValueFrom, lastValueFrom} from 'rxjs';
 import {TranslateModule} from "@ngx-translate/core";
 import {LocalStorageService} from "../../services/local-storage.service";
@@ -20,6 +20,8 @@ import {BillingAccountFormComponent} from "../../shared/billing-account-form/bil
 import { PaymentService } from 'src/app/services/payment.service';
 import { v4 as uuidv4 } from 'uuid';
 import { data } from 'jquery';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 
 @Component({
@@ -27,7 +29,7 @@ import { data } from 'jquery';
   templateUrl: './checkout.component.html',
   styleUrl: './checkout.component.css'
 })
-export class CheckoutComponent implements OnInit {
+export class CheckoutComponent implements OnInit, OnDestroy {
   protected readonly faCartShopping = faCartShopping;
   public static BASE_URL: String = environment.BASE_URL;
   PURCHASE_ENABLED: boolean = environment.PURCHASE_ENABLED;
@@ -52,6 +54,7 @@ export class CheckoutComponent implements OnInit {
   providerId:any = null;
   loadingItems:boolean=false;
   orderNote: string = '';
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
@@ -67,7 +70,9 @@ export class CheckoutComponent implements OnInit {
     private route: ActivatedRoute) {
     // Bind the method to preserve context
     this.orderProduct = this.orderProduct.bind(this);
-    this.eventMessage.messages$.subscribe(async ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(async ev => {
       if (ev.type === 'BillAccChanged') {
         this.getBilling();
       }
@@ -263,7 +268,7 @@ export class CheckoutComponent implements OnInit {
           {
             id: this.relatedParty,
             href: this.relatedParty,
-            role: 'Customer'
+            role: environment.BUYER_ROLE
           }
         ],
         priority: '4',
@@ -363,6 +368,11 @@ export class CheckoutComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   async initCheckoutData() {
     this.providerId = this.route.snapshot.paramMap.get('id');
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
@@ -412,7 +422,7 @@ export class CheckoutComponent implements OnInit {
 
   groupItemsByOwner(ownerId: any) {
     const itemsForOwner = this.items.filter((item: any) => {
-      const owner = item.relatedParty?.find((rp: any) => rp.role === 'Owner')?.id;
+      const owner = item.relatedParty?.find((rp: any) => rp.role === environment.SELLER_ROLE)?.id;
       return owner === ownerId;
     });
   
@@ -497,15 +507,20 @@ export class CheckoutComponent implements OnInit {
         ba.selected = false;
       }
       this.selectedBillingAddress = baddr;
+      console.log('billing addr selected....')
+      console.log(this.selectedBillingAddress)
       const updatedItems = JSON.parse(JSON.stringify(this.items)); // we need a deep clone isntead of shallow clone
+
       for (const cartItem of updatedItems){
+        console.log('---- cart item ----')
+        console.log(cartItem)
           const response = await lastValueFrom( this.priceService.calculatePrice({
                 "productOrder":{
                     "id": uuidv4(),
                     "productOrderItem":[{
                       action: "add",
                       id: cartItem.id, // product offering id
-                      itemTotalPrice:[{
+                      itemTotalPrice: cartItem.options.pricing.length == 0 ? [] : [{
                         productOfferingPrice:{
                           id: cartItem.options.pricing[0].id, //product offering price parent id
                           href: cartItem.options.pricing[0].id,
@@ -613,5 +628,13 @@ export class CheckoutComponent implements OnInit {
 
   goToProdDetails(product: cartProduct){
     this.router.navigate(['/search/', product.id]);
+  }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
   }
 }

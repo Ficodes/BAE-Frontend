@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
@@ -10,18 +10,22 @@ import {LocalStorageService} from "src/app/services/local-storage.service";
 import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "../../services/event-message.service";
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-admin',
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css'
 })
-export class AdminComponent implements OnInit {
+export class AdminComponent implements OnInit, OnDestroy {
   show_categories:boolean = true;
   show_create_categories:boolean = false;
   show_update_categories:boolean = false;
   show_verification:boolean = false;
   show_revenue:boolean = false;
+  show_email:boolean = false;
+  private destroy$ = new Subject<void>();
 
   category_to_update:any;
   constructor(
@@ -29,7 +33,9 @@ export class AdminComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private eventMessage: EventMessageService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'AdminCategories' && ev.value == true) {        
         this.goToCategories();
       }
@@ -47,6 +53,11 @@ export class AdminComponent implements OnInit {
     console.log('init')
   }
 
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   goToCategories(){
     this.selectCategories();
     this.show_categories = true;
@@ -54,6 +65,7 @@ export class AdminComponent implements OnInit {
     this.show_update_categories = false;
     this.show_verification = false;
     this.show_revenue = false;
+    this.show_email = false;
     this.cdr.detectChanges();
   }
 
@@ -63,6 +75,7 @@ export class AdminComponent implements OnInit {
     this.show_update_categories = false;
     this.show_verification = false;
     this.show_revenue = false;
+    this.show_email = false;
     this.cdr.detectChanges();
   }
 
@@ -72,6 +85,7 @@ export class AdminComponent implements OnInit {
     this.show_update_categories = true;
     this.show_verification = false;
     this.show_revenue = false;
+    this.show_email = false;
     this.cdr.detectChanges();
   }
 
@@ -82,6 +96,7 @@ export class AdminComponent implements OnInit {
     this.show_update_categories = false;
     this.show_verification = true;
     this.show_revenue = false;
+    this.show_email = false;
     this.cdr.detectChanges();
   }
 
@@ -92,6 +107,18 @@ export class AdminComponent implements OnInit {
     this.show_update_categories = false;
     this.show_verification = false;
     this.show_revenue = true;
+    this.show_email = false;
+    this.cdr.detectChanges();
+  }
+
+  goToEmail() {
+    this.selectEmail()
+    this.show_categories = false;
+    this.show_create_categories = false;
+    this.show_update_categories = false;
+    this.show_verification = false;
+    this.show_revenue = false;
+    this.show_email = true;
     this.cdr.detectChanges();
   }
 
@@ -99,30 +126,48 @@ export class AdminComponent implements OnInit {
     let categories_button = document.getElementById('categories-button')
     let verify_button = document.getElementById('verify-button')
     let revenue_button = document.getElementById('revenue-button')
+    let email_button = document.getElementById('email-button')
 
     this.selectMenu(categories_button,'text-white bg-primary-100');
     this.unselectMenu(verify_button,'text-white bg-primary-100');
     this.unselectMenu(revenue_button,'text-white bg-primary-100');
+    this.unselectMenu(email_button,'text-white bg-primary-100');
   }
 
   selectVerification(){
     let categories_button = document.getElementById('categories-button')
     let verify_button = document.getElementById('verify-button')
     let revenue_button = document.getElementById('revenue-button')
+    let email_button = document.getElementById('email-button')
 
     this.selectMenu(verify_button,'text-white bg-primary-100');
     this.unselectMenu(categories_button,'text-white bg-primary-100');
     this.unselectMenu(revenue_button,'text-white bg-primary-100');
+    this.unselectMenu(email_button,'text-white bg-primary-100');
   }
 
   selectRevenue(){
     let categories_button = document.getElementById('categories-button')
     let verify_button = document.getElementById('verify-button')
     let revenue_button = document.getElementById('revenue-button')
+    let email_button = document.getElementById('email-button')
 
     this.unselectMenu(verify_button,'text-white bg-primary-100');
     this.unselectMenu(categories_button,'text-white bg-primary-100');
     this.selectMenu(revenue_button,'text-white bg-primary-100')
+    this.unselectMenu(email_button,'text-white bg-primary-100');
+  }
+
+  selectEmail(){
+    let categories_button = document.getElementById('categories-button')
+    let verify_button = document.getElementById('verify-button')
+    let revenue_button = document.getElementById('revenue-button')
+    let email_button = document.getElementById('email-button')
+
+    this.unselectMenu(verify_button,'text-white bg-primary-100');
+    this.unselectMenu(categories_button,'text-white bg-primary-100');
+    this.unselectMenu(revenue_button,'text-white bg-primary-100');
+    this.selectMenu(email_button,'text-white bg-primary-100')
   }
 
   removeClass(elem: HTMLElement, cls:string) {

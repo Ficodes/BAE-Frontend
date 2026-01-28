@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnChanges } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnChanges, OnDestroy } from '@angular/core';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
@@ -15,6 +15,8 @@ import {parsePhoneNumber} from 'libphonenumber-js/max'
 import {AttachmentServiceService} from "src/app/services/attachment-service.service";
 import { NgxFileDropEntry, FileSystemFileEntry, FileSystemDirectoryEntry } from 'ngx-file-drop';
 import { environment } from 'src/environments/environment';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 type OrganizationUpdate = components["schemas"]["Organization_Update"];
 
@@ -23,7 +25,7 @@ type OrganizationUpdate = components["schemas"]["Organization_Update"];
   templateUrl: './org-info.component.html',
   styleUrl: './org-info.component.css'
 })
-export class OrgInfoComponent implements OnInit {
+export class OrgInfoComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   orders:any[]=[];
   profile:any;
@@ -31,6 +33,7 @@ export class OrgInfoComponent implements OnInit {
   token:string='';
   email:string='';
   selectedDate:any;
+  isReadOnly:boolean=false;
   profileForm = new FormGroup({
     name: new FormControl('', [Validators.required]),
     website: new FormControl(''),
@@ -109,6 +112,7 @@ export class OrgInfoComponent implements OnInit {
   @ViewChild('imgURL') imgURL!: ElementRef;
 
   public files: NgxFileDropEntry[] = [];
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
@@ -118,7 +122,9 @@ export class OrgInfoComponent implements OnInit {
     private eventMessage: EventMessageService,
     private attachmentService: AttachmentServiceService,
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -131,20 +137,39 @@ export class OrgInfoComponent implements OnInit {
     today.setMonth(today.getMonth()-1);
     this.selectedDate = today.toISOString();
     this.initPartyInfo();
-    setTimeout(() => {        
-      initFlowbite();   
+    if(this.isReadOnly && this.profileForm.value.description) {
+      this.description = this.profileForm.value.description;
+    }
+    setTimeout(() => {
+      initFlowbite();
     }, 500);
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
     if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
-      let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as)
-      this.partyId = loggedOrg.partyId;
+      if (aux.logged_as !== aux.id) {
+        let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as)
+        this.partyId = loggedOrg.partyId;
+
+        // Check if user has orgAdmin role for edit permission
+        if(loggedOrg && loggedOrg.roles){
+          const orgRoles = loggedOrg.roles.map((role: any) => role.name);
+          const hasOrgAdminRole = orgRoles.some((role: any) => role === environment.ORG_ADMIN_ROLE);
+          this.isReadOnly = !hasOrgAdminRole;
+        }
+      } else {
+        this.partyId = aux.partyId;
+        this.isReadOnly = false;
+      }
 
       this.token=aux.token;
       this.email=aux.email;
-      //this.partyId = aux.partyId;
       this.profileForm.reset();
       this.getProfile();
     }
@@ -154,8 +179,6 @@ export class OrgInfoComponent implements OnInit {
   getProfile(){
     this.contactmediums=[];
     this.accountService.getOrgInfo(this.partyId).then(data=> {
-      console.log('--org info--')
-      console.log(data)
       this.profile=data;
       this.loadProfileData(this.profile)
       this.loading=false;
@@ -199,7 +222,6 @@ export class OrgInfoComponent implements OnInit {
       })
     }
     for(let i=0; i<this.contactmediums.length; i++){
-      console.log(this.contactmediums)
       if(this.contactmediums[i].mediumType == 'Email'){
         mediums.push({
           mediumType: 'Email',
@@ -209,7 +231,6 @@ export class OrgInfoComponent implements OnInit {
             emailAddress: this.contactmediums[i].characteristic.emailAddress
           }
         })
-        console.log(this.contactmediums[i])
       } else if(this.contactmediums[i].mediumType == 'PostalAddress'){
         mediums.push({
           mediumType: this.contactmediums[i].mediumType,
@@ -240,7 +261,6 @@ export class OrgInfoComponent implements OnInit {
       "contactMedium": mediums,
       "partyCharacteristic": chars
     }
-    console.log(profile)
     this.accountService.updateOrgInfo(this.partyId,profile).subscribe({
       next: data => {
         this.profileForm.reset();
@@ -254,7 +274,6 @@ export class OrgInfoComponent implements OnInit {
       error: error => {
           console.error('There was an error while updating!', error);
           if(error.error.error){
-            console.log(error)
             this.errorMessage='Error: '+error.error.error;
           } else {
             this.errorMessage='There was an error while updating profile!';
@@ -333,7 +352,6 @@ export class OrgInfoComponent implements OnInit {
             const phoneNumber = parsePhoneNumber(this.phonePrefix.code + this.mediumForm.value.telephoneNumber);
             if (phoneNumber) {
             if (!phoneNumber.isValid()) {
-                console.log('NUMERO INVALIDO')
                 this.mediumForm.controls['telephoneNumber'].setErrors({'invalidPhoneNumber': true});
                 this.toastVisibility = true;
                 setTimeout(() => {
@@ -399,7 +417,6 @@ export class OrgInfoComponent implements OnInit {
       }
     }
     this.mediumForm.reset();
-    console.log(this.contactmediums)
   }
 
   removeMedium(medium:any){
@@ -461,7 +478,6 @@ export class OrgInfoComponent implements OnInit {
                 const phoneNumber = parsePhoneNumber(this.phonePrefix.code + this.mediumForm.value.telephoneNumber);
                 if (phoneNumber) {
                   if (!phoneNumber.isValid()) {
-                    console.log('NUMERO INVALIDO')
                     this.mediumForm.controls['telephoneNumber'].setErrors({'invalidPhoneNumber': true});
                     this.toastVisibility = true;
                     setTimeout(() => {
@@ -525,7 +541,6 @@ export class OrgInfoComponent implements OnInit {
   }
 
   selectPrefix(pref:any) {
-    console.log(pref)
     this.prefixCheck = false;
     this.phonePrefix = pref;
   }
@@ -598,32 +613,22 @@ export class OrgInfoComponent implements OnInit {
       this.mediumForm.get('telephoneNumber')?.setValue('');
       this.cdr.detectChanges();
     }
-    console.log(this.mediumForm)
-    console.log(this.printAllActiveValidators());
 
   }
   showMedium(){
-    console.log('--- SHOW MEDIUM')
-    console.log(this.mediumForm)
-    console.log(this.printAllActiveValidators());
-    console.log('--value')
-    console.log(this.mediumForm.get('email')?.value)
   }
 
   printActiveValidators(controlName: string) {
     const control = this.mediumForm.get(controlName);
     if (!control || !control.validator) {
-      console.log(`No active validators for ${controlName}`);
       return;
     }
   
     const validatorFn = control.validator({} as AbstractControl);
     if (!validatorFn) {
-      console.log(`No active validators for ${controlName}`);
       return;
     }
   
-    console.log(`Active validators for ${controlName}:`, Object.keys(validatorFn));
   }
 
   printAllActiveValidators() {
@@ -642,14 +647,11 @@ export class OrgInfoComponent implements OnInit {
       if (droppedFile.fileEntry.isFile) {
         const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
         fileEntry.file((file: File) => {
-          console.log('dropped')       
 
           if (file) {
             const reader = new FileReader();
             reader.onload = (e: any) => {
               const base64String: string = e.target.result.split(',')[1];
-              console.log('BASE 64....')
-              console.log(base64String); // You can use this base64 string as needed
               let fileBody = {
                 content: {
                   name: 'orglogo'+file.name,
@@ -679,7 +681,6 @@ export class OrgInfoComponent implements OnInit {
               }
               this.attachmentService.uploadFile(fileBody).subscribe({
                 next: data => {
-                    console.log(data)
                     if(sel=='img'){
                       if(file.type.startsWith("image")){
                         this.showImgPreview=true;
@@ -693,12 +694,10 @@ export class OrgInfoComponent implements OnInit {
                       }
                     }
                     this.cdr.detectChanges();
-                    console.log('uploaded')
                 },
                 error: error => {
                     console.error('There was an error while uploading!', error);
                     if(error.error.error){
-                      console.log(error)
                       this.errorMessage='Error: '+error.error.error;
                     } else {
                       this.errorMessage='There was an error while uploading the file!';
@@ -720,7 +719,6 @@ export class OrgInfoComponent implements OnInit {
       } else {
         // It was a directory (empty directories are added, otherwise only files)
         const fileEntry = droppedFile.fileEntry as FileSystemDirectoryEntry;
-        console.log(droppedFile.relativePath, fileEntry);
       }
     }
   }
@@ -730,12 +728,9 @@ export class OrgInfoComponent implements OnInit {
   }
  
   public fileOver(event: any){
-    console.log(event);
   }
  
   public fileLeave(event: any){
-    console.log('leave')
-    console.log(event);
   }
 
   saveImgFromURL(){
@@ -829,6 +824,14 @@ export class OrgInfoComponent implements OnInit {
       } else {
         this.description=''
       }
+    }
+
+    hasLongWord(str: string | undefined, threshold = 20) {
+      if(str){
+        return str.split(/\s+/).some(word => word.length > threshold);
+      } else {
+        return false
+      }   
     }
 
 }

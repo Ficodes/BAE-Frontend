@@ -64,7 +64,7 @@
   
       <!-- Navigation Buttons -->
       <div class="flex justify-end mt-6 space-x-4">
-        <button (click)="goToStep(currentStep - 1)"
+        <button data-cy="usageSpecPrevious" (click)="goToStep(currentStep - 1)"
                 [disabled]="currentStep === 0"
                 [ngClass]="{
                   'text-gray-500 dark:text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white': currentStep !== 0,
@@ -78,8 +78,8 @@
             </svg>
           {{ 'USAGE_SPECS._previous' | translate }}
         </button>
-  
-        <button (click)="goToStep(currentStep + 1)"
+
+        <button data-cy="usageSpecNext" (click)="goToStep(currentStep + 1)"
                 [disabled]="currentStep === steps.length - 1 || (formType === 'create' && !validateCurrentStep()) || !canNavigate(currentStep)"
                 [ngClass]="{
                   'hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white': currentStep !== steps.length - 1 && (formType !== 'create' || validateCurrentStep() || canNavigate(currentStep)),
@@ -94,10 +94,10 @@
           </svg>
         </button>
         @if(formType === 'create' && currentStep === 2 || formType === 'update'){
-          <button (click)="submitForm()"
+          <button data-cy="btnCreateUsageSpec" (click)="submitForm()"
           [disabled]="!usageSpecForm.controls['generalInfo'].valid"
           [ngClass]="formType === 'update' && !usageSpecForm.controls['generalInfo'].valid ? 'opacity-50' : 'hover:bg-primary-50'"
-  
+
           class="px-4 py-2 text-base font-medium text-white rounded-lg bg-primary-100">
             {{ formType === 'create' ? 'Create Usage Spec' : 'Update Usage Spec' }}
           </button>

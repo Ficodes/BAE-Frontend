@@ -1,7 +1,10 @@
 <div role="radio" aria-checked="true" tabindex="0">
   <div class="group relative cursor-pointer rounded border p-4 hover:border-primary-50 border-primary-100 shadow-sm " [ngClass]="data.selected ? 'bg-primary-50/50 dark:bg-primary-100' : 'bg-gray-100 dark:bg-secondary-300'" (click)="selectBillingAddress($event)">
-    <p class="mb-3 text-sm font-semibold capitalize text-heading dark:text-white line-clamp-4 text-wrap break-all">{{ data.name }}</p>
-    <p class="text-sm text-sub-heading dark:text-gray-200 line-clamp-8 text-wrap break-all">{{ data.postalAddress.street }}, {{ data.postalAddress.postCode }}, {{ data.postalAddress.city}}, {{ data.postalAddress.stateOrProvince }}, {{ data.postalAddress.country }}</p>
+    <p [ngClass]="{
+      'break-all': hasLongWord(data.name, 20),
+      'break-words': !hasLongWord(data.name, 20)
+      }" class="mb-3 text-sm font-semibold capitalize text-heading dark:text-white line-clamp-4 text-wrap break-words">{{ data.name }}</p>
+    <p class="text-sm text-sub-heading dark:text-gray-200 line-clamp-8 text-wrap break-words">{{ data.postalAddress.street }}, {{ data.postalAddress.postCode }}, {{ data.postalAddress.city}}, {{ data.postalAddress.stateOrProvince }}, {{ data.postalAddress.country }}</p>
     <div
       class="absolute top-4 flex space-x-2 opacity-0 group-hover:opacity-100 right-4">
       <button (click)="editBill=true;$event.stopPropagation();" class="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-50 dark:text-white"><span
@@ -79,7 +82,7 @@
                 </svg>                
                 
                 <p class="mb-4 text-gray-500 dark:text-white">{{ 'BILLING._confirm_delete' | translate }}</p>
-                <p class="mb-4 text-gray-500 dark:text-white text-wrap break-all"><b>{{data.name}}</b>: {{data.postalAddress.street}}, {{data.postalAddress.city}}, {{data.postalAddress.country}}.</p>
+                <p class="mb-4 text-gray-500 dark:text-white text-wrap break-words"><b>{{data.name}}</b>: {{data.postalAddress.street}}, {{data.postalAddress.city}}, {{data.postalAddress.country}}.</p>
                 <div class="flex justify-center items-center space-x-4">
                     <button (click)="deleteBill=false;$event.stopPropagation();" type="button" class="py-2 px-3 text-sm font-medium text-gray-500 dark:text-white bg-white dark:bg-primary-100 rounded-lg border border-gray-200 dark:border-secondary-300 hover:bg-gray-100 dark:hover:bg-secondary-200 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10">
                         {{ 'BILLING._cancel' | translate }}

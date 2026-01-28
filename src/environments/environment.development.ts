@@ -19,6 +19,9 @@ export const environment = {
     BILLING: '/billing',
     CHARGING: '/charging',
 
+    searchOrganizationsEndpoint: 'http://dome-search-svc.search-engine.svc.cluster.local:8080/api/searchOrganizations',
+    //searchOrganizationsEndpoint: 'org-api/searchOrganizations',
+
     CUSTOMER_BILLING:'/customerBill',
     CONSUMER_BILLING_URL: 'http://localhost:8640',
     INVOICE_LIMIT: 100,
@@ -52,9 +55,9 @@ export const environment = {
     MATOMO_SITE_ID: "",
     TICKETING_SYSTEM_URL: "",
     KNOWLEDGE_BASE_URL: "https://knowledgebase.dome-marketplace.org/",
-    KB_ONBOARDING_GUIDELINES_URL: "https://knowledgebase.dome-marketplace.org/",
-    KB_GUIDELNES_URL:"https://knowledgebase.dome-marketplace.org/",
-    REGISTRATION_FORM_URL: "https://knowledgebase.dome-marketplace.org/",
+    KB_ONBOARDING_GUIDELINES_URL: "https://knowledgebase.dome-marketplace-prd.org/books/company-onboarding-process-guide-for-cloud-service-providers-csp",
+    KB_GUIDELNES_URL:"https://knowledgebase.dome-marketplace-prd.org/books/managing-orders-products-and-subscriptions",
+    REGISTRATION_FORM_URL: "https://onboarding.dome-marketplace.eu/",
     SEARCH_ENABLED: true,
     PURCHASE_ENABLED: true,
     DOME_TRUST_LINK: "",
@@ -80,7 +83,14 @@ export const environment = {
         addAttachmentToQuote: '/addAttachmentToQuote',
         deleteQuote: '/quote'
     },
+    QUOTES_ENABLED: true,
+    TENDER_ENABLED: true,
     analytics: '',
     feedbackCampaign: false,
-    feedbackCampaignExpiration: 0
+    feedbackCampaignExpiration: 0,
+    SELLER_ROLE: 'Seller',
+    BUYER_ROLE: 'Buyer',
+    ADMIN_ROLE: 'Admin',
+    ORG_ADMIN_ROLE: 'orgAdmin',
+    CERTIFIER_ROLE: 'certifier'
 };

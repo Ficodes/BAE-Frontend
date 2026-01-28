@@ -215,14 +215,15 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     // Filter out certifications, self-att, and disabled prefixes
     this.filteredCharacteristics = this.characteristics.filter(char => {
       const isCertification = certifications.some(cert => cert.name === char.name);
-      const isSelfAtt = char.name === 'Compliance:SelfAtt';
       const iscredentialConfig = char.valueType === 'credentialsConfiguration';
       const isAuthPolicy = char.valueType === 'authorizationPolicy';
+      //const isSelfAtt = char.name === 'Compliance:SelfAtt';
+      const isCompliance = char?.name?.startsWith('Compliance:')
       /*const isDisabledByPrefix = disabledPrefixes.some(prefix =>
         char.name === prefix || char.name === `${prefix} - enabled`
       );*/
   
-      return !isCertification && !isSelfAtt && !iscredentialConfig && !isAuthPolicy;
+      return !isCertification && !isCompliance && !iscredentialConfig && !isAuthPolicy;
     });
   
     const characteristicsGroup = this.fb.group({});
@@ -231,14 +232,26 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
         const defaultValue =
           characteristic.productSpecCharacteristicValue?.find(val => val.isDefault)?.value ??
           characteristic.productSpecCharacteristicValue?.find(val => val.isDefault)?.valueFrom;
-  
+
         characteristicsGroup.addControl(
           characteristic.id,
           this.fb.control(defaultValue ?? null, Validators.required)
         );
         if(!characteristic.name?.endsWith('- enabled') && this.filteredCharacteristics.some((char => char.name === characteristic.name+' - enabled'))){
           this.canBeDisabledChars.push(characteristic.id)
-          this.disabledCharacteristics.push(characteristic.id)
+
+          const enabledChar = this.filteredCharacteristics.find(char => char.name === characteristic.name+' - enabled');
+          const defaultEnabledValue = enabledChar?.productSpecCharacteristicValue?.find(val => val.isDefault);
+
+          if (!defaultEnabledValue) {
+            this.disabledCharacteristics.push(characteristic.id);
+          } else {
+            const valueStr = String(defaultEnabledValue.value).toLowerCase();
+            if (valueStr === 'false') {
+              this.disabledCharacteristics.push(characteristic.id);
+            }
+          }
+          // If the default value is true, start enabled
         }
       }
     });
@@ -608,4 +621,5 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
       termsAccepted,
     };
   }
+  
 }

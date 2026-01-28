@@ -1,7 +1,7 @@
 name: Trigger E2E Testing Workflow
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened, synchronize]
     branches:
       - main
@@ -29,11 +29,11 @@ jobs:
           echo "Parsing PR body for dependencies..."
 
           # Parse PROXY dependency
-          PROXY_LOCATION=$(echo '${{ github.event.pull_request.body }}' | grep '^PROXY:' | sed 's/PROXY: *//' | xargs)
+          PROXY_LOCATION=$(echo '${{ github.event.pull_request.body }}' | grep '^PROXY:' | sed 's/PROXY: *//' | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
           echo "Proxy location: $PROXY_LOCATION"
 
           # Parse CHARGING dependency
-          CHARGING_LOCATION=$(echo '${{ github.event.pull_request.body }}' | grep '^CHARGING:' | sed 's/CHARGING: *//' | xargs)
+          CHARGING_LOCATION=$(echo '${{ github.event.pull_request.body }}' | grep '^CHARGING:' | sed 's/CHARGING: *//' | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
           echo "Charging location: $CHARGING_LOCATION"
 
           # Parse TM_VERSION
@@ -83,17 +83,20 @@ jobs:
           echo "E2E Test Configuration:"
           echo "  Proxy:     $PROXY_REPO @ $PROXY_BRANCH"
           echo "  Charging:  $CHARGING_REPO @ $CHARGING_BRANCH"
-          echo "  Frontend:  ${{ github.repository }} @ ${{ github.event.pull_request.head.ref }}"
+          echo "  Frontend:  ${{ github.event.pull_request.head.repo.full_name }} @ ${{ github.event.pull_request.head.ref }}"
           echo "  TM Version: $TM_VERSION"
           echo "  PR URL:    ${{ github.event.pull_request.html_url }}"
           echo ""
 
           # Trigger E2E tests in E2E-DOME-BAE repository
           echo "Triggering E2E tests..."
-          curl -X POST \
+          HTTP_STATUS=$(curl -X POST \
             -H "Authorization: token ${{ secrets.ADMIN }}" \
             -H "Accept: application/vnd.github.everest-preview+json" \
             -H "Content-Type: application/json" \
+            -w "%{http_code}" \
+            -o /dev/null \
+            -s \
             -d "{
               \"event_type\": \"cross-repo-test\",
               \"client_payload\": {
@@ -101,12 +104,24 @@ jobs:
                 \"branch_A\": \"$PROXY_BRANCH\",
                 \"repository_B\": \"$CHARGING_REPO\",
                 \"branch_B\": \"$CHARGING_BRANCH\",
-                \"repository_frontend\": \"${{ github.repository }}\",
+                \"repository_frontend\": \"${{ github.event.pull_request.head.repo.full_name }}\",
                 \"branch_frontend\": \"${{ github.event.pull_request.head.ref }}\",
                 \"tm_version\": \"$TM_VERSION\",
                 \"pull_request_url\": \"${{ github.event.pull_request.html_url }}\"
               }
             }" \
-            https://api.github.com/repos/sluFicodes/E2E-DOME-BAE/dispatches
+            https://api.github.com/repos/Ficodes/E2E-DOME-BAE/dispatches)
 
-          echo "E2E tests triggered successfully!"
+          echo "HTTP Status: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" -eq 204 ] || [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "E2E tests triggered successfully!"
+          else
+            echo "Failed to trigger E2E tests. HTTP Status: $HTTP_STATUS"
+            if [ "$HTTP_STATUS" -eq 401 ]; then
+              echo "Error: Unauthorized. Check if the ADMIN token has the correct permissions."
+            elif [ "$HTTP_STATUS" -eq 404 ]; then
+              echo "Error: Repository not found or token doesn't have access."
+            fi
+            exit 1
+          fi

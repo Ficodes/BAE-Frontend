@@ -2,7 +2,10 @@
 
     <div  class="mb-4">
         <label class="font-bold text-lg dark:text-white">{{ 'USAGE_SPECS._name' | translate }}</label>
-        <label class="mb-2 bg-gray-50 text-wrap break-all dark:bg-secondary-300 dark:border-secondary-200 dark:text-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+        <label [ngClass]="{
+            'break-all': hasLongWord(usageSpecForm.get('generalInfo.name')?.value, 20),
+            'break-words': !hasLongWord(usageSpecForm.get('generalInfo.name')?.value, 20)
+            }" class="mb-2 bg-gray-50 text-wrap break-words dark:bg-secondary-300 dark:border-secondary-200 dark:text-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
             {{ usageSpecForm.get('generalInfo.name')?.value }}
         </label>
 
@@ -11,7 +14,10 @@
    @if(usageSpecForm.get('generalInfo.description')?.value !=''){
         <label class="font-bold text-lg dark:text-white">{{ 'USAGE_SPECS._description' | translate }}</label>
         <div class="px-4 py-2 bg-white rounded-lg p-4 mb-4 dark:bg-secondary-300 dark:text-white border dark:border-secondary-200">
-            <markdown class="bg-gray-50 dark:bg-secondary-300 dark:text-white text-gray-900 text-wrap break-all" [data]="usageSpecForm.get('generalInfo.description')?.value"></markdown>
+            <markdown [ngClass]="{
+                'break-all': hasLongWord(usageSpecForm.get('generalInfo.description')?.value, 20),
+                'break-words': !hasLongWord(usageSpecForm.get('generalInfo.description')?.value, 20)
+                }" class="bg-gray-50 dark:bg-secondary-300 dark:text-white text-gray-900 text-wrap break-words" [data]="usageSpecForm.get('generalInfo.description')?.value"></markdown>
         </div>
     }
 
@@ -32,10 +38,16 @@
             <tbody>
                 @for (metric of usageSpecForm.get('metrics')?.value; track metric) {
                     <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                        <td class="px-6 py-4 text-wrap break-all">
+                        <td [ngClass]="{
+                            'break-all': hasLongWord(metric.name, 20),
+                            'break-words': !hasLongWord(metric.name, 20)
+                            }" class="px-6 py-4 text-wrap break-words">
                             {{metric.name}}
                         </td>
-                        <td class="hidden md:table-cell px-6 py-4">
+                        <td [ngClass]="{
+                            'break-all': hasLongWord(metric.description, 20),
+                            'break-words': !hasLongWord(metric.description, 20)
+                            }" class="hidden md:table-cell px-6 py-4 break-words">
                             {{metric.description}}
                         </td>
                     </tr>

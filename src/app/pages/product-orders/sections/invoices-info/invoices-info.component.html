@@ -1,10 +1,10 @@
 <div class="border-b border-gray-200 dark:border-gray-700 mb-2">
   <ul class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
       <li class="me-2">
-          <a (click)="onRoleChange('Customer')"
-              [ngClass]="role !== 'Customer' ? 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300' : 'text-blue-600 border-blue-600 active dark:text-blue-500 dark:border-blue-500'"
+          <a (click)="onRoleChange(buyerRole)"
+              [ngClass]="role !== buyerRole ? 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300' : 'text-blue-600 border-blue-600 active dark:text-blue-500 dark:border-blue-500'"
              class="inline-flex cursor-pointer items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg group" aria-current="page">
-              <svg [ngClass]="role !== 'Customer' ? 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300' : 'text-blue-600 dark:text-blue-500'"
+              <svg [ngClass]="role !== buyerRole ? 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300' : 'text-blue-600 dark:text-blue-500'"
                   class="w-4 h-4 me-2" aria-hidden="true"
                   fill="currentColor"
                   xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M192 96a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm-8 352l0-96 16 0 0 96-16 0zm-64 0l-88 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l120 0 80 0 376 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-344 0 0-191.1 28.6 47.5c9.1 15.1 28.8 20 43.9 10.9s20-28.8 10.9-43.9l-58.3-97c-17.4-28.9-48.6-46.6-82.3-46.6l-29.7 0c-33.7 0-64.9 17.7-82.3 46.6l-58.3 97c-9.1 15.1-4.2 34.8 10.9 43.9s34.8 4.2 43.9-10.9L120 256.9 120 448zM464 64l0 242.7-25.4-25.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l80 80c12.5 12.5 32.8 12.5 45.3 0l80-80c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L528 306.7 528 64c0-17.7-14.3-32-32-32s-32 14.3-32 32z"/></svg>
@@ -13,11 +13,11 @@
       </li>
       @if(isSeller){
           <li class="me-2">
-              <a (click)="onRoleChange('Seller')"
-                  [ngClass]="{'text-blue-600 border-blue-600 active dark:text-blue-500 dark:border-blue-500 group': role == 'Seller'}"
+              <a (click)="onRoleChange(sellerRole)"
+                  [ngClass]="{'text-blue-600 border-blue-600 active dark:text-blue-500 dark:border-blue-500 group': role == sellerRole}"
                   class="inline-flex cursor-pointer items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group">
                   <svg
-                      [ngClass]="role !== 'Seller' ? 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300' : 'text-blue-600 dark:text-blue-500'"
+                      [ngClass]="role !== sellerRole ? 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300' : 'text-blue-600 dark:text-blue-500'"
                       class="w-4 h-4 me-2" fill="currentColor"
                       xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M192 96a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm-8 352l0-96 16 0 0 96-16 0zm-64 0l-88 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l120 0 80 0 376 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-344 0 0-191.1 28.6 47.5c9.1 15.1 28.8 20 43.9 10.9s20-28.8 10.9-43.9l-58.3-97c-17.4-28.9-48.6-46.6-82.3-46.6l-29.7 0c-33.7 0-64.9 17.7-82.3 46.6l-58.3 97c-9.1 15.1-4.2 34.8 10.9 43.9s34.8 4.2 43.9-10.9L120 256.9 120 448zM598.6 121.4l-80-80c-12.5-12.5-32.8-12.5-45.3 0l-80 80c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L464 141.3 464 384c0 17.7 14.3 32 32 32s32-14.3 32-32l0-242.7 25.4 25.4c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3z"/></svg>
                  {{ 'INVOICES._as_provider' | translate }}
@@ -46,6 +46,9 @@
           <th scope="col" class="px-6 py-3 text-center align-middle">
             {{ 'INVOICES._date' | translate }}
           </th>
+          <th scope="col" class="px-6 py-3 text-center align-middle">
+            {{ 'INVOICES._billno' | translate }}
+          </th>
           <th scope="col" class="hidden md:table-cell px-6 py-3 text-center align-middle">
             {{ 'INVOICES._tax_included_amount' | translate }}
           </th>
@@ -63,6 +66,21 @@
               <td class="px-6 py-4 text-center align-middle">
                 {{invoice?.billDate | date:'EEEE, dd/MM/yy, HH:mm'}}
               </td>
+              <td class="px-6 py-4 text-center align-middle">
+                {{invoice?.billNo}}
+                @if(role==sellerRole){
+                  @if (editingIndex === idx) {
+                    <input [(ngModel)]="editableInvoiceName" type="text" id="invoicename"
+                      class="mb-2 border-gray-300 dark:border-secondary-200 bg-gray-50 dark:bg-secondary-300 border 
+                      dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 
+                      block w-full p-2.5" />
+                  } @else {
+                    {{invoice?.billNo}}
+                  }  
+                }@else{
+                  {{invoice?.billNo}}
+                }
+              </td>
               <td class="md:table-cell px-6 py-4 text-center align-middle">
                 {{invoice?.taxIncludedAmount.value}}{{invoice?.taxIncludedAmount.unit}}
               </td>
@@ -79,7 +97,12 @@
                     </g>
                   </svg>
                 </button>
-                @if(role=='Seller'){
+                <button (click)="downloadInvoice(invoice);" type="button" class="text-white bg-primary-100 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
+                  <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2m-8 1V4m0 12-4-4m4 4 4-4"/>
+                  </svg>
+                </button>
+                @if(role==sellerRole){
                   @if (editingIndex === idx) {
                     <!-- Save button -->
                     <button (click)="saveInvoice(idx, invoice);" type="button" 
@@ -164,7 +187,7 @@
             } @else {
               <div class="max-h-96 overflow-y-auto pr-2">
                 @for (acbr of appliedCustomerBillingRates; track acbr.id) {
-                  <div class="mb-4 p-4 bg-gray-50 dark:bg-secondary-300 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <div data-cy="acbr" class="mb-4 p-4 bg-gray-50 dark:bg-secondary-300 rounded-lg border border-gray-200 dark:border-gray-600">
                     <div class="flex flex-col gap-2">
                       <div class="flex flex-row gap-2">
                         <p class="text-sm font-bold text-gray-700 dark:text-white">
@@ -190,6 +213,15 @@
                         </p>
                         <p class="text-sm text-gray-600 dark:text-gray-200">
                           {{acbr.type}}
+                        </p>
+                      </div>
+
+                      <div class="flex flex-row gap-2">
+                        <p class="text-sm font-bold text-gray-700 dark:text-white">
+                          {{ 'INVOICES._tax_included_amount' | translate }}:
+                        </p>
+                        <p class="text-sm text-gray-600 dark:text-gray-200">
+                          {{acbr.taxIncludedAmount?.value}}{{acbr.taxIncludedAmount?.unit}}
                         </p>
                       </div>
 

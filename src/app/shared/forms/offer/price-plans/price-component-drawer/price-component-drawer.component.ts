@@ -59,13 +59,16 @@ export class PriceComponentDrawerComponent implements OnInit {
     setTimeout(() => {
       this.isOpen = true;
       this.initialized = true;
+      document.body.style.overflow = 'hidden';
     }, 50);
 
     for(let i=0;i<this.prodChars.length;i++){
       if (!certifications.some(certification => certification.name === this.prodChars[i].name)
-          && this.prodChars[i].name != 'Compliance:SelfAtt'
+          && !this.prodChars[i].name.startsWith('Compliance:')
+          && !this.prodChars[i].name.endsWith(' - enabled')
           && this.prodChars[i].valueType != 'credentialsConfiguration'
           && this.prodChars[i].valueType != 'authorizationPolicy') {
+
         this.filteredChars.push(this.prodChars[i]);
       }
     }
@@ -245,6 +248,7 @@ export class PriceComponentDrawerComponent implements OnInit {
 
   closeDrawer() {
     this.isOpen = false;
+    document.body.style.overflow = '';
     // If editing, do nothing; if creating, clear form
     setTimeout(() => this.close.emit(null), 500);
   }

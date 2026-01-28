@@ -1,10 +1,10 @@
 <div class="border-b border-gray-200 dark:border-gray-700 mb-2">
     <ul class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
         <li class="me-2">
-            <a data-cy="asCustomerTab" (click)="onRoleChange('Customer')"
-                [ngClass]="role !== 'Customer' ? 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300' : 'text-primary-100 border-primary-100 active dark:text-primary-50 dark:border-primary-50'"
+            <a data-cy="asCustomerTab" (click)="onRoleChange(buyerRole)"
+                [ngClass]="role !== buyerRole ? 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300' : 'text-primary-100 border-primary-100 active dark:text-primary-50 dark:border-primary-50'"
                class="inline-flex cursor-pointer items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg group" aria-current="page">
-                <svg [ngClass]="role !== 'Customer' ? 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300' : 'text-primary-100 dark:text-primary-50'"
+                <svg [ngClass]="role !== buyerRole ? 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300' : 'text-primary-100 dark:text-primary-50'"
                     class="w-4 h-4 me-2" aria-hidden="true"
                     fill="currentColor"
                     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M192 96a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm-8 352l0-96 16 0 0 96-16 0zm-64 0l-88 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l120 0 80 0 376 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-344 0 0-191.1 28.6 47.5c9.1 15.1 28.8 20 43.9 10.9s20-28.8 10.9-43.9l-58.3-97c-17.4-28.9-48.6-46.6-82.3-46.6l-29.7 0c-33.7 0-64.9 17.7-82.3 46.6l-58.3 97c-9.1 15.1-4.2 34.8 10.9 43.9s34.8 4.2 43.9-10.9L120 256.9 120 448zM464 64l0 242.7-25.4-25.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l80 80c12.5 12.5 32.8 12.5 45.3 0l80-80c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L528 306.7 528 64c0-17.7-14.3-32-32-32s-32 14.3-32 32z"/></svg>
@@ -13,11 +13,11 @@
         </li>
         @if(isSeller){
             <li class="me-2">
-                <a data-cy="asProviderTab" (click)="onRoleChange('Seller')"
-                    [ngClass]="{'text-primary-100 border-primary-100 active dark:text-primary-50 dark:border-primary-50 group': role == 'Seller'}"
+                <a data-cy="asProviderTab" (click)="onRoleChange(sellerRole)"
+                    [ngClass]="{'text-primary-100 border-primary-100 active dark:text-primary-50 dark:border-primary-50 group': role == sellerRole}"
                     class="inline-flex cursor-pointer items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group">
                     <svg
-                        [ngClass]="role !== 'Seller' ? 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300' : 'text-primary-100 dark:text-primary-50'"
+                        [ngClass]="role !== sellerRole ? 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300' : 'text-primary-100 dark:text-primary-50'"
                         class="w-4 h-4 me-2" fill="currentColor"
                         xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M192 96a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm-8 352l0-96 16 0 0 96-16 0zm-64 0l-88 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l120 0 80 0 376 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-344 0 0-191.1 28.6 47.5c9.1 15.1 28.8 20 43.9 10.9s20-28.8 10.9-43.9l-58.3-97c-17.4-28.9-48.6-46.6-82.3-46.6l-29.7 0c-33.7 0-64.9 17.7-82.3 46.6l-58.3 97c-9.1 15.1-4.2 34.8 10.9 43.9s34.8 4.2 43.9-10.9L120 256.9 120 448zM598.6 121.4l-80-80c-12.5-12.5-32.8-12.5-45.3 0l-80 80c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L464 141.3 464 384c0 17.7 14.3 32 32 32s32-14.3 32-32l0-242.7 25.4 25.4c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3z"/></svg>
                       {{ 'PRODUCT_ORDERS._as_provider' | translate }}
@@ -201,7 +201,7 @@
                                                         </g>
                                                         </svg>
                                                 </button>
-                                              <button (click)="toggleDrawer(order);$event.stopPropagation();" type="button"
+                                              <button data-cy="orderNotesButton" (click)="toggleDrawer(order);$event.stopPropagation();" type="button"
                                                       class="text-white bg-primary-100 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
                                                 @if (hasNotes(order)) {
                                                   <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
@@ -265,7 +265,7 @@
                         </button>
                     </div>
                     <!-- Modal body -->
-                    <div class="w-full h-full">
+                    <div data-cy="orderDetailsModal" class="w-full h-full">
                         <div class="p-4 relative overflow-x-auto rounded-lg">
                             <div class="flex flex-row gap-2 pb-2 text-gray-600">
                                 <p class="w-fit text-base font-bold shrink-0 dark:text-white">
@@ -275,7 +275,7 @@
                                     {{orderToShow.id}}
                                 </h3>
                             </div>
-                            <div class="flex flex-row gap-2 pb-2 text-gray-600">
+                            <div data-cy="globalState" class="flex flex-row gap-2 pb-2 text-gray-600">
                                 <p class="w-fit text-base font-bold shrink-0 dark:text-white">
                                     {{ 'PRODUCT_INVENTORY._state' | translate }}
                                 </p>
@@ -359,7 +359,7 @@
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody data-cy="orderItems">
                                     @for (item of orderToShow.productOrderItems; track item.id; let idx = $index) {
                                         <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
                                             <td class="px-6 py-4 text-center align-middle flex justify-center items-center">
@@ -412,7 +412,7 @@
                                           </td>
                                           <td class="px-6 py-4 text-center align-middle flex justify-center">
                                             @if (!hasProcurementAutomaticTerm(item)) {
-                                              @if (!item.productOrderItem.state && role == 'Seller') {
+                                              @if (!item.productOrderItem.state && role == sellerRole) {
                                                 <button data-cy="acknowledgeOrder" type="button" title="Acknowledge the order item"
                                                         class="text-white bg-primary-100 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2"
                                                         (click)="openModal('acknowledged', item)">
@@ -432,7 +432,7 @@
                                                   </svg>
                                                 </button>
                                               } @else {
-                                                  @if(role == 'Seller'){
+                                                  @if(role == sellerRole){
                                                     @if (item.productOrderItem.state === 'acknowledged') {
                                                       <button data-cy="startOrderTreatment" type="button" title="Start Order Treatment"
                                                               class="text-green-950 bg-green-500 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2"
@@ -448,7 +448,7 @@
                                                           <path d="M200.3 81.5C210.9 61.5 231.9 48 256 48s45.1 13.5 55.7 33.5L321 99.1l19-5.8c21.6-6.6 46.1-1.4 63.1 15.7s22.3 41.5 15.7 63.1l-5.8 19 17.5 9.3c20 10.6 33.5 31.6 33.5 55.7s-13.5 45.1-33.5 55.7L412.9 321l5.8 19c6.6 21.6 1.4 46.1-15.7 63.1s-41.5 22.3-63.1 15.7l-19-5.8-9.3 17.5c-10.6 20-31.6 33.5-55.7 33.5s-45.1-13.5-55.7-33.5L191 412.9l-19 5.8c-21.6 6.6-46.1 1.4-63.1-15.7S86.6 361.6 93.2 340l5.8-19-17.5-9.3C61.5 301.1 48 280.1 48 256s13.5-45.1 33.5-55.7L99.1 191l-5.8-19c-6.6-21.6-1.4-46.1 15.7-63.1S150.4 86.6 172 93.2l19 5.8 9.3-17.5zM256 0c-35.9 0-67.8 17-88.1 43.4c-33-4.3-67.6 6.2-93 31.6s-35.9 60-31.6 93C17 188.2 0 220.1 0 256s17 67.8 43.4 88.1c-4.3 33 6.2 67.6 31.6 93s60 35.9 93 31.6C188.2 495 220.1 512 256 512s67.8-17 88.1-43.4c33 4.3 67.6-6.2 93-31.6s35.9-60 31.6-93C495 323.8 512 291.9 512 256s-17-67.8-43.4-88.1c4.3-33-6.2-67.6-31.6-93s-60-35.9-93-31.6C323.8 17 291.9 0 256 0zM369 209l17-17L352 158.1l-17 17-111 111-47-47-17-17L126.1 256l17 17 64 64 17 17 17-17L369 209z"/>
                                                         </svg>
                                                       </button>
-                                                      <button type="button" title="Order Completely Failed"
+                                                      <button data-cy="failOrder" type="button" title="Order Completely Failed"
                                                               class="text-red-950 bg-red-500 hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2"
                                                               (click)="openModal('failed', item)">
                                                         <svg class="w-[18px] h-[18px] text-white stroke-white fill-white stroke-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
@@ -563,7 +563,7 @@
     </div>
 
     <!-- Display notes when available -->
-    <div *ngFor="let note of selectedOrder?.note" class="flex"
+    <div data-cy="orderNotesMessages" *ngFor="let note of selectedOrder?.note" class="flex"
          [ngClass]="{'justify-end': note.author === partyId, 'justify-start': note.author !== partyId}">
 
       <div class="max-w-xs p-3 rounded-lg shadow-md"
@@ -589,11 +589,11 @@
   <!-- Input for adding new notes (fixed at the bottom) -->
   <div class="border-t pt-3">
     <div class="flex flex-col">
-      <textarea [(ngModel)]="newNoteText"
+      <textarea data-cy="orderNotesTextField" [(ngModel)]="newNoteText"
                 class="w-full p-2 text-sm border rounded-lg resize-none h-20"
                 placeholder="Write a new note..."
                 (keyup.enter)="addNote()"></textarea>
-      <button (click)="addNote()"
+      <button data-cy="orderNotesSendButton" (click)="addNote()"
               class="mt-2 px-4 py-2 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600">
         {{ isUpdating ? 'Saving...' : 'Send' }}
       </button>

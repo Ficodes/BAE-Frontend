@@ -3,17 +3,19 @@ import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {LocalStorageService} from "src/app/services/local-storage.service";
-import { LoginInfo } from 'src/app/models/interfaces';
+import { LoginInfo, Report } from 'src/app/models/interfaces';
 import { RevenueSharingService } from 'src/app/services/revenue-sharing.service'
+import { RevenueReportComponent } from 'src/app/shared/revenue-report/revenue-report.component'
 import * as moment from 'moment';
 
 @Component({
   selector: 'provider-revenue-sharing',
   standalone: true,
-  imports: [TranslateModule, FontAwesomeModule, CommonModule],
+  imports: [TranslateModule, FontAwesomeModule, CommonModule, RevenueReportComponent],
   templateUrl: './provider-revenue-sharing.component.html',
   styleUrl: './provider-revenue-sharing.component.css'
 })
+
 export class ProviderRevenueSharingComponent implements OnInit {
   loading: boolean = false;
   subscription:any;
@@ -22,8 +24,13 @@ export class ProviderRevenueSharingComponent implements OnInit {
   revenueSummary:any;
   referral:any;
   support:any;
+  errorMessage: any = '';
+  showError:boolean=false;
+  
 
   partyId:any='';
+  report: Report[]=[];
+  
 
   constructor(
     private localStorage: LocalStorageService,
@@ -33,25 +40,30 @@ export class ProviderRevenueSharingComponent implements OnInit {
   
 
   async ngOnInit() {
+    this.loading=true;
     this.initPartyInfo();
-    let info = await this.revenueService.getRevenue(this.partyId);
-    console.log('------')
-    console.log(info)
-    for(let i=0; i<info.length; i++){
-      if(info[i].label == 'Subscription'){
-        this.subscription = info[i]
-      } else if(info[i].label == 'Billing History'){
-        this.billing = info[i]
-      } else if(info[i].label == 'Revenue Summary'){
-        this.revenueSummary = info[i]
-      } else if (info[i].label == 'Revenue Volume Monitoring'){
-        this.revenue = info[i]
-      } else if(info[i].label == 'Referral Program Area'){
-        this.referral = info[i]
-      } else if(info[i].label == 'Support'){
-        this.support = info[i]
-      }
+    try {
+      let info = await this.revenueService.getRevenue(this.partyId);
+      this.loading=false;
+      console.log('------')
+      console.log(info)
+      this.report=info;
+    } catch (error) {
+      this.handleError(error, "There was an error accessing revenue sharing's data, please contact with an administrator.");
+      this.loading=false;
+    } finally {
+      this.loading=false;
     }
+
+  }
+
+  private handleError(error: any, defaultMessage: string) {
+    console.error(defaultMessage, error);
+    this.errorMessage = error?.error?.error
+      ? `Error: ${error.error.error}`
+      : defaultMessage;
+    this.showError = true;
+    setTimeout(() => (this.showError = false), 3000);
   }
 
   initPartyInfo(){

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import {LocalStorageService} from "src/app/services/local-storage.service";
 import {EventMessageService} from "src/app/services/event-message.service";
@@ -9,6 +9,8 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 import * as moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import {components} from "src/app/models/service-catalog";
 type ServiceSpecification_Update = components["schemas"]["ServiceSpecification_Update"];
@@ -20,7 +22,7 @@ type ProductSpecificationCharacteristic = components["schemas"]["CharacteristicS
   templateUrl: './update-service-spec.component.html',
   styleUrl: './update-service-spec.component.css'
 })
-export class UpdateServiceSpecComponent implements OnInit {
+export class UpdateServiceSpecComponent implements OnInit, OnDestroy {
   @Input() serv: any;
 
   partyId:any='';
@@ -29,6 +31,13 @@ export class UpdateServiceSpecComponent implements OnInit {
 
   stepsElements:string[]=['general-info','chars','summary'];
   stepsCircles:string[]=['general-circle','chars-circle','summary-circle'];
+  currentStep = 0;
+  highestStep = 0;
+  steps = [
+    'General Info',
+    'Characteristics',
+    'Summary'
+  ];
 
   //markdown variables:
   showPreview:boolean=false;
@@ -70,6 +79,7 @@ export class UpdateServiceSpecComponent implements OnInit {
   fromValue: string = '';
   toValue: string = '';
   rangeUnit: string = '';
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -79,7 +89,9 @@ export class UpdateServiceSpecComponent implements OnInit {
     private elementRef: ElementRef,
     private servSpecService: ServiceSpecServiceService,
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -98,6 +110,11 @@ export class UpdateServiceSpecComponent implements OnInit {
     this.initPartyInfo();
     console.log(this.serv)
     this.populateResInfo();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){
@@ -267,6 +284,16 @@ export class UpdateServiceSpecComponent implements OnInit {
   }
 
   showFinish(){
+    this.setServiceData();
+    this.showChars=false;
+    this.showGeneral=false;
+    this.showSummary=true;
+    this.selectStep('summary','summary-circle');
+    this.refreshChars();
+    this.showPreview=false;
+  }
+
+  setServiceData(){
     if(this.generalForm.value.name!=null){
       this.serviceToUpdate={
         name: this.generalForm.value.name,
@@ -274,16 +301,11 @@ export class UpdateServiceSpecComponent implements OnInit {
         lifecycleStatus: this.servStatus,
         specCharacteristic: this.prodChars
       }
-      this.showChars=false;
-      this.showGeneral=false;
-      this.showSummary=true;
-      this.selectStep('summary','summary-circle');
-      this.refreshChars();
     }
-    this.showPreview=false;
   }
 
   updateService(){
+    this.setServiceData();
     this.loading=true;
     this.servSpecService.updateServSpec(this.serviceToUpdate,this.serv.id).subscribe({
       next: data => {
@@ -457,6 +479,50 @@ export class UpdateServiceSpecComponent implements OnInit {
       this.description=''
     }   
   }
+  
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
+  }
 
+  goToStep(index: number) {    
+    this.currentStep = index;
+    if(this.currentStep>this.highestStep){
+      this.highestStep=this.currentStep
+    }
+    this.refreshChars();
+    //chars
+    if(this.currentStep==1){
+      setTimeout(() => {        
+        initFlowbite();   
+      }, 100);
+    }
+    //finish
+    if(this.currentStep==2){
+      this.showFinish();
+    }
+  }
+
+  validateCurrentStep(): boolean {
+    switch (this.currentStep) {
+      case 0: // General Info
+        return this.generalForm?.valid || false;
+      default:
+        return true;
+    }
+  }
+
+  canNavigate(index: number) {
+    return this.generalForm?.valid
+  }  
+
+  handleStepClick(index: number): void {
+    if (this.canNavigate(index)) {
+      this.goToStep(index);
+    }
+  }
 
 }

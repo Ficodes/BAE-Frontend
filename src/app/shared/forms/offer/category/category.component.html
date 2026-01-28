@@ -58,7 +58,7 @@
             (click)="manageCategory(category)">
 
           <!-- Botón Expandir -->
-            <td class="px-6 py-4">
+            <td data-cy="offerCategoryExpand" class="px-6 py-4">
               <button
                 *ngIf="category.childrenLoaded || !category.childrenLoaded"
                 (click)="toggleCategory(category); $event.stopPropagation()"
@@ -82,7 +82,7 @@
 
 
             <!-- Nombre de la Categoría con Indentación -->
-            <td class="px-6 py-4" [style.padding-left.px]="level * 20">
+            <td data-cy="offerCategoryName" class="px-6 py-4" [style.padding-left.px]="level * 20">
               {{ category.name }}
             </td>
 

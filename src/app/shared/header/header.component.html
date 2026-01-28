@@ -24,11 +24,11 @@
                   <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" [attr.aria-labelledby]="link.id!">
                     <li *ngFor="let childLink of link.children">
                       <!-- Enlace externo -->
-                      <a *ngIf="!childLink.isRouterLink" [href]="childLink.url" target="_blank" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                      <a *ngIf="!childLink.isRouterLink" [attr.data-cy]="childLink.label === 'HEADER._guidelines' ? 'guidelinesRegister' : childLink.label === 'HEADER._registration' ? 'registrationForm' : childLink.label === 'HEADER._guideline_publish' ? 'guidelinePublish' : null" [href]="childLink.url" target="_blank" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                         {{ childLink.label | translate }}
                       </a>
                       <!-- Enlace interno (botón que navega) -->
-                      <button *ngIf="childLink.isRouterLink" (click)="goTo(childLink.url!)" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                      <button *ngIf="childLink.isRouterLink" [attr.data-cy]="childLink.label === 'HEADER._services' ? 'browseServices' : childLink.label === 'HEADER._catalogs' ? 'browseCatalogs' : null" (click)="goTo(childLink.url!)" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                         {{ childLink.label | translate }}
                       </button>
                     </li>
@@ -158,17 +158,15 @@
             <div class="font-medium truncate line-clamp-2">{{email}}</div>
           </div>
           <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="avatarButton">
-            @if(loggedAsOrg == false || roles.includes('orgAdmin')) {
-              <li>
-                <button id="userProfile" (click)="goTo('/profile')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faAddressCard" class="mr-2"></fa-icon>{{ 'HEADER._profile' | translate }}</button>
-              </li>
-            }
-            @if(roles.includes('seller')){
+            <li>
+              <button id="userProfile" (click)="goTo('/profile')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faAddressCard" class="mr-2"></fa-icon>{{ 'HEADER._profile' | translate }}</button>
+            </li>
+            @if(roles.includes(sellerRole)){
               <li>
                 <button id="myOfferings" (click)="goTo('/my-offerings')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faHandHoldingBox" class="mr-2"></fa-icon>{{ 'HEADER._offerings' | translate }}</button>
               </li>
             }
-            @if((isAdmin && loggedAsOrg == false) || roles.includes('certifier')) {
+            @if((isAdmin && loggedAsOrg == false) || roles.includes(certifierRole)) {
               <li>
                 <button id="administration" (click)="goTo('/admin')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faCogs" class="mr-2"></fa-icon>{{ 'HEADER._admin' | translate }}</button>
               </li>
@@ -176,9 +174,14 @@
             <li>
               <button id="productOrders" (click)="goTo('/product-orders')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faReceipt" class="mr-2"></fa-icon>{{ 'HEADER._orders' | translate }}</button>
             </li>
-            @if(providerThemeName=='DOME'){
+            @if(quotesEnabled){
               <li>
                 <button id="quotelist" (click)="goTo('/quote-list')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faReceipt" class="mr-2"></fa-icon>Quotes</button>
+              </li>
+            }
+            @if(tenderEnabled){
+              <li>
+                <button id="tenderlist" (click)="goTo('/tenders')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faReceipt" class="mr-2"></fa-icon>Tenders</button>
               </li>
             }
             <li>
@@ -194,9 +197,11 @@
                 Analytics
               </a>
             </li>            
-            <li>
-              <button id="usageSpecs" (click)="goTo('/usage-spec')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faRuler" class="mr-2"></fa-icon>Usage Spec</button>
-            </li>
+            @if(roles.includes(sellerRole)){
+              <li>
+                <button data-cy="usageSpecs" id="usageSpecs" (click)="goTo('/usage-spec')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faRuler" class="mr-2"></fa-icon>Usage Spec</button>
+              </li>
+            }
             <li>
               <button id="myInventory" (click)="goTo('/product-inventory')"class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faBoxesStacked" class="mr-2"></fa-icon>{{ 'HEADER._inventory' | translate }}</button>
             </li>

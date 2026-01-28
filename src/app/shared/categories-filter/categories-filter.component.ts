@@ -1,4 +1,4 @@
-import {Component, EventEmitter, OnInit, Output, ChangeDetectorRef, Input} from '@angular/core';
+import {Component, EventEmitter, OnInit, Output, ChangeDetectorRef, Input, OnDestroy} from '@angular/core';
 import {Category} from "../../models/interfaces";
 import {Subject} from "rxjs";
 import {LocalStorageService} from "../../services/local-storage.service";
@@ -7,13 +7,14 @@ import { ApiServiceService } from 'src/app/services/product-service.service';
 import { initFlowbite } from 'flowbite';
 import {faCircleCheck} from "@fortawesome/pro-solid-svg-icons";
 import {faCircle} from "@fortawesome/pro-regular-svg-icons";
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'bae-categories-filter',
   templateUrl: './categories-filter.component.html',
   styleUrl: './categories-filter.component.css'
 })
-export class CategoriesFilterComponent implements OnInit {
+export class CategoriesFilterComponent implements OnInit, OnDestroy {
 
   classListFirst = 'flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-b-0 border-gray-200 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-tertiary-100 gap-3';
   classListLast  = 'flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-gray-200 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-tertiary-100 gap-3';
@@ -36,6 +37,8 @@ export class CategoriesFilterComponent implements OnInit {
   protected readonly faCircleCheck = faCircleCheck;
   protected readonly faCircle = faCircle;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
@@ -43,7 +46,9 @@ export class CategoriesFilterComponent implements OnInit {
     private cdr: ChangeDetectorRef
     ) {
       this.categories = [];
-      this.eventMessage.messages$.subscribe(ev => {
+      this.eventMessage.messages$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(ev => {
         const cat = ev.value as Category;      
         if(ev.type === 'AddedFilter' && !this.isCheckedCategory(cat)){
           this.checkedCategories.push(cat.id);
@@ -67,37 +72,38 @@ export class CategoriesFilterComponent implements OnInit {
     console.log('selected categories')
     console.log(this.selected)
     if(this.catalogId!=undefined){
-      this.api.getCatalog(this.catalogId).then(data => {
-        if(data.category){
-          for (let i=0; i<data.category.length; i++){
-            this.api.getCategoryById(data.category[i].id).then(categoryInfo => {
-              this.findChildrenByParent(categoryInfo);
-            })
-          }
-          initFlowbite();
-        } else {
-          this.api.getLaunchedCategories().then(data => {
-            for(let i=0; i < data.length; i++){
-              this.findChildren(data[i],data)
-            }
-            this.cdr.detectChanges();
-            initFlowbite();
-          })           
+      let data = await this.api.getCatalog(this.catalogId);
+      if(data.category){
+        for (let i=0; i<data.category.length; i++){
+          let categoryInfo = await this.api.getCategoryById(data.category[i].id)
+          await this.findChildrenByParent(categoryInfo);
         }
-      })
-    } else {
-      await this.api.getLaunchedCategories().then(data => {
-        for(let i=0; i < data.length; i++){
-          this.findChildren(data[i],data)
-        }
-        this.cdr.detectChanges();
         initFlowbite();
-      }) 
+      } else {
+        let launched = await this.api.getLaunchedCategories()
+          for(let i=0; i < launched.length; i++){
+            this.findChildren(launched[i],launched)
+          }
+          this.cdr.detectChanges();
+          initFlowbite();
+      }
+    } else {
+      let data = await this.api.getLaunchedCategories()
+      for(let i=0; i < data.length; i++){
+        this.findChildren(data[i],data)
+      }
+      this.cdr.detectChanges();
+      initFlowbite();
     }
   }
 
   ngAfterViewInit() {
     initFlowbite();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   findChildren(parent:any,data:any[]){
@@ -115,9 +121,9 @@ export class CategoriesFilterComponent implements OnInit {
     }
   }
 
-  findChildrenByParent(parent:any){
+  async findChildrenByParent(parent:any){
     let childs: any[] = []
-    this.api.getCategoriesByParentId(parent.id).then(c => {
+    let c = await this.api.getCategoriesByParentId(parent.id)
       childs=c;
       parent["children"] = childs;
       if(parent.isRoot == true){
@@ -127,11 +133,10 @@ export class CategoriesFilterComponent implements OnInit {
       }
       if(childs.length != 0){
         for(let i=0; i < childs.length; i++){
-          this.findChildrenByParent(childs[i])
+          await this.findChildrenByParent(childs[i])
         }
       }
       initFlowbite();
-    })
 
   }
 
@@ -257,6 +262,14 @@ export class CategoriesFilterComponent implements OnInit {
         return this.classList
       }
     }
+  }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
   }
 
 }

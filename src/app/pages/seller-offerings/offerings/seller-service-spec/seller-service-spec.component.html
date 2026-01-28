@@ -137,7 +137,10 @@
             <tbody>
                 @for (serv of servSpecs; track serv.id) {
                     <tr data-cy="servSpecRow" class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                        <td class="px-6 py-4 text-wrap break-all">
+                        <td [ngClass]="{
+                            'break-all': hasLongWord(serv.name, 20),
+                            'break-words': !hasLongWord(serv.name, 20)
+                            }" class="px-6 py-4 text-wrap break-words">
                             {{serv.name}}
                         </td>
                         <td class="px-6 py-4">

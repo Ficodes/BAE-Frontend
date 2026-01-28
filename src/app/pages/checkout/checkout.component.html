@@ -46,6 +46,7 @@
             <p class="text-lg capitalize text-heading lg:text-xl dark:text-white">{{ 'SHOPPING_CART._billingAddress' | translate }}</p></div>
           @if (billingAddresses.length > 0) {
             <button
+              data-cy="orderAddBill"
               (click)="addBill=true;$event.stopPropagation();"
               class="flex items-center text-sm font-semibold text-accent dark:text-white transition-colors duration-200 hover:text-accent-hover focus:text-accent-hover focus:outline-0">
               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-4 w-4 stroke-2 ltr:mr-0.5 rtl:ml-0.5">
@@ -125,7 +126,10 @@
                       }
                    </button>
                    <div class="p-2 flex items-center w-2/3">
-                      <p class="text-lg text-gray-700 dark:text-gray-200 line-clamp-4 text-wrap break-all">{{item.name}}</p>
+                      <p [ngClass]="{
+                        'break-all': hasLongWord(item.name, 20),
+                        'break-words': !hasLongWord(item.name, 20)
+                        }" class="text-lg text-gray-700 dark:text-gray-200 line-clamp-4 text-wrap break-words">{{item.name}}</p>
                    </div> 
                   </div>              
                  <div class="p-2 flex items-center">

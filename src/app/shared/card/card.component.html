@@ -14,7 +14,7 @@
 
   <div class="flex-1 h-full bg-cover bg-right-bottom bg-opacity-25 bg-blend-multiply rounded-lg" [style.background-image]="'url(' + currentTheme?.assets?.cardDefaultBgUrl + ')'">
     <div class="flex-1 h-full px-5 py-5 bg-secondary-50/95 dark:bg-tertiary-100/95 rounded-b-lg">
-      <div class="flex items-center flex-wrap overflow-y-hidden overflow-x-hidden align-middle">
+      <div data-cy="searchOfferCategories" class="flex items-center flex-wrap overflow-y-hidden overflow-x-hidden align-middle">
         <!--<a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2 mr-2"
         [ngClass]="complianceLevel == 'NL' ? 'bg-red-200 text-red-700' : complianceLevel == 'BL' ? 'bg-orange-200 text-orange-700' : complianceLevel == 'P' ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
         <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel == 'NL' ? 'text-red-700' : complianceLevel == 'BL' ? 'text-orange-700' : complianceLevel == 'P' ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
@@ -37,19 +37,19 @@
           <bae-badge class="mr-2" [category]=cat></bae-badge>
         }
         @if(checkMoreCats){
-          <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2 mr-2">
+          <a data-cy="searchShowAllCategories" class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2 mr-2">
             <fa-icon [icon]="faEllipsis" class="text-secondary-50 dark:text-primary-100"></fa-icon>
           </a>
         }
         </div>
       <a (click)="goToProductDetails(productOff)" class="cursor-pointer">
-        <h5 [ngClass]="{
+        <h5 data-cy="searchOfferTitle" [ngClass]="{
           'break-all': hasLongWord(productOff?.name, 20),
           'break-words': !hasLongWord(productOff?.name, 20)
         }"
         class="text-xl font-semibold line-clamp-2 tracking-tight text-primary-100 dark:text-white text-wrap break-words">{{productOff?.name}}</h5>
       </a>
-      <markdown class="min-h-19 h-19 line-clamp-2 text-gray-600 dark:text-gray-400" [data]="productOff?.description"></markdown>
+      <markdown data-cy="searchOfferDescription" class="min-h-19 h-19 line-clamp-2 text-gray-600 dark:text-gray-400" [data]="productOff?.description"></markdown>
       <!--<div class="flex w-full justify-between mt-2.5 mb-5 text-gray-500 font-mono">
         <div>V: {{productOff?.version || 'latest'}}</div>
         <div class="flex items-center">
@@ -74,7 +74,7 @@
 
       <div class="flex sticky top-[100vh] items-center justify-center align-items-bottom rounded-lg mt-4">
 
-        <button (click)="toggleDetailsModal();$event.stopPropagation();"  type="button" class="flex items-center align-items-bottom text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-100 dark:hover:bg-primary-50 dark:focus:ring-primary-100 mr-1">
+        <button data-cy="searchViewDetails" (click)="toggleDetailsModal();$event.stopPropagation();"  type="button" class="flex items-center align-items-bottom text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-100 dark:hover:bg-primary-50 dark:focus:ring-primary-100 mr-1">
           <svg class="w-[18px] h-[18px] text-white mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
             <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
               <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
@@ -91,7 +91,7 @@
                   class="flex align-items-bottom text-white cursor-pointer bg-green-700 hover:bg-green-900 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
               {{ 'CARD._add_cart' | translate }}
             </button>
-          } @else if(providerThemeName=='DOME'){
+          } @else if(quotesEnabled){
             <button type="button" (click)="toggleQuoteModal();$event.stopPropagation();" class="m-4 w-fit flex items-center justify-start text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
               {{ 'CARD._quote' | translate }}
               <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -143,7 +143,10 @@
             <div class="w-full mb-4 rounded-t-lg grid grid-cols-80/20 lg:grid-cols-60/40">
 
               <div class="flex flex-col p-4 overflow-x-hidden">
-                  <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-primary-100 dark:text-primary-50 text-wrap break-all">{{productOff?.name}}</h5>
+                  <h5 [ngClass]="{
+                    'break-all': hasLongWord(productOff?.name, 20),
+                    'break-words': !hasLongWord(productOff?.name, 20)
+                  }" class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-primary-100 dark:text-primary-50 text-wrap break-words">{{productOff?.name}}</h5>
                   <div class="grid grid-cols-2">
                       <div class="min-h-19 pt-2 text-gray-500 dark:text-gray-400">V: {{productOff?.version || 'latest'}}</div>
                   </div>
@@ -203,7 +206,10 @@
             <div class="p-4 lg:p-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div class="justify-start">
                   <h5 class="font-semibold tracking-tight text-lg text-primary-100 dark:text-primary-50">{{ 'CARD._prod_details' | translate }}:</h5>
-                  <markdown class="min-h-19 h-19 dark:text-secondary-50 line-clamp-6 text-wrap break-all" [data]="productOff?.description"></markdown>
+                  <markdown [ngClass]="{
+                    'break-all': hasLongWord(productOff?.description, 20),
+                    'break-words': !hasLongWord(productOff?.description, 20)
+                  }" class="min-h-19 h-19 dark:text-secondary-50 line-clamp-6 text-wrap break-words" [data]="productOff?.description"></markdown>
               </div>
               <!--<div class="justify-start">
                 <h5 class="font-semibold tracking-tight text-lg text-primary-100 dark:text-primary-50">{{ 'CARD._comp_profile' | translate }}:</h5>
@@ -229,7 +235,10 @@
                         <li class="text-wrap break-all line-clamp-1">{{ 'CARD._id_number' | translate }}: {{prodSpec.productNumber}}</li>
                       }
                       @if(orgInfo!=undefined){
-                        <li class="text-wrap break-all line-clamp-1">{{ 'CARD._owner' | translate }}: <a (click)="goToOrgDetails(orgInfo.id)" target="_blank" class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline">{{orgInfo.tradingName}}</a></li>
+                        <li [ngClass]="{
+                          'break-all': hasLongWord(orgInfo.tradingName, 20),
+                          'break-words': !hasLongWord(orgInfo.tradingName, 20)
+                        }" class="text-wrap break-words line-clamp-1">{{ 'CARD._owner' | translate }}: <a (click)="goToOrgDetails(orgInfo.id)" target="_blank" class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline">{{orgInfo.tradingName}}</a></li>
                       }
                     </ul>
               </div>
@@ -244,7 +253,7 @@
                     </svg>
                     {{ 'CARD._add_cart' | translate }}
                   </button>
-                } @else if(providerThemeName=='DOME'){
+                } @else if(quotesEnabled){
                   <button type="button" (click)="toggleQuoteModal();$event.stopPropagation();" class="m-4 w-fit flex items-center justify-start text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                     {{ 'CARD._quote' | translate }}
                     <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

@@ -93,6 +93,7 @@ export class MarkdownTextareaComponent implements ControlValueAccessor {
   addEmoji(event:any){
       this.showEmoji=false;
       this.value += event.emoji.native
+      this.onChange(this.value);
   }
 
   addMarkdownTag(tag: string): void {
@@ -143,6 +144,14 @@ export class MarkdownTextareaComponent implements ControlValueAccessor {
       textarea.selectionStart = textarea.selectionEnd = selectionStart + selectedText.length;
       textarea.focus();
     }, 0);
+  }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
   }
 
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild,ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild,ChangeDetectorRef, HostListener, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import {components} from "../../models/product-catalog";
@@ -18,14 +18,15 @@ import {EventMessageService} from "../../services/event-message.service";
 import * as moment from 'moment';
 import { environment } from 'src/environments/environment';
 import { Location } from '@angular/common';
-import {firstValueFrom} from "rxjs";
+import {firstValueFrom, Subject} from "rxjs";
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-product-details',
   templateUrl: './product-details.component.html',
   styleUrl: './product-details.component.css'
 })
-export class ProductDetailsComponent implements OnInit {
+export class ProductDetailsComponent implements OnInit, OnDestroy {
 
   @ViewChild('relationshipsContent')
   relationshipsContent: ElementRef | undefined;
@@ -46,6 +47,7 @@ export class ProductDetailsComponent implements OnInit {
   @ViewChild('detailsScrollAnchor') detailsScrollAnchor!: ElementRef; 
   
   providerThemeName = environment.providerThemeName;
+  quotesEnabled = environment.QUOTES_ENABLED; 
   id:any;
   productOff: Product | undefined;
   category: string = 'none';
@@ -55,6 +57,7 @@ export class ProductDetailsComponent implements OnInit {
   attatchments: AttachmentRefOrValue[]  = [];
   prodSpec:ProductSpecification = {};
   complianceProf:any[] = [];
+  additionalCerts:any[] = [];
   complianceLevel:string='NL';
   complianceDescription:string='No level. This product hasnt reached any compliance level yet.'
   serviceSpecs:any[] = [];
@@ -101,6 +104,9 @@ export class ProductDetailsComponent implements OnInit {
   stepsCircles:string[]=['circle-chars','circle-price','circle-terms','circle-checkout'];
   licenseTerm:any=undefined;
   isLoaded = false;
+  private isManualScroll = false;
+  private scrollTimeout: any;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -116,7 +122,9 @@ export class ProductDetailsComponent implements OnInit {
     private location: Location
   ) {
     this.showTermsMore=false;
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'CloseCartCard') {
         this.hideCartSelection();
         //TOGGLE TOAST
@@ -164,41 +172,48 @@ export class ProductDetailsComponent implements OnInit {
     })
   }
 
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   @HostListener('window:scroll', ['$event'])
   updateTabs(event:any) {
-    let tabs_container = document.getElementById('tabs-container');
-    let tabsOffset = 0;
-    if(tabs_container){
-      tabsOffset=tabs_container.offsetHeight
+    // Skip if user manually clicked a tab and scroll is in progress
+    if (this.isManualScroll) {
+      return;
     }
-    let details_container = document.getElementById('details-container')
-    let chars_container = document.getElementById('chars-container')
-    let attach_container = document.getElementById('attach-container')
-    let agreements_container = document.getElementById('agreements-container')
-    let relationships_container = document.getElementById('agreements-container')
 
-    let detailsOffset=tabsOffset
-    if(details_container && (details_container.getBoundingClientRect().bottom <= window.innerHeight)){
-      this.goToDetails(false)
-      detailsOffset=details_container.getBoundingClientRect().bottom
+    const sections = [
+      { id: 'details-container', tab: 'details-button', handler: () => this.goToDetails(false) },
+      { id: 'chars-container', tab: 'chars-button', handler: () => this.goToChars(false) },
+      { id: 'attach-container', tab: 'attach-button', handler: () => this.goToAttach(false) },
+      { id: 'agreements-container', tab: 'agreements-button', handler: () => this.goToAgreements(false) },
+      { id: 'relationships-container', tab: 'relationships-button', handler: () => this.goToRelationships(false) }
+    ];
+
+    const TARGET_TOP = 150; // Sticky header offset + some buffer
+    let activeSection = null;
+
+    // Iterate through sections in reverse order (bottom to top) to prioritize later sections when scrolling down
+    for (let i = sections.length - 1; i >= 0; i--) {
+      const section = sections[i];
+      const element = document.getElementById(section.id);
+      if (!element) continue;
+
+      const rect = element.getBoundingClientRect();
+
+      // Check if the section contains or is past the target line
+      if (rect.top <= TARGET_TOP && rect.bottom > TARGET_TOP) {
+        activeSection = section;
+        break;
+      } else if (rect.top > TARGET_TOP) {
+        activeSection = section;
+      }
     }
-    let charsOffset=detailsOffset;
-    if(this.charsContent!=undefined && chars_container && (chars_container.getBoundingClientRect().top >= detailsOffset && chars_container.getBoundingClientRect().bottom <= window.innerHeight)){
-      this.goToChars(false)
-      charsOffset=chars_container.getBoundingClientRect().bottom
-    }
-    let attOffsett=charsOffset;
-    if(this.attachContent!=undefined && attach_container && (attach_container.getBoundingClientRect().top >= charsOffset && attach_container.getBoundingClientRect().bottom <= window.innerHeight)){
-      this.goToAttach(false)
-      attOffsett=attach_container.getBoundingClientRect().bottom
-    }
-    let agreeOffset=attOffsett;
-    if(this.agreementsContent!= undefined && agreements_container && (agreements_container.getBoundingClientRect().top >= attOffsett && agreements_container.getBoundingClientRect().bottom <= window.innerHeight)){
-      this.goToAgreements(false)
-      agreeOffset=agreements_container.offsetHeight
-    }
-    if(this.relationshipsContent!= undefined && relationships_container && (relationships_container.getBoundingClientRect().top >= agreeOffset && relationships_container.getBoundingClientRect().bottom <= window.innerHeight)){
-      this.goToRelationships(false)
+
+    if (activeSection) {
+      activeSection.handler();
     }
   }
 
@@ -243,28 +258,53 @@ export class ProductDetailsComponent implements OnInit {
     }
 
     if(this.prodSpec.productSpecCharacteristic != undefined) {
-      // Avoid displaying the compliance credential
+      // Avoid displaying the compliance credential && Avoid showing "- enabled" chars
       this.prodChars = this.prodSpec.productSpecCharacteristic.filter((char: any) => {
-        return char.name != 'Compliance:VC' && char.name != 'Compliance:SelfAtt'
+        return !char.name.startsWith('Compliance:') && !char.name?.endsWith(' - enabled')
       })
 
-      for(let i=0; i<certifications.length; i++){
-        //Now we only show the certifications that are attached when creating/updating the product
-        let compProf = this.prodSpec.productSpecCharacteristic.find((p => {
-          return p.name === certifications[i].name
-        }));
-        if(compProf){
-          let cert:any = certifications[i]
-          cert.href = compProf.productSpecCharacteristicValue?.at(0)?.value
-          this.complianceProf.push(certifications[i])
+      this.additionalCerts = this.prodSpec.productSpecCharacteristic.filter((char: any) => {
+        const cleanedName = char.name.replace('Compliance:', '').trim();
+      
+        return (
+          char.name.startsWith('Compliance:') &&
+          !certifications.some(cert => cert.name === cleanedName) && char.name != 'Compliance:SelfAtt'
+        );
+      });
+      console.log('--- additional')
+      console.log(this.additionalCerts)
+
+      const normalizeName = (name?: string): string =>
+        name?.replace(/compliance:/i, '').trim() ?? '';      
+      
+      for (let i = 0; i < certifications.length; i++) {
+      
+        // Buscar característica quitando el prefijo "Compliance:"
+        let compProf = this.prodSpec.productSpecCharacteristic.find(p => {
+          return normalizeName(p.name) === certifications[i].name;
+        });
+      
+        if (compProf) {
+          let cert: any = certifications[i];
+          cert.href = compProf.productSpecCharacteristicValue?.at(0)?.value;
+          this.complianceProf.push(cert);
         }
-        //Deleting certifications out of characteristics' array
-        const index = this.prodChars.findIndex(item => item.name === certifications[i].name);
-        if(index!==-1){
+      
+        // Eliminar certificaciones del array de características
+        const index = this.prodChars.findIndex(item =>
+          normalizeName(item.name) === certifications[i].name
+        );
+      
+        if (index !== -1) {
           this.prodChars.splice(index, 1);
         }
       }
+
+      console.log(this.complianceProf)
+      
+      
     }
+
     if(this.prodSpec.serviceSpecification != undefined){
       for(let j=0; j < this.prodSpec.serviceSpecification.length; j++){
         let serv = await this.api.getServiceSpec(this.prodSpec.serviceSpecification[j].id);
@@ -273,7 +313,7 @@ export class ProductDetailsComponent implements OnInit {
     }
     if(this.prodSpec.resourceSpecification != undefined){
       for(let j=0; j < this.prodSpec.resourceSpecification.length; j++){
-        let res = this.api.getResourceSpec(this.prodSpec.resourceSpecification[j].id);
+        let res = await this.api.getResourceSpec(this.prodSpec.resourceSpecification[j].id);
         this.resourceSpecs.push(res);
       }
     }
@@ -671,9 +711,11 @@ async deleteProduct(product: Product | undefined){
   }
 
   goToDetails(scroll:boolean){
-    //const targetElement = this.elementRef.nativeElement.querySelector('#detailsContent');
     if (scroll) {
-      //this.detailsScrollAnchor.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Set flag to prevent scroll listener from interfering
+      this.isManualScroll = true;
+      clearTimeout(this.scrollTimeout);
+
       const anchor = this.detailsScrollAnchor?.nativeElement;
       if (!anchor) return;
     
@@ -684,6 +726,11 @@ async deleteProduct(product: Product | undefined){
       // Or: explicitly scroll the document
       const y = anchor.getBoundingClientRect().top + window.scrollY - 88; // adjust for sticky header
       window.scrollTo({ top: y, behavior: 'smooth' });
+
+      // Re-enable scroll listener after animation completes
+      this.scrollTimeout = setTimeout(() => {
+        this.isManualScroll = false;
+      }, 1000);
     }
 
     let details_button = document.getElementById('details-button')
@@ -701,7 +748,14 @@ async deleteProduct(product: Product | undefined){
 
   goToChars(scroll:boolean){
     if (scroll) {
+      this.isManualScroll = true;
+      clearTimeout(this.scrollTimeout);
+
       this.charsScrollAnchor.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      this.scrollTimeout = setTimeout(() => {
+        this.isManualScroll = false;
+      }, 1000);
     }
 
     let details_button = document.getElementById('details-button')
@@ -719,7 +773,14 @@ async deleteProduct(product: Product | undefined){
 
   goToAttach(scroll:boolean){
     if (scroll) {
+      this.isManualScroll = true;
+      clearTimeout(this.scrollTimeout);
+
       this.attachScrollAnchor.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      this.scrollTimeout = setTimeout(() => {
+        this.isManualScroll = false;
+      }, 1000);
     }
 
     let details_button = document.getElementById('details-button')
@@ -737,8 +798,14 @@ async deleteProduct(product: Product | undefined){
 
   goToAgreements(scroll:boolean){
     if (scroll) {
-      //this.agreementsContent.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start'});
+      this.isManualScroll = true;
+      clearTimeout(this.scrollTimeout);
+
       this.agreementsScrollAnchor.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      this.scrollTimeout = setTimeout(() => {
+        this.isManualScroll = false;
+      }, 1000);
     }
 
     let details_button = document.getElementById('details-button')
@@ -756,7 +823,14 @@ async deleteProduct(product: Product | undefined){
 
   goToRelationships(scroll:boolean){
     if (scroll) {
+      this.isManualScroll = true;
+      clearTimeout(this.scrollTimeout);
+
       this.relScrollAnchor.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      this.scrollTimeout = setTimeout(() => {
+        this.isManualScroll = false;
+      }, 1000);
     }
 
     let details_button = document.getElementById('details-button')
@@ -811,10 +885,10 @@ async deleteProduct(product: Product | undefined){
     let parties = this.prodSpec?.relatedParty;
     if(parties)
     for(let i=0; i<parties.length;i++){
-      if(parties[i].role=='Owner'){
+      if(parties[i].role == environment.SELLER_ROLE){
         if(parties[i].id.includes('organization')){
           this.accService.getOrgInfo(parties[i].id).then(org => {
-            this.orgInfo=org;
+            this.orgInfo = org;
             console.log(this.orgInfo)
           })
         }
@@ -835,5 +909,17 @@ async deleteProduct(product: Product | undefined){
   closeDrawer(): void {
     this.isDrawerOpen = false;
   }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
+  }
+
+  normalizeName(name?: string): string {
+    return name?.replace(/compliance:/i, '').trim() ?? '';
+  }  
 
 }

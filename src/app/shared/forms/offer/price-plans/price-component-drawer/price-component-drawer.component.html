@@ -1,17 +1,20 @@
 <!-- Drawer -->
-<div class="fixed inset-0 bg-black bg-opacity-50 flex justify-end transition-opacity duration-500 z-50"
+<div class="fixed inset-0 flex justify-end transition-opacity duration-500 z-[52]"
      [ngClass]="{'opacity-100': isOpen, 'opacity-0 pointer-events-none': !isOpen}">
 
-  <div class="w-full md:w-5/6 bg-secondary-50 dark:bg-gray-800 h-full p-6 overflow-y-auto transform transition-transform duration-500"
+  <!-- Backdrop that covers entire viewport -->
+  <div class="fixed inset-0 bg-black bg-opacity-50 z-[52]"></div>
+
+  <div class="w-full md:w-2/3 lg:w-1/2 bg-secondary-50 dark:bg-gray-800 h-screen transform transition-transform duration-500 flex flex-col relative z-[53]"
        [ngClass]="{'translate-x-0': isOpen, 'translate-x-full': !isOpen, '-translate-x-full': !initialized}">
 
+    <div class="p-6 flex-1 overflow-y-auto">
+      <!-- Título -->
+      <h2 class="text-xl font-semibold text-gray-700 dark:text-white">
+        {{ component ? 'Update Price Component' : 'New Price Component' }}
+      </h2>
 
-    <!-- Título -->
-    <h2 class="text-xl font-semibold text-gray-700 dark:text-white">
-      {{ component ? 'Update Price Component' : 'New Price Component' }}
-    </h2>
-
-    <form [formGroup]="priceComponentForm" (ngSubmit)="submitForm()" class="mt-4 space-y-4">
+      <form [formGroup]="priceComponentForm" (ngSubmit)="submitForm()" class="mt-4 space-y-4">
 
       <!-- Nombre -->
       <div>
@@ -199,7 +202,7 @@
 
       <!-- Descuento -->
       <div class="flex items-center mb-4">
-        <input
+        <input data-cy="offerPriceComponentDiscount"
           type="checkbox"
           [(ngModel)]="showDiscount"
           [ngModelOptions]="{ standalone: true }"
@@ -219,6 +222,7 @@
           </label>
           <div class="flex space-x-2">
             <input
+              data-cy="offerDiscountAmount"
               formControlName="discountValue"
               type="number"
               placeholder="Amount"
@@ -226,6 +230,7 @@
               [ngClass]="(priceComponentForm.get('discountValue')?.invalid == true && priceComponentForm.value.discountValue!='') || (priceComponentForm.get('discountValue')?.touched && priceComponentForm.value.discountValue=='') ? 'border-red-600' : 'dark:border-gray-600'"
             >
             <select
+              data-cy="offerDiscountUnit"
               formControlName="discountUnit"
               class="w-1/2 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
             >
@@ -259,6 +264,7 @@
           </label>
           <div class="flex space-x-2">
             <input
+              data-cy="offerDiscountDuration"
               formControlName="discountDuration"
               type="number"
               placeholder="Duration"
@@ -266,6 +272,7 @@
               [ngClass]="(priceComponentForm.get('discountDuration')?.invalid == true && priceComponentForm.value.discountDuration!='') || (priceComponentForm.get('discountDuration')?.touched && priceComponentForm.value.discountDuration=='') ? 'border-red-600' : 'dark:border-gray-600'"
             >
             <select
+              data-cy="offerDiscountDurationUnit"
               formControlName="discountDurationUnit"
               class="w-1/2 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
             >
@@ -289,14 +296,12 @@
         </div>
         
       }
-
-
       <!-- Botones -->
-      <div class="flex justify-end space-x-3">
-        <button type="button" (click)="closeDrawer()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 dark-text:white rounded">{{ 'FORMS.PRICE_PLAN_COMPONENT._cancel' | translate }}</button>
+      <div class="flex justify-end space-x-3 mt-6">
+        <button data-cy="cancelPriceComponent" type="button" (click)="closeDrawer()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 dark-text:white rounded">{{ 'FORMS.PRICE_PLAN_COMPONENT._cancel' | translate }}</button>
         <button data-cy="savePriceComponent" type="submit" [disabled]="priceComponentForm.invalid" [ngClass]="priceComponentForm.invalid ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" class="px-4 py-2 bg-blue-500 text-white rounded">{{ 'FORMS.PRICE_PLAN_COMPONENT._save' | translate }}</button>
       </div>
-    </form>
+      </form>
+    </div>
 
   </div>
-</div>

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, OnDestroy } from '@angular/core';
 import {
   faCartShopping
 } from "@fortawesome/sharp-solid-svg-icons";
@@ -13,19 +13,26 @@ import { AccountServiceService } from 'src/app/services/account-service.service'
 import { cartProduct } from '../../models/interfaces';
 import { TYPES } from 'src/app/models/types.const';
 import { Router } from '@angular/router';
+import { environment } from 'src/environments/environment';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-cart-drawer',
   templateUrl: './cart-drawer.component.html',
   styleUrl: './cart-drawer.component.css'
 })
-export class CartDrawerComponent implements OnInit{
+export class CartDrawerComponent implements OnInit, OnDestroy {
   protected readonly faCartShopping = faCartShopping;
   items: any[] = [];
   totalPrice:any;
   showBackDrop:boolean=true;
   check_custom:boolean=false;
   loading:boolean=false;
+  errorMessage:string='';
+  showError:boolean=false;
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
@@ -46,50 +53,56 @@ export class CartDrawerComponent implements OnInit{
   ngOnInit(): void {
     this.loading=true;
     this.showBackDrop=true;
-    this.cartService.getShoppingCart().then(async data => {
-      console.log('---CARRITO API---')
-      console.log(data)
-      this.items=data;
-      await this.getProviderInfo();
-      this.groupItemsByOwner();
-      this.loading=false;
-      this.cdr.detectChanges();
-      console.log('------------------')
-    })
-    this.eventMessage.messages$.subscribe(ev => {
+    this.getCart();
+
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'AddedCartItem') {
         console.log('Elemento añadido')
         this.loading=true;
-        this.cartService.getShoppingCart().then(async data => {
-          console.log('---CARRITO API---')
-          console.log(data)
-          this.items=data;
-          await this.getProviderInfo();
-          this.groupItemsByOwner();
-          this.loading=false;
-          this.cdr.detectChanges();
-          console.log('------------------')
-        })
+        this.getCart();
       } else if(ev.type === 'RemovedCartItem') {
         this.loading=true;
-        this.cartService.getShoppingCart().then(async data => {
-          console.log('---CARRITO API---')
-          console.log(data)
-          this.items=data;
-          await this.getProviderInfo();
-          this.groupItemsByOwner();
-          this.loading=false;
-          this.cdr.detectChanges();
-          console.log('------------------')
-        })
+        this.getCart();
       }
     })
     console.log('Elementos en el carrito....')
     console.log(this.items)
   }
 
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   get objectKeys() {
     return Object.keys;
+  }
+
+  getCart(){
+    try {
+      this.cartService.getShoppingCart().then(async data => {
+        console.log('---CARRITO API---')
+        console.log(data)
+        this.items=data;
+        await this.getProviderInfo();
+        this.groupItemsByOwner();
+        this.loading=false;
+        this.cdr.detectChanges();
+        console.log('------------------')
+      })
+    } catch (error) {
+      this.loading=false;
+      this.handleError(error, 'There was an error while retrieving the cart!');
+    }
+  }
+
+  private handleError(error: any, defaultMessage: string) {
+    console.error(defaultMessage, error);
+    this.errorMessage = error?.error?.error ? `Error: ${error.error.error}` : defaultMessage;
+    this.showError = true;
+    setTimeout(() => (this.showError = false), 3000);
   }
 
   hasKey(obj: any, key: string): boolean {
@@ -111,6 +124,12 @@ export class CartDrawerComponent implements OnInit{
     this.eventMessage.emitToggleDrawer(false);
   }
 
+  getSellerId(providerItem: any) {
+    let partyRef = providerItem.relatedParty.find((party: any) => {
+      return party.role === environment.SELLER_ROLE
+    });
+    return partyRef.id;
+  }
 
   goToShoppingCart(id:any) {
     this.hideCart();
@@ -119,9 +138,22 @@ export class CartDrawerComponent implements OnInit{
 
   async getProviderInfo(){
     for(let i=0; i < this.items.length; i++){
-      let offer = await this.api.getProductById(this.items[i].id);
-      let product = await this.api.getProductSpecification(offer.productSpecification.id)
-      this.items[i]['relatedParty']=product.relatedParty
+      try {  
+        let offer = await this.api.getProductById(this.items[i].id);      
+        let product = await this.api.getProductSpecification(offer.productSpecification.id)
+        this.items[i]['relatedParty']=product.relatedParty
+      } catch (error) {
+        console.log('--- not found?')
+        console.log(error)
+        if((error as any).status==404){
+          await this.cartService.removeItemShoppingCart(this.items[i].id);
+          console.log('deleted');
+          this.eventMessage.emitRemovedCartItem(this.items[i] as cartProduct);
+        }
+        this.loading=false;
+        this.handleError(error, "There was an error while retrieving cart's product information!");
+      }      
+      
     }
   }
 
@@ -129,7 +161,7 @@ export class CartDrawerComponent implements OnInit{
     const groupedByOwner: any[][] = Object.values(
       this.items.reduce((groups: any, item: any) => {
         const owner = item.relatedParty
-          ?.find((rp: any) => rp.role === 'Owner')
+          ?.find((rp: any) => rp.role === environment.SELLER_ROLE)
           ?.id;
     
         if (owner) {
@@ -147,6 +179,14 @@ export class CartDrawerComponent implements OnInit{
 
   isArray(value: any): value is any[] {
     return Array.isArray(value);
+  }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
   }
   
 }

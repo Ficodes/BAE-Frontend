@@ -1,18 +1,21 @@
 <h2 class="text-2xl dark:text-secondary-50 p-2">{{ 'CATEGORIES._categories' | translate }}</h2>
   <div id="accordion-collapse"  data-accordion="open" >
     @for(category of categories; track category.id; let idx = $index) {
-    
+
         <h2 [id]="'accordion-heading-'+idx">
           @if (category.children) {
             @if (category.children.length != 0) {
               <div [ngClass]="checkClasses($first,$last,category)">
-                <span class="text-left justify-start text-wrap break-all">{{ category?.name }}</span>
+                <span [ngClass]="{
+                  'break-all': hasLongWord(category?.name, 20),
+                  'break-words': !hasLongWord(category?.name, 20)
+                  }" class="text-left justify-start text-wrap break-words">{{ category?.name }}</span>
                 <div class="justify-end inline-flex">
                   <div class="justify-end" (click)="onClick(category)">
                     <input [checked]="isCheckedCategory(category)" type="checkbox" value="" class="hidden peer">
                     <fa-icon [icon]="isCheckedCategory(category) ? faCircleCheck : faCircle" class="text-2xl"></fa-icon>
                   </div>
-                  <button type="button" class="ml-4" [attr.data-accordion-target]="'#accordion-body-'+idx" aria-expanded="false" [attr.aria-controls]="'accordion-body-'+idx">              
+                  <button type="button" class="ml-4" [attr.data-accordion-target]="'#accordion-body-'+idx" aria-expanded="false" [attr.aria-controls]="'accordion-body-'+idx">
                     <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                       <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
                     </svg>
@@ -20,7 +23,7 @@
                 </div>
               </div>
             } @else {
-              <bae-category-item [data]="category" [isParent]="true" [isFirst]="$first" [isLast]="$last"></bae-category-item>
+              <bae-category-item data-cy="categoryItemService" [data]="category" [isParent]="true" [isFirst]="$first" [isLast]="$last"></bae-category-item>
             }
           }
         </h2>

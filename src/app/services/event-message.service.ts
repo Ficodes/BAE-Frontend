@@ -6,7 +6,7 @@ import { LoginInfo } from 'src/app/models/interfaces';
 export interface EventMessage {
   type: 'AddedFilter' | 'RemovedFilter' | 'AddedCartItem' | 'RemovedCartItem' | 'FilterShown' | 'ToggleCartDrawer' | 'LoginProcess' | 'BillAccChanged' |
   'SellerProductSpec' | 'SellerCreateProductSpec' |  'SellerServiceSpec' | 'SellerCreateServiceSpec' | 'SellerResourceSpec' | 'SellerCreateResourceSpec' |
-  'SellerOffer' | 'SellerCreateOffer' | 'SellerUpdateProductSpec' | 'SellerUpdateServiceSpec' | 'SellerUpdateResourceSpec' | 'SellerUpdateOffer' |
+  'SellerOffer' | 'SellerCreateOffer' | 'SellerUpdateProductSpec' | 'SellerUpdateServiceSpec' | 'SellerUpdateResourceSpec' | 'SellerUpdateOffer' | 'SellerCreateCustomOffer' |
   'SellerCatalog' | 'SellerCatalogCreate' | 'SellerCatalogUpdate' | 'CategoryAdded' | 'CategoryRemoved' | 'ChangedSession' | 'CloseCartCard'|
   'AdminCategories' | 'CreateCategory' | 'UpdateCategory' | 'ShowCartToast' | 'HideCartToast' | 'CloseContact' | 'OpenServiceDetails' | 'OpenResourceDetails' | 'OpenProductInvDetails' |
   'SavePricePlan' | 'UpdatePricePlan' | 'ToggleEditPrice' | 'ToggleNewPrice' |
@@ -109,6 +109,10 @@ export class EventMessageService {
     this.eventMessageSubject.next({ type: 'SellerUpdateOffer', value: offer });
   }
 
+  emitSellerCreateCustomOffer(offer:any, partyId?:string){
+    this.eventMessageSubject.next({type: 'SellerCreateCustomOffer', value: {offer, partyId}})
+  }
+
   emitSellerCatalog(show:boolean){    
     this.eventMessageSubject.next({ type: 'SellerCatalog', value: show });
   }
@@ -122,14 +126,10 @@ export class EventMessageService {
   }
 
   emitCategoryAdded(cat:Category){
-    console.log('event emitter category')
-    console.log(cat)
     this.eventMessageSubject.next({ type: 'CategoryAdded', value: cat });
   }
 
   emitChangedSession(session:any){
-    console.log('event eChangedSession')
-    console.log(session)
     this.eventMessageSubject.next({ type: 'ChangedSession', value: session });
   }
 

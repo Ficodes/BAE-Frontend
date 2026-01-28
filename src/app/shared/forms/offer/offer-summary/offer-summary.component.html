@@ -2,14 +2,20 @@
     <div class="mb-4 grid grid-cols-2 gap-4">
         <div>
             <label class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._name' | translate }}</label>
-            <label class="mb-2 bg-gray-50 text-wrap break-all dark:bg-secondary-300 dark:border-secondary-200 dark:text-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            <label [ngClass]="{
+                'break-all': hasLongWord(productOfferForm.get('generalInfo.name')?.value, 20),
+                'break-words': !hasLongWord(productOfferForm.get('generalInfo.name')?.value, 20)
+                }" class="mb-2 bg-gray-50 text-wrap break-words dark:bg-secondary-300 dark:border-secondary-200 dark:text-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                 {{ productOfferForm.get('generalInfo.name')?.value }}
             </label>
 
         </div>
        <div>
             <label for="prod-version" class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._version' | translate }}</label>
-            <label class="mb-2 bg-gray-50 text-wrap break-all border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            <label [ngClass]="{
+                'break-all': hasLongWord(productOfferForm.get('generalInfo.version')?.value, 20),
+                'break-words': !hasLongWord(productOfferForm.get('generalInfo.version')?.value, 20)
+                }" class="mb-2 bg-gray-50 text-wrap break-words border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                 {{ productOfferForm.get('generalInfo.version')?.value }}
             </label>
         </div>
@@ -31,7 +37,10 @@
    @if(productOfferForm.get('generalInfo.description')?.value !=''){
         <label class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._description' | translate }}</label>
         <div class="px-4 py-2 bg-white rounded-lg p-4 mb-4 dark:bg-secondary-300 dark:text-white border dark:border-secondary-200">
-            <markdown class="bg-gray-50 dark:bg-secondary-300 dark:text-white text-gray-900 text-wrap break-all" [data]="productOfferForm.get('generalInfo.description')?.value"></markdown>
+            <markdown [ngClass]="{
+                'break-all': hasLongWord(productOfferForm.get('generalInfo.description')?.value, 20),
+                'break-words': !hasLongWord(productOfferForm.get('generalInfo.description')?.value, 20)
+                }" class="bg-gray-50 dark:bg-secondary-300 dark:text-white text-gray-900 text-wrap break-words" [data]="productOfferForm.get('generalInfo.description')?.value"></markdown>
         </div>
     }
 <!--
@@ -92,7 +101,10 @@
             </thead>
             <tbody>
                 <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                    <td class="px-6 py-4 text-wrap break-all">
+                    <td [ngClass]="{
+                        'break-all': hasLongWord(productOfferForm.get('catalogue')?.value.name, 20),
+                        'break-words': !hasLongWord(productOfferForm.get('catalogue')?.value.name, 20)
+                        }" class="px-6 py-4 text-wrap break-words">
                         {{productOfferForm.get('catalogue')?.value.name}}
                     </td>
                     <td class="px-6 py-4">
@@ -132,7 +144,10 @@
             <tbody>
                 @for (cat of productOfferForm.get('category')?.value; track cat.id) {
                     <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                        <td class="px-6 py-4 text-wrap break-all">
+                        <td [ngClass]="{
+                            'break-all': hasLongWord(cat.name, 20),
+                            'break-words': !hasLongWord(cat.name, 20)
+                            }" class="px-6 py-4 text-wrap break-words">
                             {{cat.name}}
                         </td>
                         <td class="hidden md:table-cell px-6 py-4">
@@ -162,10 +177,16 @@
             <tbody>
                 @for (price of productOfferForm.get('pricePlans')?.value; track price.id) {
                     <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                        <td class="px-6 py-4 max-w-1/6 text-wrap break-all">
+                        <td [ngClass]="{
+                            'break-all': hasLongWord(price.name, 20),
+                            'break-words': !hasLongWord(price.name, 20)
+                            }" class="px-6 py-4 max-w-1/6 text-wrap break-words">
                             {{price.name}}
                         </td>
-                        <td class="hidden md:table-cell px-6 py-4 text-wrap break-all">
+                        <td [ngClass]="{
+                            'break-all': hasLongWord(price.description, 20),
+                            'break-words': !hasLongWord(price.description, 20)
+                            }" class="hidden md:table-cell px-6 py-4 text-wrap break-words">
                             {{price.description}}
                         </td>
                     </tr>
@@ -221,13 +242,19 @@
     <h2 class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._license' | translate }}</h2>
     <div>
         <label for="treatment" class="font-bold text-base dark:text-white">{{ 'CREATE_OFFER._treatment' | translate }}</label>
-        <label class="mb-2 bg-gray-50 text-wrap break-all dark:bg-secondary-300 dark:border-secondary-200 dark:text-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+        <label [ngClass]="{
+            'break-all': hasLongWord(productOfferForm.get('license')?.get('treatment')?.value, 20),
+            'break-words': !hasLongWord(productOfferForm.get('license')?.get('treatment')?.value, 20)
+            }" class="mb-2 bg-gray-50 text-wrap break-words dark:bg-secondary-300 dark:border-secondary-200 dark:text-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
             {{productOfferForm.get('license')?.get('treatment')?.value}}
         </label>
         @if(productOfferForm.get('license')?.get('description')?.value!==''){
             <label class="font-bold text-base dark:text-white">{{ 'CREATE_OFFER._description' | translate }}</label>
             <div class="px-4 py-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white rounded-lg p-4">
-                <markdown class="bg-gray-50 dark:bg-secondary-300 dark:text-white text-gray-900 text-wrap break-all" [data]="productOfferForm.get('license')?.get('description')?.value"></markdown>
+                <markdown [ngClass]="{
+                    'break-all': hasLongWord(productOfferForm.get('license')?.get('description')?.value, 20),
+                    'break-words': !hasLongWord(productOfferForm.get('license')?.get('description')?.value, 20)
+                    }" class="bg-gray-50 dark:bg-secondary-300 dark:text-white text-gray-900 text-wrap break-words" [data]="productOfferForm.get('license')?.get('description')?.value"></markdown>
             </div>
         }
     </div>

@@ -75,6 +75,7 @@ import { environment } from 'src/environments/environment';
 import { AppInitService } from './services/app-init.service';
 import { appConfigFactory } from './app-config-factory';
 import { VerificationComponent } from './pages/admin/verification/verification.component';
+import { EmailComponent } from './pages/admin/email/email.component';
 import { InventoryResourcesComponent } from './pages/product-inventory/inventory-resources/inventory-resources.component';
 import { InventoryServicesComponent } from './pages/product-inventory/inventory-services/inventory-services.component';
 import { ProductInvDetailComponent } from './pages/product-inventory/inventory-items/product-inv-detail/product-inv-detail.component';
@@ -86,8 +87,10 @@ import { MultipleSelectComponent } from './shared/multiple-select/multiple-selec
 import {CharacteristicComponent} from "./shared/characteristic/characteristic.component";
 import {PricePlanDrawerComponent} from "./shared/price-plan-drawer/price-plan-drawer.component";
 import {OfferComponent} from "./shared/forms/offer/offer.component";
+import {CustomOfferComponent} from "./shared/forms/offer/custom-offer/custom-offer.component"
 import { ThemeService } from './services/theme.service';
 import { ThemeAwareTranslateLoader } from './services/theme-aware-translate.loader';
+import { RevenueReportComponent } from './shared/revenue-report/revenue-report.component'
 
 // Función Factory requerida para crear el cargador con sus dependencias
 export function createThemeAwareLoader(http: HttpClient, themeService: ThemeService) {
@@ -156,6 +159,7 @@ import { OperatorRevenueSharingComponent } from "src/app/pages/admin/operator-re
     ContactUsComponent,
     ContactUsFormComponent,
     VerificationComponent,
+    EmailComponent,
     InventoryResourcesComponent,
     InventoryServicesComponent,
     ProductInvDetailComponent,
@@ -193,7 +197,9 @@ import { OperatorRevenueSharingComponent } from "src/app/pages/admin/operator-re
         MatomoRouterModule,
         CharacteristicComponent,
         PricePlanDrawerComponent,
+        RevenueReportComponent,
         OfferComponent,
+        CustomOfferComponent,
         AboutDomeComponent,
         MarkdownTextareaComponent,
         ProviderRevenueSharingComponent,

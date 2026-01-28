@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, Input, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import {components} from "src/app/models/product-catalog";
 import { environment } from 'src/environments/environment';
@@ -18,6 +18,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { currencies } from 'currencies.json';
 import { certifications } from 'src/app/models/certification-standards.const';
 import {ProductOfferingPrice_DTO} from 'src/app/models/interfaces';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 //type ProductOffering_Create = components["schemas"]["ProductOffering_Create"];
 //type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
@@ -27,7 +29,7 @@ import {ProductOfferingPrice_DTO} from 'src/app/models/interfaces';
   templateUrl: './new-price-plan.component.html',
   styleUrl: './new-price-plan.component.css'
 })
-export class NewPricePlanComponent implements OnInit {
+export class NewPricePlanComponent implements OnInit, OnDestroy {
 
   //currencies=currencies;
   //Only allowing EUR for the moment
@@ -81,6 +83,7 @@ export class NewPricePlanComponent implements OnInit {
 
   showPreview:boolean=false;
   showEmoji:boolean=false;
+  private destroy$ = new Subject<void>();
 
   @Input() selectedProdSpec: any | {id:''};
   //@Input() priceToUpdate: ProductOfferingPrice_DTO | undefined;
@@ -98,7 +101,9 @@ export class NewPricePlanComponent implements OnInit {
     private resSpecService: ResourceSpecServiceService,
     private paginationService: PaginationService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -131,9 +136,15 @@ export class NewPricePlanComponent implements OnInit {
     }, 100);
   }
 
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   checkPriceInfo(){
     for(let i=0;i<this.selectedProdSpec.productSpecCharacteristic.length;i++){
-      if (!certifications.some(certification => certification.name === this.selectedProdSpec.productSpecCharacteristic[i].name)) {
+      //if (!certifications.some(certification => certification.name === this.selectedProdSpec.productSpecCharacteristic[i].name)) {
+      if (!certifications.some(certification => certification.name === this.selectedProdSpec.productSpecCharacteristic[i].name) && !this.selectedProdSpec.productSpecCharacteristic[i].name.startsWith('Compliance:')) {
         this.createdPriceProfile.push(this.selectedProdSpec.productSpecCharacteristic[i]);
         this.filteredCharacteristics.push(this.selectedProdSpec.productSpecCharacteristic[i]);
       }
@@ -716,6 +727,14 @@ export class NewPricePlanComponent implements OnInit {
   changeDomeManaged(){
     this.isDomeManaged=!this.isDomeManaged;
     initFlowbite();
+  }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
   }
 
 }

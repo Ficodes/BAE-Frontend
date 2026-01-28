@@ -24,7 +24,7 @@ export class ProductOrderService {
     return this.http.post<any>(url, prod, { observe: 'response' });
   }
 
-  getProductOrders(partyId:any,page:any,filters:any[],date:any,role:any){
+  getProductOrders(partyId:any,page:any,filters:any[],role:any){
     console.log('getProductOrders');
     let url = `${ProductOrderService.BASE_URL}${ProductOrderService.API_ORDERING}/productOrder?limit=${ProductOrderService.ORDER_LIMIT}&offset=${page}&relatedParty.id=${partyId}&relatedParty.role=${role}`;
 
@@ -39,9 +39,6 @@ export class ProductOrderService {
         }
       }
       url=url+'&state='+status;
-    }
-    if(date!=undefined){
-      url=url+'&orderDate>'+date;
     }
     return lastValueFrom(this.http.get<any[]>(url));
   }

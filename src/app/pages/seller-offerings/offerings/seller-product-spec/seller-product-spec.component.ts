@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import {faIdCard, faSort, faSwatchbook, faSparkles} from "@fortawesome/pro-solid-svg-icons";
@@ -11,13 +11,15 @@ import {LocalStorageService} from "src/app/services/local-storage.service";
 import {EventMessageService} from "src/app/services/event-message.service";
 import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'seller-product-spec',
   templateUrl: './seller-product-spec.component.html',
   styleUrl: './seller-product-spec.component.css'
 })
-export class SellerProductSpecComponent implements OnInit{
+export class SellerProductSpecComponent implements OnInit, OnDestroy {
   protected readonly faIdCard = faIdCard;
   protected readonly faSort = faSort;
   protected readonly faSwatchbook = faSwatchbook;
@@ -37,6 +39,7 @@ export class SellerProductSpecComponent implements OnInit{
   partyId:any;
   sort:any=undefined;
   isBundle:any=undefined;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -47,7 +50,9 @@ export class SellerProductSpecComponent implements OnInit{
     private eventMessage: EventMessageService,
     private paginationService: PaginationService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initProdSpecs();
       }
@@ -56,6 +61,11 @@ export class SellerProductSpecComponent implements OnInit{
 
   ngOnInit() {
     this.initProdSpecs();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initProdSpecs(){
@@ -159,5 +169,13 @@ export class SellerProductSpecComponent implements OnInit{
       this.isBundle=undefined
     }
     this.getProdSpecs(false);
+  }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
   }
 }

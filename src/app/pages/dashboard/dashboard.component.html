@@ -12,7 +12,7 @@
             <div data-cy="mainText">
               <h1 class="mb-4 text-left text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl text-secondary-50">{{ 'DASHBOARD._header' | translate }}</h1>
               <p class="text-left mb-8 text-lg font-normal lg:text-xl text-secondary-50">{{ 'DASHBOARD._subheader' | translate }}</p>
-              <button data-cy="browseServices" id="browseServices" (click)="goTo('/search')"
+              <button data-cy="browseServicesDashboard" id="browseServices" (click)="goTo('/search')"
               class="inline-flex justify-left items-center border border-1 border-white py-3 px-5 text-base font-medium text-center text-white rounded-lg hover:bg-primary-50 ">
               <svg class=" mr-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
               {{ 'DASHBOARD._browse_serv' | translate }}
@@ -27,7 +27,11 @@
                        [style.display]="'-webkit-box'"
                        [style.webkitBoxOrient]="'vertical'"
                        [style.webkitLineClamp]="'2'"
-                       class="text-md text-wrap break-all line-clamp-2 mb-2 font-medium block items-center
+                       [ngClass]="{
+                        'break-all': hasLongWord(serv, 20),
+                        'break-words': !hasLongWord(serv, 20)
+                        }"
+                       class="text-md text-wrap break-words line-clamp-2 mb-2 font-medium block items-center
                               px-2.5 py-0.5 rounded-md text-primary-100 bg-secondary-50 w-fit animate-in">
                       {{ serv }}
                     </a>
@@ -41,7 +45,11 @@
                     [style.display]="'-webkit-box'"
                     [style.webkitBoxOrient]="'vertical'"
                     [style.webkitLineClamp]="'2'"
-                       class="text-md text-wrap break-all line-clamp-2 font-medium block items-center
+                    [ngClass]="{
+                      'break-all': hasLongWord(pub, 20),
+                      'break-words': !hasLongWord(pub, 20)
+                      }"
+                       class="text-md text-wrap break-words line-clamp-2 font-medium block items-center
                               px-2.5 py-0.5 rounded-md text-primary-100 bg-secondary-50 w-fit animate-in">
                       {{ pub }}
                     </a>

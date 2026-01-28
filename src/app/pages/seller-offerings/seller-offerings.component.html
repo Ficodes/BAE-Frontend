@@ -106,6 +106,9 @@
         @if(show_update_catalog){
           <update-catalog [cat]="catalog_to_update"></update-catalog>
         }
+        @if(show_create_custom_offer){
+          <app-custom-offer [offer]="offer_to_update" [partyId]="custom_offer_partyId"></app-custom-offer>
+        }
     </div>
 </div>
 @if(feedback){

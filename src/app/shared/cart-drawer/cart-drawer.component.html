@@ -54,7 +54,11 @@
                   </div>
                   <div class="p-2 flex items-center w-2/3">
                     <p (click)="goToProdDetails(item)"
-                      class="text-lg text-gray-700 dark:text-gray-400 line-clamp-4 text-wrap break-all cursor-pointer"
+                    [ngClass]="{
+                      'break-all': hasLongWord(item.name, 20),
+                      'break-words': !hasLongWord(item.name, 20)
+                      }"
+                      class="text-lg text-gray-700 dark:text-gray-400 line-clamp-4 text-wrap break-words cursor-pointer"
                       role="button" tabindex="0">
                       {{ item.name }}
                     </p>
@@ -103,7 +107,7 @@
 
           <!-- go to shopping cart per provider -->
           <div class="mt-4">
-            <button data-cy="cartPurchase" (click)="goToShoppingCart(providerItems.at(0).relatedParty.at(0).id)" type="button"
+            <button data-cy="cartPurchase" (click)="goToShoppingCart(getSellerId(providerItems.at(0)))" type="button"
               [disabled]="providerItems.length==0"
               [ngClass]="providerItems.length==0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"
               class="flex w-full items-center justify-center gap-x-2 px-4 py-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm py-2.5 text-center inline-flex items-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">

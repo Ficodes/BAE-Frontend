@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, Input, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import {LocalStorageService} from "src/app/services/local-storage.service";
@@ -7,6 +7,8 @@ import { LoginInfo } from 'src/app/models/interfaces';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import * as moment from 'moment';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import {components} from "src/app/models/product-catalog";
 type Catalog_Update = components["schemas"]["Catalog_Update"];
@@ -16,7 +18,7 @@ type Catalog_Update = components["schemas"]["Catalog_Update"];
   templateUrl: './update-catalog.component.html',
   styleUrl: './update-catalog.component.css'
 })
-export class UpdateCatalogComponent implements OnInit {
+export class UpdateCatalogComponent implements OnInit, OnDestroy {
   @Input() cat: any;
 
   partyId:any='';
@@ -25,6 +27,12 @@ export class UpdateCatalogComponent implements OnInit {
 
   stepsElements:string[]=['general-info','summary'];
   stepsCircles:string[]=['general-circle','summary-circle'];
+  currentStep = 0;
+  highestStep = 0;
+  steps = [
+    'General Info',
+    'Summary'
+  ];
 
   //markdown variables:
   showPreview:boolean=false;
@@ -47,6 +55,7 @@ export class UpdateCatalogComponent implements OnInit {
   errorMessage:any='';
   showError:boolean=false;
   loading:boolean=false;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -56,7 +65,9 @@ export class UpdateCatalogComponent implements OnInit {
     private elementRef: ElementRef,
     private api: ApiServiceService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -74,6 +85,11 @@ export class UpdateCatalogComponent implements OnInit {
   ngOnInit() {
     this.initPartyInfo();
     this.populateCatInfo();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   populateCatInfo(){
@@ -112,6 +128,14 @@ export class UpdateCatalogComponent implements OnInit {
   }
 
   showFinish(){
+    this.setCatalogData();
+    this.showGeneral=false;
+    this.showSummary=true;
+    this.selectStep('summary','summary-circle');
+    this.showPreview=false;
+  }
+
+  setCatalogData(){
     if(this.generalForm.value.name!=null){
       this.catalogToUpdate={
         description: this.generalForm.value.description != null ? this.generalForm.value.description : '',
@@ -120,16 +144,11 @@ export class UpdateCatalogComponent implements OnInit {
       if(this.cat.name != this.generalForm.value.name){
         this.catalogToUpdate.name=this.generalForm.value.name;
       }
-      console.log('CATALOG TO UPDATE:')
-      console.log(this.catalogToUpdate)
-      this.showGeneral=false;
-      this.showSummary=true;
-      this.selectStep('summary','summary-circle');
     }
-    this.showPreview=false;
   }
 
   createCatalog(){
+    this.showFinish();
     this.loading=true;
     this.api.updateCatalog(this.catalogToUpdate,this.cat.id).subscribe({
       next: data => {
@@ -288,6 +307,47 @@ export class UpdateCatalogComponent implements OnInit {
     } else {
       this.description=''
     }  
+  }
+
+  hasLongWord(str: string | undefined | null, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
+  }
+
+  goToStep(index: number) {
+    
+    this.currentStep = index;
+    if(this.currentStep>this.highestStep){
+      this.highestStep=this.currentStep
+    }
+
+    if(this.currentStep==1){
+      this.showFinish();
+    }
+  }
+
+  validateCurrentStep(): boolean {
+    switch (this.currentStep) {
+      case 0: // General Info
+        return this.generalForm?.valid || false;
+      case 1: // Product Specification
+        return true;
+      default:
+        return true;
+    }
+  }
+
+  canNavigate(index: number) {
+    return this.generalForm?.valid
+  }  
+
+  handleStepClick(index: number): void {
+    if (this.canNavigate(index)) {
+      this.goToStep(index);
+    }
   }
 }
 

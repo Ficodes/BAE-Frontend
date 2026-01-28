@@ -5,6 +5,8 @@ import {EventMessageService} from "src/app/services/event-message.service";
 import {StatusSelectorComponent} from "../../status-selector/status-selector.component";
 import {TranslateModule} from "@ngx-translate/core";
 import {FormChangeState} from "../../../../models/interfaces";
+import {Subject} from "rxjs";
+import { takeUntil } from 'rxjs/operators';
 
 interface License {
   treatment: string;
@@ -27,10 +29,13 @@ export class LicenseComponent implements OnInit, OnDestroy {
   @Input() formType!: string;
   @Input() data: any;
   @Output() formChange = new EventEmitter<FormChangeState>();
+  private destroy$ = new Subject<void>();
 
   constructor(
     private eventMessage: EventMessageService) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'UpdateOffer') {
         if (this.isEditMode && this.hasBeenModified && this.originalValue) {
           const currentValue = {
@@ -108,7 +113,9 @@ export class LicenseComponent implements OnInit, OnDestroy {
 
     // Subscribe to form changes only in edit mode
     if (this.isEditMode) {
-      this.formGroup.valueChanges.subscribe(() => {
+      this.formGroup.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
         this.hasBeenModified = true;
       });
     }
@@ -143,6 +150,8 @@ export class LicenseComponent implements OnInit, OnDestroy {
     } else if (!this.isEditMode) {
       console.log('📝 Not in edit mode, skipping change detection');
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private getDirtyFields(currentValue: License): string[] {

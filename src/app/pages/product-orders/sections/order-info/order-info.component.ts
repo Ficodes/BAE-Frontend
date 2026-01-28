@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { LoginInfo, billingAccountCart } from 'src/app/models/interfaces';
 import { ApiServiceService } from 'src/app/services/product-service.service';
@@ -21,7 +21,8 @@ import { TranslateModule } from '@ngx-translate/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {SharedModule} from "../../../../shared/shared.module";
 import { v4 as uuidv4 } from 'uuid';
-import { from, Observable } from 'rxjs';
+import { from, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-order-info',
@@ -31,7 +32,7 @@ import { from, Observable } from 'rxjs';
   templateUrl: './order-info.component.html',
   styleUrl: './order-info.component.css'
 })
-export class OrderInfoComponent implements OnInit, AfterViewInit {
+export class OrderInfoComponent implements OnInit, AfterViewInit, OnDestroy {
   loading: boolean = false;
   orders:any[]=[];
   nextOrders:any[]=[];
@@ -40,7 +41,6 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
   showOrderDetails:boolean=false;
   orderToShow:any;
   dateRange = new FormControl();
-  selectedDate:any;
   countries: any[] = countries;
   preferred:boolean=false;
   loading_more: boolean = false;
@@ -53,8 +53,12 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
   ORDER_LIMIT: number = environment.ORDER_LIMIT;
   filters: any[]=[];
   check_custom:boolean=false;
-  isSeller:boolean=false;
-  role:any='Customer'
+
+  buyerRole: string = environment.BUYER_ROLE;
+  sellerRole: string = environment.SELLER_ROLE;
+
+  isSeller:boolean = false;
+  role:any = this.buyerRole
 
   // Confirm modal stuff
   @ViewChild('confirmModal') confirmModal!: ElementRef;
@@ -79,6 +83,7 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
   protected readonly faIdCard = faIdCard;
   protected readonly faSort = faSort;
   protected readonly faSwatchbook = faSwatchbook;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
@@ -90,7 +95,9 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
     private eventMessage: EventMessageService,
     private paginationService: PaginationService,
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -197,11 +204,12 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.loading = true;
-    let today = new Date();
-    today.setMonth(today.getMonth()-1);
-    this.selectedDate = today.toISOString();
-    this.dateRange.setValue('month');
     this.initPartyInfo();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){
@@ -213,8 +221,8 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
         let userRoles = aux.roles.map((elem: any) => {
           return elem.name
         })
-        if (userRoles.includes("seller")) {
-          this.isSeller=true;
+        if (userRoles.includes(this.sellerRole)) {
+          this.isSeller = true;
         }
       } else {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as);
@@ -222,8 +230,8 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
         let orgRoles = loggedOrg.roles.map((elem: any) => {
           return elem.name
         })
-        if (orgRoles.includes("seller")) {
-          this.isSeller=true;
+        if (orgRoles.includes(this.sellerRole)) {
+          this.isSeller = true;
         }
       }
       //this.partyId = aux.partyId;
@@ -307,7 +315,6 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
     let options = {
       "filters": this.filters,
       "partyId": this.partyId,
-      "selectedDate": this.selectedDate,
       "orders": this.orders,
       "role": this.role
     }
@@ -363,29 +370,6 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
     } else {
       return false;
     }
-  }
-
-  filterOrdersByDate(){
-    if(this.dateRange.value == 'month'){
-      let today = new Date();
-      today.setDate(1);
-      today.setMonth(today.getMonth()-1);
-      this.selectedDate = today.toISOString();
-    } else if (this.dateRange.value == 'months'){
-      let today = new Date();
-      today.setDate(1);
-      today.setMonth(today.getMonth()-3);
-      this.selectedDate = today.toISOString();
-    } else if(this.dateRange.value == 'year'){
-      let today = new Date();
-      today.setDate(1);
-      today.setMonth(0);
-      today.setFullYear(today.getFullYear()-1);
-      this.selectedDate = today.toISOString();
-    } else {
-      this.selectedDate = undefined
-    }
-    this.getOrders(false);
   }
 
   getTotalPrice(items:any[]){
@@ -485,7 +469,7 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
 
   goToCustomerDeatils() {
     const customer = this.orderToShow.relatedParty.find(
-      (party: any) => party.role?.toLowerCase() === 'customer'
+      (party: any) => party.role?.toLowerCase() === this.buyerRole.toLowerCase()
     );
 
     window.open(this.router.serializeUrl(
@@ -496,7 +480,7 @@ export class OrderInfoComponent implements OnInit, AfterViewInit {
   private async getCustomerName(): Promise<string> {
     if (this.orderToShow?.relatedParty) {
       const customer = this.orderToShow.relatedParty.find(
-        (party: any) => party.role?.toLowerCase() === 'customer'
+        (party: any) => party.role?.toLowerCase() === this.buyerRole.toLowerCase()
       );
       if (customer?.id) {
         return this.getUsername(customer.id);

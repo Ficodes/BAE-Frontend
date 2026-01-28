@@ -85,35 +85,7 @@
                       
                   </ul>
                 </div>
-            </div> 
-      
-      
-            <!--<div class="p-8 w-full">
-              <div class="flex flex-row mb-1">
-                <fa-icon [icon]="faIdCard" class="fa-base text-primary-100 align-middle mr-2"></fa-icon>
-                <h2 class="text-base font-bold">{{ 'OFFERINGS._filter_role' | translate }}</h2>
-              </div>
-              <select id="countries" class="shadow bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                <option selected>{{ 'OFFERINGS._filter_role' | translate }}</option>
-                <option value="all">{{ 'OFFERINGS._all' | translate }}</option>
-                <option value="seller">{{ 'OFFERINGS._seller' | translate }}</option>
-                <option value="owner">{{ 'OFFERINGS._owner' | translate }}</option>
-              </select>
             </div>
-      
-            <div class="p-8 w-full">
-              <div class="flex flex-row mb-1">
-                <fa-icon [icon]="faSort" class="fa-base text-primary-100 align-middle mr-2"></fa-icon>
-                <h2 class="text-base font-bold">{{ 'OFFERINGS._order_by' | translate }}</h2>
-              </div>
-              <select id="countries" class="shadow bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                <option selected>{{ 'OFFERINGS._order_by' | translate }}</option>
-                <option value="update">{{ 'OFFERINGS._last_update' | translate }}</option>
-                <option value="name">{{ 'OFFERINGS._name' | translate }}</option>
-              </select>
-            </div>-->
-      
-      
           </div>
         </div> 
         @if(loading){
@@ -150,7 +122,10 @@
                                     <td class="px-6 py-4 text-wrap break-all w-1/2 md:w-1/4">
                                         <a (click)="selectResource(res)" class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline">{{res.id}}</a>                                    
                                     </td>
-                                    <td class="px-6 py-4 text-wrap break-all w-1/2 md:w-1/4">
+                                    <td [ngClass]="{
+                                        'break-all': hasLongWord(res.name, 20),
+                                        'break-words': !hasLongWord(res.name, 20)
+                                        }" class="px-6 py-4 text-wrap break-words w-1/2 md:w-1/4">
                                         {{res.name}}
                                     </td>
                                     <td class="hidden md:table-cell px-6 py-4 md:w-1/4">
@@ -226,7 +201,10 @@
             </div>
             <div class="p-4">
                 <h2 class="text-2xl font-extrabold text-primary-100 text-center dark:text-primary-50 pb-4">{{selectedRes.name}}</h2>
-                <markdown class="bg-gray-50 text-wrap break-all dark:bg-secondary-300 dark:text-white text-gray-900 pb-4 text-center" [data]="selectedRes.description ? selectedRes.description : 'CATALOGS._no_desc' | translate"></markdown>
+                <markdown [ngClass]="{
+                    'break-all': hasLongWord(selectedRes.description, 20),
+                    'break-words': !hasLongWord(selectedRes.description, 20)
+                    }" class="bg-gray-50 text-wrap break-words dark:bg-secondary-300 dark:text-white text-gray-900 pb-4 text-center" [data]="selectedRes.description ? selectedRes.description : 'CATALOGS._no_desc' | translate"></markdown>
                 @if(selectedRes.resourceCharacteristic != undefined && selectedRes.resourceCharacteristic.length>0) {
                     <div #charsContent id="chars-container">
                         <h2 class="text-xl font-bold dark:text-white pb-4 px-4">{{ 'PRODUCT_INVENTORY._res_details' | translate }}</h2>

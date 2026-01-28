@@ -99,4 +99,12 @@ export class CatalogsComponent implements OnInit{
     this.showingCat=cat;
   }
 
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
+  }
+
 }

@@ -2,9 +2,13 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { QuoteService } from '../../services/quote.service';
-import {LocalStorageService} from "src/app/services/local-storage.service";
+import { LocalStorageService } from "src/app/services/local-storage.service";
 import { NotificationService } from 'src/app/services/notification.service';
+import { AccountServiceService } from 'src/app/services/account-service.service';
+import { ApiServiceService } from 'src/app/services/product-service.service';
 import { Quote, QuoteStateType } from 'src/app/models/quote.model';
 import { NotificationComponent } from 'src/app/shared/notification/notification.component';
 import { ConfirmDialogComponent } from 'src/app/shared/confirm-dialog/confirm-dialog.component';
@@ -12,6 +16,7 @@ import { QuoteDetailsModalComponent } from 'src/app/shared/quote-details-modal/q
 import { ChatModalComponent } from 'src/app/shared/chat-modal/chat-modal.component';
 import { AttachmentModalComponent } from 'src/app/shared/attachment-modal/attachment-modal.component';
 import { LoginInfo } from 'src/app/models/interfaces';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-quote-list',
@@ -20,9 +25,22 @@ import { LoginInfo } from 'src/app/models/interfaces';
   template: `
     <app-notification></app-notification>
     
-    <div class="w-full max-w-7xl mx-auto px-4 py-8">
+    <div class="w-full mx-auto px-6 py-8">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Quotes</h1>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Tailored offerings Dashboard</h1>
+          <a
+            href="https://knowledgebase.dome-marketplace.eu/books/tailored-offering-guide"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Click here for the guide of the Tailored process"
+            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+          >
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+            </svg>
+          </a>
+        </div>
         <div class="flex space-x-3">
           <button
             (click)="refreshQuotes()"
@@ -40,9 +58,9 @@ import { LoginInfo } from 'src/app/models/interfaces';
           <button
             (click)="selectRole('customer')"
             [class]="getRoleTabClass('customer')"
-            class="flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors dark:bg-gray"
+            class="flex-1 px-8 py-4 text-2xl font-medium rounded-md transition-colors"
           >
-            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-6 h-6 inline mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             As Customer
@@ -50,9 +68,9 @@ import { LoginInfo } from 'src/app/models/interfaces';
           <button
             (click)="selectRole('seller')"
             [class]="getRoleTabClass('seller')"
-            class="flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors"
+            class="flex-1 px-8 py-4 text-2xl font-medium rounded-md transition-colors"
           >
-            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-6 h-6 inline mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
             As Provider
@@ -76,7 +94,6 @@ import { LoginInfo } from 'src/app/models/interfaces';
             <option value="pending">Pending</option>
             <option value="inProgress">In Progress</option>
             <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
             <option value="cancelled">Cancelled</option>
             <option value="accepted">Accepted</option>
           </select>
@@ -114,28 +131,40 @@ import { LoginInfo } from 'src/app/models/interfaces';
         </div>
         
         <!-- Quotes Header -->
-        <div *ngIf="filteredQuotes.length > 0" class="bg-gray-50 px-6 py-3">
-          <div class="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-            <div class="col-span-2">ORDER ID</div>
+        <div *ngIf="filteredQuotes.length > 0" class="bg-gray-50 dark:bg-gray-800 px-6 py-3">
+          <div class="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <div class="col-span-2">REQUEST DATE</div>
+            <div class="col-span-3">{{ selectedRole === 'customer' ? 'PROVIDER' : 'CUSTOMER' }}</div>
+            <div class="col-span-4">PRODUCT</div>
             <div class="col-span-1">STATUS</div>
-            <div class="col-span-2">REQUESTED DATE</div>
-            <div class="col-span-3">EXPECTED DATE</div>
-            <div class="col-span-4">ACTIONS</div>
+            <div class="col-span-2">ACTIONS</div>
           </div>
         </div>
         
         <!-- Quote Rows -->
         <div *ngFor="let quote of filteredQuotes" class="quote-row">
-          <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 border-b border-gray-100 transition-colors"
+          <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 border-b border-gray-100 dark:border-gray-600 transition-colors"
                [class.bg-gray-50]="isQuoteFinalized(quote)"
+               [class.dark:bg-gray-800]="isQuoteFinalized(quote)"
                [class.hover:bg-gray-50]="!isQuoteFinalized(quote)"
+               [class.dark:hover:bg-gray-800]="!isQuoteFinalized(quote)"
                [attr.data-quote-id]="quote.id">
-            
-            <!-- Quote ID -->
-            <div class="col-span-2 text-sm font-medium text-gray-900">
-              Quote {{ extractShortId(quote.id) }}
+
+            <!-- Data Richiesta (Creation Date) -->
+            <div class="col-span-2 text-sm text-gray-600 dark:text-gray-400">
+              {{ quote.quoteDate | date:'dd-MM-yyyy' }}
             </div>
-            
+
+            <!-- Customer/Provider Name -->
+            <div class="col-span-3 text-sm font-medium text-gray-900 dark:text-white">
+              {{ getOtherPartyName(quote) }}
+            </div>
+
+            <!-- Product Name -->
+            <div class="col-span-4 text-sm text-gray-700 dark:text-gray-300">
+              {{ getProductName(quote) }}
+            </div>
+
             <!-- Status -->
             <div class="col-span-1">
               <span class="status-badge px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
@@ -143,149 +172,34 @@ import { LoginInfo } from 'src/app/models/interfaces';
                 {{ getPrimaryState(quote) }}
               </span>
             </div>
-            
-            <!-- Requested Date -->
-            <div class="col-span-2 text-sm text-gray-600">
-              {{ quote.requestedQuoteCompletionDate | date:'dd/MM/yyyy' }}
-            </div>
-            
-            <!-- Expected Date -->
-            <div class="col-span-3 text-sm text-gray-600">
-              {{ quote.expectedQuoteCompletionDate | date:'dd/MM/yyyy' }}
-            </div>
-            
-            <!-- Actions -->
-            <div class="col-span-4 flex flex-wrap gap-1">
-              <!-- View Details -->
-              <button
-                [disabled]="isActionDisabled(quote, 'viewDetails')"
-                (click)="viewDetails(quote)"
-                [class]="getButtonClass(quote, 'viewDetails')"
-                [title]="getActionTitle(quote, 'viewDetails')"
-              >
-                Details
-              </button>
-              
 
-              
+            <!-- Actions (Chat + Details only) -->
+            <div class="col-span-2 flex items-center gap-2">
               <!-- Chat -->
               <button
                 [disabled]="isActionDisabled(quote, 'chat')"
                 (click)="openChat(quote)"
-                [class]="getIconButtonClass(quote, 'chat', 'text-blue-500 hover:text-blue-700')"
+                [class]="getIconButtonClass(quote, 'chat', 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200')"
                 title="Chat"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8L3 21l1.8-4A7.96 7.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </button>
-              
-              <!-- Download Attachment -->
-              <button
-                *ngIf="hasAttachment(quote)"
-                [disabled]="isActionDisabled(quote, 'downloadAttachment')"
-                (click)="downloadAttachment(quote)"
-                [class]="getIconButtonClass(quote, 'downloadAttachment', 'text-purple-500 hover:text-purple-700')"
-                title="Download attachment"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </button>
-              
-              <!-- Add Attachment (Provider only, when quote is inProgress or approved) -->
-              <button
-                *ngIf="selectedRole === 'seller' && (getPrimaryState(quote) === 'inProgress' || getPrimaryState(quote) === 'approved')"
-                [disabled]="isActionDisabled(quote, 'addAttachment')"
-                (click)="addAttachment(quote)"
-                [class]="getIconButtonClass(quote, 'addAttachment', 'text-green-500 hover:text-green-700')"
-                title="Add attachment"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                </svg>
-              </button>
 
-              <!-- Add Requested Completion Date (Customer only) -->
+              <!-- View Details -->
               <button
-                *ngIf="selectedRole === 'customer' && !quote.requestedQuoteCompletionDate"
-                [disabled]="isActionDisabled(quote, 'addRequestedDate')"
-                (click)="addRequestedDate(quote)"
-                [class]="getIconButtonClass(quote, 'addRequestedDate', 'text-indigo-500 hover:text-indigo-700')"
-                title="Add requested completion date"
+                [disabled]="isActionDisabled(quote, 'viewDetails')"
+                (click)="viewDetails(quote)"
+                class="px-3 py-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 border border-blue-200 dark:border-blue-700 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex items-center gap-1"
+                [class.opacity-50]="isActionDisabled(quote, 'viewDetails')"
+                [class.cursor-not-allowed]="isActionDisabled(quote, 'viewDetails')"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                Details
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
               </button>
-
-              <!-- Add Expected Completion Date (Provider only) -->
-              <button
-                *ngIf="selectedRole === 'seller' && !quote.expectedQuoteCompletionDate"
-                [disabled]="isActionDisabled(quote, 'addExpectedDate')"
-                (click)="addExpectedDate(quote)"
-                [class]="getIconButtonClass(quote, 'addExpectedDate', 'text-orange-500 hover:text-orange-700')"
-                title="Add expected completion date"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </button>
-              
-              <!-- Accept/Cancel buttons or Finalized indicator -->
-              <ng-container *ngIf="!isQuoteFinalized(quote)">
-                <!-- Accept (Provider only, when quote is pending) -->
-                <button
-                  *ngIf="selectedRole === 'seller' && getPrimaryState(quote) === 'pending'"
-                  [disabled]="isActionDisabled(quote, 'accept')"
-                  (click)="acceptQuote(quote)"
-                  [class]="getIconButtonClass(quote, 'accept', 'text-emerald-600 hover:text-emerald-700')"
-                  title="Accept quote request"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                </button>
-
-                <!-- Accept (Customer only, when quote is approved) -->
-                <button
-                  *ngIf="selectedRole === 'customer' && getPrimaryState(quote) === 'approved'"
-                  [disabled]="isActionDisabled(quote, 'acceptCustomer')"
-                  (click)="acceptQuoteCustomer(quote)"
-                  [class]="getIconButtonClass(quote, 'acceptCustomer', 'text-emerald-600 hover:text-emerald-700')"
-                  title="Accept quotation"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                </button>
-                
-                <!-- Cancel -->
-                <button
-                  [disabled]="isActionDisabled(quote, 'cancel')"
-                  (click)="cancelQuote(quote)"
-                  [class]="getIconButtonClass(quote, 'cancel', 'text-red-500 hover:text-red-700')"
-                  title="Cancel quote"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </ng-container>
-              
-              <!-- Finalized status indicator -->
-              <ng-container *ngIf="isQuoteFinalized(quote)">
-                <button
-                  class="p-2 text-xs text-gray-400 cursor-not-allowed"
-                  [title]="'Quote is already ' + (isQuoteCancelled(quote) ? 'cancelled' : 'accepted')"
-                  disabled
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          [attr.d]="isQuoteCancelled(quote) ? 'M6 18L18 6M6 6l12 12' : 'M5 13l4 4L19 7'" />
-                  </svg>
-                </button>
-              </ng-container>
             </div>
           </div>
         </div>
@@ -345,7 +259,10 @@ import { LoginInfo } from 'src/app/models/interfaces';
     <app-quote-details-modal
       [isOpen]="showQuoteDetailsModal"
       [quoteId]="selectedQuoteId"
+      [currentUserRole]="selectedRole"
+      [currentUserId]="currentUserId || ''"
       (close)="closeQuoteDetailsModal()"
+      (quoteUpdated)="onQuoteUpdated($event)"
     ></app-quote-details-modal>
 
     <!-- Chat Modal -->
@@ -444,8 +361,10 @@ import { LoginInfo } from 'src/app/models/interfaces';
 export class QuoteListComponent implements OnInit {
   private router = inject(Router);
   private quoteService = inject(QuoteService);
-  private localStorage = inject(LocalStorageService,);
+  private localStorage = inject(LocalStorageService);
   private notificationService = inject(NotificationService);
+  private accountService = inject(AccountServiceService);
+  private productService = inject(ApiServiceService);
 
   quotes: Quote[] = [];
   filteredQuotes: Quote[] = [];
@@ -454,6 +373,10 @@ export class QuoteListComponent implements OnInit {
   showDeleteConfirm = false;
   deleteConfirmMessage = '';
   quoteToDelete: Quote | null = null;
+
+  // Data enrichment maps
+  organizationNames: Map<string, string> = new Map();
+  productNames: Map<string, string> = new Map();
 
   // State update modal
   showStateUpdate = false;
@@ -515,13 +438,18 @@ export class QuoteListComponent implements OnInit {
     this.quoteService.getQuotesByUserAndRole(this.currentUserId, this.selectedRole).subscribe({
       next: (quotes) => {
         this.quotes = quotes;
-        
-        // Debug: Log quote states
+
+        // Debug: Log quote states and product info
         console.log('Loaded quotes:', quotes.length);
         quotes.forEach(quote => {
           console.log(`Quote ${this.extractShortId(quote.id)}: main state = "${quote.state}", primary state = "${this.getPrimaryState(quote)}"`);
+          const productOffering = quote.quoteItem?.[0]?.productOffering;
+          console.log(`  - productOffering:`, productOffering);
         });
-        
+
+        // Enrich quote data with organization and product names
+        this.enrichQuoteData(quotes);
+
         this.filterQuotesByStatus();
         this.loading = false;
       },
@@ -531,6 +459,83 @@ export class QuoteListComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  /**
+   * Check if an ID is an organization URN that can be fetched from the API
+   */
+  private isOrganizationId(id: string): boolean {
+    return id.startsWith('urn:ngsi-ld:organization:');
+  }
+
+  /**
+   * Enrich quote data by fetching organization names and product names
+   */
+  private enrichQuoteData(quotes: Quote[]) {
+    // Collect unique organization IDs and product offering IDs
+    const orgIds = new Set<string>();
+    const productIds = new Set<string>();
+
+    quotes.forEach(quote => {
+      // Collect organization IDs from relatedParty (only valid organization URNs)
+      quote.relatedParty?.forEach(party => {
+        if (party.id && !this.organizationNames.has(party.id) && this.isOrganizationId(party.id)) {
+          orgIds.add(party.id);
+        }
+      });
+
+      // Collect product offering IDs from quoteItems
+      quote.quoteItem?.forEach(item => {
+        if (item.productOffering?.id && !this.productNames.has(item.productOffering.id)) {
+          productIds.add(item.productOffering.id);
+        }
+      });
+    });
+
+    // Fetch organization names in parallel
+    if (orgIds.size > 0) {
+      const orgRequests = Array.from(orgIds).map(id => {
+        return this.accountService.getOrgInfo(id).then(
+          (org: any) => ({ id, name: org?.tradingName || org?.name || id }),
+          () => ({ id, name: id }) // Fallback to ID on error
+        );
+      });
+
+      Promise.all(orgRequests).then(results => {
+        results.forEach(({ id, name }) => {
+          this.organizationNames.set(id, name);
+        });
+        // Trigger change detection by reassigning filteredQuotes
+        this.filteredQuotes = [...this.filteredQuotes];
+      });
+    }
+
+    // Fetch product names in parallel
+    console.log('Product IDs to fetch:', Array.from(productIds));
+    if (productIds.size > 0) {
+      const productRequests = Array.from(productIds).map(id => {
+        console.log('Fetching product:', id);
+        return this.productService.getProductById(id).then(
+          (product: any) => {
+            console.log('Product fetched:', id, product?.name);
+            return { id, name: product?.name || id };
+          },
+          (error) => {
+            console.error('Product fetch error:', id, error);
+            return { id, name: id }; // Fallback to ID on error
+          }
+        );
+      });
+
+      Promise.all(productRequests).then(results => {
+        results.forEach(({ id, name }) => {
+          this.productNames.set(id, name);
+        });
+        console.log('Product names map:', Array.from(this.productNames.entries()));
+        // Trigger change detection by reassigning filteredQuotes
+        this.filteredQuotes = [...this.filteredQuotes];
+      });
+    }
   }
 
   refreshQuotes() {
@@ -557,6 +562,13 @@ export class QuoteListComponent implements OnInit {
         return primaryState === this.statusFilter;
       });
     }
+
+    // Sort by quoteDate descending (newest first)
+    this.filteredQuotes.sort((a, b) => {
+      const dateA = a.quoteDate ? new Date(a.quoteDate).getTime() : 0;
+      const dateB = b.quoteDate ? new Date(b.quoteDate).getTime() : 0;
+      return dateB - dateA;
+    });
   }
 
   createQuote() {
@@ -576,6 +588,19 @@ export class QuoteListComponent implements OnInit {
   closeQuoteDetailsModal() {
     this.showQuoteDetailsModal = false;
     this.selectedQuoteId = null;
+  }
+
+  onQuoteUpdated(updatedQuote: Quote) {
+    // Update the quote in the list
+    const index = this.quotes.findIndex(q => q.id === updatedQuote.id);
+    if (index !== -1) {
+      this.quotes[index] = updatedQuote;
+      this.filterQuotesByStatus();
+    }
+
+    const shortId = this.extractShortId(updatedQuote.id);
+    const state = this.getPrimaryState(updatedQuote);
+    this.notificationService.showSuccess(`Quote ${shortId} has been updated to ${state}.`);
   }
 
   closeChatModal() {
@@ -849,11 +874,87 @@ export class QuoteListComponent implements OnInit {
     });
   }
 
+  createOffer(quote: Quote) {
+    // we send the current quote ID to open the proper from
+    this.router.navigate(['/my-offerings'], { state: {
+      quoteId: quote.id
+    } });
+  }
+
   // Utility methods (migrated from QuoteRow.js)
   extractShortId(id: string | undefined): string {
     if (!id) return 'N/A';
     // Extract last 8 characters or return full ID if shorter
     return id.length > 8 ? id.slice(-8) : id;
+  }
+
+  /**
+   * Get the name of the other party based on the current role view.
+   * If viewing "as Customer" → show Provider/Seller name
+   * If viewing "as Provider" → show Buyer name
+   */
+  getOtherPartyName(quote: Quote): string {
+    if (!quote.relatedParty || quote.relatedParty.length === 0) {
+      return 'Unknown';
+    }
+
+    // Determine which role to look for based on current view
+    // Use environment roles: BUYER_ROLE = 'Buyer', SELLER_ROLE = 'Seller'
+    const targetRole = this.selectedRole === 'customer'
+      ? environment.SELLER_ROLE
+      : environment.BUYER_ROLE;
+
+    // Find the party with the target role (case-insensitive)
+    const party = quote.relatedParty.find(p =>
+      p.role?.toLowerCase() === targetRole.toLowerCase()
+    );
+
+    if (!party?.id) {
+      return 'Unknown';
+    }
+
+    // Look up the name from the enriched data map
+    const enrichedName = this.organizationNames.get(party.id);
+    if (enrichedName && enrichedName !== party.id) {
+      return enrichedName;
+    }
+
+    // Fallback: show loading indicator or shortened ID
+    return 'Loading...';
+  }
+
+  /**
+   * Get the product name from the quote's first quote item.
+   */
+  getProductName(quote: Quote): string {
+    if (!quote.quoteItem || quote.quoteItem.length === 0) {
+      return 'Unknown Product';
+    }
+
+    const firstItem = quote.quoteItem[0];
+    const productId = firstItem.productOffering?.id;
+
+    // Try to get name from productOffering if available (inline in quote data)
+    if (firstItem.productOffering?.name) {
+      return firstItem.productOffering.name;
+    }
+
+    // Look up the name from the enriched data map
+    if (productId) {
+      const enrichedName = this.productNames.get(productId);
+      if (enrichedName) {
+        return enrichedName;
+      }
+      // Still loading
+      return 'Loading...';
+    }
+
+    // Fallback to product name
+    if (firstItem.product?.name) {
+      return firstItem.product.name;
+    }
+
+    return 'Unknown Product';
   }
 
   getPrimaryState(quote: Quote): string {

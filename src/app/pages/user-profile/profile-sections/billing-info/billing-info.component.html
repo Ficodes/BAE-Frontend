@@ -26,15 +26,20 @@
                         <th scope="col" class="px-6 py-3">
                             {{ 'BILLING._phone' | translate }}
                         </th>
-                        <th scope="col" class="px-6 py-3">
-                            {{ 'BILLING._action' | translate }}
-                        </th>
+                        @if(!isReadOnly){
+                            <th scope="col" class="px-6 py-3">
+                                {{ 'BILLING._action' | translate }}
+                            </th>
+                        }
                     </tr>
                 </thead>
                 <tbody>
                     @for (bill of billing_accounts; track bill.id) {
                         <tr (click)="selectBill(bill)" class="border-b hover:bg-gray-200 dark:border-gray-700 dark:hover:bg-secondary-200" [ngClass]="bill.selected == true ? 'bg-primary-30 dark:bg-secondary-200' : 'bg-white dark:bg-secondary-300'">
-                            <td class="px-6 py-4 text-wrap break-all">
+                            <td [ngClass]="{
+                                'break-all': hasLongWord(bill.name, 20),
+                                'break-words': !hasLongWord(bill.name, 20)
+                                }" class="px-6 py-4 text-wrap break-words">
                                 {{bill.name}}
                             </td>
                             <td class="px-6 py-4 text-wrap break-all">
@@ -46,18 +51,20 @@
                             <td class="px-6 py-4">
                                 ({{bill.telephoneType}}) {{bill.telephoneNumber}}
                             </td>
-                            <td class="px-6 py-4 inline-flex">
-                                <button (click)="toggleEditBill(bill);$event.stopPropagation();" type="button" class="text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 lg:p-2.5 text-center inline-flex items-center me-2">
-                                    <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                        <path fill-rule="evenodd" d="M14 4.182A4.136 4.136 0 0 1 16.9 3c1.087 0 2.13.425 2.899 1.182A4.01 4.01 0 0 1 21 7.037c0 1.068-.43 2.092-1.194 2.849L18.5 11.214l-5.8-5.71 1.287-1.31.012-.012Zm-2.717 2.763L6.186 12.13l2.175 2.141 5.063-5.218-2.141-2.108Zm-6.25 6.886-1.98 5.849a.992.992 0 0 0 .245 1.026 1.03 1.03 0 0 0 1.043.242L10.282 19l-5.25-5.168Zm6.954 4.01 5.096-5.186-2.218-2.183-5.063 5.218 2.185 2.15Z" clip-rule="evenodd"/>
-                                    </svg>
-                                </button>
-                                <!--<button (click)="toggleDeleteBill(bill);$event.stopPropagation();" type="button" class="text-white bg-red-800 hover:bg-red-900 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 lg:p-2.5 text-center inline-flex items-center me-2">
-                                    <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                        <path fill-rule="evenodd" d="M8.586 2.586A2 2 0 0 1 10 2h4a2 2 0 0 1 2 2v2h3a1 1 0 1 1 0 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8a1 1 0 0 1 0-2h3V4a2 2 0 0 1 .586-1.414ZM10 6h4V4h-4v2Zm1 4a1 1 0 1 0-2 0v8a1 1 0 1 0 2 0v-8Zm4 0a1 1 0 1 0-2 0v8a1 1 0 1 0 2 0v-8Z" clip-rule="evenodd"/>
+                            @if(!isReadOnly){
+                                <td class="px-6 py-4 inline-flex">
+                                    <button data-cy="billingEdit" (click)="toggleEditBill(bill);$event.stopPropagation();" type="button" class="text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 lg:p-2.5 text-center inline-flex items-center me-2">
+                                        <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                            <path fill-rule="evenodd" d="M14 4.182A4.136 4.136 0 0 1 16.9 3c1.087 0 2.13.425 2.899 1.182A4.01 4.01 0 0 1 21 7.037c0 1.068-.43 2.092-1.194 2.849L18.5 11.214l-5.8-5.71 1.287-1.31.012-.012Zm-2.717 2.763L6.186 12.13l2.175 2.141 5.063-5.218-2.141-2.108Zm-6.25 6.886-1.98 5.849a.992.992 0 0 0 .245 1.026 1.03 1.03 0 0 0 1.043.242L10.282 19l-5.25-5.168Zm6.954 4.01 5.096-5.186-2.218-2.183-5.063 5.218 2.185 2.15Z" clip-rule="evenodd"/>
                                         </svg>
-                                </button>-->
-                            </td>
+                                    </button>
+                                    <!--<button (click)="toggleDeleteBill(bill);$event.stopPropagation();" type="button" class="text-white bg-red-800 hover:bg-red-900 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 lg:p-2.5 text-center inline-flex items-center me-2">
+                                        <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                            <path fill-rule="evenodd" d="M8.586 2.586A2 2 0 0 1 10 2h4a2 2 0 0 1 2 2v2h3a1 1 0 1 1 0 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8a1 1 0 0 1 0-2h3V4a2 2 0 0 1 .586-1.414ZM10 6h4V4h-4v2Zm1 4a1 1 0 1 0-2 0v8a1 1 0 1 0 2 0v-8Zm4 0a1 1 0 1 0-2 0v8a1 1 0 1 0 2 0v-8Z" clip-rule="evenodd"/>
+                                            </svg>
+                                    </button>-->
+                                </td>
+                            }
                         </tr>
                     } @empty {
                         <div class="flex justify-center w-full m-4">
@@ -74,9 +81,11 @@
                 </tbody>
             </table>
         </div>
-        <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'BILLING._add' | translate }}</h2>
-        <hr class="h-px mr-4 ml-4 bg-primary-100 dark:bg-white border-0">
-        <app-billing-account-form [preferred]="preferred"></app-billing-account-form>
+        @if(!isReadOnly){
+            <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'BILLING._add' | translate }}</h2>
+            <hr class="h-px mr-4 ml-4 bg-primary-100 dark:bg-white border-0">
+            <app-billing-account-form [preferred]="preferred"></app-billing-account-form>
+        }
     </div>
 }
 

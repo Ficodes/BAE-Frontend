@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import {LocalStorageService} from "src/app/services/local-storage.service";
@@ -7,8 +7,11 @@ import { LoginInfo } from 'src/app/models/interfaces';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import * as moment from 'moment';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import {components} from "src/app/models/product-catalog";
+import { environment } from 'src/environments/environment';
 type Catalog_Create = components["schemas"]["Catalog_Create"];
 
 @Component({
@@ -16,13 +19,19 @@ type Catalog_Create = components["schemas"]["Catalog_Create"];
   templateUrl: './create-catalog.component.html',
   styleUrl: './create-catalog.component.css'
 })
-export class CreateCatalogComponent implements OnInit {
+export class CreateCatalogComponent implements OnInit, OnDestroy {
   partyId:any='';
 
   catalogToCreate:Catalog_Create | undefined;
 
   stepsElements:string[]=['general-info','summary'];
   stepsCircles:string[]=['general-circle','summary-circle'];
+  currentStep = 0;
+  highestStep = 0;
+  steps = [
+    'General Info',
+    'Summary'
+  ];
 
   //markdown variables:
   showPreview:boolean=false;
@@ -45,6 +54,7 @@ export class CreateCatalogComponent implements OnInit {
 
   errorMessage:any='';
   showError:boolean=false;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -54,7 +64,9 @@ export class CreateCatalogComponent implements OnInit {
     private elementRef: ElementRef,
     private api: ApiServiceService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
       }
@@ -71,6 +83,11 @@ export class CreateCatalogComponent implements OnInit {
 
   ngOnInit() {
     this.initPartyInfo();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initPartyInfo(){
@@ -98,6 +115,14 @@ export class CreateCatalogComponent implements OnInit {
 
   showFinish(){
     this.finishDone=true;
+    this.setCatalogData();
+    this.showGeneral=false;
+    this.showSummary=true;
+    this.selectStep('summary','summary-circle');
+    this.showPreview=false;
+  }
+
+  setCatalogData(){
     if(this.generalForm.value.name!=null){
       this.catalogToCreate={
         name: this.generalForm.value.name,
@@ -107,21 +132,18 @@ export class CreateCatalogComponent implements OnInit {
           {
               id: this.partyId,
               //href: "http://proxy.docker:8004/party/individual/urn:ngsi-ld:individual:803ee97b-1671-4526-ba3f-74681b22ccf3",
-              role: "Owner",
+              role: environment.SELLER_ROLE,
               "@referredType": ''
           }
         ],
       }
       console.log('CATALOG TO CREATE:')
       console.log(this.catalogToCreate)
-      this.showGeneral=false;
-      this.showSummary=true;
-      this.selectStep('summary','summary-circle');
     }
-    this.showPreview=false;
   }
 
   createCatalog(){
+    this.setCatalogData();
     this.loading=true;
     this.api.postCatalog(this.catalogToCreate).subscribe({
       next: data => {
@@ -279,6 +301,55 @@ export class CreateCatalogComponent implements OnInit {
       this.description=this.generalForm.value.description;
     } else {
       this.description=''
+    }
+  }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
+  }
+
+  goToStep(index: number) {
+    // Solo validar en modo creación
+    if (index > this.currentStep) {
+      // Validar el paso actual
+      const currentStepValid = this.validateCurrentStep();
+      if (!currentStepValid) {
+        return; // No permitir avanzar si el paso actual no es válido
+      }
+    }
+    
+    this.currentStep = index;
+    if(this.currentStep>this.highestStep){
+      this.highestStep=this.currentStep
+    }
+
+    if(this.currentStep==1){
+      this.showFinish();
+    }
+  }
+
+  validateCurrentStep(): boolean {
+    switch (this.currentStep) {
+      case 0: // General Info
+        return this.generalForm?.valid || false;
+      case 1: // Product Specification
+        return true;
+      default:
+        return true;
+    }
+  }
+
+  canNavigate(index: number) {
+    return (this.generalForm?.valid &&  (index <= this.currentStep)) || (this.generalForm?.valid &&  (index <= this.highestStep));
+  }  
+
+  handleStepClick(index: number): void {
+    if (this.canNavigate(index)) {
+      this.goToStep(index);
     }
   }
 }

@@ -19,6 +19,8 @@ import {FormChangeState, PricePlanChangeState} from "../../../models/interfaces"
 import {Subscription} from "rxjs";
 import * as moment from 'moment';
 import { certifications } from 'src/app/models/certification-standards.const';
+import {Subject} from "rxjs";
+import { takeUntil } from 'rxjs/operators';
 
 type ProductOffering_Create = components["schemas"]["ProductOffering_Create"];
 type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
@@ -77,6 +79,7 @@ export class OfferComponent implements OnInit, OnDestroy{
 
   private formChanges: { [key: string]: FormChangeState } = {};
   private formSubscription: Subscription | null = null;
+  private destroy$ = new Subject<void>();
   hasChanges: boolean = false;
 
   constructor(private api: ApiServiceService,
@@ -95,7 +98,9 @@ export class OfferComponent implements OnInit, OnDestroy{
     });
 
     // Subscribe to form validation changes
-    this.productOfferForm.statusChanges.subscribe(status => {
+    this.productOfferForm.statusChanges
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(status => {
       if(!this.productOfferForm.controls['generalInfo'].valid || !this.productOfferForm.get('procurementMode')?.valid){
         this.isFormValid = false
       } else {
@@ -104,7 +109,9 @@ export class OfferComponent implements OnInit, OnDestroy{
     });
 
     // Subscribe to subform changes
-    this.formSubscription = this.eventMessage.messages$.subscribe(message => {
+    this.formSubscription = this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(message => {
       console.log('subform changed-----')
       if (message.type === 'SubformChange') {
         const changeState = message.value as FormChangeState;
@@ -126,6 +133,8 @@ export class OfferComponent implements OnInit, OnDestroy{
     if (this.formSubscription) {
       this.formSubscription.unsubscribe();
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   goToStep(index: number) {
@@ -371,7 +380,7 @@ export class OfferComponent implements OnInit, OnDestroy{
                 priceComp.discountUnit='percentage'
               }else{
                 priceComp.discountValue=alter?.price?.value
-                priceComp.discountUnit=alter?.price?.unit
+                priceComp.discountUnit='fixed'
               }            
               priceComp.discountDuration = alter?.unitOfMeasure?.amount            
               priceComp.discountDurationUnit = alter?.unitOfMeasure?.units            
@@ -573,6 +582,10 @@ export class OfferComponent implements OnInit, OnDestroy{
 
     if(plan?.priceType){
       if(plan?.priceType == 'custom'){
+        price.priceType='custom'
+      }
+    } else if(plan?.newValue?.priceType){
+      if(plan?.newValue?.priceType == 'custom'){
         price.priceType='custom'
       }
     }

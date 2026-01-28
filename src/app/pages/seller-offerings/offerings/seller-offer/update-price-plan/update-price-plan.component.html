@@ -171,7 +171,10 @@
                     <div class="px-4 py-2 bg-white dark:bg-secondary-300 rounded-b-lg min-h-fit">
                         <label for="editor" class="sr-only">Publish post</label>
                         @if(showPreview){
-                                <markdown class="bg-gray-50 text-wrap break-all dark:bg-secondary-300 dark:text-white text-gray-900" [data]="priceComponentDescription"></markdown>
+                                <markdown [ngClass]="{
+                                    'break-all': hasLongWord(priceComponentDescription, 20),
+                                    'break-words': !hasLongWord(priceComponentDescription, 20)
+                                    }" class="bg-gray-50 text-wrap break-words dark:bg-secondary-300 dark:text-white text-gray-900" [data]="priceComponentDescription"></markdown>
 
                         }@else{
                             <textarea id="editor" formControlName="description" rows="8" class="block w-full min-h-fit px-0 text-sm text-gray-800 border-0 dark:text-gray-200 bg-white dark:bg-secondary-300" placeholder="Add product description..." ></textarea>
@@ -408,7 +411,10 @@
                 <div class="px-4 py-2 bg-white dark:bg-secondary-300 rounded-b-lg">
                     <label for="editor" class="sr-only">Publish post</label>
                     @if(showPreview){
-                            <markdown class="bg-gray-50 text-wrap break-all dark:bg-secondary-300 dark:text-white text-gray-900" [data]="priceDescription"></markdown>
+                            <markdown [ngClass]="{
+                                'break-all': hasLongWord(priceDescription, 20),
+                                'break-words': !hasLongWord(priceDescription, 20)
+                                }" class="bg-gray-50 text-wrap break-words dark:bg-secondary-300 dark:text-white text-gray-900" [data]="priceDescription"></markdown>
 
                     }@else{
                         <textarea id="editor" formControlName="description" rows="8" class="block w-full min-h-fit px-0 text-sm text-gray-800 border-0 dark:text-gray-200 bg-white dark:bg-secondary-300" placeholder="Add product description..." ></textarea>
@@ -533,16 +539,25 @@
                             <tbody>
                                 @for (price of createdPriceComponents; track price;) {
                                     <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                                        <td class="px-6 py-4 text-wrap break-all">
+                                        <td [ngClass]="{
+                                            'break-all': hasLongWord(price.name, 20),
+                                            'break-words': !hasLongWord(price.name, 20)
+                                            }" class="px-6 py-4 text-wrap break-words">
                                             {{price.name}}
                                         </td>
-                                        <td class="hidden lg:table-cell px-6 py-4 text-wrap break-all">
+                                        <td [ngClass]="{
+                                            'break-all': hasLongWord(price.description, 20),
+                                            'break-words': !hasLongWord(price.description, 20)
+                                            }" class="hidden lg:table-cell px-6 py-4 text-wrap break-words">
                                             {{price.description}}
                                         </td>
                                         <td class="px-6 py-4 text-wrap break-all">
                                             {{price.price.value}} {{price.price.unit}}
                                         </td>
-                                        <td class="px-6 py-4 text-wrap break-all">
+                                        <td [ngClass]="{
+                                            'break-all': hasLongWord(price.priceType, 20),
+                                            'break-words': !hasLongWord(price.priceType, 20)
+                                            }" class="px-6 py-4 text-wrap break-words">
                                             {{price.priceType}}
                                         </td>
                                         <td class="px-6 py-4">

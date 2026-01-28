@@ -255,7 +255,10 @@
 
                     <div id="details-container">            
                         <h2 #detailsContent class="text-2xl md:text-3xl lg:text-4xl font-extrabold text-primary-100 dark:text-primary-50 text-center pb-4">{{ 'PRODUCT_INVENTORY._description' | translate }}</h2>
-                        <markdown class="dark:text-gray-200 text-wrap break-all" [data]="selectedProduct.product?.description"></markdown>
+                        <markdown [ngClass]="{
+                            'break-all': hasLongWord(selectedProduct.product?.description, 20),
+                            'break-words': !hasLongWord(selectedProduct.product?.description, 20)
+                            }" class="dark:text-gray-200 text-wrap break-words" [data]="selectedProduct.product?.description"></markdown>
         
                     <h2 class="text-2xl md:text-3xl lg:text-4xl font-extrabold text-primary-100 dark:text-primary-50 text-center pb-8 pt-12">{{ 'PRODUCT_INVENTORY._pricing' | translate }}</h2>
                     @if(productOff?.productOfferingPrice != undefined){
@@ -265,9 +268,15 @@
                                     @if (price.priceType == 'custom') {
                                         <div class="mx-auto bg-white border border-gray-200 dark:bg-secondary-200 dark:border-gray-800 rounded-lg shadow w-full p-4">
                                             <div class="flex justify-start mb-2">
-                                                <h2 class="text-gray-900 dark:text-white text-3xl font-extrabold mb-2 break-all">{{price.name}}</h2>
+                                                <h2 [ngClass]="{
+                                                    'break-all': hasLongWord(price.name, 20),
+                                                    'break-words': !hasLongWord(price.name, 20)
+                                                    }" class="text-gray-900 dark:text-white text-3xl font-extrabold mb-2 break-words">{{price.name}}</h2>
                                             </div>
-                                            <markdown class="dark:text-gray-200 w-full p-4 text-wrap break-all" [data]="price?.description"></markdown>
+                                            <markdown [ngClass]="{
+                                                'break-all': hasLongWord(price?.description, 20),
+                                                'break-words': !hasLongWord(price?.description, 20)
+                                                }" class="dark:text-gray-200 w-full p-4 text-wrap break-words" [data]="price?.description"></markdown>
                                         </div>
                                     }
                                 }
@@ -287,29 +296,47 @@
                                 @for (price of productOff?.productOfferingPrice; track price.id) {
                                     @if (price.priceType == 'recurring') {
                                         <div class="mx-auto bg-white dark:bg-secondary-200 dark:border-gray-800 border border-gray-200 rounded-lg shadow w-full">
-                                            <div class="bg-green-500 rounded-t-lg w-full text-wrap break-all">
-                                                <h5 class="flex justify-center mb-2 p-6 text-2xl font-bold tracking-tight text-gray-900 w-full break-all">{{price.name}}</h5>
+                                            <div class="bg-green-500 rounded-t-lg w-full text-wrap">
+                                                <h5 [ngClass]="{
+                                                    'break-all': hasLongWord(price.name, 20),
+                                                    'break-words': !hasLongWord(price.name, 20)
+                                                    }" class="flex justify-center mb-2 p-6 text-2xl font-bold tracking-tight text-gray-900 w-full break-words">{{price.name}}</h5>
                                             </div>
                                             <div class="pl-4 pr-4">
-                                                <markdown class="dark:text-gray-200 w-full p-4 text-wrap break-all" [data]="price?.description"></markdown>
+                                                <markdown [ngClass]="{
+                                                    'break-all': hasLongWord(price?.description, 20),
+                                                    'break-words': !hasLongWord(price?.description, 20)
+                                                    }" class="dark:text-gray-200 w-full p-4 text-wrap break-words" [data]="price?.description"></markdown>
                                             </div>
                                         </div>
                                     } @else if (price.priceType == 'usage') {
                                         <div class="mx-auto bg-white border border-gray-200 dark:bg-secondary-200 dark:border-gray-800 rounded-lg shadow w-full">
                                             <div class="bg-yellow-300 rounded-t-lg w-full">
-                                                <h5 class="flex justify-center mb-2 p-6 text-2xl font-bold tracking-tight text-gray-900 text-wrap break-all">{{price.name}}</h5>
+                                                <h5 [ngClass]="{
+                                                    'break-all': hasLongWord(price.name, 20),
+                                                    'break-words': !hasLongWord(price.name, 20)
+                                                    }" class="flex justify-center mb-2 p-6 text-2xl font-bold tracking-tight text-gray-900 text-wrap break-words">{{price.name}}</h5>
                                             </div>
                                             <div class="pl-4 pr-4">
-                                                <markdown class="dark:text-gray-200 w-full p-4 text-wrap break-all" [data]="price?.description"></markdown>
+                                                <markdown [ngClass]="{
+                                                    'break-all': hasLongWord(price?.description, 20),
+                                                    'break-words': !hasLongWord(price?.description, 20)
+                                                    }" class="dark:text-gray-200 w-full p-4 text-wrap break-words" [data]="price?.description"></markdown>
                                             </div>
                                         </div>
                                     } @else {
                                         <div class="mx-auto bg-white border border-gray-200 dark:bg-secondary-200 dark:border-gray-800 rounded-lg shadow w-full">
                                             <div class="bg-blue-500 rounded-t-lg w-full">
-                                                <h5 class="flex justify-center mb-4 p-6 text-2xl font-bold tracking-tight text-gray-900 text-wrap break-all">{{price.name}}</h5>
+                                                <h5 [ngClass]="{
+                                                    'break-all': hasLongWord(price.name, 20),
+                                                    'break-words': !hasLongWord(price.name, 20)
+                                                    }" class="flex justify-center mb-4 p-6 text-2xl font-bold tracking-tight text-gray-900 text-wrap break-words">{{price.name}}</h5>
                                             </div>
                                             <div class="pl-4 pr-4">
-                                                <markdown class="dark:text-gray-200 w-full p-4 text-wrap break-all" [data]="price?.description"></markdown>
+                                                <markdown [ngClass]="{
+                                                    'break-all': hasLongWord(price?.description, 20),
+                                                    'break-words': !hasLongWord(price?.description, 20)
+                                                    }" class="dark:text-gray-200 w-full p-4 text-wrap break-words" [data]="price?.description"></markdown>
                                             </div>
                                         </div>
                                     }
@@ -351,7 +378,10 @@
                                             <td class="px-6 py-4 text-wrap break-all w-1/2 md:w-1/4">
                                                 <a (click)="selectService(serv.id)" class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline">{{serv.id}}</a>                                  
                                             </td>
-                                            <td class="px-6 py-4 text-wrap break-all w-1/2 md:w-1/4">
+                                            <td [ngClass]="{
+                                                'break-all': hasLongWord(serv.name, 20),
+                                                'break-words': !hasLongWord(serv.name, 20)
+                                                }" class="px-6 py-4 text-wrap break-words w-1/2 md:w-1/4">
                                                 {{serv.name}}
                                             </td>
                                             <td class="hidden md:table-cell px-6 py-4 md:w-1/4">
@@ -400,7 +430,10 @@
                                             <td class="px-6 py-4 text-wrap break-all w-1/2 md:w-1/4">
                                                 <a (click)="selectResource(res.id)" class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline">{{res.id}}</a>                               
                                             </td>
-                                            <td class="px-6 py-4 text-wrap break-all w-1/2 md:w-1/4">
+                                            <td [ngClass]="{
+                                                'break-all': hasLongWord(res.name, 20),
+                                                'break-words': !hasLongWord(res.name, 20)
+                                                }" class="px-6 py-4 text-wrap break-words w-1/2 md:w-1/4">
                                                 {{res.name}}
                                             </td>
                                             <td class="hidden md:table-cell px-6 py-4 md:w-1/4">

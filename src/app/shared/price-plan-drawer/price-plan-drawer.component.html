@@ -17,7 +17,10 @@
 
   <!-- Scrollable content -->
   <form [formGroup]="form" class="flex-1 p-4 overflow-y-auto">
-    <h5 id="drawer-right-label" class="inline-flex items-center text-wrap break-all mb-4 text-base font-semibold text-primary-100 dark:text-gray-400"><svg class="w-4 h-4 me-2.5 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+    <h5 id="drawer-right-label" [ngClass]="{
+      'break-all': hasLongWord(productOff?.name, 20),
+      'break-words': !hasLongWord(productOff?.name, 20)
+      }" class="inline-flex items-center text-wrap break-words mb-4 text-base font-semibold text-primary-100 dark:text-gray-400"><svg class="w-4 h-4 me-2.5 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
       <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
     </svg>Adding {{productOff?.name}} to cart</h5>
     <button type="button"
@@ -71,10 +74,10 @@
         <div class="rounded-lg border border-dashed border-primary-100 bg-white p-2 m-2 dark:bg-gray-800 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
           @for (ch of filteredCharacteristics ; track ch.id; let i = $index) {
             @if(!ch.name?.endsWith('- enabled')){
-              <div class="flex flex-row w-full items-start">
+              <div data-cy="offerChar" class="flex flex-row w-full items-start">
                 @if(canBeDisabledChars.includes(ch.id)){
                   <label class="inline-flex items-center cursor-pointer w-fit justify-start items-start my-4 mr-2">
-                    <input type="checkbox" (change)="onToggleChange($event, ch.name)" class="sr-only peer">
+                    <input type="checkbox" [checked]="!disabledCharacteristics.includes(ch.id)" (change)="onToggleChange($event, ch.name)" class="sr-only peer">
                     <div class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
                   </label>
                 }
@@ -98,8 +101,11 @@
       <p class="mt-4  text-sm text-gray-500 dark:text-gray-400">You can change the metric values to simulate final prices</p>
       <div class="grid grid-cols-4 gap-2 mb-4">
         @for (metric of metrics || []; track metric.unitOfMeasure) {
-          <div class="flex flex-col">
-            <h5 class="text-wrap break-all text-base text-primary-100 dark:text-gray-400">{{ metric.unitOfMeasure }}</h5>
+          <div data-cy="offerMetric" class="flex flex-col">
+            <h5 [ngClass]="{
+              'break-all': hasLongWord(metric.unitOfMeasure, 20),
+              'break-words': !hasLongWord(metric.unitOfMeasure, 20)
+              }" class="text-wrap break-words text-base text-primary-100 dark:text-gray-400">{{ metric.unitOfMeasure }}</h5>
             <input
             type="number"
             (input)="onMetricChange($event, metric)"
@@ -114,12 +120,15 @@
     }
     @if (form.get('selectedPricePlan')?.value && form.get('characteristics')?.valid && tsAndCs.description!='') {
       <div class="mb-6 text-sm text-gray-500 dark:text-gray-400">
-        <h5 class="text-wrap break-all text-base font-semibold text-primary-100 dark:text-gray-400">Terms and conditions:</h5>
+        <h5 class="text-wrap break-words text-base font-semibold text-primary-100 dark:text-gray-400">Terms and conditions:</h5>
         <div class="max-h-[300px] overflow-y-auto mb-2">
-        <markdown class="text-gray-500 dark:text-gray-400 text-wrap break-all" [data]="tsAndCs.description"></markdown>
+        <markdown [ngClass]="{
+          'break-all': hasLongWord(tsAndCs.description, 20),
+          'break-words': !hasLongWord(tsAndCs.description, 20)
+          }" class="text-gray-500 dark:text-gray-400 text-wrap break-words" [data]="tsAndCs.description"></markdown>
         </div>
         <div class="flex items-center">
-          <input type="checkbox" id="tsAccepted" class="mr-2" formControlName="tsAccepted">
+          <input type="checkbox" id="tsAccepted" data-cy="acceptTermsCheckbox" class="mr-2" formControlName="tsAccepted">
           <label for="tsAccepted" class="text-sm">I accept the terms and conditions</label>
         </div>
       </div>

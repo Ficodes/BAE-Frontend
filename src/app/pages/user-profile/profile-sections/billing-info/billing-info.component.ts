@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, OnDestroy } from '@angular/core';
 import { LoginInfo, billingAccountCart } from 'src/app/models/interfaces';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
@@ -13,13 +13,15 @@ import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "src/app/services/event-message.service";
 import * as moment from 'moment';
 import { environment } from 'src/environments/environment';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'billing-info',
   templateUrl: './billing-info.component.html',
   styleUrl: './billing-info.component.css'
 })
-export class BillingInfoComponent implements OnInit{
+export class BillingInfoComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   orders:any[]=[];
   profile:any;
@@ -41,9 +43,12 @@ export class BillingInfoComponent implements OnInit{
   selectedDate:any;
   countries: any[] = countries;
   preferred:boolean=false;
+  isReadOnly:boolean=false;
 
   errorMessage:any='';
   showError:boolean=false;
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private localStorage: LocalStorageService,
@@ -54,7 +59,9 @@ export class BillingInfoComponent implements OnInit{
     private orderService: ProductOrderService,
     private eventMessage: EventMessageService
   ) {
-    this.eventMessage.messages$.subscribe(ev => {
+    this.eventMessage.messages$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
       if(ev.type === 'BillAccChanged') {
         this.getBilling();
       }
@@ -91,6 +98,11 @@ export class BillingInfoComponent implements OnInit{
     this.initPartyInfo();
   }
 
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   initPartyInfo(){
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
     if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
@@ -103,7 +115,14 @@ export class BillingInfoComponent implements OnInit{
           id: this.partyId,
           name: loggedOrg.name,
           href : this.partyId,
-          role: "Owner"
+          role: environment.SELLER_ROLE
+        }
+
+        // Check if user has orgAdmin role for edit permission
+        if(loggedOrg && loggedOrg.roles){
+          const orgRoles = loggedOrg.roles.map((role: any) => role.name);
+          const hasOrgAdminRole = orgRoles.some((role: any) => role === environment.ORG_ADMIN_ROLE);
+          this.isReadOnly = !hasOrgAdminRole;
         }
       } else {
         this.partyId = aux.partyId;
@@ -113,8 +132,9 @@ export class BillingInfoComponent implements OnInit{
           id: this.partyId,
           name: aux.user,
           href : this.partyId,
-          role: "Owner"
+          role: environment.SELLER_ROLE
         }
+        this.isReadOnly = false;
       }
       this.getBilling();
     }
@@ -288,6 +308,14 @@ export class BillingInfoComponent implements OnInit{
   toggleDeleteBill(bill:billingAccountCart){
     this.deleteBill=true;
     this.billToDelete=bill;
+  }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }   
   }
 
 }
