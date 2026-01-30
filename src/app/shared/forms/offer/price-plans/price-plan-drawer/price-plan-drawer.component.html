@@ -3,7 +3,7 @@
      [ngClass]="{'opacity-100': isOpen, 'opacity-0 pointer-events-none': !isOpen}">
 
   <!-- Overlay when child drawer is open - covers entire viewport and dims parent -->
-  <div *ngIf="showPriceComponentDrawer"
+  <div *ngIf="showPriceComponentDrawer || showTierPricingDrawer"
        class="fixed inset-0 bg-black bg-opacity-30 pointer-events-none z-[51]"></div>
 
   <!-- Drawer Content -->
@@ -200,9 +200,9 @@
                                           (delete)="deletePriceComponent($event)">
               </app-price-components-table>
 
-              <div class="px-4">
+              <div class="px-4 flex flex-wrap gap-2">
                 <button data-cy="newPriceComponent" type="button" (click)="openPriceComponentDrawer()"
-                        class="mt-2 px-4 py-2 bg-blue-500 text-white rounded flex items-center">
+                        class="mt-2 px-4 py-2 bg-blue-500 text-white rounded flex items-center hover:bg-blue-600">
                   <svg class="min-w-4 w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                     <path fill="currentColor"
                           d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM232 344l0-64-64 0c-13.3 0-24-10.7-24-24s10.7-24
@@ -210,6 +210,22 @@
               0 0 64c0 13.3-10.7 24-24 24s-24-10.7-24-24z"/>
                   </svg>
                   {{ 'FORMS.PRICE_PLANS._add_price_component' | translate }}
+                </button>
+
+                <button
+                  data-cy="newTierPricing"
+                  type="button"
+                  (click)="openTierPricingDrawer()"
+                  [disabled]="!hasRangeCharacteristics()"
+                  [ngClass]="hasRangeCharacteristics() ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-gray-400 cursor-not-allowed opacity-50'"
+                  class="mt-2 px-4 py-2 text-white rounded flex items-center"
+                  [title]="!hasRangeCharacteristics() ? 'No range characteristics available in product specification' : 'Create tier pricing based on range characteristics'"
+                >
+                  <svg class="min-w-4 w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                    <path fill="currentColor"
+                          d="M448 160l-128 0 0-32 128 0 0 32zM48 64C21.5 64 0 85.5 0 112l0 64c0 26.5 21.5 48 48 48l416 0c26.5 0 48-21.5 48-48l0-64c0-26.5-21.5-48-48-48L48 64zM448 352l-256 0 0-32 256 0 0 32zM48 256c-26.5 0-48 21.5-48 48l0 64c0 26.5 21.5 48 48 48l416 0c26.5 0 48-21.5 48-48l0-64c0-26.5-21.5-48-48-48L48 256z"/>
+                  </svg>
+                  {{ 'FORMS.PRICE_PLANS._add_tier_pricing' | translate }}
                 </button>
               </div>
             </div>
@@ -251,5 +267,12 @@
                                 (save)="closePriceComponentDrawer($event)"
                                 (close)="closePriceComponentDrawer($event)">
     </app-price-component-drawer>
+
+    <!-- Drawer para crear Tier Pricing -->
+    <app-tier-pricing-drawer *ngIf="showTierPricingDrawer"
+                             [prodChars]="prodSpec?.productSpecCharacteristic"
+                             (saveTierPricing)="closeTierPricingDrawer($event)"
+                             (close)="closeTierPricingDrawer(null)">
+    </app-tier-pricing-drawer>
 
 </div>

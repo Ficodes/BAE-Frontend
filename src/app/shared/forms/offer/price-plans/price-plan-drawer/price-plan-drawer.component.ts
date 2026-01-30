@@ -9,6 +9,7 @@ import {currencies} from "currencies.json";
 import {
   ConfigurationProfileDrawerComponent
 } from "../configuration-profile-drawer/configuration-profile-drawer.component";
+import {TierPricingDrawerComponent} from "../tier-pricing-drawer/tier-pricing-drawer.component";
 import {Subject} from "rxjs";
 import { takeUntil } from 'rxjs/operators';
 
@@ -26,6 +27,7 @@ import { takeUntil } from 'rxjs/operators';
     PriceComponentDrawerComponent,
     PriceComponentsTableComponent,
     ConfigurationProfileDrawerComponent,
+    TierPricingDrawerComponent,
     NgForOf
   ],
   styleUrl: './price-plan-drawer.component.css'
@@ -42,6 +44,7 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
   initialized = false;
   showPriceComponentDrawer = false;
   showConfigurationDrawer = false;
+  showTierPricingDrawer = false;
   editingComponent: any = null;
   //protected readonly currencies = currencies;
   //Only allowing EUR for the moment
@@ -271,6 +274,29 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     }
   }
 
+  openTierPricingDrawer() {
+    this.showTierPricingDrawer = true;
+  }
 
+  closeTierPricingDrawer(priceComponents: any[] | null) {
+    if (priceComponents && Array.isArray(priceComponents)) {
+      // Add all tier pricing components to the price components array
+      const components = this.formGroup.get('priceComponents')?.value || [];
+      components.push(...priceComponents);
+      this.formGroup.get('priceComponents')?.setValue(components);
+      console.log('Tier pricing components added:', priceComponents);
+    }
+    this.showTierPricingDrawer = false;
+  }
+
+  hasRangeCharacteristics(): boolean {
+    // Check if there are any range characteristics available
+    if (!this.prodSpec?.productSpecCharacteristic) return false;
+
+    return this.prodSpec.productSpecCharacteristic.some((char: any) => {
+      const firstValue = char.productSpecCharacteristicValue?.[0];
+      return firstValue && 'valueFrom' in firstValue && 'valueTo' in firstValue;
+    });
+  }
 
 }
