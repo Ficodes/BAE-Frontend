@@ -35,7 +35,11 @@ export class ConfigurationProfileDrawerComponent implements OnInit {
     let profileChars = [];
     for(let i=0;i<this.profileData.length;i++){
       //if (!certifications.some(certification => certification.name === this.profileData[i].name) && this.profileData[i].name != 'Compliance:SelfAtt') {
-      if (!certifications.some(certification => certification.name === this.profileData[i].name) && !this.profileData[i].name.startsWith('Compliance:')) {
+
+      if (!certifications.some(certification => certification.name === this.profileData[i].name)
+          && !this.profileData[i].name.startsWith('Compliance:')
+          && this.profileData[i].valueType != 'credentialsConfiguration'
+          && this.profileData[i].valueType != 'authorizationPolicy') {
         profileChars.push(this.profileData[i]);
       }
     }
