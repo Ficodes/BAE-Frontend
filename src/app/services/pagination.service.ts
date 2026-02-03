@@ -546,10 +546,10 @@ export class PaginationService {
     }
   }*/
 
-  async getOrders(page: number, filters: Category[], partyId: any, selectedDate: any, orders: any[], role: any): Promise<any[]> {
+  async getOrders(page: number, filters: Category[], partyId: any, orders: any[], role: any): Promise<any[]> {
     try {
       // Get Orders
-      orders = await this.orderService.getProductOrders(partyId, page, filters, selectedDate, role);
+      orders = await this.orderService.getProductOrders(partyId, page, filters, role);
       console.log('getOrders', orders);
       // Obtener todas las cuentas de facturación en paralelo
       const billingAccounts = await Promise.all(orders.map(order => this.accountService.getBillingAccountById(order.billingAccount.id)));

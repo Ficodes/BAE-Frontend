@@ -62,16 +62,22 @@ type QuoteNote = Note;
 
           <!-- Messages -->
           <div *ngIf="!isLoading && !error && messages.length > 0">
-            <div 
-              *ngFor="let message of messages" 
-              class="mb-2 flex"
+            <div
+              *ngFor="let message of messages"
+              class="mb-3 flex"
               [ngClass]="isMyMessage(message) ? 'justify-end' : 'justify-start'"
             >
-              <div 
+              <div
                 class="max-w-xs px-3 py-2 rounded-lg text-sm"
                 [ngClass]="isMyMessage(message) ? 'bg-blue-100 text-blue-900' : 'bg-gray-200 text-gray-800'"
               >
                 <div class="whitespace-pre-wrap">{{ message.text }}</div>
+                <div
+                  class="text-xs mt-1 opacity-60"
+                  [ngClass]="isMyMessage(message) ? 'text-right' : 'text-left'"
+                >
+                  {{ formatMessageDate(message.date) }}
+                </div>
               </div>
             </div>
           </div>
@@ -87,7 +93,7 @@ type QuoteNote = Note;
             placeholder="Type a message..."
             required
             [disabled]="isSending"
-            (keydown.enter)="$event.preventDefault(); sendMessage()"
+            (keydown.enter)="onEnterKey($event)"
           />
 
           <!-- Action Buttons -->
@@ -220,8 +226,29 @@ export class ChatModalComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
+  onEnterKey(event: Event) {
+    event.preventDefault();
+    this.sendMessage();
+  }
+
   isMyMessage(message: QuoteNote): boolean {
     return message.author === this.currentUserId;
+  }
+
+  formatMessageDate(dateString: string | undefined): string {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      // Format: DD/MM/YYYY HH:mm
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      return `${day}/${month}/${year} ${hours}:${minutes}`;
+    } catch {
+      return dateString;
+    }
   }
 
   getShortQuoteId(): string {

@@ -372,7 +372,7 @@
                                             'break-all': hasLongWord(sel.name, 20),
                                             'break-words': !hasLongWord(sel.name, 20)
                                             }" class="px-6 py-4 text-wrap break-words">
-                                            {{sel.name}}
+                                            {{normalizeName(sel.name)}}
                                         </td>
                                         <td class="px-6 py-4 text-wrap break-all">
                                             {{sel.url}}                                      
@@ -451,7 +451,116 @@
                             </button>-->
                         </div>
                     </div>
-
+                    @if(additionalISOS.length>0){
+                        <h3 class="font-bold text-primary-100 dark:text-primary-50 text-left ml-4">
+                            You added the following additional certifications:
+                        </h3>
+                        <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white dark:bg-secondary-300 m-4"> 
+                        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">
+                                        {{ 'UPDATE_PROD_SPEC._product_name' | translate }}
+                                    </th>
+                                    <th scope="col" class="px-6 py-3">
+                                        {{ 'UPDATE_PROD_SPEC._value' | translate }}
+                                    </th>
+                                    <th scope="col" class="px-6 py-3">
+                                        {{ 'UPDATE_PROD_SPEC._actions' | translate }}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (cert of additionalISOS; track cert.name; let idx = $index) {
+                                    <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                                        <td [ngClass]="{
+                                            'break-all': hasLongWord(cert.name, 20),
+                                            'break-words': !hasLongWord(cert.name, 20)
+                                            }" class="px-6 py-4 text-wrap break-words">
+                                            {{normalizeName(cert.name)}}
+                                        </td>
+                                        <td class="px-6 py-4 text-wrap break-all">
+                                            {{cert.url}}                                      
+                                        </td>
+                                        <td class="px-6 py-4 inline-flex">                                        
+                                            <button (click)="removeCert(cert)" type="button" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
+                                                <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+                                                </svg>                                                                                                
+                                            </button>                                              
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        </div>
+                    }
+                    @if(showCert==false){
+                        <div class="flex w-full justify-items-center justify-center">
+                            <button type="button" (click)="showCert=!showCert" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                                Add an additional certification
+                                <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+                                </svg>                                  
+                            </button>
+                        </div>
+                    } @else {
+                        <div class="m-4 w-full">
+                            <h3 class="font-bold text-primary-100 dark:text-primary-50 text-left ml-4">
+                                Add an additional certification:
+                            </h3>
+                            <div class="lg:flex lg:grid lg:grid-cols-2 w-full gap-4 align-items-middle align-middle border border-gray-200 rounded-lg p-4">                            
+                                <div class="h-fit">
+                                    <label for="cert-name" class="font-bold text-lg dark:text-white">{{ 'PROFILE._name' | translate }}</label>
+                                    <input #certificationName type="text" id="cert-name" [formControl]="certFileName"
+                                    [ngClass]="certFileName.invalid == true ? 'border-red-600' : 'border-gray-300'"
+                                    class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />    
+                                </div>
+                                @if(isoToCreate==''){
+                                    <ngx-file-drop class="p-4 w-full" dropZoneLabel="Drop files here" (onFileDrop)="dropped($event,'attach')" (onFileOver)="fileOver($event)" (onFileLeave)="fileLeave($event)">
+                                        <ng-template class="w-full" ngx-file-drop-content-tmp let-openFileSelector="openFileSelector">
+                                            <div class="w-full flex flex-col justify-items-center justify-center">
+                                                <svg class="w-12 h-12 text-primary-100 mx-auto" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2"/>
+                                                </svg>
+                                                <div class="flex w-full justify-center">
+                                                    <p class="text-gray-500 mr-2 w-fit">{{ 'UPDATE_PROD_SPEC._drop_files' | translate }}
+                                                        <button (click)="openFileSelector()" class="font-medium text-primary-100 dark:text-primary-50 hover:underline">{{ 'UPDATE_PROD_SPEC._select_files' | translate }}</button>
+                                                    </p> 
+                                                </div>
+                                            </div>
+                                        </ng-template>
+                                    </ngx-file-drop> 
+                                } @else {
+                                    <div class="relative w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">
+                                        <span class="sr-only">Info</span>
+                                        <label class="text-wrap break-all">
+                                            {{isoToCreate}}
+                                        </label>
+                                        <button (click)="clearAdditionalCert(true)" class="z-10 absolute top-2 right-2 p-1 font-bold text-white bg-red-500 rounded-3xl">
+                                            <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+                                            </svg>                                  
+                                        </button>
+                                    </div>
+                                }
+                                </div>
+                                <div class="flex w-full justify-items-center justify-center mt-4">
+                                    <button type="button" (click)="saveAdditionalCert()"
+                                    [disabled]="!certFileName.valid || isoToCreate == ''" [ngClass]="!certFileName.valid || isoToCreate == '' ? 'opacity-50' : 'hover:bg-primary-50'"
+                                    class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                                        Save
+                                        <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M11 16h2m6.707-9.293-2.414-2.414A1 1 0 0 0 16.586 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.414a1 1 0 0 0-.293-.707ZM16 20v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v6h8ZM9 4h6v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4Z"/>
+                                        </svg>                                                                   
+                                    </button>
+                                    <button type="button" (click)="clearAdditionalCert(false);showCert=false;"                                    
+                                    class="flex ml-4 text-gray-900 justify-end bg-gray-400 hover:bg-primary-50 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                                        Discard                                                                 
+                                    </button>
+                                </div>
+                        </div>
+                    }
     
                 }
                 @if ((currentStep === 2 && !BUNDLE_ENABLED) || (currentStep === 3 && BUNDLE_ENABLED)) {
@@ -488,6 +597,7 @@
                                 </thead>
                                 <tbody>
                                     @for (prod of prodChars; track prod;) {
+                                        @if(!prod.name?.startsWith('Compliance:')){
                                         <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
                                             <td [ngClass]="{
                                                 'break-all': hasLongWord(prod.name, 20),
@@ -534,6 +644,7 @@
                                                 </button>    
                                             </td>
                                         </tr>
+                                        }
                                     }
                                 </tbody>
                             </table>
@@ -550,57 +661,42 @@
                         </div>
                     } @else {
                         <form class="m-4 grid grid-cols-2 gap-4" [formGroup]="charsForm">
-                           <!--@if(booleanCharSelected){
-                                <div class="flex flex-items items-center text-gray-600 dark:text-gray-200 col-span-2">
-                                    <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-                                    </svg>
-                                    <h3 class="text-sm italic text-gray-600 ml-4 dark:text-gray-200">This characteristic's name should follow the pattern "Related characteristic's name - enabled"</h3>
-                                </div>
-                            }-->
-                            @if(!booleanCharSelected){
-                                <div>
-                                    <label for="prod-name" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._product_name' | translate }}</label>
-                                    <input formControlName="name" type="text" id="prod-name" maxLength="100"
-                                    class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
-                                    
-                                </div>
-                            } @else {
-                                <div>
-                                    @if(nonBooleanChars.length>0){
-                                        <label for="prod-name" class="font-bold text-lg dark:text-white">Select the related characteristic's name</label>
-                                        <select id="type" (change)="onSelectBooleanName($event)"
-                                        class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                        @for(charname of nonBooleanChars; track charname){
-                                            <option value="{{charname}}">{{charname}}</option>
-                                        }    
-                                        </select>
-                                    }@else{
-                                        <div class="flex flex-items items-center align-items-middle text-gray-600 dark:text-gray-200 col-span-2">
-                                            <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-                                            </svg>
-                                            <h3 class="text-sm italic text-gray-600 ml-4 dark:text-gray-200">There's no characteristic available.</h3>
-                                        </div>
-                                    }
-
-                                </div>
-                            }
+                            <div>
+                                <label for="prod-name" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._product_name' | translate }}</label>
+                                <input formControlName="name" type="text" id="prod-name" maxLength="100"
+                                class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                            </div>
                             <div>
                                 <label class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._type' | translate }}</label>
-                                <select id="type" (change)="onTypeChange($event)"
+                                <select data-cy="charType" id="type" (change)="onTypeChange($event)"
                                 class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                                     <option selected value="string">String</option>
                                     <option value="number">Number</option>
                                     <option value="range">Number range</option>
-                                    <option value="boolean">Boolean</option>
                                 </select>
                             </div>
                             <div class="col-span-2">
                                 <label for="description" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._product_description' | translate }}</label>
                                 <textarea id="description" formControlName="description" rows="4" maxLength="500"
                                 class="mb-2 min-h-fit bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"></textarea>
-                            </div>                        
+                            </div>
+                            <div class="col-span-2 flex align-items-middle h-fit">
+                                <label for="is-optional" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._make_optional' | translate }}</label>
+                                <label class="inline-flex items-center me-5 cursor-pointer ml-4">
+                                    <input type="checkbox" id="is-optional" [(ngModel)]="isOptional" [ngModelOptions]="{standalone: true}" class="sr-only peer">
+                                    <div class="relative w-11 h-6 bg-gray-400 dark:bg-gray-700 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-100 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-100"></div>
+                                </label>
+                            </div>
+                            @if(isOptional){
+                                <div>
+                                    <label class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._default_value' | translate }}</label>
+                                    <select [(ngModel)]="optionalDftTrue" [ngModelOptions]="{standalone: true}"
+                                    class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                        <option [value]="false">{{ 'UPDATE_PROD_SPEC._default_false' | translate }}</option>
+                                        <option [value]="true">{{ 'UPDATE_PROD_SPEC._default_true' | translate }}</option>
+                                    </select>
+                                </div>
+                            }
                         </form>
                         <div class="m-4">
                             @if(creatingChars.length>0){
@@ -643,7 +739,7 @@
                                     }
                                 </div>
                             }
-                            <label for="values" [ngClass]="rangeCharSelected && creatingChars.length==1 || booleanCharSelected ? 'hidden' : ''" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._add_values' | translate }}</label>
+                            <label for="values" [ngClass]="rangeCharSelected && creatingChars.length==1 ? 'hidden' : ''" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._add_values' | translate }}</label>
                             @if(stringCharSelected){
                                 <div class="flex flex-row items-center align-items-middle">
                                     <input type="text" id="value" [(ngModel)]="stringValue"
@@ -708,11 +804,11 @@
                                 </div>
                             }
                             <div class="flex w-full justify-items-center justify-center mt-4">
-                                <button type="button" (click)="saveChar()"  [disabled]="!charsForm.valid || (creatingChars.length==0 && !booleanCharSelected)" [ngClass]="!charsForm.valid || (creatingChars.length==0 && !booleanCharSelected) ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                                <button data-cy="btnSaveCharacteristic" type="button" (click)="saveChar()" [disabled]="!charsForm.valid || creatingChars.length==0" [ngClass]="!charsForm.valid || creatingChars.length==0 ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                                     {{ 'UPDATE_PROD_SPEC._save_char' | translate }}
                                     <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M11 16h2m6.707-9.293-2.414-2.414A1 1 0 0 0 16.586 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.414a1 1 0 0 0-.293-.707ZM16 20v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v6h8ZM9 4h6v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4Z"/>
-                                    </svg>                                                                   
+                                    </svg>
                                 </button>
                             </div>
     

@@ -8,13 +8,14 @@ import {PricePlansComponent} from "../price-plans/price-plans.component";
 import {ProcurementModeComponent} from "../procurement-mode/procurement-mode.component"
 import {RelatedPartyIdComponent} from "../related-party-id/related-party-id.component"
 import {OfferSummaryComponent} from "../offer-summary/offer-summary.component"
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, firstValueFrom } from 'rxjs';
 import {components} from "src/app/models/product-catalog";
 import {EventMessageService} from "src/app/services/event-message.service";
 import {FormChangeState, PricePlanChangeState} from "../../../../models/interfaces";
 import {Subscription} from "rxjs";
 import * as moment from 'moment';
 import { environment } from 'src/environments/environment';
+import { QuoteService } from 'src/app/features/quotes/services/quote.service';
 
 type ProductOffering_Create = components["schemas"]["ProductOffering_Create"];
 type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
@@ -62,7 +63,7 @@ export class CustomOfferComponent implements OnInit {
 
   constructor(private api: ApiServiceService,
     private eventMessage: EventMessageService,
-    private fb: FormBuilder) {
+    private fb: FormBuilder, private quoteService: QuoteService) {
 
       this.productOfferForm = this.fb.group({
         prodSpec: new FormControl(null, [Validators.required]),
@@ -78,8 +79,9 @@ export class CustomOfferComponent implements OnInit {
       console.log(this.offer)
       console.log(this.partyId)
       console.log('-------------------------------')
+
       await this.loadOfferData();
-      this.loadingData=false;  
+      this.loadingData = false;  
     }
 
     async loadOfferData() {
@@ -170,12 +172,19 @@ export class CustomOfferComponent implements OnInit {
       }));
 
       const license = this.offer.productOfferingTerm.find((t: { name: string; }) => t.name === 'License');
-  
+
+      // Add the name of the organization/trading name to the offer name
+      let offerName = this.offer.name;
+      if (this.productOfferForm.get('partyInfo')?.value.tradingName) {
+        offerName = `${this.offer.name} - ${this.productOfferForm.get('partyInfo')?.value.tradingName}`;
+      }
+
       const offer: any = {
-        name: this.offer.name,
+        name: offerName,
         description: this.offer?.description || '',
         lifecycleStatus: 'Active',
         isBundle: this.bundleChecked,
+        isSellable: false, // Ad-Hoc offer cannot be generally purchased
         bundledProductOffering: this.offersBundle,
         place: [],
         version: this.offer.version,

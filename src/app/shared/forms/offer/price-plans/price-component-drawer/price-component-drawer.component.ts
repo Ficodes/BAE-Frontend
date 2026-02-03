@@ -63,7 +63,8 @@ export class PriceComponentDrawerComponent implements OnInit {
     }, 50);
 
     for(let i=0;i<this.prodChars.length;i++){
-      if (!certifications.some(certification => certification.name === this.prodChars[i].name) && this.prodChars[i].name != 'Compliance:SelfAtt') {
+      if (!certifications.some(certification => certification.name === this.prodChars[i].name) && !this.prodChars[i].name.startsWith('Compliance:') &&
+          !this.prodChars[i].name.endsWith(' - enabled')) {
         this.filteredChars.push(this.prodChars[i]);
       }
     }

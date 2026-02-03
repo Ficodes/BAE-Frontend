@@ -327,7 +327,7 @@ export class InvoicesInfoComponent implements OnInit, OnDestroy {
 
   downloadInvoice(invoice: any) {
     console.log('Downloading invoice')
-    let url = `${environment.BASE_URL}/invoicing/invoices/${invoice.id}`
+    let url = `${environment.BASE_URL}/invoicing/invoices/${invoice.id}?format=xml-html`
 
     window.open(url, '_blank');
   }

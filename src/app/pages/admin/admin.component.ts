@@ -24,6 +24,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   show_update_categories:boolean = false;
   show_verification:boolean = false;
   show_revenue:boolean = false;
+  show_email:boolean = false;
   private destroy$ = new Subject<void>();
 
   category_to_update:any;
@@ -64,6 +65,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_update_categories = false;
     this.show_verification = false;
     this.show_revenue = false;
+    this.show_email = false;
     this.cdr.detectChanges();
   }
 
@@ -73,6 +75,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_update_categories = false;
     this.show_verification = false;
     this.show_revenue = false;
+    this.show_email = false;
     this.cdr.detectChanges();
   }
 
@@ -82,6 +85,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_update_categories = true;
     this.show_verification = false;
     this.show_revenue = false;
+    this.show_email = false;
     this.cdr.detectChanges();
   }
 
@@ -92,6 +96,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_update_categories = false;
     this.show_verification = true;
     this.show_revenue = false;
+    this.show_email = false;
     this.cdr.detectChanges();
   }
 
@@ -102,6 +107,18 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_update_categories = false;
     this.show_verification = false;
     this.show_revenue = true;
+    this.show_email = false;
+    this.cdr.detectChanges();
+  }
+
+  goToEmail() {
+    this.selectEmail()
+    this.show_categories = false;
+    this.show_create_categories = false;
+    this.show_update_categories = false;
+    this.show_verification = false;
+    this.show_revenue = false;
+    this.show_email = true;
     this.cdr.detectChanges();
   }
 
@@ -109,30 +126,48 @@ export class AdminComponent implements OnInit, OnDestroy {
     let categories_button = document.getElementById('categories-button')
     let verify_button = document.getElementById('verify-button')
     let revenue_button = document.getElementById('revenue-button')
+    let email_button = document.getElementById('email-button')
 
     this.selectMenu(categories_button,'text-white bg-primary-100');
     this.unselectMenu(verify_button,'text-white bg-primary-100');
     this.unselectMenu(revenue_button,'text-white bg-primary-100');
+    this.unselectMenu(email_button,'text-white bg-primary-100');
   }
 
   selectVerification(){
     let categories_button = document.getElementById('categories-button')
     let verify_button = document.getElementById('verify-button')
     let revenue_button = document.getElementById('revenue-button')
+    let email_button = document.getElementById('email-button')
 
     this.selectMenu(verify_button,'text-white bg-primary-100');
     this.unselectMenu(categories_button,'text-white bg-primary-100');
     this.unselectMenu(revenue_button,'text-white bg-primary-100');
+    this.unselectMenu(email_button,'text-white bg-primary-100');
   }
 
   selectRevenue(){
     let categories_button = document.getElementById('categories-button')
     let verify_button = document.getElementById('verify-button')
     let revenue_button = document.getElementById('revenue-button')
+    let email_button = document.getElementById('email-button')
 
     this.unselectMenu(verify_button,'text-white bg-primary-100');
     this.unselectMenu(categories_button,'text-white bg-primary-100');
     this.selectMenu(revenue_button,'text-white bg-primary-100')
+    this.unselectMenu(email_button,'text-white bg-primary-100');
+  }
+
+  selectEmail(){
+    let categories_button = document.getElementById('categories-button')
+    let verify_button = document.getElementById('verify-button')
+    let revenue_button = document.getElementById('revenue-button')
+    let email_button = document.getElementById('email-button')
+
+    this.unselectMenu(verify_button,'text-white bg-primary-100');
+    this.unselectMenu(categories_button,'text-white bg-primary-100');
+    this.unselectMenu(revenue_button,'text-white bg-primary-100');
+    this.selectMenu(email_button,'text-white bg-primary-100')
   }
 
   removeClass(elem: HTMLElement, cls:string) {

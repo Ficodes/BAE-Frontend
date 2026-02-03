@@ -197,7 +197,7 @@
                 Analytics
               </a>
             </li>            
-            @if(roles.includes('seller')){            
+            @if(roles.includes(sellerRole)){
               <li>
                 <button data-cy="usageSpecs" id="usageSpecs" (click)="goTo('/usage-spec')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faRuler" class="mr-2"></fa-icon>Usage Spec</button>
               </li>

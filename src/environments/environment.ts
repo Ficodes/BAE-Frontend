@@ -19,7 +19,7 @@ export const environment = {
     CHARGING: '/charging',
     BILLING: '/billing',
 
-    searchOrganizationsEndpoint: 'http://dome-search-svc.search-engine.svc.cluster.local:8080/api/searchOrganizations',
+    searchOrganizationsEndpoint: '/api/searchOrganizations',
 
     CUSTOMER_BILLING:'/customerBill',
     CONSUMER_BILLING_URL: 'http://localhost:8640',

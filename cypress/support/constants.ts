@@ -23,8 +23,14 @@ export const init_config = {
     'domePublish': 'https://knowledgebase.dome-marketplace.org/shelves/company-onboarding-process',
     'purchaseEnabled': false,
     'defaultId': 'urn:ngsi-ld:catalog:32828e1d-4652-4f4c-b13e-327450ce83c6',
-    "theme": "DOME"
-       
+    'theme': 'DOME',
+    'roles': {
+        'seller': 'Seller',
+        'customer': 'Buyer',
+        'admin': 'admin',
+        'orgAdmin': 'orgAdmin',
+        'certifier': 'certifier'
+    }
 }
 
 export const init_stat = {"_id":"677ff8d160055e7a1e2544ff","services":["Service test 1"],"organizations":["org test 1"],"__v":0}
@@ -270,41 +276,41 @@ export const checkHeaderPostLogin = () => {
 
 export const loginAcc = () => {
     checkHeaderPreLogin()
-        local_items.expire = moment().unix() + 100
-        cy.window().then((window) => window.localStorage.setItem('login_items', JSON.stringify(local_items)))
+    local_items.expire = moment().unix() + 100
+    cy.window().then((window) => window.localStorage.setItem('login_items', JSON.stringify(local_items)))
 
-        // Mocks
-        cy.intercept(
-            {
-              method: 'GET',
-              url: 'http://proxy.docker:8004/logintoken'
-            },
-            (req) => {
-              req.reply({
-                statusCode: 200,
-                body: login_token()
-              });
-            }
-          ).as('login_token');
+    // Mocks
+    cy.intercept(
+        {
+            method: 'GET',
+            url: 'http://proxy.docker:8004/logintoken'
+        },
+        (req) => {
+            req.reply({
+            statusCode: 200,
+            body: login_token()
+            });
+        }
+        ).as('login_token');
 
-        cy.visit('/dashboard?token=test', {onBeforeLoad(win) {
-            win.document.documentElement.classList.add('dark');
-          }})
+    cy.visit('/dashboard?token=test', {onBeforeLoad(win) {
+        win.document.documentElement.classList.add('dark');
+        }})
 
-        cy.wait('@stats')
-        cy.get('@stats.all').should('have.length', 2)
-        cy.wait('@config')
-        cy.get('@config.all').should('have.length', 2)
-        //cy.wait('@productOffering')
-        //cy.get('@productOffering.all').should('have.length', 2)
-        cy.wait('@catalog')
-        cy.get('@catalog.all').should('have.length', 2)
-        cy.wait('@category')
-        cy.get('@category.all').should('have.length', 2)
-        cy.wait('@login_token')
-        cy.get('@login_token.all').should('have.length', 1)
+    cy.wait('@stats')
+    cy.get('@stats.all').should('have.length', 2)
+    cy.wait('@config')
+    cy.get('@config.all').should('have.length', 2)
+    //cy.wait('@productOffering')
+    //cy.get('@productOffering.all').should('have.length', 2)
+    cy.wait('@catalog')
+    cy.get('@catalog.all').should('have.length', 2)
+    cy.wait('@category')
+    cy.get('@category.all').should('have.length', 2)
+    cy.wait('@login_token')
+    cy.get('@login_token.all').should('have.length', 1)
 
-        checkHeaderPostLogin()
+    checkHeaderPostLogin()
 }
 
 export const productOffering = {

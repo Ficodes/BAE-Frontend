@@ -41,7 +41,6 @@ export class ProductOrdersComponent implements OnInit, OnDestroy {
   showOrderDetails:boolean=false;
   orderToShow:any;
   dateRange = new FormControl();
-  selectedDate:any;
   countries: any[] = countries;
   preferred:boolean=false;
   loading_more: boolean = false;
@@ -90,10 +89,6 @@ export class ProductOrdersComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loading=true;
-    let today = new Date();
-    today.setMonth(today.getMonth()-1);
-    this.selectedDate = today.toISOString();
-    this.dateRange.setValue('month');
 
     let order_button = document.getElementById('order-button')
     let invoices_button = document.getElementById('bill-button')
@@ -159,7 +154,6 @@ export class ProductOrdersComponent implements OnInit, OnDestroy {
     let options = {
       "filters": this.filters,
       "partyId": this.partyId,
-      "selectedDate": this.selectedDate,
       "orders": this.orders,
       "role": this.role
     }
@@ -203,29 +197,6 @@ export class ProductOrdersComponent implements OnInit, OnDestroy {
     } else {
       return false;
     }
-  }
-
-  filterOrdersByDate(){
-    if(this.dateRange.value == 'month'){
-      let today = new Date();
-      today.setDate(1);
-      today.setMonth(today.getMonth()-1);
-      this.selectedDate = today.toISOString();
-    } else if (this.dateRange.value == 'months'){
-      let today = new Date();
-      today.setDate(1);
-      today.setMonth(today.getMonth()-3);
-      this.selectedDate = today.toISOString();
-    } else if(this.dateRange.value == 'year'){
-      let today = new Date();
-      today.setDate(1);
-      today.setMonth(0);
-      today.setFullYear(today.getFullYear()-1);
-      this.selectedDate = today.toISOString();
-    } else {
-      this.selectedDate = undefined
-    }
-    this.getOrders(false);
   }
 
   getTotalPrice(items:any[]){
