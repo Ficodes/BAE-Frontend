@@ -10,7 +10,7 @@ export interface EventMessage {
   'SellerCatalog' | 'SellerCatalogCreate' | 'SellerCatalogUpdate' | 'CategoryAdded' | 'CategoryRemoved' | 'ChangedSession' | 'CloseCartCard'|
   'AdminCategories' | 'CreateCategory' | 'UpdateCategory' | 'ShowCartToast' | 'HideCartToast' | 'CloseContact' | 'OpenServiceDetails' | 'OpenResourceDetails' | 'OpenProductInvDetails' |
   'SavePricePlan' | 'UpdatePricePlan' | 'ToggleEditPrice' | 'ToggleNewPrice' |
-  'SubformChange' | 'CloseFeedback' | 'UpdateOffer' | 'CloseQuoteRequest' | 'UpdateUsageSpec' | 'UsageSpecList' | 'CreateUsageSpec';
+  'SubformChange' | 'CloseFeedback' | 'UpdateOffer' | 'CloseQuoteRequest' | 'UpdateUsageSpec' | 'UsageSpecList' | 'CreateUsageSpec' | 'AiSearchFacets' | 'AiSearchCleared';
   text?: string,
   value?: object | boolean | FormChangeState | PricePlanChangeState
 }
@@ -222,5 +222,13 @@ export class EventMessageService {
   emitCreateUsageSpec(show:boolean){
     this.eventMessageSubject.next({type: 'CreateUsageSpec', value: show})
   }
-  
+
+  emitAiSearchFacets(facets: Record<string, Record<string | number, number>>){
+    this.eventMessageSubject.next({type: 'AiSearchFacets', value: facets})
+  }
+
+  emitAiSearchCleared(){
+    this.eventMessageSubject.next({type: 'AiSearchCleared', value: true})
+  }
+
 }
