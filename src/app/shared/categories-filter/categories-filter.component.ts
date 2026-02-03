@@ -8,6 +8,8 @@ import { initFlowbite } from 'flowbite';
 import {faCircleCheck} from "@fortawesome/pro-solid-svg-icons";
 import {faCircle} from "@fortawesome/pro-regular-svg-icons";
 import { takeUntil } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
+import availableFilters, { type Filter } from '../../data/availableFilters';
 
 @Component({
   selector: 'bae-categories-filter',
@@ -34,6 +36,13 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
   @Output() selectedCategories = new EventEmitter<Category[]>();
   @Input() catalogId: any = undefined;
 
+  // AI Search facets
+  aiSearchEnabled = environment.AI_SEARCH_ENABLED;
+  aiFacets: Record<string, Record<string | number, number>> = {};
+  aiFacetCategories: Category[] = [];
+  originalCategories: Category[] = []; // Store original categories from API
+  aiSearchPerformed: boolean = false; // Track if AI search has been performed
+
   protected readonly faCircleCheck = faCircleCheck;
   protected readonly faCircle = faCircle;
 
@@ -49,7 +58,7 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
       this.eventMessage.messages$
       .pipe(takeUntil(this.destroy$))
       .subscribe(ev => {
-        const cat = ev.value as Category;      
+        const cat = ev.value as Category;
         if(ev.type === 'AddedFilter' && !this.isCheckedCategory(cat)){
           this.checkedCategories.push(cat.id);
           this.cdr.detectChanges();
@@ -59,7 +68,17 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
             this.checkedCategories.splice(index, 1);
             this.cdr.detectChanges();
           }
-          console.log(this.isCheckedCategory(cat))
+        } else if(ev.type === 'AiSearchFacets' && this.aiSearchEnabled){
+          const facets = ev.value as Record<string, Record<string | number, number>>;
+          if (facets && Object.keys(facets).length > 0 && !this.aiSearchPerformed) {
+            this.aiSearchPerformed = true;
+            this.aiFacets = facets;
+            this.updateAiFacetCategories();
+            this.cdr.detectChanges();
+          }
+        } else if(ev.type === 'AiSearchCleared' && this.aiSearchEnabled){
+          this.restoreOriginalCategories();
+          this.cdr.detectChanges();
         }
       })
     }
@@ -69,8 +88,15 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
     for(let i=0; i<this.selected.length;i++){
       this.checkedCategories.push(this.selected[i].id)
     }
-    console.log('selected categories')
-    console.log(this.selected)
+
+    if (this.aiSearchEnabled) {
+      this.categories = this.convertFiltersToCategories(availableFilters);
+      this.originalCategories = [...this.categories];
+      this.cdr.detectChanges();
+      initFlowbite();
+      return;
+    }
+
     if(this.catalogId!=undefined){
       let data = await this.api.getCatalog(this.catalogId);
       if(data.category){
@@ -78,12 +104,14 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
           let categoryInfo = await this.api.getCategoryById(data.category[i].id)
           await this.findChildrenByParent(categoryInfo);
         }
+        this.originalCategories = [...this.categories];
         initFlowbite();
       } else {
         let launched = await this.api.getLaunchedCategories()
           for(let i=0; i < launched.length; i++){
             this.findChildren(launched[i],launched)
           }
+          this.originalCategories = [...this.categories];
           this.cdr.detectChanges();
           initFlowbite();
       }
@@ -92,6 +120,7 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
       for(let i=0; i < data.length; i++){
         this.findChildren(data[i],data)
       }
+      this.originalCategories = [...this.categories];
       this.cdr.detectChanges();
       initFlowbite();
     }
@@ -188,10 +217,8 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
   isRoot(cat: Category,idx:any){
     const index = this.categories.indexOf(cat, 0);
     let children = this.categories[index].children;
-    let accordion = document.getElementById("accordion-collapse");
 
     if (children != undefined && children.length >0) {
-      console.log('Es padre')
       return children
     } else {
       return []
@@ -269,7 +296,86 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
-    }   
+    }
+  }
+
+  private updateAiFacetCategories(): void {
+    if (this.originalCategories.length === 0) {
+      return;
+    }
+
+    this.categories = this.originalCategories.map(rootCat => {
+      const facetKey = rootCat.id; // e.g. 'technical_approach'
+      const facetData = this.aiFacets[facetKey || ''] || {};
+
+      return {
+        ...rootCat,
+        children: this.applyFacetCounts(rootCat.children || [], facetData, facetKey || '')
+      };
+    });
+
+    initFlowbite();
+  }
+
+  private applyFacetCounts(children: Category[], facetData: Record<string | number, number>, rootFilterKey: string): Category[] {
+    const result: Category[] = [];
+    for (const child of children) {
+      const count = facetData[child.name] ?? 0;
+      const updatedChildren = child.children && child.children.length > 0
+        ? this.applyFacetCounts(child.children, facetData, rootFilterKey)
+        : [];
+
+      if (count > 0 || updatedChildren.length > 0) {
+        result.push({
+          ...child,
+          count: count > 0 ? count : child.count,
+          children: updatedChildren
+        });
+      }
+    }
+    return result;
+  }
+
+  private formatFacetName(key: string): string {
+    return key
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
+  private restoreOriginalCategories(): void {
+    if (this.originalCategories.length > 0) {
+      this.categories = [...this.originalCategories];
+      this.aiSearchPerformed = false;
+      this.aiFacetCategories = [];
+      this.aiFacets = {};
+      initFlowbite();
+    }
+  }
+
+  private convertFiltersToCategories(filters: Filter[]): Category[] {
+    return filters.map(filter => this.convertFilterToCategory(filter, true, filter.name));
+  }
+
+  private convertFilterToCategory(filter: Filter, isRoot: boolean = false, rootFilterName?: string): Category {
+    const filterKey = rootFilterName || filter.name;
+    const sanitizedId = this.sanitizeIdForCss(filter.name);
+    const category: Category = {
+      id: isRoot ? filter.name : `${filterKey}::${filter.name}`,
+      name: isRoot ? this.formatFacetName(filter.name) : filter.name,
+      isRoot: isRoot,
+      children: filter.children ? filter.children.map(child => this.convertFilterToCategory(child, false, filterKey)) : [],
+      sanitizedId: isRoot ? sanitizedId : `${this.sanitizeIdForCss(filterKey)}-${sanitizedId}`
+    };
+    return category;
+  }
+
+  private sanitizeIdForCss(str: string): string {
+    return str
+      .replace(/\s+/g, '-') 
+      .replace(/[()]/g, '')
+      .replace(/[^a-zA-Z0-9_-]/g, '')
+      .toLowerCase();
   }
 
 }

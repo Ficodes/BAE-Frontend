@@ -91,5 +91,11 @@ export const environment = {
     BUYER_ROLE: 'Buyer',
     ADMIN_ROLE: 'Admin',
     ORG_ADMIN_ROLE: 'orgAdmin',
-    CERTIFIER_ROLE: 'certifier'
+    CERTIFIER_ROLE: 'certifier',
+    AI_SEARCH_ENABLED: true,
+    AI_SEARCH_API_KEY: '28791420a51be86495cab108f32221fa458469e29a04b33567b057c95878bd72',
+    AI_SEARCH_API_URL: 'https://dome.expertcustomers.ai/rag/',
+    AI_SEARCH_SCORE_THRESHOLD: 0.3,
+    AI_SEARCH_ANSWER_MAX_ITEMS: 5,
+    AI_SEARCH_PROFILE: 'dome_dev2'
 };

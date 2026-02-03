@@ -6,7 +6,12 @@
         <div data-cy="searchCategoryName" [ngClass]="{
           'break-all': hasLongWord(data?.name, 20),
           'break-words': !hasLongWord(data?.name, 20)
-          }" class="w-full text-base text-left font-semibold text-wrap break-words">{{ data?.name }}</div>
+          }" class="w-full text-base text-left font-semibold text-wrap break-words">
+          {{ data?.name }}
+          @if (data?.count) {
+            <span class="ml-2 text-sm text-gray-400">({{ data?.count }})</span>
+          }
+        </div>
         <fa-icon data-cy="searchCategorySelect" [icon]="checked ? faCircleCheck : faCircle" class="mr-7 text-2xl"></fa-icon>
       </div>
     </label>
@@ -17,7 +22,11 @@
           <span data-cy="searchCategoryName" [ngClass]="{
             'break-all': hasLongWord(data.name, 20),
             'break-words': !hasLongWord(data.name, 20)
-            }" class="text-left justify-start text-wrap break-words">{{ data.name }}</span>
+            }" class="text-left justify-start text-wrap break-words">{{ data.name }}
+            @if (data?.count) {
+              <span class="ml-1 text-sm text-gray-400">({{ data?.count }})</span>
+            }
+          </span>
           <div class="justify-end inline-flex">
             <div data-cy="searchCategorySelect" class="justify-end" (click)="onClickCategory(data)">
               <input [checked]="isCheckedCategory(data)" type="checkbox" value="" class="hidden peer">
