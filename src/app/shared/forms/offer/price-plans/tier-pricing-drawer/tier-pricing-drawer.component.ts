@@ -410,4 +410,13 @@ export class TierPricingDrawerComponent implements OnInit {
            this.subRanges.length >= 2 &&
            this.subRanges.every(sr => sr.priceComponent !== null);
   }
+
+  // TrackBy functions to prevent unnecessary DOM re-rendering
+  trackByIndex(index: number): number {
+    return index;
+  }
+
+  trackBySubRangeId(_index: number, subRange: SubRange): string {
+    return subRange.id;
+  }
 }

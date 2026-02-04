@@ -232,6 +232,13 @@
           </div>
         }
 
+        <!-- Range Validation Error Message -->
+        @if(rangeValidationError) {
+          <div class="mb-4 p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-red-900 dark:text-red-200" role="alert">
+            <span class="font-medium">{{ rangeValidationError }}</span>
+          </div>
+        }
+
         <!-- Action Buttons -->
         <div class="flex justify-end space-x-3">
           <button data-cy="cancelPricePlan" type="button" (click)="closeDrawer()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded">
