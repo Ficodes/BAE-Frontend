@@ -1134,6 +1134,17 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       this.numberValue='';
     }else if(this.rangeCharSelected){
       console.log('range')
+      // Validate that fromValue < toValue
+      const fromVal = Number(this.fromValue);
+      const toVal = Number(this.toValue);
+      if (fromVal >= toVal) {
+        console.log('range validation error: valueFrom >= valueTo')
+        this.errorMessage = 'Invalid range: "From" value must be less than "To" value';
+        this.showError = true;
+        setTimeout(() => {this.showError = false}, 3000);
+        return;
+      }
+
       if(this.creatingChars.length==0){
         this.creatingChars.push({
           isDefault:true,
@@ -1147,7 +1158,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
           valueFrom:this.fromValue as any,
           valueTo:this.toValue as any,
           unitOfMeasure:this.rangeUnit})
-      } 
+      }
     } else {
       console.log('nothing')
     }
