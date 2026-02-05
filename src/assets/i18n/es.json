@@ -3,11 +3,6 @@
     "_no": "No",
 
     "dashboard": {
-    "header": {
-      "logo": "DOME Marketplace",
-      "login": "Login",
-      "getStarted": "Get Started"
-    },
     "nav": {
       "forCustomers": "For Customers",
       "forProviders": "For Providers",
@@ -147,25 +142,8 @@
       "title": "Ready to find out what DOME Marketplace can do for your business?",
       "discover": "Discover services",
       "publish": "Publish your service"
-    },
-    "footer": {
-      "aboutTitle": "About DOME",
-      "about": "About",
-      "governance": "Governance",
-      "partners": "Partners",
-      "marketplaceTitle": "Marketplace",
-      "browse": "Browse",
-      "legalTitle": "Legal",
-      "terms": "Terms",
-      "privacy": "Privacy",
-      "cookies": "Cookies",
-      "resourcesTitle": "Resources",
-      "documentation": "Documentation",
-      "support": "Support",
-      "faqs": "FAQs",
-      "follow-us": "Follow us"
     }
-},
+  },
 "europeTrademark": "Distributed Open Marketplace for Europe (DOME) Project has received funding from European Union’s Digital Europe Programme under the Grant Agreement No 101084071.",
     
 

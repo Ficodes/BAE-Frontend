@@ -2,18 +2,17 @@ import {Component, OnInit, SecurityContext } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import {   map, Subject, takeUntil} from 'rxjs'; 
 import { ProductOffering } from 'src/app/models/product.model';
-import { ApiServiceService } from 'src/app/services/product-service.service';
-import { DashboardFooterComponent } from './dashboard-footer/dashboard-footer.component';
-import { DashboardHeaderComponent } from './dashboard-header/dashboard-header.component';
+import { ApiServiceService } from 'src/app/services/product-service.service'; 
 import { TranslateModule } from '@ngx-translate/core';
 import { SlicePipe } from '@angular/common';
+import { EuropeTrademarkComponent } from 'src/app/shared/europe-trademark/europe-trademark.component';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
   standalone: true, 
-  imports: [DashboardFooterComponent, DashboardHeaderComponent, TranslateModule, SlicePipe],
+  imports: [ TranslateModule, SlicePipe, EuropeTrademarkComponent],
 })
 export class DashboardComponent  implements OnInit {
   private unSub = new Subject();
