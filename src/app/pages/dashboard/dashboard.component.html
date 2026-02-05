@@ -1,4 +1,4 @@
- <div class="page">
+<div class="page">
 
   <section class="hero">
     <div class="hero-inner">
@@ -14,17 +14,11 @@
         </p>
 
         <div class="hero-ctas">
-          <a
-            class="btn btn-primary"
-            href="https://onboarding.dome-marketplace.eu/#for-customers"
-          >
+          <a class="btn btn-primary" href="https://onboarding.dome-marketplace.eu/#for-customers">
             {{ "dashboard.hero.ctaCustomers" | translate }}
           </a>
 
-          <a
-            class="btn btn-outline btn-outline-inverse"
-            href="https://onboarding.dome-marketplace.eu/#for-providers"
-          >
+          <a class="btn btn-outline btn-outline-inverse" href="https://onboarding.dome-marketplace.eu/#for-providers">
             {{ "dashboard.hero.ctaProviders" | translate }}
           </a>
         </div>
@@ -99,41 +93,33 @@
       </div>
 
       <form role="search">
-        <input
-          type="search"
-          class="dd-marketplace-search"
-          [placeholder]="'dashboard.marketplace.searchPlaceholder' | translate"
-        />
+        <input type="search" class="dd-marketplace-search"
+          [placeholder]="'dashboard.marketplace.searchPlaceholder' | translate" (keypress)="goToSearch()"
+          (click)="goToSearch()" />
       </form>
 
       <div class="service-grid">
         @for (productOffering of productOfferings; track productOffering.id) {
-          <div class="service-card">
-            <h3>{{ productOffering.name }}</h3>
-            <div class="description-wrapper">
-              <p
-                class="text-truncate"
-                [innerHTML]="productOffering.description"
-              ></p>
-            </div>
-
-            <div class="tag-list">
-              @for (
-                category of productOffering.category
-                  | slice: 0 : MAX_CATEGORIES_PER_PRODUCT_OFFERING;
-                track category.id
-              ) {
-                <span class="tag">{{ category.name }}</span>
-              }
-            </div>
-
-            <a
-              class="btn btn-outline dd-mt-auto"
-              [href]="'/search;keywords=' + productOffering.name"
-            >
-              {{ "dashboard.marketplace.viewService" | translate }}
-            </a>
+        <div class="service-card">
+          <h3>{{ productOffering.name }}</h3>
+          <div class="description-wrapper">
+            <p class="text-truncate" [innerHTML]="productOffering.description"></p>
           </div>
+
+          <div class="tag-list">
+            @for (
+            category of productOffering.category
+            | slice: 0 : MAX_CATEGORIES_PER_PRODUCT_OFFERING;
+            track category.id
+            ) {
+            <span class="tag">{{ category.name }}</span>
+            }
+          </div>
+
+          <a class="btn btn-outline dd-mt-auto" [href]="'/search;keywords=' + productOffering.name">
+            {{ "dashboard.marketplace.viewService" | translate }}
+          </a>
+        </div>
         }
       </div>
 
@@ -186,18 +172,15 @@
 
             <ul class="disc ml-4">
               <li>
-                <strong>{{ "dashboard.customers.how.s1Title" | translate }}</strong
-                ><br />
+                <strong>{{ "dashboard.customers.how.s1Title" | translate }}</strong><br />
                 {{ "dashboard.customers.how.s1Text" | translate }}
               </li>
               <li>
-                <strong>{{ "dashboard.customers.how.s2Title" | translate }}</strong
-                ><br />
+                <strong>{{ "dashboard.customers.how.s2Title" | translate }}</strong><br />
                 {{ "dashboard.customers.how.s2Text" | translate }}
               </li>
               <li>
-                <strong>{{ "dashboard.customers.how.s3Title" | translate }}</strong
-                ><br />
+                <strong>{{ "dashboard.customers.how.s3Title" | translate }}</strong><br />
                 {{ "dashboard.customers.how.s3Text" | translate }}
               </li>
             </ul>
@@ -248,18 +231,15 @@
 
             <ul class="disc ml-4">
               <li>
-                <strong>{{ "dashboard.providers.how.s1Title" | translate }}</strong
-                ><br />
+                <strong>{{ "dashboard.providers.how.s1Title" | translate }}</strong><br />
                 {{ "dashboard.providers.how.s1Text" | translate }}
               </li>
               <li>
-                <strong>{{ "dashboard.providers.how.s2Title" | translate }}</strong
-                ><br />
+                <strong>{{ "dashboard.providers.how.s2Title" | translate }}</strong><br />
                 {{ "dashboard.providers.how.s2Text" | translate }}
               </li>
               <li>
-                <strong>{{ "dashboard.providers.how.s3Title" | translate }}</strong
-                ><br />
+                <strong>{{ "dashboard.providers.how.s3Title" | translate }}</strong><br />
                 {{ "dashboard.providers.how.s3Text" | translate }}
               </li>
             </ul>
@@ -324,7 +304,7 @@
     </div>
   </section>
 
-<app-europe-trademark></app-europe-trademark>
-
-
+  @if(providerThemeName === 'DOME') {
+  <app-europe-trademark></app-europe-trademark>
+  }
 </div>
