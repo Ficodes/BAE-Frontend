@@ -96,12 +96,10 @@ export class AppComponent implements OnInit {
           (event): event is NavigationEnd => event instanceof NavigationEnd,
         ),
       )
-      .subscribe((event) => {
+      .subscribe(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' }); // or just window.scrollTo(0, 0);
-        this.showHeaderAndFooter = this.shouldShowHeaderAndFooter(event.url);
       });
 
-    this.showHeaderAndFooter = this.shouldShowHeaderAndFooter(this.router.url);
   }
 
   /*checkPanel() {
@@ -114,8 +112,5 @@ export class AppComponent implements OnInit {
     }
   }*/
 
-  shouldShowHeaderAndFooter(url: string): boolean {
-    const routesWithoutHeader = ['/dashboard', '/'];
-    return !routesWithoutHeader.includes(url);
-  }
+ 
 }
