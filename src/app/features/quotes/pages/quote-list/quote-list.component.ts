@@ -217,6 +217,28 @@ import { environment } from 'src/environments/environment';
       (cancel)="showDeleteConfirm = false"
     ></app-confirm-dialog>
 
+    <!-- Accept Confirmation Dialog -->
+    <app-confirm-dialog
+      [isOpen]="showAcceptConfirm"
+      title="Accept Quote"
+      [message]="acceptConfirmMessage"
+      confirmText="Accept"
+      confirmButtonClass="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+      (confirm)="acceptConfirmCallback && acceptConfirmCallback()"
+      (cancel)="showAcceptConfirm = false"
+    ></app-confirm-dialog>
+
+    <!-- Cancel Confirmation Dialog -->
+    <app-confirm-dialog
+      [isOpen]="showCancelConfirm"
+      title="Cancel Quote"
+      [message]="cancelConfirmMessage"
+      confirmText="Cancel Quote"
+      confirmButtonClass="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+      (confirm)="cancelConfirmCallback && cancelConfirmCallback()"
+      (cancel)="showCancelConfirm = false"
+    ></app-confirm-dialog>
+
     <!-- State Update Modal -->
     <div *ngIf="showStateUpdate" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
       <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
@@ -374,6 +396,14 @@ export class QuoteListComponent implements OnInit {
   deleteConfirmMessage = '';
   quoteToDelete: Quote | null = null;
 
+  // Confirmation dialogs
+  showAcceptConfirm = false;
+  acceptConfirmMessage = '';
+  acceptConfirmCallback: (() => void) | null = null;
+  showCancelConfirm = false;
+  cancelConfirmMessage = '';
+  cancelConfirmCallback: (() => void) | null = null;
+
   // Data enrichment maps
   organizationNames: Map<string, string> = new Map();
   productNames: Map<string, string> = new Map();
@@ -518,11 +548,11 @@ export class QuoteListComponent implements OnInit {
         return this.productService.getProductById(id).then(
           (product: any) => {
             console.log('Product fetched:', id, product?.name);
-            return { id, name: product?.name || id };
+            return { id, name: product?.name || 'Product Name Unavailable' };
           },
           (error) => {
             console.error('Product fetch error:', id, error);
-            return { id, name: id }; // Fallback to ID on error
+            return { id, name: 'Product Name Unavailable' }; // Fallback to placeholder on error
           }
         );
       });
@@ -727,56 +757,54 @@ export class QuoteListComponent implements OnInit {
 
   acceptQuote(quote: Quote) {
     const shortId = this.extractShortId(quote.id);
-    const confirmAccept = confirm(`Are you sure you want to accept this request?`);
-    
-    if (!confirmAccept) {
-      return;
-    }
+    this.acceptConfirmMessage = 'Are you sure you want to accept this request?';
+    this.acceptConfirmCallback = () => {
+      console.log('Accepting quote request:', quote.id);
 
-    console.log('Accepting quote request:', quote.id);
-    
-    this.quoteService.updateQuoteStatus(quote.id!, 'inProgress').subscribe({
-      next: (updatedQuote) => {
-        const index = this.quotes.findIndex(q => q.id === updatedQuote.id);
-        if (index !== -1) {
-          this.quotes[index] = updatedQuote;
-          this.filterQuotesByStatus();
+      this.quoteService.updateQuoteStatus(quote.id!, 'inProgress').subscribe({
+        next: (updatedQuote) => {
+          const index = this.quotes.findIndex(q => q.id === updatedQuote.id);
+          if (index !== -1) {
+            this.quotes[index] = updatedQuote;
+            this.filterQuotesByStatus();
+          }
+          console.log('Quote request successfully accepted');
+          this.notificationService.showSuccess(`Quote request ${shortId} has been accepted and is now in progress.`);
+        },
+        error: (error) => {
+          console.error('Error accepting quote request:', error);
+          this.notificationService.showError(`Error accepting quote request: ${error.message || 'Unknown error'}`);
         }
-        console.log('Quote request successfully accepted');
-        this.notificationService.showSuccess(`Quote request ${shortId} has been accepted and is now in progress.`);
-      },
-      error: (error) => {
-        console.error('Error accepting quote request:', error);
-        this.notificationService.showError(`Error accepting quote request: ${error.message || 'Unknown error'}`);
-      }
-    });
+      });
+      this.showAcceptConfirm = false;
+    };
+    this.showAcceptConfirm = true;
   }
 
   acceptQuoteCustomer(quote: Quote) {
     const shortId = this.extractShortId(quote.id);
-    const confirmAccept = confirm(`Are you sure you want to accept the quotation?`);
-    
-    if (!confirmAccept) {
-      return;
-    }
+    this.acceptConfirmMessage = 'Are you sure you want to accept the quotation?';
+    this.acceptConfirmCallback = () => {
+      console.log('Customer accepting quotation:', quote.id);
 
-    console.log('Customer accepting quotation:', quote.id);
-    
-    this.quoteService.updateQuoteStatus(quote.id!, 'accepted').subscribe({
-      next: (updatedQuote) => {
-        const index = this.quotes.findIndex(q => q.id === updatedQuote.id);
-        if (index !== -1) {
-          this.quotes[index] = updatedQuote;
-          this.filterQuotesByStatus();
+      this.quoteService.updateQuoteStatus(quote.id!, 'accepted').subscribe({
+        next: (updatedQuote) => {
+          const index = this.quotes.findIndex(q => q.id === updatedQuote.id);
+          if (index !== -1) {
+            this.quotes[index] = updatedQuote;
+            this.filterQuotesByStatus();
+          }
+          console.log('Quotation successfully accepted by customer');
+          this.notificationService.showSuccess(`Quotation ${shortId} has been accepted successfully.`);
+        },
+        error: (error) => {
+          console.error('Error accepting quotation:', error);
+          this.notificationService.showError(`Error accepting quotation: ${error.message || 'Unknown error'}`);
         }
-        console.log('Quotation successfully accepted by customer');
-        this.notificationService.showSuccess(`Quotation ${shortId} has been accepted successfully.`);
-      },
-      error: (error) => {
-        console.error('Error accepting quotation:', error);
-        this.notificationService.showError(`Error accepting quotation: ${error.message || 'Unknown error'}`);
-      }
-    });
+      });
+      this.showAcceptConfirm = false;
+    };
+    this.showAcceptConfirm = true;
   }
 
   // Date picker methods
@@ -849,29 +877,28 @@ export class QuoteListComponent implements OnInit {
 
   cancelQuote(quote: Quote) {
     const shortId = this.extractShortId(quote.id);
-    const confirmCancel = confirm(`Are you sure you want to cancel quote ${shortId}?\n\nThis action cannot be undone and will disable all other quote actions.`);
-    
-    if (!confirmCancel) {
-      return;
-    }
+    this.cancelConfirmMessage = `Are you sure you want to cancel quote ${shortId}? This action cannot be undone and will disable all other quote actions.`;
+    this.cancelConfirmCallback = () => {
+      console.log('Cancelling quote:', quote.id);
 
-    console.log('Cancelling quote:', quote.id);
-    
-    this.quoteService.updateQuoteStatus(quote.id!, 'cancelled').subscribe({
-      next: (updatedQuote) => {
-        const index = this.quotes.findIndex(q => q.id === updatedQuote.id);
-        if (index !== -1) {
-          this.quotes[index] = updatedQuote;
-          this.filterQuotesByStatus();
+      this.quoteService.updateQuoteStatus(quote.id!, 'cancelled').subscribe({
+        next: (updatedQuote) => {
+          const index = this.quotes.findIndex(q => q.id === updatedQuote.id);
+          if (index !== -1) {
+            this.quotes[index] = updatedQuote;
+            this.filterQuotesByStatus();
+          }
+          console.log('Quote successfully cancelled');
+          this.notificationService.showSuccess(`Quote ${shortId} has been cancelled successfully.`);
+        },
+        error: (error) => {
+          console.error('Error cancelling quote:', error);
+          this.notificationService.showError(`Error cancelling quote: ${error.message || 'Unknown error'}`);
         }
-        console.log('Quote successfully cancelled');
-        this.notificationService.showSuccess(`Quote ${shortId} has been cancelled successfully.`);
-      },
-      error: (error) => {
-        console.error('Error cancelling quote:', error);
-        this.notificationService.showError(`Error cancelling quote: ${error.message || 'Unknown error'}`);
-      }
-    });
+      });
+      this.showCancelConfirm = false;
+    };
+    this.showCancelConfirm = true;
   }
 
   createOffer(quote: Quote) {

@@ -11,12 +11,13 @@ import { Quote } from '../../models/quote.model';
 import { QUOTE_STATUS_MESSAGES, QUOTE_CHAT_MESSAGES, QUOTE_ACTION_BUTTON_TEXTS } from '../../models/quote.constants';
 import { NotificationComponent } from '../notification/notification.component';
 import { ChatModalComponent } from '../chat-modal/chat-modal.component';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-quote-details-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, NotificationComponent, ChatModalComponent],
+  imports: [CommonModule, FormsModule, NotificationComponent, ChatModalComponent, ConfirmDialogComponent],
   template: `
     <!-- Modal Backdrop -->
     <div
@@ -181,13 +182,13 @@ import { environment } from 'src/environments/environment';
                   (change)="onFileSelected($event)"
                 />
               </label>
-              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Maximum file size: 2.5MB</p>
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Maximum file size: 10MB</p>
               <p *ngIf="isUploading" class="text-sm text-gray-500 mt-2">Uploading...</p>
             </div>
           </div>
 
           <!-- Action Buttons Section -->
-          <div *ngIf="!isQuoteFinalized()" class="border-t dark:border-gray-700 pt-4">
+          <div *ngIf="hasActionButtons()" class="border-t dark:border-gray-700 pt-4">
             <div class="space-y-3">
               <!-- Provider: Accept Quote (when pending) -->
               <div *ngIf="currentUserRole === 'seller' && getPrimaryState() === 'pending'" class="flex items-center justify-between">
@@ -229,7 +230,7 @@ import { environment } from 'src/environments/environment';
                 {{ ACTION_TEXTS.CANCEL_QUOTE_PROVIDER }}
               </p>
               <button
-                (click)="rejectQuote()"
+                (click)="cancelQuote()"
                 [disabled]="isProcessing"
                 class="flex items-center gap-2 px-4 py-2 bg-white text-red-600 border border-red-300 rounded-md hover:bg-red-50 disabled:opacity-50"
               >
@@ -315,6 +316,17 @@ import { environment } from 'src/environments/environment';
         </div>
       </div>
     </div>
+
+    <!-- Confirmation Dialog -->
+    <app-confirm-dialog
+      [isOpen]="showConfirmDialog"
+      [title]="confirmDialogTitle"
+      [message]="confirmDialogMessage"
+      [confirmText]="confirmDialogButtonText"
+      [confirmButtonClass]="confirmDialogButtonClass"
+      (confirm)="confirmDialogCallback && confirmDialogCallback()"
+      (cancel)="showConfirmDialog = false"
+    ></app-confirm-dialog>
   `
 })
 export class QuoteDetailsModalComponent implements OnInit, OnChanges {
@@ -330,6 +342,14 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
   error: string | null = null;
   isProcessing = false;
   isUploading = false;
+
+  // Confirmation dialogs
+  showConfirmDialog = false;
+  confirmDialogTitle = '';
+  confirmDialogMessage = '';
+  confirmDialogCallback: (() => void) | null = null;
+  confirmDialogButtonText = 'Confirm';
+  confirmDialogButtonClass = 'px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
 
   // Data enrichment
   buyerName = 'Loading...';
@@ -464,17 +484,40 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
       p.role?.toLowerCase() === 'selleroperator'
     );
 
-    // Get VAT IDs from relatedParty name field
-    this.buyerVatId = buyer?.name || 'N/A';
-    this.buyerOperatorVatId = buyerOperator?.name || 'N/A';
-    this.sellerVatId = seller?.name || 'N/A';
-    this.sellerOperatorVatId = sellerOperator?.name || 'N/A';
+    // Helper function to clean IDs by removing URN and did:elsi prefixes
+    const cleanId = (id: string | undefined): string => {
+      if (!id) return 'N/A';
+      // Remove urn:ngsi-ld:organization: prefix
+      let cleaned = id.replace(/^urn:ngsi-ld:organization:/, '');
+      // Remove did:elsi: prefix
+      cleaned = cleaned.replace(/^did:elsi:/, '');
+      return cleaned;
+    };
+
+    // Helper function to strip "did:elsi:" prefix from VAT IDs
+    const cleanVatId = (vatId: string | undefined): string => {
+      if (!vatId) return 'N/A';
+      return vatId.replace(/^did:elsi:/, '');
+    };
+
+
+
+    // Get VAT IDs from relatedParty name field and clean them
+    this.buyerVatId = cleanVatId(buyer?.name);
+    this.buyerOperatorVatId = cleanVatId(buyerOperator?.name);
+    this.sellerVatId = cleanVatId(seller?.name);
+    this.sellerOperatorVatId = cleanVatId(sellerOperator?.name);
 
     // Fetch party names (only calls API for organization IDs)
-    this.fetchPartyName(buyer?.id, (name) => this.buyerName = name);
-    this.fetchPartyName(buyerOperator?.id, (name) => this.buyerOperatorName = name);
-    this.fetchPartyName(seller?.id, (name) => this.sellerName = name);
-    this.fetchPartyName(sellerOperator?.id, (name) => this.sellerOperatorName = name);
+    // For operators without org IDs, name stays as 'N/A'
+    this.fetchPartyName(buyer?.id, (name) => this.buyerName = name, 'N/A');
+    if (this.isOrganizationId(buyerOperator?.id)) {
+      this.fetchPartyName(buyerOperator?.id, (name) => this.buyerOperatorName = name, 'N/A');
+    }
+    this.fetchPartyName(seller?.id, (name) => this.sellerName = name, 'N/A');
+    if (this.isOrganizationId(sellerOperator?.id)) {
+      this.fetchPartyName(sellerOperator?.id, (name) => this.sellerOperatorName = name, 'N/A');
+    }
 
     // Fetch product info
     const productOfferingId = this.quote.quoteItem?.[0]?.productOffering?.id;
@@ -581,6 +624,23 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
     return '';
   }
 
+  hasActionButtons(): boolean {
+    // Check if there are any action buttons to display
+    const state = this.getPrimaryState();
+
+    // Provider: Accept Quote (when pending)
+    if (this.currentUserRole === 'seller' && state === 'pending') {
+      return true;
+    }
+
+    // Customer: Accept Proposal (when approved)
+    if (this.currentUserRole === 'customer' && state === 'approved') {
+      return true;
+    }
+
+    return false;
+  }
+
   downloadAttachment() {
     if (!this.quote) return;
     try {
@@ -601,10 +661,10 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
       return;
     }
 
-    // Check file size (2.5MB = 2.5 * 1024 * 1024 bytes)
-    const maxSizeBytes = 2.5 * 1024 * 1024;
+    // Check file size (10MB = 10 * 1024 * 1024 bytes)
+    const maxSizeBytes = 10 * 1024 * 1024;
     if (file.size > maxSizeBytes) {
-      this.notificationService.showError('File size exceeds the maximum limit of 2.5MB');
+      this.notificationService.showError('File size exceeds the maximum limit of 10MB');
       return;
     }
 
@@ -650,80 +710,99 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
   acceptQuote() {
     if (!this.quote?.id || this.isProcessing) return;
 
-    if (!confirm('Are you sure you want to accept this quote request?')) return;
+    this.confirmDialogTitle = 'Accept Quote Request';
+    this.confirmDialogMessage = 'Are you sure you want to accept this quote request?';
+    this.confirmDialogButtonText = 'Accept';
+    this.confirmDialogButtonClass = 'px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500';
+    this.confirmDialogCallback = () => {
+      this.isProcessing = true;
+      const quoteId = this.quote!.id!;
 
-    this.isProcessing = true;
-    const quoteId = this.quote.id;
-
-    this.quoteService.updateQuoteStatus(quoteId, 'inProgress').pipe(
-      switchMap((updatedQuote) => {
-        this.quote = updatedQuote;
-        return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE('inProgress'), this.currentUserId);
-      })
-    ).subscribe({
-      next: () => {
-        this.isProcessing = false;
-        this.notificationService.showSuccess('Quote request accepted');
-        this.quoteUpdated.emit(this.quote!);
-      },
-      error: (error) => {
-        this.isProcessing = false;
-        this.notificationService.showError('Failed to accept quote');
-      }
-    });
+      this.quoteService.updateQuoteStatus(quoteId, 'inProgress').pipe(
+        switchMap((updatedQuote) => {
+          this.quote = updatedQuote;
+          return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE('inProgress'), this.currentUserId);
+        })
+      ).subscribe({
+        next: () => {
+          this.isProcessing = false;
+          this.notificationService.showSuccess('Quote request accepted');
+          this.quoteUpdated.emit(this.quote!);
+        },
+        error: (error) => {
+          this.isProcessing = false;
+          this.notificationService.showError('Failed to accept quote');
+        }
+      });
+      this.showConfirmDialog = false;
+    };
+    this.showConfirmDialog = true;
   }
 
   acceptProposal() {
     if (!this.quote?.id || this.isProcessing) return;
 
-    if (!confirm('Are you sure you want to accept this quote proposal?')) return;
+    this.confirmDialogTitle = 'Accept Quote Proposal';
+    this.confirmDialogMessage = 'Are you sure you want to accept this quote proposal?';
+    this.confirmDialogButtonText = 'Accept';
+    this.confirmDialogButtonClass = 'px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500';
+    this.confirmDialogCallback = () => {
+      this.isProcessing = true;
+      const quoteId = this.quote!.id!;
 
-    this.isProcessing = true;
-    const quoteId = this.quote.id;
-
-    this.quoteService.updateQuoteStatus(quoteId, 'accepted').pipe(
-      switchMap((updatedQuote) => {
-        this.quote = updatedQuote;
-        return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE('accepted'), this.currentUserId);
-      })
-    ).subscribe({
-      next: () => {
-        this.isProcessing = false;
-        this.notificationService.showSuccess('Quote proposal accepted');
-        this.quoteUpdated.emit(this.quote!);
-      },
-      error: (error) => {
-        this.isProcessing = false;
-        this.notificationService.showError('Failed to accept proposal');
-      }
-    });
+      this.quoteService.updateQuoteStatus(quoteId, 'accepted').pipe(
+        switchMap((updatedQuote) => {
+          this.quote = updatedQuote;
+          return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE('accepted'), this.currentUserId);
+        })
+      ).subscribe({
+        next: () => {
+          this.isProcessing = false;
+          this.notificationService.showSuccess('Quote proposal accepted');
+          this.quoteUpdated.emit(this.quote!);
+        },
+        error: (error) => {
+          this.isProcessing = false;
+          this.notificationService.showError('Failed to accept proposal');
+        }
+      });
+      this.showConfirmDialog = false;
+    };
+    this.showConfirmDialog = true;
   }
 
-  rejectQuote() {
+  cancelQuote() {
     if (!this.quote?.id || this.isProcessing) return;
 
-    if (!confirm('Are you sure you want to cancel this quote?')) return;
+    this.confirmDialogTitle = 'Cancel Quote';
+    this.confirmDialogMessage = 'Are you sure you want to cancel this quote?';
+    this.confirmDialogButtonText = 'Cancel Quote';
+    this.confirmDialogButtonClass = 'px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500';
+    this.confirmDialogCallback = () => {
+      this.isProcessing = true;
+      const quoteId = this.quote!.id!;
+      const newStatus = 'cancelled';
 
-    this.isProcessing = true;
-    const quoteId = this.quote.id;
-    const newStatus = 'cancelled';
-
-    this.quoteService.updateQuoteStatus(quoteId, newStatus).pipe(
-      switchMap((updatedQuote) => {
-        this.quote = updatedQuote;
-        return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE(newStatus), this.currentUserId);
-      })
-    ).subscribe({
-      next: () => {
-        this.isProcessing = false;
-        this.notificationService.showSuccess('Quote cancelled');
-        this.quoteUpdated.emit(this.quote!);
-      },
-      error: (error) => {
-        this.isProcessing = false;
-        this.notificationService.showError('Failed to cancel quote');
-      }
-    });
+      this.quoteService.updateQuoteStatus(quoteId, newStatus).pipe(
+        switchMap((updatedQuote) => {
+          this.quote = updatedQuote;
+          return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE(newStatus), this.currentUserId);
+        })
+      ).subscribe({
+        next: () => {
+          this.isProcessing = false;
+          this.notificationService.showSuccess('Quote cancelled');
+          this.quoteUpdated.emit(this.quote!);
+          this.closeModal(); // Close modal after successful cancellation
+        },
+        error: (error) => {
+          this.isProcessing = false;
+          this.notificationService.showError('Failed to cancel quote');
+        }
+      });
+      this.showConfirmDialog = false;
+    };
+    this.showConfirmDialog = true;
   }
 
   saveExpectedDate() {
