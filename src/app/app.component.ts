@@ -25,6 +25,7 @@ export class AppComponent implements OnInit {
   showPanel = false;
   providerThemeName=environment.providerThemeName;
   isProduction:boolean = environment.isProduction;
+  showHeaderAndFooter = false;
 
   constructor(private translate: TranslateService,
               private localStorage: LocalStorageService,
