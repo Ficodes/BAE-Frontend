@@ -12,9 +12,15 @@ import { EventMessageService } from 'src/app/services/event-message.service';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
 import { LoginServiceService } from 'src/app/services/login-service.service';
 import { ApiServiceService } from 'src/app/services/product-service.service';
+import { StatsServiceService } from 'src/app/services/stats-service.service';
 import { EuropeTrademarkComponent } from 'src/app/shared/europe-trademark/europe-trademark.component';
 import { ThemeConfig } from 'src/app/themes';
 import { environment } from 'src/environments/environment';
+
+interface Stats {
+  services: number;
+  providers: number;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -31,6 +37,8 @@ export class DashboardComponent implements OnInit {
   providerThemeName = environment.providerThemeName;
   currentTheme: ThemeConfig | null = null;
 
+  stats?: Stats;
+
   constructor(
     private productService: ApiServiceService,
     private domSanitizer: DomSanitizer,
@@ -39,16 +47,25 @@ export class DashboardComponent implements OnInit {
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
     private cdr: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
+    private statsService: StatsServiceService
   ) { }
 
   ngOnInit() {
     this.getFirstThreeRandomProductOfferings();
     this.checkRouteForToken();
+    this.getStats()
   }
 
 
-
+  private getStats() {
+    this.statsService.getStats().then(data => {
+      this.stats = {
+        services: data?.services?.length || 0,
+        providers: data?.organizations?.length || 0
+      }
+    })
+  }
 
   private checkRouteForToken() {
     if (this.route.snapshot.queryParamMap.get('token') != null) {
@@ -57,7 +74,7 @@ export class DashboardComponent implements OnInit {
         console.log(data)
         console.log(data.username)
 
-        let info = {
+        const info = {
           "id": data.id,
           "user": data.username,
           "email": data.email,
@@ -83,7 +100,7 @@ export class DashboardComponent implements OnInit {
       this.router.navigate(['/dashboard'])
     } else {
       console.log('sin token')
-      let aux = this.localStorage.getObject('login_items') as LoginInfo;
+      const aux = this.localStorage.getObject('login_items') as LoginInfo;
       if (JSON.stringify(aux) != '{}') {
         console.log(aux)
         console.log('moment')
