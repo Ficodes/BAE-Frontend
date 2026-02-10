@@ -12,8 +12,10 @@ jobs:
     steps:
       - name: Check if system testing is activated
         id: check_activation
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          ACTIVATE=$(echo '${{ github.event.pull_request.body }}' | grep '^SYSTEM_TESTING:' | sed 's/SYSTEM_TESTING: *//' | tr -d '[:space:]')
+          ACTIVATE=$(echo "$PR_BODY" | grep '^SYSTEM_TESTING:' | sed 's/SYSTEM_TESTING: *//' | tr -d '[:space:]')
           echo "System testing activation: '$ACTIVATE'"
           if [[ "$ACTIVATE" == "ACTIVATE" ]]; then
             echo "activated=true" >> $GITHUB_OUTPUT
@@ -25,19 +27,21 @@ jobs:
 
       - name: Trigger Repository Dispatch
         if: steps.check_activation.outputs.activated == 'true'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           echo "Parsing PR body for dependencies..."
 
           # Parse PROXY dependency
-          PROXY_LOCATION=$(echo '${{ github.event.pull_request.body }}' | grep '^PROXY:' | sed 's/PROXY: *//' | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
+          PROXY_LOCATION=$(echo "$PR_BODY" | grep '^PROXY:' | sed 's/PROXY: *//' | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
           echo "Proxy location: $PROXY_LOCATION"
 
           # Parse CHARGING dependency
-          CHARGING_LOCATION=$(echo '${{ github.event.pull_request.body }}' | grep '^CHARGING:' | sed 's/CHARGING: *//' | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
+          CHARGING_LOCATION=$(echo "$PR_BODY" | grep '^CHARGING:' | sed 's/CHARGING: *//' | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
           echo "Charging location: $CHARGING_LOCATION"
 
           # Parse TM_VERSION
-          TM_VERSION=$(echo '${{ github.event.pull_request.body }}' | grep '^TM_VERSION:' | sed 's/TM_VERSION: *//' | xargs)
+          TM_VERSION=$(echo "$PR_BODY" | grep '^TM_VERSION:' | sed 's/TM_VERSION: *//' | xargs)
           echo "TMForum API version: $TM_VERSION"
 
           # Default values (using upstream FIWARE-TMForum repos)
