@@ -91,7 +91,7 @@ export const QUOTE_CHAT_MESSAGES = {
  * Action button helper texts displayed next to buttons in quote details modal
  */
 export const QUOTE_ACTION_BUTTON_TEXTS = {
-  ACCEPT_QUOTE_PROVIDER: 'Accept the request of the customer.',
+  ACCEPT_QUOTE_PROVIDER: 'Accept the request of the customer. Set an expected delivery Date first to proceed.',
   ACCEPT_PROPOSAL_CUSTOMER: 'Accept the proposal that has been sent to you by the provider.',
   CANCEL_QUOTE_PROVIDER: 'Cancel the quote request.',
   REJECT_PROPOSAL_CUSTOMER: 'Reject the proposal.',

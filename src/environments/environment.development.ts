@@ -19,7 +19,7 @@ export const environment = {
     BILLING: '/billing',
     CHARGING: '/charging',
 
-    searchOrganizationsEndpoint: '/api/searchOrganizations',
+    searchOrganizationsEndpoint: '/search/api/searchOrganizations',
     //searchOrganizationsEndpoint: 'org-api/searchOrganizations',
 
     CUSTOMER_BILLING: '/customerBill',
