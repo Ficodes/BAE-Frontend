@@ -63,8 +63,12 @@ export class PriceComponentDrawerComponent implements OnInit {
     }, 50);
 
     for(let i=0;i<this.prodChars.length;i++){
-      if (!certifications.some(certification => certification.name === this.prodChars[i].name) && !this.prodChars[i].name.startsWith('Compliance:') &&
-          !this.prodChars[i].name.endsWith(' - enabled')) {
+      if (!certifications.some(certification => certification.name === this.prodChars[i].name)
+          && !this.prodChars[i].name.startsWith('Compliance:')
+          && !this.prodChars[i].name.endsWith(' - enabled')
+          && this.prodChars[i].valueType != 'credentialsConfiguration'
+          && this.prodChars[i].valueType != 'authorizationPolicy') {
+
         this.filteredChars.push(this.prodChars[i]);
       }
     }
@@ -189,6 +193,7 @@ export class PriceComponentDrawerComponent implements OnInit {
       id: this.selectedCharacteristic.id,
       name: this.selectedCharacteristic.name,
       description: this.selectedCharacteristic.description || '',
+      valueType: this.selectedCharacteristic.valueType
     }
 
     // Add the productSpecCharacteristicValue only if needed

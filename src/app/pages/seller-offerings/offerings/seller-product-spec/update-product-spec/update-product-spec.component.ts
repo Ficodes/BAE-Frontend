@@ -385,6 +385,8 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
             id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
             name: this.prod.productSpecCharacteristic[i].name,
             description: this.prod.productSpecCharacteristic[i].description ? this.prod.productSpecCharacteristic[i].description : '',
+            valueType: this.prod.productSpecCharacteristic[i].valueType,
+            '@schemaLocation': this.prod.productSpecCharacteristic[i]['@schemaLocation'],
             productSpecCharacteristicValue: this.prod.productSpecCharacteristic[i].productSpecCharacteristicValue
           });
         }
@@ -1572,11 +1574,10 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
         lifecycleStatus: this.prodStatus,
         //isBundle: this.bundleChecked,
         //bundledProductSpecification: this.prodSpecsBundle,
-        productSpecCharacteristic: this.finishChars,
         productSpecificationRelationship: rels,
         attachment: this.prodAttachments,
         resourceSpecification: this.selectedResourceSpecs,
-        serviceSpecification: this.selectedServiceSpecs  
+        serviceSpecification: this.selectedServiceSpecs
       }
     }
   }
