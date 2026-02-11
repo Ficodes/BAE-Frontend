@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, Input, OnDestroy } from '@angular/core';
-import { LoginInfo } from 'src/app/models/interfaces';
+import { LoginInfo, billingAccountCart } from 'src/app/models/interfaces';
 import { ProductInventoryServiceService } from 'src/app/services/product-inventory-service.service';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { ProductOrderService } from 'src/app/services/product-order-service.service';
@@ -18,6 +18,8 @@ import { LocalStorageService } from 'src/app/services/local-storage.service';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
+import { AccountServiceService } from 'src/app/services/account-service.service';
 
 @Component({
   selector: 'inventory-products',
@@ -63,6 +65,13 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
   checkFrom:boolean=true;
   private destroy$ = new Subject<void>();
 
+  isModifyDrawerOpen:boolean = false;
+  selectedProdSpec:any;
+  billingAddresses: billingAccountCart[] = [];
+  selectedBillingAddress: any = null;
+  showBillingSelector: boolean = false;
+  pendingModifyPayload: any = null;
+
   constructor(
     private inventoryService: ProductInventoryServiceService,
     private localStorage: LocalStorageService,
@@ -72,7 +81,8 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
     private router: Router,
     private orderService: ProductOrderService,
     private eventMessage: EventMessageService,
-    private paginationService: PaginationService
+    private paginationService: PaginationService,
+    private accountService: AccountServiceService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -257,6 +267,7 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
     console.log('is prod spec undefined?')
     console.log(this.selectedProduct.product)
     let spec = await this.api.getProductSpecification(this.selectedProduct.product.productSpecification.id)
+    this.selectedProdSpec = spec;
     if(spec.serviceSpecification != undefined){
       for(let j=0; j < spec.serviceSpecification.length; j++){
         let serv = await this.api.getServiceSpec(spec.serviceSpecification[j].id);
@@ -321,7 +332,114 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
-    }   
+    }
+  }
+
+  async openModifyFromCard(inv: any) {
+    await this.selectProduct(inv);
+    this.showDetails = false;
+    this.isModifyDrawerOpen = true;
+  }
+
+  async onModifySubmit(orderItem: any) {
+    this.pendingModifyPayload = orderItem;
+    await this.getBilling();
+    this.showBillingSelector = true;
+  }
+
+  async getBilling() {
+    this.selectedBillingAddress = null;
+    this.billingAddresses = [];
+    let data = await this.accountService.getBillingAccount();
+    for (let i = 0; i < data.length; i++) {
+      let isBillSelected = false;
+      let email = '';
+      let phone = '';
+      let phoneType = '';
+      let address = {
+        city: '',
+        country: '',
+        postCode: '',
+        stateOrProvince: '',
+        street: ''
+      };
+      if (data[i].contact) {
+        for (let j = 0; j < data[i].contact[0].contactMedium.length; j++) {
+          if (data[i].contact[0].contactMedium[j].mediumType == 'Email') {
+            email = data[i].contact[0].contactMedium[j].characteristic.emailAddress;
+          } else if (data[i].contact[0].contactMedium[j].mediumType == 'PostalAddress') {
+            address = {
+              city: data[i].contact[0].contactMedium[j].characteristic.city,
+              country: data[i].contact[0].contactMedium[j].characteristic.country,
+              postCode: data[i].contact[0].contactMedium[j].characteristic.postCode,
+              stateOrProvince: data[i].contact[0].contactMedium[j].characteristic.stateOrProvince,
+              street: data[i].contact[0].contactMedium[j].characteristic.street1
+            };
+          } else if (data[i].contact[0].contactMedium[j].mediumType == 'TelephoneNumber') {
+            phone = data[i].contact[0].contactMedium[j].characteristic.phoneNumber;
+            phoneType = data[i].contact[0].contactMedium[j].characteristic.contactType;
+          }
+          if (data[i].contact[0].contactMedium[j].preferred == true) {
+            isBillSelected = true;
+          }
+        }
+      }
+      const baddr: billingAccountCart = {
+        id: data[i].id,
+        href: data[i].href,
+        name: data[i].name,
+        email: email ?? '',
+        postalAddress: address ?? {},
+        telephoneNumber: phone ?? '',
+        telephoneType: phoneType ?? '',
+        selected: isBillSelected
+      };
+      this.billingAddresses.push(baddr);
+      if (isBillSelected) {
+        this.selectedBillingAddress = baddr;
+      }
+    }
+    this.cdr.detectChanges();
+  }
+
+  onBillingSelected(baddr: billingAccountCart) {
+    this.selectedBillingAddress = baddr;
+  }
+
+  async confirmModify() {
+    if (!this.pendingModifyPayload || !this.selectedBillingAddress) return;
+
+    const productOrder = {
+      productOrderItem: [this.pendingModifyPayload],
+      relatedParty: [{ id: this.partyId, href: this.partyId, role: environment.BUYER_ROLE }],
+      billingAccount: { id: this.selectedBillingAddress.id, href: this.selectedBillingAddress.id },
+      priority: '4'
+    };
+
+    try {
+      const response = await firstValueFrom(this.orderService.postProductOrder(productOrder));
+      const redirectUrl = response.headers.get('X-Redirect-URL');
+
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      } else {
+        this.showBillingSelector = false;
+        this.pendingModifyPayload = null;
+        this.getInventory(false);
+      }
+    } catch (error: any) {
+      console.error('Error submitting modify order:', error);
+      if (error.error?.error) {
+        this.errorMessage = 'Error: ' + error.error.error;
+      } else {
+        this.errorMessage = 'There was an error while modifying the product!';
+      }
+      this.showError = true;
+      setTimeout(() => {
+        this.showError = false;
+      }, 3000);
+    }
+    this.showBillingSelector = false;
   }
 
 }

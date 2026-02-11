@@ -41,7 +41,11 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
   @Input() prodSpec:ProductSpecification = {};
   @Input() isOpen: boolean = false; // drawer status
   @Input() width: string = 'w-80'; // manages width
+  @Input() mode: 'cart' | 'modify' = 'cart';
+  @Input() inventoryProductId: string | null = null;
+  @Input() existingCharacteristics: any[] = [];
   @Output() closeDrawer = new EventEmitter<void>(); // Event to notify the closing of the drawer
+  @Output() modifySubmit = new EventEmitter<any>();
 
   form: FormGroup;
 
@@ -484,7 +488,7 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     //PROD is an OrderItem
     let prod : any = {
       "id": this.productOff?.id,
-      "action": "add",
+      "action": this.mode === 'modify' ? "modify" : "add",
       "quantity": "1",
       "productOffering": {
         "id": this.productOff?.id,
@@ -500,6 +504,10 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
       "product": {
         "productCharacteristic": this.orderChars
       }
+    }
+
+    if (this.mode === 'modify' && this.inventoryProductId) {
+      prod.product.id = this.inventoryProductId;
     }
 
     let usage: any = [];
@@ -578,6 +586,33 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
       await this.calculatePrice(true);
     } catch (error) {
       console.error('Error calculating price:', error);
+      return;
+    }
+
+    if (this.mode === 'modify') {
+      const selectedPricePlan = formValues.selectedPricePlan;
+      const orderItem: any = {
+        id: this.productOff?.id,
+        action: 'modify',
+        quantity: '1',
+        productOffering: {
+          id: this.productOff?.id,
+          href: this.productOff?.id
+        },
+        itemTotalPrice: [{
+          productOfferingPrice: {
+            id: selectedPricePlan.id,
+            href: selectedPricePlan.href,
+            name: selectedPricePlan.name
+          }
+        }],
+        product: {
+          id: this.inventoryProductId,
+          productCharacteristic: this.orderChars
+        }
+      };
+      this.modifySubmit.emit(orderItem);
+      this.onClose();
       return;
     }
 

@@ -376,7 +376,10 @@
         "_cancel_sub": "Are you sure you want to cancel this subscription?",
         "_cancel": "No, cancel",
         "_yes_sure": "Yes, I'm sure",
-        "_renew_sub": "Are you sure you want to renew this subscription?"
+        "_renew_sub": "Are you sure you want to renew this subscription?",
+        "_modify_chars": "Modify Characteristics",
+        "_select_billing": "Select a billing address",
+        "_confirm_modify": "Confirm Modification"
     },
     "BILLING": {
         "_title": "Title",
