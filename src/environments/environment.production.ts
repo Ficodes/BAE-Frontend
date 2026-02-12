@@ -18,7 +18,7 @@ export const environment = {
     BILLING: '/billing',
     CHARGING: '/charging',
 
-    searchOrganizationsEndpoint: '/search/api/searchOrganizations',
+    searchOrganizationsEndpoint: '/search-bck/api/searchOrganizations',
 
     CONSUMER_BILLING_URL: 'http://localhost:8640',
     INVOICE_LIMIT: 100,
