@@ -21,7 +21,7 @@
   --dome-dashboard-shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.04);
 }
 
-* {
+.page * {
   box-sizing: border-box;
 }
 .page {
@@ -35,18 +35,18 @@
   color: var(--dome-dashboard-gray-900);
   line-height: 1.6;
 }
-h1,
-h2,
-h3 {
+.page h1,
+.page h2,
+.page h3 {
   font-weight: 600;
   letter-spacing: -0.02em;
 }
-img {
+.page img {
   display: block;
   max-width: 100%;
 }
 
-section {
+.page section {
   padding: 5rem 0;
 }
 .section-inner {

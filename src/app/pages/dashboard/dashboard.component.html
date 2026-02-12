@@ -1,3 +1,4 @@
+@if (providerThemeName === 'DOME') {
 <div class="page">
 
   <section class="hero">
@@ -304,7 +305,73 @@
     </div>
   </section>
 
-  @if(providerThemeName === 'DOME') {
   <app-europe-trademark></app-europe-trademark>
-  }
 </div>
+} @else {
+<div class="dark:bg-tertiary-50">
+  <section id="jumbo" class="w-full">
+    <div class="pt-8 pb-8 px-4 w-full text-left lg:pt-16 lg:px-12 bg-cover bg-right-bottom items-center justify-between"
+      [style.background-image]="'url(' + currentTheme?.assets?.jumboBgUrl + ')'">
+      <div class="flex flex-col md:flex-row justify-between px-4 mx-auto max-w-screen-xl">
+        <div data-cy="mainText">
+          <h1 class="mb-4 text-left text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl text-secondary-50">{{
+            'DASHBOARD._header' | translate }}</h1>
+          <p class="text-left mb-8 text-lg font-normal lg:text-xl text-secondary-50">{{ 'DASHBOARD._subheader' | translate }}</p>
+          <button data-cy="browseServicesDashboard" id="browseServices" (click)="goToSearch()"
+            class="inline-flex justify-left items-center border border-1 border-white py-3 px-5 text-base font-medium text-center text-white rounded-lg hover:bg-primary-50 ">
+            <svg class=" mr-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd"
+                d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                clip-rule="evenodd"></path>
+            </svg>
+            {{ 'DASHBOARD._browse_serv' | translate }}
+          </button>
+        </div>
+        <div class="mt-4 md:mt-0 bg-secondary-300 bg-opacity-50 rounded-lg w-full md:w-1/4 h-[300px]">
+          <div class="w-full p-8 rounded-lg shadow-lg h-[300px] flex flex-col justify-between">
+            <div class="flex flex-col">
+              <p data-cy="vServices" class="mb-2 text-left text-lg font-normal lg:text-xl text-secondary-50 h-fit">{{services.length}}
+                verified services</p>
+              @for (serv of services; track serv; let pos = $index) {
+                @if (currentIndexServ === pos) {
+                <a data-cy="nameServices" [style.display]="'-webkit-box'" [style.webkitBoxOrient]="'vertical'"
+                  [style.webkitLineClamp]="'2'" [class.break-all]="hasLongWord(serv, 20)"
+                  [class.break-words]="!hasLongWord(serv, 20)"
+                  class="text-md text-wrap line-clamp-2 mb-2 font-medium block items-center px-2.5 py-0.5 rounded-md text-primary-100 bg-secondary-50 w-fit animate-in">
+                  {{ serv }}
+                </a>
+                }
+              }
+            </div>
+
+            <div class="flex flex-col">
+              <p data-cy="rPublishers" class="mb-2 text-left text-lg font-normal lg:text-xl text-secondary-50">{{publishers.length}}
+                registered providers</p>
+              @for (pub of publishers; track pub; let pos = $index) {
+                @if (currentIndexPub === pos) {
+                <a data-cy="nameOrgs" [style.display]="'-webkit-box'" [style.webkitBoxOrient]="'vertical'"
+                  [style.webkitLineClamp]="'2'" [class.break-all]="hasLongWord(pub, 20)"
+                  [class.break-words]="!hasLongWord(pub, 20)"
+                  class="text-md text-wrap line-clamp-2 font-medium block items-center px-2.5 py-0.5 rounded-md text-primary-100 bg-secondary-50 w-fit animate-in">
+                  {{ pub }}
+                </a>
+                }
+              }
+            </div>
+
+            <a data-cy="publishOff" id="registerHere" href="{{domeRegister}}" target="_blank"
+              class="flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-900">
+              <svg class="mr-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd"
+                  d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                  clip-rule="evenodd"></path>
+              </svg>
+              {{ 'HEADER._register_here' | translate }}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+}
