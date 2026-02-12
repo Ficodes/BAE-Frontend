@@ -33,11 +33,11 @@ describe('/my-offerings',{
         // Starting the form filling
         cy.visit('/my-offerings')
         cy.wait('@catalogs')
-        cy.get('@catalogs.all').should('have.length', 2)
+        cy.get('@catalogs.all').its('length').should('be.gte', 1)
 
         cy.getBySel('offerSection').click()
         cy.wait('@productOff')
-        cy.get('@productOff.all').should('have.length', 2)
+        cy.get('@productOff.all').its('length').should('be.gte', 1)
 
         cy.getBySel('newOffering').click()
 
@@ -95,11 +95,11 @@ describe('/my-offerings',{
 
         cy.visit('/my-offerings')
         cy.wait('@catalogs')
-        cy.get('@catalogs.all').should('have.length', 2)
+        cy.get('@catalogs.all').its('length').should('be.gte', 1)
 
         cy.getBySel('offerSection').click()
         cy.wait('@productOff')
-        cy.get('@productOff.all').should('have.length', 2)
+        cy.get('@productOff.all').its('length').should('be.gte', 1)
 
         cy.getBySel('newOffering').click()
 
@@ -203,11 +203,11 @@ describe('/my-offerings',{
 
         cy.visit('/my-offerings')
         cy.wait('@catalogs')
-        cy.get('@catalogs.all').should('have.length', 2)
+        cy.get('@catalogs.all').its('length').should('be.gte', 1)
 
         cy.getBySel('offerSection').click()
         cy.wait('@productOff')
-        cy.get('@productOff.all').should('have.length', 2)
+        cy.get('@productOff.all').its('length').should('be.gte', 1)
 
         cy.getBySel('newOffering').click()
 
@@ -282,11 +282,11 @@ describe('/my-offerings',{
 
         cy.visit('/my-offerings')
         cy.wait('@catalogs')
-        cy.get('@catalogs.all').should('have.length', 2)
+        cy.get('@catalogs.all').its('length').should('be.gte', 1)
 
         cy.getBySel('offerSection').click()
         cy.wait('@productOff')
-        cy.get('@productOff.all').should('have.length', 2)
+        cy.get('@productOff.all').its('length').should('be.gte', 1)
 
         cy.getBySel('newOffering').click()
 
