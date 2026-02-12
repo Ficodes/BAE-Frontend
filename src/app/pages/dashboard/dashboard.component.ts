@@ -1,9 +1,10 @@
-import { SlicePipe } from '@angular/common';
+import { NgClass, SlicePipe } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, SecurityContext } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { initFlowbite } from 'flowbite';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import * as moment from 'moment';
 import { map, Subject, Subscription, takeUntil } from 'rxjs';
 import { LoginInfo } from 'src/app/models/interfaces';
@@ -17,6 +18,7 @@ import { ThemeService } from 'src/app/services/theme.service';
 import { EuropeTrademarkComponent } from 'src/app/shared/europe-trademark/europe-trademark.component';
 import { ThemeConfig } from 'src/app/themes';
 import { environment } from 'src/environments/environment';
+import { FeaturedComponent } from 'src/app/offerings/featured/featured.component';
 
 interface Stats {
   services: number;
@@ -28,7 +30,7 @@ interface Stats {
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
   standalone: true,
-  imports: [TranslateModule, SlicePipe, EuropeTrademarkComponent],
+  imports: [TranslateModule, SlicePipe, NgClass, ReactiveFormsModule, EuropeTrademarkComponent, FeaturedComponent],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   private unSub = new Subject<void>();
@@ -37,6 +39,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   productOfferings?: ProductOffering[];
   protected MAX_CATEGORIES_PER_PRODUCT_OFFERING = 3;
+  isFilterPanelShown = false;
+  searchField = new FormControl();
+  searchEnabled = environment.SEARCH_ENABLED;
 
   providerThemeName = environment.providerThemeName;
   currentTheme: ThemeConfig | null = null;
@@ -173,6 +178,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   goToSearch() {
     this.router.navigate(['/search']);
+  }
+
+  filterSearch(event: Event) {
+    event.preventDefault();
+    if (this.searchField.value != '' && this.searchField.value != null) {
+      this.router.navigate(['/search', { keywords: this.searchField.value }]);
+    } else {
+      this.router.navigate(['/search']);
+    }
   }
 
   hasLongWord(str: string | undefined, threshold = 20) {
