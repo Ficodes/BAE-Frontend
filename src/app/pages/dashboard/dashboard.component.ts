@@ -1,159 +1,209 @@
-import {Component, HostListener, OnInit, ChangeDetectorRef, OnDestroy} from '@angular/core';
-import {EventMessageService} from "../../services/event-message.service";
-import {LocalStorageService} from "../../services/local-storage.service";
-import { ApiServiceService } from 'src/app/services/product-service.service';
-import { ActivatedRoute } from '@angular/router';
-import { Router } from '@angular/router';
-import { LoginInfo } from 'src/app/models/interfaces';
-import * as moment from 'moment';
-import { interval, Subscription, Subject} from 'rxjs';
-import { RefreshLoginServiceService } from "src/app/services/refresh-login-service.service"
-import { StatsServiceService } from "src/app/services/stats-service.service"
-import { LoginServiceService } from "src/app/services/login-service.service"
-import { FormControl } from '@angular/forms';
+import { NgClass, SlicePipe } from '@angular/common';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, SecurityContext } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { initFlowbite } from 'flowbite';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import * as moment from 'moment';
+import { map, Subject, Subscription, takeUntil } from 'rxjs';
+import { LoginInfo } from 'src/app/models/interfaces';
+import { ProductOffering } from 'src/app/models/product.model';
+import { EventMessageService } from 'src/app/services/event-message.service';
+import { LocalStorageService } from 'src/app/services/local-storage.service';
+import { LoginServiceService } from 'src/app/services/login-service.service';
+import { ApiServiceService } from 'src/app/services/product-service.service';
+import { StatsServiceService } from 'src/app/services/stats-service.service';
+import { ThemeService } from 'src/app/services/theme.service';
+import { EuropeTrademarkComponent } from 'src/app/shared/europe-trademark/europe-trademark.component';
+import { ThemeConfig } from 'src/app/themes';
 import { environment } from 'src/environments/environment';
-import {ThemeService} from "../../services/theme.service";
-import {ThemeConfig} from "../../themes";
-import { takeUntil } from 'rxjs/operators';
+import { FeaturedComponent } from 'src/app/offerings/featured/featured.component';
+
+interface Stats {
+  services: number;
+  providers: number;
+}
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css'
+  styleUrl: './dashboard.component.css',
+  standalone: true,
+  imports: [TranslateModule, SlicePipe, NgClass, ReactiveFormsModule, EuropeTrademarkComponent, FeaturedComponent],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+  private unSub = new Subject<void>();
+  private rotationIntervalId?: ReturnType<typeof setInterval>;
+  private themeSubscription: Subscription = new Subscription();
 
+  productOfferings?: ProductOffering[];
+  protected MAX_CATEGORIES_PER_PRODUCT_OFFERING = 3;
   isFilterPanelShown = false;
-  showContact:boolean=false;
   searchField = new FormControl();
   searchEnabled = environment.SEARCH_ENABLED;
-  domePublish: string = environment.DOME_PUBLISH_LINK
-  domeRegister: string = environment.DOME_REGISTER_LINK
-  services: string[] = []
-  publishers: string[] = []
-  currentIndexServ: number = 0;
-  currentIndexPub: number = 0;
-  delay: number = 2000;
+
+  providerThemeName = environment.providerThemeName;
   currentTheme: ThemeConfig | null = null;
-  private themeSubscription: Subscription = new Subscription();
-  providerThemeName=environment.providerThemeName;
-  private destroy$ = new Subject<void>();
+  domeRegister: string = environment.DOME_REGISTER_LINK;
 
-  //loginSubscription: Subscription = new Subscription();;
-  constructor(private localStorage: LocalStorageService,
-              private eventMessage: EventMessageService,
-              private statsService : StatsServiceService,
-              private route: ActivatedRoute,
-              private router: Router,
-              private api: ApiServiceService,
-              private loginService: LoginServiceService,
-              private cdr: ChangeDetectorRef,
-              private themeService: ThemeService,
-              private refreshApi: RefreshLoginServiceService) {
-    this.eventMessage.messages$
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(ev => {
-      if(ev.type === 'FilterShown') {
-        this.isFilterPanelShown = ev.value as boolean;
-      }
-      if(ev.type == 'CloseContact'){
-        this.showContact=false;
-        this.cdr.detectChanges();
-      }
-    })
+  services: string[] = [];
+  publishers: string[] = [];
+  currentIndexServ = 0;
+  currentIndexPub = 0;
+  delay = 2000;
+
+  stats?: Stats;
+
+  constructor(
+    private productService: ApiServiceService,
+    private domSanitizer: DomSanitizer,
+    private route: ActivatedRoute,
+    private loginService: LoginServiceService,
+    private localStorage: LocalStorageService,
+    private eventMessage: EventMessageService,
+    private cdr: ChangeDetectorRef,
+    private router: Router,
+    private statsService: StatsServiceService,
+    private themeService: ThemeService,
+  ) {}
+
+  ngOnInit() {
+    this.themeSubscription = this.themeService.currentTheme$.subscribe((theme) => {
+      this.currentTheme = theme;
+    });
+
+    this.getFirstThreeRandomProductOfferings();
+    this.checkRouteForToken();
+    this.getStats();
   }
-  @HostListener('document:click')
-  onClick() {
-    if(this.showContact==true){
-      this.showContact=false;
-      this.cdr.detectChanges();
+
+  private startTagTransition() {
+    if (this.rotationIntervalId) {
+      clearInterval(this.rotationIntervalId);
     }
-  }
 
-  startTagTransition() {
-    setInterval(() => {
-      this.currentIndexServ = (this.currentIndexServ + 1) % this.services.length;
-      this.currentIndexPub = (this.currentIndexPub + 1) % this.publishers.length;
+    this.rotationIntervalId = setInterval(() => {
+      if (this.services.length > 0) {
+        this.currentIndexServ = (this.currentIndexServ + 1) % this.services.length;
+      }
+      if (this.publishers.length > 0) {
+        this.currentIndexPub = (this.currentIndexPub + 1) % this.publishers.length;
+      }
     }, this.delay);
   }
 
-  async ngOnInit() {
-    this.themeSubscription = this.themeService.currentTheme$
-    .subscribe(theme => {
-      this.currentTheme = theme;
-    });
-    this.destroy$.next();
-    this.destroy$.complete();
+  private getStats() {
+    this.statsService.getStats().then((data) => {
+      this.services = data?.services || [];
+      this.publishers = data?.organizations || [];
 
-    this.statsService.getStats().then(data=> {
-      this.services=data?.services || [];
-      this.publishers=data?.organizations || [];
+      this.stats = {
+        services: this.services.length,
+        providers: this.publishers.length,
+      };
+
       this.startTagTransition();
-    })
-    this.isFilterPanelShown = JSON.parse(this.localStorage.getItem('is_filter_panel_shown') as string);
-    if(this.route.snapshot.queryParamMap.get('token') != null){
-      this.loginService.getLogin(this.route.snapshot.queryParamMap.get('token')).then(data => {
-        let info = {
-          "id": data.id,
-          "user": data.username,
-          "email": data.email,
-          "token": data.accessToken,
-          "expire": data.expire,
-          "partyId": data.partyId,
-          "roles": data.roles,
-          "organizations": data.organizations,
-          "logged_as": data.id } as LoginInfo;
+    });
+  }
+
+  private checkRouteForToken() {
+    if (this.route.snapshot.queryParamMap.get('token') != null) {
+      this.loginService.getLogin(this.route.snapshot.queryParamMap.get('token')).then((data) => {
+        const info = {
+          id: data.id,
+          user: data.username,
+          email: data.email,
+          token: data.accessToken,
+          expire: data.expire,
+          partyId: data.partyId,
+          roles: data.roles,
+          organizations: data.organizations,
+          logged_as: data.id,
+        } as LoginInfo;
 
         // Using organization session by default if provided
         if (info.organizations != null && info.organizations.length > 0) {
-          info.logged_as = info.organizations[0].id
+          info.logged_as = info.organizations[0].id;
         }
 
         this.localStorage.addLoginInfo(info);
         this.eventMessage.emitLogin(info);
         initFlowbite();
-        //this.refreshApi.stopInterval();
-        //this.refreshApi.startInterval(((data.expire - moment().unix())-4)*1000, data);
-        //this.refreshApi.startInterval(3000, data);
-      })
-      this.router.navigate(['/dashboard'])
+      });
+      this.router.navigate(['/dashboard']);
     } else {
-      //this.localStorage.clear()
-      let aux = this.localStorage.getObject('login_items') as LoginInfo;
-      // keep stored session data if present
+      const aux = this.localStorage.getObject('login_items') as LoginInfo;
+      if (JSON.stringify(aux) != '{}') {
+        console.log(aux);
+        console.log('moment');
+        console.log(aux['expire']);
+        console.log(moment().unix());
+        console.log(aux['expire'] - moment().unix());
+        console.log(aux['expire'] - moment().unix() <= 5);
+      }
     }
-
-    this.showContact = true;
 
     this.cdr.detectChanges();
   }
 
-  ngOnDestroy(): void {
-    if (this.themeSubscription) {
-      this.themeSubscription.unsubscribe();
-    }
+  private getFirstThreeRandomProductOfferings(): void {
+    this.productService
+      .getAllProducts()
+      .pipe(
+        map((items) =>
+          items.map((el) => ({
+            ...el,
+            description: el.description
+              ? (this.domSanitizer.sanitize(SecurityContext.HTML, el.description) ?? undefined)
+              : el.description,
+          })),
+        ),
+        map((items) => {
+          const result = new Set<number>();
+          const max = Math.min(3, items.length);
+
+          while (result.size < max) {
+            result.add(Math.floor(Math.random() * items.length));
+          }
+
+          return [...result].map((i) => items[i]);
+        }),
+        takeUntil(this.unSub),
+      )
+      .subscribe((picked) => {
+        this.productOfferings = picked;
+      });
   }
 
+  goToSearch() {
+    this.router.navigate(['/search']);
+  }
 
-  filterSearch(event: any) {
-    if(this.searchField.value!='' && this.searchField.value != null){
-      this.router.navigate(['/search', {keywords: this.searchField.value}]);
+  filterSearch(event: Event) {
+    event.preventDefault();
+    if (this.searchField.value != '' && this.searchField.value != null) {
+      this.router.navigate(['/search', { keywords: this.searchField.value }]);
     } else {
       this.router.navigate(['/search']);
     }
   }
 
-  goTo(path:string) {
-    this.router.navigate([path]);
-  }
-
   hasLongWord(str: string | undefined, threshold = 20) {
-    if(str){
-      return str.split(/\s+/).some(word => word.length > threshold);
-    } else {
-      return false
-    }   
+    if (str) {
+      return str.split(/\s+/).some((word) => word.length > threshold);
+    }
+    return false;
   }
 
+  ngOnDestroy() {
+    if (this.rotationIntervalId) {
+      clearInterval(this.rotationIntervalId);
+    }
+    if (this.themeSubscription) {
+      this.themeSubscription.unsubscribe();
+    }
+    this.unSub.next();
+    this.unSub.complete();
+  }
 }

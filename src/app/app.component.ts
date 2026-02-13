@@ -12,18 +12,20 @@ import { RefreshLoginServiceService } from "src/app/services/refresh-login-servi
 import * as moment from 'moment';
 import {ThemeService} from "./services/theme.service";
 import {environment} from "../environments/environment";
+import { filter } from 'rxjs'; 
 
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'], 
 })
 export class AppComponent implements OnInit {
   title = 'DOME Marketplace';
   showPanel = false;
   providerThemeName=environment.providerThemeName;
   isProduction:boolean = environment.isProduction;
+  showHeaderAndFooter = false;
 
   constructor(private translate: TranslateService,
               private localStorage: LocalStorageService,
@@ -88,11 +90,16 @@ export class AppComponent implements OnInit {
       this.refreshApi.startInterval(((aux.expire - moment().unix())-4)*1000, aux);
       initFlowbite();
     }
-    this.router.events.subscribe(event => {
-      if (event instanceof NavigationEnd) {
+    this.router.events
+      .pipe(
+        filter(
+          (event): event is NavigationEnd => event instanceof NavigationEnd,
+        ),
+      )
+      .subscribe(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' }); // or just window.scrollTo(0, 0);
-      }
-    });
+      });
+
   }
 
   /*checkPanel() {
@@ -104,4 +111,6 @@ export class AppComponent implements OnInit {
       this.localStorage.setItem('is_filter_panel_shown', this.showPanel.toString())
     }
   }*/
+
+ 
 }
