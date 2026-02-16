@@ -179,7 +179,7 @@ export class PriceComponentDrawerComponent implements OnInit {
     }
 
     this.priceComponentForm.patchValue({
-      selectedCharacteristic: this.mapChars(this.selectedCharacteristicVal)
+      selectedCharacteristic: [this.mapChars(this.selectedCharacteristicVal)]
     });
   }
 
@@ -191,12 +191,19 @@ export class PriceComponentDrawerComponent implements OnInit {
       description: this.selectedCharacteristic.description || '',
     }
 
-    // Add the productSpecCharacteristicValue only if needed
-    // Range chars not include a value
+    // Add the productSpecCharacteristicValue
     if (this.showValueSelect) {
+      // For non-range characteristics (with specific values)
       char.productSpecCharacteristicValue = [this.selectedCharacteristic.productSpecCharacteristicValue.find((opt: any) => {
         return String(opt.value) === String(charValue);
       })];
+    } else if (this.selectedCharacteristic.productSpecCharacteristicValue?.[0]) {
+      // For range characteristics, include the full range
+      char.productSpecCharacteristicValue = [{
+        valueFrom: this.selectedCharacteristic.productSpecCharacteristicValue[0].valueFrom,
+        valueTo: this.selectedCharacteristic.productSpecCharacteristicValue[0].valueTo,
+        isDefault: true
+      }];
     }
 
     return char
@@ -205,7 +212,7 @@ export class PriceComponentDrawerComponent implements OnInit {
   changePriceComponentCharValue(event: any){
     this.selectedCharacteristicVal = event.target.value;
     this.priceComponentForm.patchValue({
-      selectedCharacteristic: this.mapChars(event.target.value)
+      selectedCharacteristic: [this.mapChars(event.target.value)]
     });
   }
 
