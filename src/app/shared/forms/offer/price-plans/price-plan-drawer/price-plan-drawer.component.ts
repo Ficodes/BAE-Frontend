@@ -9,6 +9,7 @@ import {currencies} from "currencies.json";
 import {
   ConfigurationProfileDrawerComponent
 } from "../configuration-profile-drawer/configuration-profile-drawer.component";
+import {TierPricingDrawerComponent} from "../tier-pricing-drawer/tier-pricing-drawer.component";
 import {Subject} from "rxjs";
 import { takeUntil } from 'rxjs/operators';
 
@@ -26,6 +27,7 @@ import { takeUntil } from 'rxjs/operators';
     PriceComponentDrawerComponent,
     PriceComponentsTableComponent,
     ConfigurationProfileDrawerComponent,
+    TierPricingDrawerComponent,
     NgForOf
   ],
   styleUrl: './price-plan-drawer.component.css'
@@ -42,11 +44,13 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
   initialized = false;
   showPriceComponentDrawer = false;
   showConfigurationDrawer = false;
+  showTierPricingDrawer = false;
   editingComponent: any = null;
   //protected readonly currencies = currencies;
   //Only allowing EUR for the moment
   protected readonly  currencies=[currencies[2]];
   private destroy$ = new Subject<void>();
+  rangeValidationError: string | null = null;
 
   constructor(private fb: FormBuilder) {}
 
@@ -98,8 +102,124 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
 
   savePricePlan() {
     if (this.formGroup.invalid) return;
+
+    // Validate range characteristics coverage
+    if (!this.validateRangeCharacteristicsCoverage()) {
+      console.log('Range characteristics validation failed');
+      return;
+    }
+
+    // Clear any previous validation errors
+    this.rangeValidationError = null;
+
     this.save.emit(this.formGroup.getRawValue());
     this.closeDrawer();
+  }
+
+  private validateRangeCharacteristicsCoverage(): boolean {
+    const antiCollision: any = {};
+    const rangeCharMap: any = {}; // To store characteristic names by ID
+
+    // Step 1: Initialize antiCollision with range characteristics from prodSpec
+    const rangeCharacteristics = this.getRangeCharacteristics();
+
+    for (const rangeChar of rangeCharacteristics) {
+      const specValue = rangeChar.productSpecCharacteristicValue[0];
+      antiCollision[rangeChar.id] = {
+        totalRange: {
+          from: Number(specValue.valueFrom),
+          to: Number(specValue.valueTo)
+        }
+      };
+      rangeCharMap[rangeChar.id] = rangeChar.name;
+    }
+
+    // Step 2: Add price components to the antiCollision map
+    const priceComponents = this.formGroup.get('priceComponents')?.value || [];
+
+    for (const pc of priceComponents) {
+      const selectedChar = pc.selectedCharacteristic?.[0];
+      if (!selectedChar) continue;
+
+      // Check if this price component is for a range characteristic
+      if (antiCollision[selectedChar.id]) {
+        const charValue = selectedChar.productSpecCharacteristicValue?.[0];
+        if (charValue && 'valueFrom' in charValue && 'valueTo' in charValue) {
+          const from = Number(charValue.valueFrom);
+          const to = Number(charValue.valueTo);
+
+          // Initialize array if not exists
+          if (!antiCollision[selectedChar.id][from]) {
+            antiCollision[selectedChar.id][from] = [];
+          }
+          antiCollision[selectedChar.id][from].push(to);
+        }
+      }
+    }
+
+    // Step 3: Validate coverage for each range characteristic
+    for (const [charId, rangeData] of Object.entries(antiCollision)) {
+      const data = rangeData as any;
+      const keys = Object.keys(data);
+
+      // If only totalRange exists, no price components → valid
+      if (keys.length === 1 && keys[0] === 'totalRange') {
+        continue;
+      }
+
+      // If there are price components, check if they cover the full range
+      const totalRange = data.totalRange;
+      if (!this.hasCompletePathDFS(data, totalRange.from, totalRange.to)) {
+        const charName = rangeCharMap[charId] || charId;
+        this.rangeValidationError = `The range characteristic "${charName}" does not have complete coverage from ${totalRange.from} to ${totalRange.to}. Please ensure all ranges are continuous and cover the full specification range.`;
+        console.log(`Range characteristic with ID "${charId}" does not have complete coverage`);
+        console.log('   Range data:', data);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private getRangeCharacteristics(): any[] {
+    if (!this.prodSpec?.productSpecCharacteristic) return [];
+
+    return this.prodSpec.productSpecCharacteristic.filter((char: any) => {
+      const firstValue = char.productSpecCharacteristicValue?.[0];
+      return firstValue && 'valueFrom' in firstValue && 'valueTo' in firstValue;
+    });
+  }
+
+  private hasCompletePathDFS(rangeData: any, start: number, end: number): boolean {
+    const visited = new Set<number>();
+
+    const dfs = (currentFrom: number): boolean => {
+      // Get all possible valueTo from current valueFrom
+      const possibleTos = rangeData[currentFrom];
+      if (!possibleTos || possibleTos.length === 0) return false;
+
+      // Try each possible valueTo
+      for (const valueTo of possibleTos) {
+        // If valueTo equals the end of totalRange, we found a complete path
+        if (valueTo === end) return true;
+
+        // The next range should start at valueTo + 1 (continuity)
+        const nextFrom = valueTo + 1;
+
+        // Avoid infinite loops
+        if (visited.has(nextFrom)) continue;
+        visited.add(nextFrom);
+
+        // Check if there's a key for the next valueFrom
+        if (rangeData[nextFrom]) {
+          if (dfs(nextFrom)) return true;
+        }
+      }
+
+      return false;
+    };
+
+    return dfs(start);
   }
 
   openPriceComponentDrawer(component: any = null) {
@@ -271,6 +391,29 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     }
   }
 
+  openTierPricingDrawer() {
+    this.showTierPricingDrawer = true;
+  }
 
+  closeTierPricingDrawer(priceComponents: any[] | null) {
+    if (priceComponents && Array.isArray(priceComponents)) {
+      // Add all tier pricing components to the price components array
+      const components = this.formGroup.get('priceComponents')?.value || [];
+      components.push(...priceComponents);
+      this.formGroup.get('priceComponents')?.setValue(components);
+      console.log('Tier pricing components added:', priceComponents);
+    }
+    this.showTierPricingDrawer = false;
+  }
+
+  hasRangeCharacteristics(): boolean {
+    // Check if there are any range characteristics available
+    if (!this.prodSpec?.productSpecCharacteristic) return false;
+
+    return this.prodSpec.productSpecCharacteristic.some((char: any) => {
+      const firstValue = char.productSpecCharacteristicValue?.[0];
+      return firstValue && 'valueFrom' in firstValue && 'valueTo' in firstValue;
+    });
+  }
 
 }

@@ -5,11 +5,15 @@ import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from
 import {Category} from "../../models/interfaces";
 import {LocalStorageService} from "../../services/local-storage.service";
 import { ApiServiceService } from 'src/app/services/product-service.service';
+import { TranslateModule } from '@ngx-translate/core';
+import { MarkdownModule } from 'ngx-markdown';
 
 @Component({
   selector: 'bae-off-featured',
   templateUrl: './featured.component.html',
-  styleUrl: './featured.component.css'
+  styleUrl: './featured.component.css',
+  standalone: true,
+  imports: [CommonModule, TranslateModule, MarkdownModule]
 })
 export class FeaturedComponent implements OnInit {
   categories:any[]=[];

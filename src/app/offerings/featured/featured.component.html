@@ -4,7 +4,7 @@
     <!--Only first 8 categories-->
     @for(cat of categories.slice(0, 8); track cat.id){
       <div class="flex flex-col w-full h-full bg-secondary-50 dark:bg-secondary-100 rounded-lg dark:border-secondary-100 border-secondary-50 border">
-    
+
         <div class="flex-1 h-full bg-cover bg-right-bottom bg-opacity-25 rounded-lg" style="background-image: url(assets/logos/dome-logo-element-colour.png)">
           <div data-cy="categoryItem" class="flex-1 h-full px-5 py-5 bg-secondary-50/95 dark:bg-secondary-100/95 rounded-lg">
             <a  class="cursor-pointer">
@@ -13,9 +13,9 @@
             <markdown class="min-h-19 h-19 line-clamp-4 text-gray-600 dark:text-gray-400" >
               {{cat?.description}}
             </markdown>
-      
+
             <div class="flex sticky top-[100vh] items-center justify-center align-items-bottom rounded-lg mt-4">
-      
+
               <button data-cy="viewService" type="button" (click)="searchByCategory(cat)" class="flex items-center align-items-bottom text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-100 dark:hover:bg-primary-50 dark:focus:ring-primary-100 mr-1">
                 <svg class="w-[18px] h-[18px] text-white mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
                   <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
@@ -28,235 +28,7 @@
               </div>
           </div>
         </div>
-      </div> 
+      </div>
     }
-
-    <!-- 
-    <div class="flex flex-col w-full h-full bg-secondary-50 dark:bg-secondary-100 rounded-lg dark:border-secondary-100 border-secondary-50 border">
-
-
-      <div class="rounded overflow-hidden cursor-pointer">
-        <div class="relative h-48 flex justify-center items-center">
-          <div class="absolute inset-0 bg-cover bg-center opacity-75" style="background-image: url(assets/images/categories/paas.png);filter: blur(20px);"></div>
-          <img class="h-5/6 w-5/6 object-contain z-10 dark:text-white" src="assets/images/categories/paas.png" alt="Category image">
-        </div>
-      </div>
-    
-      <div class="flex-1 h-full bg-cover bg-right-bottom bg-opacity-25 rounded-lg" style="background-image: url(assets/logos/dome-logo-element-colour.png)">
-        <div class="flex-1 h-full px-5 py-5 bg-secondary-50/95 dark:bg-secondary-100/95 rounded-lg">
-          <a  class="cursor-pointer">
-            <h5 class="text-xl font-semibold line-clamp-2 tracking-tight text-primary-100 dark:text-white text-wrap break-all">Platform as a service</h5>
-          </a>
-          <markdown class="min-h-19 h-19 line-clamp-4 text-gray-600 dark:text-gray-400" >Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.</markdown>
-    
-          <div class="flex sticky top-[100vh] items-center justify-center align-items-bottom rounded-lg mt-4">
-    
-            <button  type="button" class="flex items-center align-items-bottom text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-100 dark:hover:bg-primary-50 dark:focus:ring-primary-100 mr-1">
-              <svg class="w-[18px] h-[18px] text-white mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
-                <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-                  <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
-                  <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>
-                </g>
-              </svg>
-              {{ 'DASHBOARD._view_serv' | translate }}
-            </button>
-            </div>
-        </div>
-      </div>
-    </div> 
-    <div class="flex flex-col w-full h-full bg-secondary-50 dark:bg-secondary-100 rounded-lg dark:border-secondary-100 border-secondary-50 border">
-
-
-      <div class="rounded overflow-hidden cursor-pointer">
-        <div class="relative h-48 flex justify-center items-center">
-          <div class="absolute inset-0 bg-cover bg-center opacity-75" style="background-image: url(assets/images/categories/saas.png);filter: blur(20px);"></div>
-          <img class="h-5/6 w-5/6 object-contain z-10 dark:text-white" src="assets/images/categories/saas.png" alt="Category image">
-        </div>
-      </div>
-    
-      <div class="flex-1 h-full bg-cover bg-right-bottom bg-opacity-25 rounded-lg" style="background-image: url(assets/logos/dome-logo-element-colour.png)">
-        <div class="flex-1 h-full px-5 py-5 bg-secondary-50/95 dark:bg-secondary-100/95 rounded-lg">
-          <a  class="cursor-pointer">
-            <h5 class="text-xl font-semibold line-clamp-2 tracking-tight text-primary-100 dark:text-white text-wrap break-all">Software as a service</h5>
-          </a>
-          <markdown class="min-h-19 h-19 line-clamp-4 text-gray-600 dark:text-gray-400" >Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.</markdown>
-    
-          <div class="flex sticky top-[100vh] items-center justify-center align-items-bottom rounded-lg mt-4">
-    
-            <button  type="button" (click)="searchByCategory()" class="flex items-center align-items-bottom text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-100 dark:hover:bg-primary-50 dark:focus:ring-primary-100 mr-1">
-              <svg class="w-[18px] h-[18px] text-white mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
-                <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-                  <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
-                  <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>
-                </g>
-              </svg>
-              {{ 'DASHBOARD._view_serv' | translate }}
-            </button>
-            </div>
-        </div>
-      </div>
-    </div> 
-    <div class="flex flex-col w-full h-full bg-secondary-50 dark:bg-secondary-100 rounded-lg dark:border-secondary-100 border-secondary-50 border">
-
-
-      <div class="rounded overflow-hidden cursor-pointer">
-        <div class="relative h-48 flex justify-center items-center">
-          <div class="absolute inset-0 bg-cover bg-center opacity-75" style="background-image: url(assets/images/categories/daas.png);filter: blur(20px);"></div>
-          <img class="h-5/6 w-5/6 object-contain z-10 dark:text-white" src="assets/images/categories/daas.png" alt="Category image">
-        </div>
-      </div>
-    
-      <div class="flex-1 h-full bg-cover bg-right-bottom bg-opacity-25 rounded-lg" style="background-image: url(assets/logos/dome-logo-element-colour.png)">
-        <div class="flex-1 h-full px-5 py-5 bg-secondary-50/95 dark:bg-secondary-100/95 rounded-lg">
-          <a  class="cursor-pointer">
-            <h5 class="text-xl font-semibold line-clamp-2 tracking-tight text-primary-100 dark:text-white text-wrap break-all">Data as a service</h5>
-          </a>
-          <markdown class="min-h-19 h-19 line-clamp-4 text-gray-600 dark:text-gray-400" >Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.</markdown>
-    
-          <div class="flex sticky top-[100vh] items-center justify-center align-items-bottom rounded-lg mt-4">
-    
-            <button  type="button" class="flex items-center align-items-bottom text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-100 dark:hover:bg-primary-50 dark:focus:ring-primary-100 mr-1">
-              <svg class="w-[18px] h-[18px] text-white mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
-                <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-                  <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
-                  <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>
-                </g>
-              </svg>
-              {{ 'DASHBOARD._view_serv' | translate }}
-            </button>
-            </div>
-        </div>
-      </div>
-    </div> 
-    <div class="flex flex-col w-full h-full bg-secondary-50 dark:bg-secondary-100 rounded-lg dark:border-secondary-100 border-secondary-50 border">
-
-
-      <div class="rounded overflow-hidden cursor-pointer">
-        <div class="relative h-48 flex justify-center items-center">
-          <div class="absolute inset-0 bg-cover bg-center opacity-75" style="background-image: url(assets/images/categories/aiml.png);filter: blur(20px);"></div>
-          <img class="h-5/6 w-5/6 object-contain z-10 dark:text-white" src="assets/images/categories/aiml.png" alt="Category image">
-        </div>
-      </div>
-    
-      <div class="flex-1 h-full bg-cover bg-right-bottom bg-opacity-25 rounded-lg" style="background-image: url(assets/logos/dome-logo-element-colour.png)">
-        <div class="flex-1 h-full px-5 py-5 bg-secondary-50/95 dark:bg-secondary-100/95 rounded-lg">
-          <a  class="cursor-pointer">
-            <h5 class="text-xl font-semibold line-clamp-2 tracking-tight text-primary-100 dark:text-white text-wrap break-all">AI and ML</h5>
-          </a>
-          <markdown class="min-h-19 h-19 line-clamp-4 text-gray-600 dark:text-gray-400" >Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.</markdown>
-    
-          <div class="flex sticky top-[100vh] items-center justify-center align-items-bottom rounded-lg mt-4">
-    
-            <button  type="button" class="flex items-center align-items-bottom text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-100 dark:hover:bg-primary-50 dark:focus:ring-primary-100 mr-1">
-              <svg class="w-[18px] h-[18px] text-white mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
-                <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-                  <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
-                  <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>
-                </g>
-              </svg>
-              {{ 'DASHBOARD._view_serv' | translate }}
-            </button>
-            </div>
-        </div>
-      </div>
-    </div> 
-    <div class="flex flex-col w-full h-full bg-secondary-50 dark:bg-secondary-100 rounded-lg dark:border-secondary-100 border-secondary-50 border">
-
-
-      <div class="rounded overflow-hidden cursor-pointer">
-        <div class="relative h-48 flex justify-center items-center">
-          <div class="absolute inset-0 bg-cover bg-center opacity-75" style="background-image: url(assets/images/categories/iotedge.png);filter: blur(20px);"></div>
-          <img class="h-5/6 w-5/6 object-contain z-10 dark:text-white" src="assets/images/categories/iotedge.png" alt="Category image">
-        </div>
-      </div>
-    
-      <div class="flex-1 h-full bg-cover bg-right-bottom bg-opacity-25 rounded-lg" style="background-image: url(assets/logos/dome-logo-element-colour.png)">
-        <div class="flex-1 h-full px-5 py-5 bg-secondary-50/95 dark:bg-secondary-100/95 rounded-lg">
-          <a  class="cursor-pointer">
-            <h5 class="text-xl font-semibold line-clamp-2 tracking-tight text-primary-100 dark:text-white text-wrap break-all">AI and ML</h5>
-          </a>
-          <markdown class="min-h-19 h-19 line-clamp-4 text-gray-600 dark:text-gray-400" >Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.</markdown>
-    
-          <div class="flex sticky top-[100vh] items-center justify-center align-items-bottom rounded-lg mt-4">
-    
-            <button  type="button" class="flex items-center align-items-bottom text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-100 dark:hover:bg-primary-50 dark:focus:ring-primary-100 mr-1">
-              <svg class="w-[18px] h-[18px] text-white mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
-                <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-                  <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
-                  <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>
-                </g>
-              </svg>
-              {{ 'DASHBOARD._view_serv' | translate }}
-            </button>
-            </div>
-        </div>
-      </div>
-    </div> 
-    <div class="flex flex-col w-full h-full bg-secondary-50 dark:bg-secondary-100 rounded-lg dark:border-secondary-100 border-secondary-50 border">
-
-
-      <div class="rounded overflow-hidden cursor-pointer">
-        <div class="relative h-48 flex justify-center items-center">
-          <div class="absolute inset-0 bg-cover bg-center opacity-75" style="background-image: url(assets/images/categories/manufacturing.png);filter: blur(20px);"></div>
-          <img class="h-5/6 w-5/6 object-contain z-10 dark:text-white" src="assets/images/categories/manufacturing.png" alt="Category image">
-        </div>
-      </div>
-    
-      <div class="flex-1 h-full bg-cover bg-right-bottom bg-opacity-25 rounded-lg" style="background-image: url(assets/logos/dome-logo-element-colour.png)">
-        <div class="flex-1 h-full px-5 py-5 bg-secondary-50/95 dark:bg-secondary-100/95 rounded-lg">
-          <a  class="cursor-pointer">
-            <h5 class="text-xl font-semibold line-clamp-2 tracking-tight text-primary-100 dark:text-white text-wrap break-all">AI and ML</h5>
-          </a>
-          <markdown class="min-h-19 h-19 line-clamp-4 text-gray-600 dark:text-gray-400" >Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.</markdown>
-    
-          <div class="flex sticky top-[100vh] items-center justify-center align-items-bottom rounded-lg mt-4">
-    
-            <button  type="button" class="flex items-center align-items-bottom text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-100 dark:hover:bg-primary-50 dark:focus:ring-primary-100 mr-1">
-              <svg class="w-[18px] h-[18px] text-white mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
-                <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-                  <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
-                  <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>
-                </g>
-              </svg>
-              {{ 'DASHBOARD._view_serv' | translate }}
-            </button>
-            </div>
-        </div>
-      </div>
-    </div> 
-    <div class="flex flex-col w-full h-full bg-secondary-50 dark:bg-secondary-100 rounded-lg dark:border-secondary-100 border-secondary-50 border">
-
-
-      <div class="rounded overflow-hidden cursor-pointer">
-        <div class="relative h-48 flex justify-center items-center">
-          <div class="absolute inset-0 bg-cover bg-center opacity-75" style="background-image: url(assets/images/categories/agricolture.png);filter: blur(20px);"></div>
-          <img class="h-5/6 w-5/6 object-contain z-10 dark:text-white" src="assets/images/categories/agricolture.png" alt="Category image">
-        </div>
-      </div>
-    
-      <div class="flex-1 h-full bg-cover bg-right-bottom bg-opacity-25 rounded-lg" style="background-image: url(assets/logos/dome-logo-element-colour.png)">
-        <div class="flex-1 h-full px-5 py-5 bg-secondary-50/95 dark:bg-secondary-100/95 rounded-lg">
-          <a  class="cursor-pointer">
-            <h5 class="text-xl font-semibold line-clamp-2 tracking-tight text-primary-100 dark:text-white text-wrap break-all">AI and ML</h5>
-          </a>
-          <markdown class="min-h-19 h-19 line-clamp-4 text-gray-600 dark:text-gray-400" >Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.</markdown>
-    
-          <div class="flex sticky top-[100vh] items-center justify-center align-items-bottom rounded-lg mt-4">
-    
-            <button  type="button" class="flex items-center align-items-bottom text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-100 dark:hover:bg-primary-50 dark:focus:ring-primary-100 mr-1">
-              <svg class="w-[18px] h-[18px] text-white mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
-                <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-                  <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
-                  <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>
-                </g>
-              </svg>
-              {{ 'DASHBOARD._view_serv' | translate }}
-            </button>
-            </div>
-        </div>
-      </div>
-    </div> 
-     -->
-
   </div>
 </div>

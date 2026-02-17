@@ -19,7 +19,7 @@ export const environment = {
     CHARGING: '/charging',
     BILLING: '/billing',
 
-    searchOrganizationsEndpoint: '/search/api/searchOrganizations',
+    searchOrganizationsEndpoint: '/search-bck/api/searchOrganizations',
 
     CUSTOMER_BILLING:'/customerBill',
     CONSUMER_BILLING_URL: 'http://localhost:8640',
@@ -91,5 +91,6 @@ export const environment = {
     BUYER_ROLE: 'Buyer',
     ADMIN_ROLE: 'Admin',
     ORG_ADMIN_ROLE: 'orgAdmin',
-    CERTIFIER_ROLE: 'certifier'
+    CERTIFIER_ROLE: 'certifier',
+    LEAR_URL: ''
 };
