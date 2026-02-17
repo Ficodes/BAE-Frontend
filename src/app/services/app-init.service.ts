@@ -43,6 +43,7 @@ export class AppInitService {
                 environment.providerThemeName = config.theme ?? 'default';
                 environment.QUOTES_ENABLED = config.quotesEnabled ?? false
                 environment.TENDER_ENABLED = config.tenderingEnabled ?? false
+                environment.LEAR_URL = config.learUrl ?? ''
                 resolve(config);
             }),
             error: (error) => {

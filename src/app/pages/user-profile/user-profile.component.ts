@@ -55,8 +55,8 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     let today = new Date();
     today.setMonth(today.getMonth()-1);
     this.initPartyInfo();
-    setTimeout(() => {        
-      initFlowbite();   
+    setTimeout(() => {
+      initFlowbite();
     }, 100);
   }
 
@@ -82,10 +82,10 @@ export class UserProfileComponent implements OnInit, OnDestroy {
         this.loggedAsUser=false;
         this.show_profile=false;
         this.show_org_profile=true;
-        this.getOrgProfile(); 
+        this.getOrgProfile();
       }
       //this.partyId = aux.partyId;
-      
+
     }
     initFlowbite();
   }
@@ -106,13 +106,13 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     this.show_org_profile=true;
     this.show_revenue=false;
     this.selectGeneral();
-    setTimeout(() => {        
-      initFlowbite();   
+    setTimeout(() => {
+      initFlowbite();
     }, 100);
   }
 
   getBilling(){
-    this.selectBilling();    
+    this.selectBilling();
     this.show_billing=true;
     this.show_profile=false;
     this.show_orders=false;
@@ -123,7 +123,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   }
 
   getRevenue(){
-    this.selectRevenue();    
+    this.selectRevenue();
     this.show_billing=false;
     this.show_profile=false;
     this.show_orders=false;
@@ -140,6 +140,11 @@ export class UserProfileComponent implements OnInit, OnDestroy {
       window.open(data.providerUrl, '_blank');
     }).catch(() => {
     });
+  }
+
+  getLear() {
+    const url = `${environment.LEAR_URL}`
+    window.open(url, '_blank');
   }
 
   goToOrders(){

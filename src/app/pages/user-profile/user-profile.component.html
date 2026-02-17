@@ -4,7 +4,7 @@
     <div class="flex flex-cols mr-2 ml-2 lg:hidden">
         <h1 class="mb-8 mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 lg:text-4xl lg:text-5xl dark:text-white w-full"><span class="underline underline-offset-3 decoration-8 decoration-primary-100 dark:decoration-primary-100">{{ 'PROFILE._profile' | translate }}</span></h1>
         <div class="flex align-middle content-center items-center">
-          <button id="dropdown-nav" data-dropdown-toggle="dropdown-nav-content" 
+          <button id="dropdown-nav" data-dropdown-toggle="dropdown-nav-content"
           class="text-black dark:text-white h-fit w-fit justify-between shadow bg-white dark:bg-secondary-200 hover:bg-gray-100 dark:hover:bg-secondary-300 focus:ring-4 focus:outline-none focus:ring-primary-100 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center shadow-lg"
           type="button">
           <svg class="w-4 h-4 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
@@ -13,7 +13,7 @@
           Profile
         </button>
         </div>
-    
+
     </div>
     <!-- Dropdown menu -->
     <div id="dropdown-nav-content" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
@@ -29,7 +29,7 @@
         </li-->
         </ul>
     </div>
-    
+
      <div class="w-full grid lg:grid-cols-20/80">
         <div class="hidden lg:block">
         <div class="w-48 h-fit text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
@@ -53,9 +53,10 @@
             <button (click)="getPayment()" id="payment-button" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
                 {{ 'PROFILE._payment_dashboard' | translate }}
             </button>
-            <!--button (click)="goToOrders()" id="order-button" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-                {{ 'PROFILE._orders' | translate }}
-            </button-->
+
+            <button (click)="getLear()" id="lear-button" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+              {{ 'PROFILE._lear_link' | translate }}
+            </button>
         </div>
         </div>
         <div>
