@@ -92,5 +92,6 @@ export const environment = {
     BUYER_ROLE: 'Buyer',
     ADMIN_ROLE: 'Admin',
     ORG_ADMIN_ROLE: 'orgAdmin',
-    CERTIFIER_ROLE: 'certifier'
+    CERTIFIER_ROLE: 'certifier',
+    LEAR_URL: ''
 };
