@@ -68,7 +68,11 @@ export class CategoryItemComponent implements OnInit, OnDestroy {
     //console.log(this.data)
     //console.log(this.isParent)
     if(this.data?.id){
-      this.simplifiedId=this.data.id.split(':').pop()
+      if (this.data.sanitizedId) {
+        this.simplifiedId = this.data.sanitizedId;
+      } else {
+        this.simplifiedId=this.data.id.split(':').pop();
+      }
     }
     
     const categories = this.localStorage.getObject('selected_categories') as Category[] || [] ;
