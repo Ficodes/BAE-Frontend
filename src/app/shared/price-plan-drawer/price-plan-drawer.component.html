@@ -181,7 +181,7 @@
     } @else if (price) {
       <div class="text-sm text-white">
         @for (item of price; track item) {
-          <div class="flex justify-between mb-2">
+          <div data-cy="previewPrices" class="flex justify-between mb-2">
             <span class="font-medium capitalize">{{ item['priceType'] }}:</span>
             <span class="font-bold">{{ item['price']['taxIncludedAmount']['value'] }} {{ item['price']['taxIncludedAmount']['unit'] }}
               @if(hasKey(item, 'recurringChargePeriod')){

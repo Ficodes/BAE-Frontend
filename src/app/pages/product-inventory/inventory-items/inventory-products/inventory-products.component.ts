@@ -425,7 +425,7 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
       } else {
         this.showBillingSelector = false;
         this.pendingModifyPayload = null;
-        this.getInventory(false);
+        this.router.navigate(['/product-orders']);
       }
     } catch (error: any) {
       console.error('Error submitting modify order:', error);

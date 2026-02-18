@@ -211,7 +211,7 @@
                         <p class="text-sm font-bold text-gray-700 dark:text-white">
                           {{ 'INVOICES._type' | translate }}:
                         </p>
-                        <p class="text-sm text-gray-600 dark:text-gray-200">
+                        <p data-cy="acbrType" class="text-sm text-gray-600 dark:text-gray-200">
                           {{acbr.type}}
                         </p>
                       </div>
@@ -220,7 +220,7 @@
                         <p class="text-sm font-bold text-gray-700 dark:text-white">
                           {{ 'INVOICES._tax_included_amount' | translate }}:
                         </p>
-                        <p class="text-sm text-gray-600 dark:text-gray-200">
+                        <p data-cy="acbrPrice" class="text-sm text-gray-600 dark:text-gray-200">
                           {{acbr.taxIncludedAmount?.value}}{{acbr.taxIncludedAmount?.unit}}
                         </p>
                       </div>
