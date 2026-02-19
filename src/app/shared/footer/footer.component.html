@@ -1,37 +1,78 @@
-<div>
-  <div class="flex h-[25px] justify-center md:justify-between items-center bg-white border-t border-gray-200 shadow dark:bg-tertiary-50 dark:border-gray-600 p-4">
-    <!-- Social Links Dinámicos -->
-    <div class="hidden md:flex justify-start text-gray-500 dark:text-gray-400">
-      <ng-container *ngFor="let social of socialLinks; let last = last">
-        <fa-icon (click)="open(social.url!)" [ngClass]="{'mr-4': !last}" class="cursor-pointer" [icon]="social.icon"></fa-icon>
-      </ng-container>
-    </div>
+<footer>
+  <div class="footer-cols" [style.grid-template-columns]="'repeat(' + columns + ', 1fr)'">
 
-    <!-- Dynamic Footer Links -->
-    <ul class="flex flex-wrap items-center text-sm font-medium text-gray-500 dark:text-gray-400">
-      @if(checkLogged){
-        <li>
-          <button (click)="feedback=!feedback;$event.stopPropagation();" class="mr-4 hover:underline md:mr-6">Feedback</button>
-        </li>
+    @for(headerLink of footerLinks; track headerLink) {
+
+    <div>
+      <h3>{{ headerLink.label | translate }}</h3>
+
+      @for(navLink of headerLink.navLinks; track navLink) {
+      @if(!navLink.isRouterLink) {
+      <a [href]="navLink.url" target="_blank" class="cursor-pointer">
+        {{navLink.label | translate}}
+      </a>
+      } @else {
+      <a (click)="goToRoute(navLink.url!)" class="cursor-pointer">
+        {{ navLink.label | translate }}
+      </a>
       }
-      <li *ngFor="let link of footerLinks">
-        <!-- Enlace externo (ej. a un PDF o web externa) -->
-        <a *ngIf="!link.isRouterLink" [href]="link.url" target="_blank" class="mr-4 hover:underline md:mr-6">
-          {{ link.label | translate }}
-        </a>
-        <!-- Enlace interno (manejado por el router de Angular) -->
-        <a *ngIf="link.isRouterLink" (click)="goTo(link.url!)" class="mr-4 hover:underline md:mr-6 cursor-pointer">
-          {{ link.label | translate }}
-        </a>
-      </li>
-    </ul>
-  </div>
-</div>
 
-@if(feedback){
-  <feedback-modal
-  rateMessage="{{ 'FEEDBACK._footer_title' | translate }}"
-  writeMessage="{{ 'FEEDBACK._footer_improve' | translate }}"
-  type="experience"
-  class="fixed inset-0 flex items-center justify-center z-40"></feedback-modal>
+      }
+
+    </div>
+    }
+
+
+
+
+
+
+
+
+  </div>
+
+  <div class="mt-8"></div>
+
+  <div class="footer-cols" [style.grid-template-columns]="'repeat(' + columns + ', 1fr)'">
+    @if(socialLinks) {
+    <div>
+      <h3>{{ "FOOTER.follow-us" | translate }}</h3>
+
+      <div class="flex justify-start text-gray-500 dark:text-gray-400">
+        @for (social of socialLinks; track social.url) {
+        <fa-icon (click)="openNewTab(social.url!)" size="lg" [ngClass]="{ 'mr-4': !$last }" class="cursor-pointer"
+          [icon]="social.icon"></fa-icon>
+        }
+      </div>
+
+
+
+    </div>
+    }
+
+    <div class="mt-5 md:gap-3 flex flex-col md:flex-row md:justify-start text-gray-500 dark:text-gray-400">
+
+      @if(checkLogged) {
+      <a (click)="feedback = !feedback; $event.stopPropagation();" class="hover:underline cursor-pointer">
+        Feedback
+      </a>}
+
+
+
+      <a href="https://www.linkedin.com/newsletters/newsletter-7142535480692133889/"
+        class="hover:underline cursor-pointer">
+        Newsletter
+      </a>
+    </div>
+  </div>
+
+
+</footer>
+
+
+@if(feedback) {
+<feedback-modal rateMessage="{{ 'FEEDBACK._footer_title' | translate }}"
+  writeMessage="{{ 'FEEDBACK._footer_improve' | translate }}" type="experience"
+  class="fixed inset-0 flex items-center justify-center z-40">
+</feedback-modal>
 }
