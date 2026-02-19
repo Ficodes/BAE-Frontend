@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { switchMap } from 'rxjs/operators';
+import { forkJoin, Observable, of } from 'rxjs';
 import { QuoteService } from 'src/app/features/quotes/services/quote.service';
 import { NotificationService } from '../../services/notification.service';
 import { AccountServiceService } from '../../services/account-service.service';
 import { ApiServiceService } from '../../services/product-service.service';
 import { Quote } from '../../models/quote.model';
-import { QUOTE_STATUS_MESSAGES, QUOTE_CHAT_MESSAGES, QUOTE_ACTION_BUTTON_TEXTS } from '../../models/quote.constants';
+import { QUOTE_STATUS_MESSAGES, TENDERING_STATUS_MESSAGES, COORDINATOR_STATUS_MESSAGES, QUOTE_CHAT_MESSAGES, QUOTE_ACTION_BUTTON_TEXTS, QUOTE_CATEGORIES } from '../../models/quote.constants';
+import { API_ROLES } from '../../models/roles.constants';
 import { NotificationComponent } from '../notification/notification.component';
 import { ChatModalComponent } from '../chat-modal/chat-modal.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
@@ -32,7 +34,7 @@ import { environment } from 'src/environments/environment';
       >
         <!-- Modal Header -->
         <div class="flex justify-between items-center mb-6">
-          <h2 class="text-xl font-bold text-gray-900 dark:text-white">Quote Details</h2>
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ getModalTitle() }}</h2>
           <button
             (click)="closeModal()"
             class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none"
@@ -56,8 +58,8 @@ import { environment } from 'src/environments/environment';
         <!-- Quote Content -->
         <div *ngIf="!isLoading && !error && quote" class="space-y-5 max-h-[70vh] overflow-y-auto pr-2">
 
-          <!-- Buyer Section -->
-          <div class="bg-gray-50 dark:bg-secondary-200 p-4 rounded-lg">
+          <!-- Buyer Section (hidden for coordinator quotes) -->
+          <div *ngIf="getQuoteCategory() !== QUOTE_CATEGORIES.COORDINATOR" class="bg-gray-50 dark:bg-secondary-200 p-4 rounded-lg">
             <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Buyer Information</p>
             <div class="grid grid-cols-2 gap-4">
               <!-- Buyer -->
@@ -75,8 +77,8 @@ import { environment } from 'src/environments/environment';
             </div>
           </div>
 
-          <!-- Seller Section -->
-          <div class="bg-gray-50 dark:bg-secondary-200 p-4 rounded-lg">
+          <!-- Seller Section (hidden for coordinator quotes) -->
+          <div *ngIf="getQuoteCategory() !== QUOTE_CATEGORIES.COORDINATOR" class="bg-gray-50 dark:bg-secondary-200 p-4 rounded-lg">
             <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Seller Information</p>
             <div class="grid grid-cols-2 gap-4">
               <!-- Seller -->
@@ -94,8 +96,8 @@ import { environment } from 'src/environments/environment';
             </div>
           </div>
 
-          <!-- Product Info -->
-          <div>
+          <!-- Product Info (only for tailored quotes) -->
+          <div *ngIf="getQuoteCategory() === QUOTE_CATEGORIES.TAILORED">
             <p class="text-sm text-gray-500 dark:text-gray-400">Product:</p>
             <p class="text-base font-medium text-gray-900 dark:text-white">{{ productName }}</p>
           </div>
@@ -108,8 +110,8 @@ import { environment } from 'src/environments/environment';
             </div>
           </div>
 
-          <!-- Dates -->
-          <div class="grid grid-cols-2 gap-4">
+          <!-- Dates (TAILORED quotes) -->
+          <div *ngIf="getQuoteCategory() === QUOTE_CATEGORIES.TAILORED" class="grid grid-cols-2 gap-4">
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">Requested Date:</p>
               <p class="text-base font-medium text-gray-900 dark:text-white">
@@ -137,6 +139,22 @@ import { environment } from 'src/environments/environment';
             </div>
           </div>
 
+          <!-- Dates (TENDERING and COORDINATOR quotes) -->
+          <div *ngIf="getQuoteCategory() === QUOTE_CATEGORIES.TENDER || getQuoteCategory() === QUOTE_CATEGORIES.COORDINATOR" class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Tender Start Date:</p>
+              <p class="text-base font-medium text-gray-900 dark:text-white">
+                {{ getTenderStartDate() }}
+              </p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Tender End Date:</p>
+              <p class="text-base font-medium text-gray-900 dark:text-white">
+                {{ getTenderEndDate() }}
+              </p>
+            </div>
+          </div>
+
           <!-- Status Section -->
           <div class="border-t dark:border-gray-700 pt-4">
             <div class="flex items-center gap-2 mb-3">
@@ -151,10 +169,24 @@ import { environment } from 'src/environments/environment';
           </div>
 
           <!-- Attachments Section -->
-          <div *ngIf="hasAttachment() || canUploadAttachment()" class="border-t dark:border-gray-700 pt-4">
+          <div *ngIf="hasAttachment() || canUploadAttachment() || hasCoordinatorAttachment()" class="border-t dark:border-gray-700 pt-4">
             <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Attachments</p>
 
-            <!-- Download Attachment -->
+            <!-- Download Coordinator Attachment (Customer Request) - for tendering quotes -->
+            <div *ngIf="hasCoordinatorAttachment()" class="flex items-center gap-3 mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              <span class="text-sm text-gray-700 dark:text-gray-300">Customer Request: {{ getCoordinatorAttachmentName() }}</span>
+              <button
+                (click)="downloadCoordinatorAttachment()"
+                class="text-blue-500 hover:text-blue-700 text-sm font-medium"
+              >
+                Download
+              </button>
+            </div>
+
+            <!-- Download Attachment (Provider Response) -->
             <div *ngIf="hasAttachment()" class="flex items-center gap-3 mb-3">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -187,12 +219,14 @@ import { environment } from 'src/environments/environment';
             </div>
           </div>
 
-          <!-- Action Buttons Section -->
-          <div *ngIf="hasActionButtons()" class="border-t dark:border-gray-700 pt-4">
+          <!-- Action Buttons Section (TAILORED and TENDERING categories) -->
+          <div *ngIf="hasActionButtons() && getQuoteCategory() !== QUOTE_CATEGORIES.COORDINATOR" class="border-t dark:border-gray-700 pt-4">
             <div class="space-y-3">
-              <!-- Provider: Accept Quote (when pending) -->
-              <div *ngIf="currentUserRole === 'seller' && getPrimaryState() === 'pending'" class="flex items-center justify-between">
-                <p class="text-sm text-gray-600 dark:text-gray-400">{{ ACTION_TEXTS.ACCEPT_QUOTE_PROVIDER }}</p>
+              <!-- Provider: Accept Tender Invite (when pending, only while coordinator is in inProgress) -->
+              <div *ngIf="currentUserRole === 'seller' && getPrimaryState() === 'pending' && (getQuoteCategory() !== QUOTE_CATEGORIES.TENDER || getCoordinatorState() === 'inProgress')" class="flex items-center justify-between">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  {{ getQuoteCategory() === QUOTE_CATEGORIES.TENDER ? ACTION_TEXTS.ACCEPT_TENDER_INVITE : ACTION_TEXTS.ACCEPT_QUOTE_PROVIDER }}
+                </p>
                 <button
                   (click)="acceptQuote()"
                   [disabled]="isProcessing || !canAcceptQuote()"
@@ -202,12 +236,12 @@ import { environment } from 'src/environments/environment';
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                   </svg>
-                  Accept Quote
+                  {{ getQuoteCategory() === QUOTE_CATEGORIES.TENDER ? 'Accept Invite' : 'Accept Quote' }}
                 </button>
               </div>
 
-              <!-- Customer: Accept Proposal (when approved) -->
-              <div *ngIf="currentUserRole === 'customer' && getPrimaryState() === 'approved'" class="flex items-center justify-between">
+              <!-- Customer: Accept Proposal (tailored: when approved; tender: only when coordinator is 'accepted'/closed) -->
+              <div *ngIf="currentUserRole === 'customer' && getPrimaryState() === 'approved' && (getQuoteCategory() !== QUOTE_CATEGORIES.TENDER || getCoordinatorState() === 'accepted')" class="flex items-center justify-between">
                 <p class="text-sm text-gray-600 dark:text-gray-400">{{ ACTION_TEXTS.ACCEPT_PROPOSAL_CUSTOMER }}</p>
                 <button
                   (click)="acceptProposal()"
@@ -223,11 +257,31 @@ import { environment } from 'src/environments/environment';
             </div>
           </div>
 
+          <!-- Action Buttons Section (COORDINATOR category) -->
+          <div *ngIf="getQuoteCategory() === QUOTE_CATEGORIES.COORDINATOR" class="border-t dark:border-gray-700 pt-4">
+            <div class="space-y-3">
+              <!-- Broadcast Message Button (hidden while tender is still in pending/draft) -->
+              <div *ngIf="currentUserRole === 'customer' && getPrimaryState() !== 'pending'" class="flex items-center justify-between">
+                <p class="text-sm text-gray-600 dark:text-gray-400">Send a message to all invited providers in this tender</p>
+                <button
+                  (click)="openBroadcastMessage()"
+                  [disabled]="isProcessing"
+                  class="flex items-center gap-2 px-4 py-2 bg-fuchsia-600 text-white rounded-md hover:bg-fuchsia-700 disabled:opacity-50"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                  </svg>
+                  Broadcast Message
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- Cancel Quote (Always Available except when Accepted) -->
           <div *ngIf="getPrimaryState() !== 'accepted' && getPrimaryState() !== 'cancelled'" class="border-t dark:border-gray-700 pt-4">
             <div class="flex items-center justify-between">
               <p class="text-sm text-gray-600 dark:text-gray-400">
-                {{ ACTION_TEXTS.CANCEL_QUOTE_PROVIDER }}
+                {{ getQuoteCategory() === QUOTE_CATEGORIES.COORDINATOR ? 'Cancel this tender and all the related quotes / invites' : (getQuoteCategory() === QUOTE_CATEGORIES.TENDER && currentUserRole === 'seller' && getPrimaryState() === 'pending' ? ACTION_TEXTS.DECLINE_TENDER_INVITE : ACTION_TEXTS.CANCEL_QUOTE_PROVIDER) }}
               </p>
               <button
                 (click)="cancelQuote()"
@@ -237,7 +291,7 @@ import { environment } from 'src/environments/environment';
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                Cancel Quote
+                {{ getQuoteCategory() === QUOTE_CATEGORIES.COORDINATOR ? 'Cancel Tender' : 'Cancel Quote' }}
               </button>
             </div>
           </div>
@@ -317,6 +371,35 @@ import { environment } from 'src/environments/environment';
       </div>
     </div>
 
+    <!-- Broadcast Message Modal -->
+    <div *ngIf="showBroadcastModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[60] flex items-center justify-center">
+      <div class="bg-white dark:bg-secondary-100 p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Broadcast Message</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">This message will be sent to all invited providers in this tender:</p>
+        <textarea
+          [(ngModel)]="broadcastMessage"
+          rows="4"
+          placeholder="Type your message to all invited providers..."
+          class="w-full border border-gray-300 dark:border-gray-600 dark:bg-secondary-200 dark:text-white rounded-md px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+        ></textarea>
+        <div class="flex justify-end gap-3">
+          <button
+            (click)="closeBroadcastModal()"
+            class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
+          >
+            Cancel
+          </button>
+          <button
+            (click)="sendBroadcastMessage()"
+            [disabled]="!broadcastMessage || isBroadcastSending"
+            class="px-4 py-2 bg-fuchsia-600 text-white rounded-md hover:bg-fuchsia-700 disabled:opacity-50"
+          >
+            {{ isBroadcastSending ? 'Sending...' : 'Send' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Confirmation Dialog -->
     <app-confirm-dialog
       [isOpen]="showConfirmDialog"
@@ -338,6 +421,7 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
   @Output() quoteUpdated = new EventEmitter<Quote>();
 
   quote: Quote | null = null;
+  coordinatorQuote: Quote | null = null; // For tendering quotes, store the coordinator quote
   isLoading = false;
   error: string | null = null;
   isProcessing = false;
@@ -369,8 +453,14 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
   // Chat modal
   showChatModal = false;
 
+  // Broadcast message modal
+  showBroadcastModal = false;
+  broadcastMessage = '';
+  isBroadcastSending = false;
+
   // Expose constants to template
   readonly ACTION_TEXTS = QUOTE_ACTION_BUTTON_TEXTS;
+  readonly QUOTE_CATEGORIES = QUOTE_CATEGORIES;
 
   // Services
   private quoteService = inject(QuoteService);
@@ -400,6 +490,7 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
 
   private resetState() {
     this.quote = null;
+    this.coordinatorQuote = null;
     this.error = null;
     this.buyerName = 'Loading...';
     this.buyerVatId = 'N/A';
@@ -421,8 +512,27 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
     this.quoteService.getQuoteById(id).subscribe({
       next: (quote) => {
         this.quote = quote;
-        this.isLoading = false;
-        this.enrichQuoteData();
+
+        // If this is a tendering quote and has a coordinator (externalId), load the coordinator quote
+        if (quote.category === QUOTE_CATEGORIES.TENDER && quote.externalId) {
+          this.quoteService.getQuoteById(quote.externalId).subscribe({
+            next: (coordinatorQuote) => {
+              this.coordinatorQuote = coordinatorQuote;
+              console.log('Loaded coordinator quote:', coordinatorQuote);
+              this.isLoading = false;
+              this.enrichQuoteData();
+            },
+            error: (error: Error) => {
+              console.error('Failed to load coordinator quote:', error);
+              // Continue without coordinator quote
+              this.isLoading = false;
+              this.enrichQuoteData();
+            }
+          });
+        } else {
+          this.isLoading = false;
+          this.enrichQuoteData();
+        }
       },
       error: (error: Error) => {
         this.error = 'Failed to load quote. Please try again.';
@@ -547,6 +657,15 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
     return this.quote.state || 'unknown';
   }
 
+  // Returns the state of the coordinator quote (for tendering quotes)
+  getCoordinatorState(): string | null {
+    if (!this.coordinatorQuote) return null;
+    if (Array.isArray(this.coordinatorQuote.quoteItem) && this.coordinatorQuote.quoteItem.length > 0) {
+      return this.coordinatorQuote.quoteItem[0].state || null;
+    }
+    return this.coordinatorQuote.state || null;
+  }
+
   getStatusBadgeClass(): string {
     const state = this.getPrimaryState();
     const classes: Record<string, string> = {
@@ -560,16 +679,47 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
     return classes[state] || 'bg-gray-100 text-gray-600';
   }
 
+  getQuoteCategory(): string {
+    return this.quote?.category || 'tailored';
+  }
+
+  getModalTitle(): string {
+    const category = this.getQuoteCategory();
+    return category === QUOTE_CATEGORIES.COORDINATOR ? 'Tender Details' : 'Quote Details';
+  }
+
   getStatusExplanation(): string {
     const state = this.getPrimaryState();
     const role = this.currentUserRole === 'customer' ? 'buyer' : 'provider';
-    return QUOTE_STATUS_MESSAGES[state]?.[role]?.explanation || 'Status information unavailable.';
+    const category = this.getQuoteCategory();
+
+    let messages;
+    if (category === QUOTE_CATEGORIES.COORDINATOR) {
+      messages = COORDINATOR_STATUS_MESSAGES;
+    } else if (category === QUOTE_CATEGORIES.TENDER) {
+      messages = TENDERING_STATUS_MESSAGES;
+    } else {
+      messages = QUOTE_STATUS_MESSAGES; // tailored or default
+    }
+
+    return messages[state]?.[role]?.explanation || 'Status information unavailable.';
   }
 
   getAvailableActionsText(): string {
     const state = this.getPrimaryState();
     const role = this.currentUserRole === 'customer' ? 'buyer' : 'provider';
-    return QUOTE_STATUS_MESSAGES[state]?.[role]?.availableActions || '';
+    const category = this.getQuoteCategory();
+
+    let messages;
+    if (category === QUOTE_CATEGORIES.COORDINATOR) {
+      messages = COORDINATOR_STATUS_MESSAGES;
+    } else if (category === QUOTE_CATEGORIES.TENDER) {
+      messages = TENDERING_STATUS_MESSAGES;
+    } else {
+      messages = QUOTE_STATUS_MESSAGES; // tailored or default
+    }
+
+    return messages[state]?.[role]?.availableActions || '';
   }
 
   isQuoteFinalized(): boolean {
@@ -586,8 +736,45 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
     return attachment?.name || 'attachment.pdf';
   }
 
+  hasCoordinatorAttachment(): boolean {
+    // Only show coordinator attachment for tendering quotes from provider side
+    if (this.getQuoteCategory() !== QUOTE_CATEGORIES.TENDER) return false;
+    return this.coordinatorQuote?.quoteItem?.some(qi => qi.attachment && qi.attachment.length > 0) || false;
+  }
+
+  getCoordinatorAttachmentName(): string {
+    const attachment = this.coordinatorQuote?.quoteItem?.[0]?.attachment?.[0];
+    return attachment?.name || 'tender-request.pdf';
+  }
+
+  getTenderStartDate(): string {
+    // For tender quotes, use coordinator quote dates if available
+    if (this.getQuoteCategory() === QUOTE_CATEGORIES.TENDER && this.coordinatorQuote) {
+      const date = this.coordinatorQuote.expectedFulfillmentStartDate;
+      return date ? new Date(date).toLocaleDateString('en-GB').replace(/\//g, '-') : '--';
+    }
+    // For coordinator quotes, use own dates
+    const date = this.quote?.expectedFulfillmentStartDate;
+    return date ? new Date(date).toLocaleDateString('en-GB').replace(/\//g, '-') : '--';
+  }
+
+  getTenderEndDate(): string {
+    // For tender quotes, use coordinator quote dates if available
+    if (this.getQuoteCategory() === QUOTE_CATEGORIES.TENDER && this.coordinatorQuote) {
+      const date = this.coordinatorQuote.effectiveQuoteCompletionDate;
+      return date ? new Date(date).toLocaleDateString('en-GB').replace(/\//g, '-') : '--';
+    }
+    // For coordinator quotes, use own dates
+    const date = this.quote?.effectiveQuoteCompletionDate;
+    return date ? new Date(date).toLocaleDateString('en-GB').replace(/\//g, '-') : '--';
+  }
+
   canUploadAttachment(): boolean {
     if (this.currentUserRole !== 'seller') return false;
+    // For tendering quotes, only allow upload when the coordinator is in 'approved' (launched) state
+    if (this.getQuoteCategory() === QUOTE_CATEGORIES.TENDER) {
+      return this.getCoordinatorState() === 'approved';
+    }
     const state = this.getPrimaryState();
     return state === 'inProgress' || state === 'approved';
   }
@@ -648,6 +835,16 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
       this.notificationService.showSuccess('Download started');
     } catch (error: any) {
       this.notificationService.showError(error.message || 'Error downloading attachment');
+    }
+  }
+
+  downloadCoordinatorAttachment() {
+    if (!this.coordinatorQuote) return;
+    try {
+      this.quoteService.downloadAttachment(this.coordinatorQuote);
+      this.notificationService.showSuccess('Download started');
+    } catch (error: any) {
+      this.notificationService.showError(error.message || 'Error downloading customer request');
     }
   }
 
@@ -774,35 +971,91 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
   cancelQuote() {
     if (!this.quote?.id || this.isProcessing) return;
 
-    this.confirmDialogTitle = 'Cancel Quote';
-    this.confirmDialogMessage = 'Are you sure you want to cancel this quote?';
-    this.confirmDialogButtonText = 'Cancel Quote';
+    const isCoordinator = this.getQuoteCategory() === QUOTE_CATEGORIES.COORDINATOR;
+
+    this.confirmDialogTitle = isCoordinator ? 'Cancel Tender' : 'Cancel Quote';
+    this.confirmDialogMessage = isCoordinator
+      ? 'Are you sure you want to cancel this tender? This will also cancel all related provider invites.'
+      : 'Are you sure you want to cancel this quote?';
+    this.confirmDialogButtonText = isCoordinator ? 'Cancel Tender' : 'Cancel Quote';
     this.confirmDialogButtonClass = 'px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500';
     this.confirmDialogCallback = () => {
       this.isProcessing = true;
-      const quoteId = this.quote!.id!;
-      const newStatus = 'cancelled';
-
-      this.quoteService.updateQuoteStatus(quoteId, newStatus).pipe(
-        switchMap((updatedQuote) => {
-          this.quote = updatedQuote;
-          return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE(newStatus), this.currentUserId);
-        })
-      ).subscribe({
-        next: () => {
-          this.isProcessing = false;
-          this.notificationService.showSuccess('Quote cancelled');
-          this.quoteUpdated.emit(this.quote!);
-          this.closeModal(); // Close modal after successful cancellation
-        },
-        error: (error) => {
-          this.isProcessing = false;
-          this.notificationService.showError('Failed to cancel quote');
-        }
-      });
       this.showConfirmDialog = false;
+
+      if (isCoordinator) {
+        this.cancelCoordinatorWithCascade();
+      } else {
+        this.cancelSingleQuote(this.quote!.id!);
+      }
     };
     this.showConfirmDialog = true;
+  }
+
+  private cancelSingleQuote(quoteId: string) {
+    const newStatus = 'cancelled';
+    this.quoteService.updateQuoteStatus(quoteId, newStatus).pipe(
+      switchMap((updatedQuote) => {
+        this.quote = updatedQuote;
+        return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE(newStatus), this.currentUserId);
+      })
+    ).subscribe({
+      next: () => {
+        this.isProcessing = false;
+        this.notificationService.showSuccess('Quote cancelled');
+        this.quoteUpdated.emit(this.quote!);
+        this.closeModal();
+      },
+      error: () => {
+        this.isProcessing = false;
+        this.notificationService.showError('Failed to cancel quote');
+      }
+    });
+  }
+
+  private cancelCoordinatorWithCascade() {
+    const coordinatorId = this.quote!.id!;
+    const newStatus = 'cancelled';
+
+    // Step 1: Fetch all related tendering quotes for this coordinator
+    this.quoteService.getTenderingQuotesByExternalId(this.currentUserId, coordinatorId, API_ROLES.BUYER).subscribe({
+      next: (relatedQuotes) => {
+        console.log(`Found ${relatedQuotes.length} related tendering quotes to cancel`);
+
+        // Step 2: Cancel all related tendering quotes in parallel
+        const cancelRelatedObservables = relatedQuotes.map(relatedQuote =>
+          this.quoteService.updateQuoteStatus(relatedQuote.id!, newStatus)
+        );
+
+        const cancelAll$ = cancelRelatedObservables.length > 0
+          ? forkJoin(cancelRelatedObservables)
+          : of([]);
+
+        cancelAll$.pipe(
+          // Step 3: Once all related quotes are cancelled, cancel the coordinator itself
+          switchMap(() => this.quoteService.updateQuoteStatus(coordinatorId, newStatus)),
+          switchMap((updatedCoordinator) => {
+            this.quote = updatedCoordinator;
+            return this.quoteService.addNoteToQuote(coordinatorId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE(newStatus), this.currentUserId);
+          })
+        ).subscribe({
+          next: () => {
+            this.isProcessing = false;
+            this.notificationService.showSuccess(`Tender and ${relatedQuotes.length} related quote(s) cancelled`);
+            this.quoteUpdated.emit(this.quote!);
+            this.closeModal();
+          },
+          error: () => {
+            this.isProcessing = false;
+            this.notificationService.showError('Failed to cancel tender. Some quotes may not have been cancelled.');
+          }
+        });
+      },
+      error: () => {
+        this.isProcessing = false;
+        this.notificationService.showError('Failed to fetch related quotes for cancellation');
+      }
+    });
   }
 
   saveExpectedDate() {
@@ -829,6 +1082,84 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
     if (!this.quote?.id) return;
     this.closeModal();
     this.router.navigate(['/my-offerings'], { state: { quoteId: this.quote.id } });
+  }
+
+  // Coordinator-specific actions
+  openBroadcastMessage() {
+    if (!this.quote?.id) return;
+    this.broadcastMessage = '';
+    this.showBroadcastModal = true;
+  }
+
+  closeBroadcastModal() {
+    this.showBroadcastModal = false;
+    this.broadcastMessage = '';
+    this.isBroadcastSending = false;
+  }
+
+  sendBroadcastMessage() {
+    if (!this.quote?.id || !this.currentUserId || !this.broadcastMessage) {
+      return;
+    }
+
+    this.confirmDialogTitle = 'Broadcast Message';
+    this.confirmDialogMessage = 'Are you sure you want to broadcast this message to all the invited providers?';
+    this.confirmDialogButtonText = 'Send';
+    this.confirmDialogButtonClass = 'px-4 py-2 text-sm font-medium text-white bg-fuchsia-600 border border-transparent rounded-md hover:bg-fuchsia-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fuchsia-500';
+
+    this.confirmDialogCallback = () => {
+      this.executeBroadcastMessage();
+      this.showConfirmDialog = false;
+    };
+    this.showConfirmDialog = true;
+  }
+
+  private executeBroadcastMessage() {
+    if (!this.quote?.id || !this.currentUserId || !this.broadcastMessage) return;
+
+    this.isBroadcastSending = true;
+
+    // Get the coordinator quote's external ID to find related quotes
+    const coordinatorQuoteId = this.quote.id;
+
+    // Fetch all quotes to find related tendering quotes
+    this.quoteService.getAllQuotes().subscribe({
+      next: (allQuotes) => {
+        // Find all tendering quotes that have this coordinator quote as their external_id
+        const relatedQuotes = allQuotes.filter(q =>
+          q.category === QUOTE_CATEGORIES.TENDER && q.externalId === coordinatorQuoteId
+        );
+
+        if (relatedQuotes.length === 0) {
+          this.notificationService.showError('No related provider quotes found to broadcast to.');
+          this.isBroadcastSending = false;
+          this.closeBroadcastModal();
+          return;
+        }
+
+        // Send message to each related quote
+        const requests = relatedQuotes.map(q =>
+          this.quoteService.addNoteToQuote(q.id!, this.broadcastMessage, this.currentUserId!)
+        ) as Observable<Quote>[];
+
+        forkJoin(requests).subscribe({
+          next: () => {
+            this.notificationService.showSuccess('Message broadcast sent to all invited providers.');
+            this.closeBroadcastModal();
+          },
+          error: (error: Error) => {
+            console.error('Failed to broadcast message:', error);
+            this.notificationService.showError('Failed to broadcast message.');
+            this.isBroadcastSending = false;
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Failed to fetch quotes:', error);
+        this.notificationService.showError('Failed to fetch related quotes.');
+        this.isBroadcastSending = false;
+      }
+    });
   }
 
   closeModal() {
