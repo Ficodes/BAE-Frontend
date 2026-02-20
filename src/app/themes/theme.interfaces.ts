@@ -7,6 +7,11 @@ export interface ThemeAssetConfig {
   // other specific theme assets
 }
 
+export interface NavHeaderLink {
+  label: string;
+  navLinks: NavLink[];
+}
+
 export interface NavLink {
   label: string; // Text to be shown, ie. 'About Us', 'Contact'
   id?: string; // dropdown ID, ie: 'browseDropdown'
@@ -24,7 +29,8 @@ export interface NavLink {
 
 export interface ThemeLinkConfig {
   headerLinks?: NavLink[];
-  footerLinks?: NavLink[];
+  footerLinks?: NavHeaderLink[];
+  footerLinksColsNumber?: number;
 
   // Social networks
   linkedin?: string;
