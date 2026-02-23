@@ -2,12 +2,10 @@ import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AppComponent } from './app.component';
-import { FeaturedComponent } from "./offerings/featured/featured.component";
 import { GalleryComponent } from "./offerings/gallery/gallery.component";
 import { ExploreDomeComponent } from "./offerings/explore-dome/explore-dome.component";
 import { PlatformBenefitsComponent } from "./offerings/platform-benefits/platform-benefits.component";
-import { HowItWorksComponent } from "./offerings/how-it-works/how-it-works.component";
-import { DashboardComponent } from "./pages/dashboard/dashboard.component";
+import { HowItWorksComponent } from "./offerings/how-it-works/how-it-works.component"; 
 import { SearchComponent } from "./pages/search/search.component";
 import { ProductDetailsComponent } from "./pages/product-details/product-details.component";
 import { ProductInventoryComponent } from "./pages/product-inventory/product-inventory.component";
@@ -106,9 +104,7 @@ import { OperatorRevenueSharingComponent } from "src/app/pages/admin/operator-re
 @NgModule({
   declarations: [
     AppComponent,
-    DashboardComponent,
     SearchComponent,
-    FeaturedComponent,
     GalleryComponent,
     PlatformBenefitsComponent,
     HowItWorksComponent,
@@ -229,4 +225,3 @@ export class AppModule { }
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, './assets/i18n/');
 }
-

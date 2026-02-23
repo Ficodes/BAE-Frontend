@@ -1,0 +1,397 @@
+<!-- Drawer -->
+<div class="fixed inset-0 flex justify-end transition-opacity duration-500 z-[52]"
+     [ngClass]="{'opacity-100': isOpen, 'opacity-0 pointer-events-none': !isOpen}">
+
+  <!-- Backdrop that covers entire viewport -->
+  <div class="fixed inset-0 bg-black bg-opacity-50 z-[52]"></div>
+
+  <div class="w-full md:w-2/3 lg:w-1/2 bg-secondary-50 dark:bg-gray-800 h-screen transform transition-transform duration-500 flex flex-col relative z-[53]"
+       [ngClass]="{'translate-x-0': isOpen, 'translate-x-full': !isOpen, '-translate-x-full': !initialized}">
+
+    <div class="p-6 flex-1 overflow-y-auto">
+      <!-- Title -->
+      <h2 class="text-xl font-semibold text-gray-700 dark:text-white">
+        Create Tier Pricing
+      </h2>
+
+      <div class="mt-4 space-y-4">
+
+        <!-- Characteristic Selector -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Select Range Characteristic
+          </label>
+          <select
+            (change)="onCharacteristicChange($event)"
+            class="mt-1 w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+          >
+            <option value="">-- Select a characteristic --</option>
+            <option *ngFor="let char of rangeCharacteristics" [value]="char.id">
+              {{ char.name }}
+              ({{ char.productSpecCharacteristicValue[0].valueFrom }} - {{ char.productSpecCharacteristicValue[0].valueTo }})
+            </option>
+          </select>
+        </div>
+
+        <!-- Info message when no characteristic is selected -->
+        <div *ngIf="!selectedCharacteristic" class="p-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-secondary-100 dark:text-blue-400">
+          <span class="font-medium">Please select a range characteristic to start creating tier pricing.</span>
+        </div>
+
+        <!-- Slider Section (only shown when characteristic is selected) -->
+        <div *ngIf="selectedCharacteristic">
+          <div class="mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Divide Range: {{ rangeMin }} - {{ rangeMax }}
+            </label>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Add markers to divide the range into subranges. Each subrange will become a separate price component.
+            </p>
+          </div>
+
+          <!-- Add/Remove Marker Buttons -->
+          <div class="flex space-x-2 mb-4">
+            <button
+              type="button"
+              (click)="addMarker()"
+              class="px-3 py-1 bg-green-500 text-white rounded text-sm flex items-center"
+            >
+              <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                <path fill="currentColor" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM232 344l0-64-64 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l64 0 0-64c0-13.3 10.7-24 24-24s24 10.7 24 24l0 64 64 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-64 0 0 64c0 13.3-10.7 24-24 24s-24-10.7-24-24z"/>
+              </svg>
+              Add Marker
+            </button>
+          </div>
+
+          <!-- Slider Visual Representation -->
+          <div class="relative w-full h-32 bg-gray-200 dark:bg-gray-700 rounded-lg p-4 mb-4">
+            <!-- Range bar -->
+            <div class="absolute top-1/2 left-4 right-4 h-2 bg-blue-300 dark:bg-blue-700 rounded transform -translate-y-1/2"></div>
+
+            <!-- Start marker -->
+            <div class="absolute top-1/2 left-4 transform -translate-y-1/2 -translate-x-1/2">
+              <div class="w-4 h-4 bg-blue-600 rounded-full border-2 border-white"></div>
+              <span class="absolute top-6 left-1/2 transform -translate-x-1/2 text-xs font-semibold text-gray-700 dark:text-gray-300">
+                {{ rangeMin }}
+              </span>
+            </div>
+
+            <!-- User markers -->
+            <div
+              *ngFor="let marker of sliderMarkers; let i = index; trackBy: trackByIndex"
+              class="absolute top-1/2 transform -translate-y-1/2"
+              [style.left.%]="((marker - rangeMin) / (rangeMax - rangeMin)) * 100"
+            >
+              <div class="relative">
+                <div class="w-4 h-4 bg-red-500 rounded-full border-2 border-white cursor-pointer hover:bg-red-600"
+                     (click)="removeMarker(i)"
+                     title="Click to remove">
+                </div>
+                <span class="absolute top-6 left-1/2 transform -translate-x-1/2 text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  {{ marker }}
+                </span>
+              </div>
+            </div>
+
+            <!-- End marker -->
+            <div class="absolute top-1/2 right-4 transform -translate-y-1/2 translate-x-1/2">
+              <div class="w-4 h-4 bg-blue-600 rounded-full border-2 border-white"></div>
+              <span class="absolute top-6 left-1/2 transform -translate-x-1/2 text-xs font-semibold text-gray-700 dark:text-gray-300">
+                {{ rangeMax }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Marker Inputs (for precise control) -->
+          <div *ngIf="sliderMarkers.length > 0" class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Adjust Markers ({{ sliderMarkers.length }})
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <div *ngFor="let marker of sliderMarkers; let i = index; trackBy: trackByIndex" class="flex items-center space-x-2">
+                <span class="text-sm text-gray-600 dark:text-gray-400">Marker {{ i + 1 }}:</span>
+                <input
+                  type="number"
+                  [value]="marker"
+                  [min]="rangeMin + 1"
+                  [max]="rangeMax - 1"
+                  (input)="onMarkerChange(i, $event)"
+                  class="w-20 p-1 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 text-sm"
+                />
+                <button
+                  type="button"
+                  (click)="removeMarker(i)"
+                  class="text-red-500 hover:text-red-700"
+                  title="Remove marker"
+                >
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                    <path fill="currentColor" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Subranges Configuration -->
+          <div *ngIf="subRanges.length > 0" class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Configure Pricing for Each Subrange ({{ subRanges.length }})
+            </label>
+            <div class="space-y-3">
+              <div
+                *ngFor="let subRange of subRanges; let i = index; trackBy: trackBySubRangeId"
+                class="bg-white dark:bg-gray-700 border rounded overflow-hidden"
+                [ngClass]="subRange.priceComponent ? 'border-green-500 dark:border-green-600' : 'border-gray-300 dark:border-gray-600'"
+              >
+                <!-- Header -->
+                <div class="p-3 flex justify-between items-center">
+                  <div class="flex-1">
+                    <div class="flex items-center space-x-2">
+                      <!-- Status icon -->
+                      <svg *ngIf="subRange.priceComponent" class="w-5 h-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <path fill="currentColor" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/>
+                      </svg>
+                      <svg *ngIf="!subRange.priceComponent" class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <path fill="currentColor" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/>
+                      </svg>
+
+                      <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                        Tier {{ i + 1 }}: {{ subRange.name }}
+                      </span>
+                    </div>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 ml-7">
+                      Range: {{ subRange.valueFrom }} - {{ subRange.valueTo }}
+                    </span>
+
+                    <!-- Show configured price info if available -->
+                    <div *ngIf="subRange.priceComponent && !subRange.isEditing" class="text-xs text-green-600 dark:text-green-400 ml-7 mt-1">
+                      Price: {{ subRange.priceComponent.price }} | Type: {{ subRange.priceComponent.priceType }}
+                    </div>
+                  </div>
+
+                  <!-- Configure/Edit button -->
+                  <button
+                    *ngIf="!subRange.isEditing"
+                    type="button"
+                    (click)="openPriceForm(i)"
+                    class="px-3 py-1 rounded text-sm flex items-center"
+                    [ngClass]="subRange.priceComponent ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'bg-orange-500 hover:bg-orange-600 text-white'"
+                  >
+                    <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                      <path fill="currentColor" *ngIf="!subRange.priceComponent" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM232 344l0-64-64 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l64 0 0-64c0-13.3 10.7-24 24-24s24 10.7 24 24l0 64 64 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-64 0 0 64c0 13.3-10.7 24-24 24s-24-10.7-24-24z"/>
+                      <path fill="currentColor" *ngIf="subRange.priceComponent" d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160L0 416c0 53 43 96 96 96l256 0c53 0 96-43 96-96l0-96c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7-14.3 32-32 32L96 448c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L96 64z"/>
+                    </svg>
+                    {{ subRange.priceComponent ? 'Edit' : 'Configure' }}
+                  </button>
+                </div>
+
+                <!-- Inline Price Form (expandable) -->
+                <div *ngIf="subRange.isEditing" class="border-t border-gray-200 dark:border-gray-600 p-4 bg-gray-50 dark:bg-gray-800">
+                  <form [formGroup]="priceForm" class="space-y-3">
+                    <!-- Name -->
+                    <div>
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Name</label>
+                      <input
+                        formControlName="name"
+                        type="text"
+                        class="mt-1 w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                      />
+                    </div>
+
+                    <!-- Price -->
+                    <div>
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Price</label>
+                      <input
+                        formControlName="price"
+                        type="number"
+                        step="0.01"
+                        class="mt-1 w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        [ngClass]="priceForm.get('price')?.invalid && priceForm.get('price')?.touched ? 'border-red-500' : ''"
+                      />
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Description (optional)</label>
+                      <textarea
+                        formControlName="description"
+                        rows="2"
+                        class="mt-1 w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                      ></textarea>
+                    </div>
+
+                    <!-- Price Type -->
+                    <div>
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Price Type</label>
+                      <select
+                        formControlName="priceType"
+                        class="mt-1 w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                      >
+                        <option value="one time">One Time</option>
+                        <option value="recurring">Recurring</option>
+                        <option value="recurring-prepaid">Recurring Prepaid</option>
+                        <option value="usage">Usage</option>
+                      </select>
+                    </div>
+
+                    <!-- Recurring Period (if recurring) -->
+                    <div *ngIf="priceForm.get('priceType')?.value === 'recurring' || priceForm.get('priceType')?.value === 'recurring-prepaid'">
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Recurring Period</label>
+                      <select
+                        formControlName="recurringPeriod"
+                        class="mt-1 w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                      >
+                        <option value="day">Daily</option>
+                        <option value="week">Weekly</option>
+                        <option value="month">Monthly</option>
+                        <option value="year">Yearly</option>
+                      </select>
+                    </div>
+
+                    <!-- Usage Specification (if usage) -->
+                    <div *ngIf="priceForm.get('priceType')?.value === 'usage'" class="space-y-2">
+                      <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Usage Specification</label>
+                        <select
+                          (change)="changePriceComponentUsageSpec($event)"
+                          class="mt-1 w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        >
+                          <option value="">Select a usage specification</option>
+                          <option *ngFor="let usage of usageSpecs" [value]="usage.id" [selected]="selectedUsageSpec?.id === usage.id">
+                            {{ usage.name }}
+                          </option>
+                        </select>
+                      </div>
+
+                      <div *ngIf="showMetricSelect">
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Metric</label>
+                        <select
+                          (change)="changePriceComponentMetric($event)"
+                          class="mt-1 w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        >
+                          <option *ngFor="let metric of selectedUsageSpec.specCharacteristic" [value]="metric.name" [selected]="selectedMetric === metric.name">
+                            {{ metric.name }}
+                          </option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <!-- Discount Checkbox -->
+                    <div class="flex items-center">
+                      <input
+                        type="checkbox"
+                        [(ngModel)]="showDiscount"
+                        [ngModelOptions]="{ standalone: true }"
+                        class="w-4 h-4 text-blue-600 border-gray-300 rounded cursor-pointer"
+                      />
+                      <label class="ml-2 text-xs font-medium text-gray-700 dark:text-gray-300">
+                        Include Discount
+                      </label>
+                    </div>
+
+                    <!-- Discount Fields -->
+                    <div *ngIf="showDiscount" class="space-y-2 pl-6 border-l-2 border-blue-300">
+                      <div class="flex space-x-2">
+                        <div class="flex-1">
+                          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Discount Value</label>
+                          <input
+                            formControlName="discountValue"
+                            type="number"
+                            class="mt-1 w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                          />
+                        </div>
+                        <div class="flex-1">
+                          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Unit</label>
+                          <select
+                            formControlName="discountUnit"
+                            class="mt-1 w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                          >
+                            <option value="percentage">Percentage</option>
+                            <option value="fixed">Fixed</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div class="flex space-x-2">
+                        <div class="flex-1">
+                          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Duration</label>
+                          <input
+                            formControlName="discountDuration"
+                            type="number"
+                            class="mt-1 w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                          />
+                        </div>
+                        <div class="flex-1">
+                          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Unit</label>
+                          <select
+                            formControlName="discountDurationUnit"
+                            class="mt-1 w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                          >
+                            <option value="days">Days</option>
+                            <option value="weeks">Weeks</option>
+                            <option value="months">Months</option>
+                            <option value="years">Years</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Form Buttons -->
+                    <div class="flex justify-end space-x-2 mt-4">
+                      <button
+                        type="button"
+                        (click)="cancelPriceForm()"
+                        class="px-3 py-1 text-sm bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-white rounded hover:bg-gray-400"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        (click)="savePriceForm()"
+                        [disabled]="priceForm.invalid"
+                        class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+                        [ngClass]="priceForm.invalid ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Validation Errors -->
+          <div *ngIf="validationErrors.length > 0" class="mb-4">
+            <div class="p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-red-900 dark:text-red-200">
+              <span class="font-medium">Validation Errors:</span>
+              <ul class="list-disc list-inside mt-2">
+                <li *ngFor="let error of validationErrors">{{ error }}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex justify-end space-x-3 mt-6">
+          <button
+            type="button"
+            (click)="closeDrawer()"
+            class="px-4 py-2 bg-gray-300 dark:bg-gray-600 dark-text:white rounded"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            (click)="confirmTierPricing()"
+            [disabled]="!canConfirm"
+            [ngClass]="canConfirm ? 'bg-blue-500 hover:bg-blue-600 cursor-pointer' : 'bg-gray-400 cursor-not-allowed opacity-50'"
+            class="px-4 py-2 text-white rounded"
+          >
+            Save Tier Pricing
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

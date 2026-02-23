@@ -1134,6 +1134,17 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       this.numberValue='';
     }else if(this.rangeCharSelected){
       console.log('range')
+      // Validate that fromValue < toValue
+      const fromVal = Number(this.fromValue);
+      const toVal = Number(this.toValue);
+      if (fromVal >= toVal) {
+        console.log('range validation error: valueFrom >= valueTo')
+        this.errorMessage = 'Invalid range: "From" value must be less than "To" value';
+        this.showError = true;
+        setTimeout(() => {this.showError = false}, 3000);
+        return;
+      }
+
       if(this.creatingChars.length==0){
         this.creatingChars.push({
           isDefault:true,
@@ -1147,22 +1158,10 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
           valueFrom:this.fromValue as any,
           valueTo:this.toValue as any,
           unitOfMeasure:this.rangeUnit})
-      } 
-    } else {
-      console.log('boolean')
-      if(this.creatingChars.length==0){
-        this.creatingChars.push({
-          isDefault:true,
-          value:this.booleanValue as any
-        })
-      } else{
-        this.creatingChars.push({
-          isDefault:false,
-          value:this.booleanValue as any
-        })
       }
+    } else {
+      console.log('nothing')
     }
-    this.booleanValue=false;
   }
 
   removeCharValue(char:any,idx:any){
@@ -1183,6 +1182,17 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
   saveChar(){
     if(this.charsForm.value.name!=null){
+
+      // In showFinish() only takes the first ocurrence in name for sending to proxy
+      // I validate the duplication here to prevent confusion in client when suddenly a characteristic with the same name dissapeared 
+      if (this.prodChars.find((char)=> char.name === this.charsForm.value.name)){
+        console.log('name duplicated error')
+        this.errorMessage = 'Cannot save duplicated name in characteristics';
+        this.showError = true;
+        setTimeout(() => {this.showError = false}, 3000);
+        return
+      }
+
       // Create the main characteristic
       this.prodChars.push({
         id: 'urn:ngsi-ld:characteristic:'+uuidv4(),

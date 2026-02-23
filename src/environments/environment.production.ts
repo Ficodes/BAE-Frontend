@@ -18,7 +18,7 @@ export const environment = {
     BILLING: '/billing',
     CHARGING: '/charging',
 
-    searchOrganizationsEndpoint: '/api/searchOrganizations',
+    searchOrganizationsEndpoint: '/search-bck/api/searchOrganizations',
 
     CONSUMER_BILLING_URL: 'http://localhost:8640',
     INVOICE_LIMIT: 100,
@@ -97,5 +97,6 @@ export const environment = {
     AI_SEARCH_API_URL: 'https://dome.expertcustomers.ai/rag/',
     AI_SEARCH_SCORE_THRESHOLD: 0.3,
     AI_SEARCH_ANSWER_MAX_ITEMS: 5,
-    AI_SEARCH_PROFILE: 'dome_dev2'
+    AI_SEARCH_PROFILE: 'dome_dev2',
+    LEAR_URL: ''
 };
