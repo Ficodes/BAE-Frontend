@@ -53,13 +53,37 @@ export interface AIAnswerResponse {
   providedIn: 'root'
 })
 export class AiSearchService {
-  private apiUrl = environment.AI_SEARCH_API_URL;
+  private apiUrl = this.buildProxyApiUrl(environment.BASE_URL, environment.AI_SEARCH_API_URL);
   private apiKey = environment.AI_SEARCH_API_KEY;
   private scoreThreshold = environment.AI_SEARCH_SCORE_THRESHOLD;
   private answerMaxItems = environment.AI_SEARCH_ANSWER_MAX_ITEMS;
   private profile = environment.AI_SEARCH_PROFILE;
 
   constructor() {}
+
+  private buildProxyApiUrl(baseUrl: string, aiApiUrl: string): string {
+    const normalizedBaseUrl = (baseUrl || '').replace(/\/+$/, '');
+    const normalizedAiPath = this.normalizeAiPath(aiApiUrl);
+    return `${normalizedBaseUrl}${normalizedAiPath}`;
+  }
+
+  private normalizeAiPath(aiApiUrl: string): string {
+    if (!aiApiUrl) {
+      return '/rag/';
+    }
+
+    let path = aiApiUrl.trim();
+
+    if (!path.startsWith('/')) {
+      path = `/${path}`;
+    }
+
+    if (!path.endsWith('/')) {
+      path = `${path}/`;
+    }
+
+    return path;
+  }
 
   async search(
     query: string,
