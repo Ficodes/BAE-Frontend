@@ -90,7 +90,6 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   ticketing: string = environment.TICKETING_SYSTEM_URL
   analytics: string = environment.analytics
   domeAbout: string = environment.DOME_ABOUT_LINK
-  domeRegister: string = environment.DOME_REGISTER_LINK
   domePublish: string = environment.DOME_PUBLISH_LINK
   public static BASE_URL: String = environment.BASE_URL;
   isNavBarOpen:boolean = false;
