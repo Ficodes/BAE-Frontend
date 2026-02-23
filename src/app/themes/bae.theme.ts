@@ -1,5 +1,4 @@
-import {NavLink, ThemeConfig} from './theme.interfaces';
-import {environment} from "../../environments/environment";
+import { NavLink, ThemeConfig } from './theme.interfaces';
 
 const baeHeaderLinks: NavLink[] = [
   {
@@ -15,7 +14,7 @@ const baeHeaderLinks: NavLink[] = [
       { label: 'HEADER._catalogs', url: '/catalogues', isRouterLink: true }
     ]
   }
-  ];
+];
 
 
 export const BAE_THEME_CONFIG: ThemeConfig = {

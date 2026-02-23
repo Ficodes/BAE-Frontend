@@ -316,7 +316,8 @@
         <div data-cy="mainText">
           <h1 class="mb-4 text-left text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl text-secondary-50">{{
             'DASHBOARD._header' | translate }}</h1>
-          <p class="text-left mb-8 text-lg font-normal lg:text-xl text-secondary-50">{{ 'DASHBOARD._subheader' | translate }}</p>
+          <p class="text-left mb-8 text-lg font-normal lg:text-xl text-secondary-50">{{ 'DASHBOARD._subheader' |
+            translate }}</p>
           <button data-cy="browseServicesDashboard" id="browseServices" (click)="goToSearch()"
             class="inline-flex justify-left items-center border border-1 border-white py-3 px-5 text-base font-medium text-center text-white rounded-lg hover:bg-primary-50 ">
             <svg class=" mr-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -330,32 +331,34 @@
         <div class="mt-4 md:mt-0 bg-secondary-300 bg-opacity-50 rounded-lg w-full md:w-1/4 h-[300px]">
           <div class="w-full p-8 rounded-lg shadow-lg h-[300px] flex flex-col justify-between">
             <div class="flex flex-col">
-              <p data-cy="vServices" class="mb-2 text-left text-lg font-normal lg:text-xl text-secondary-50 h-fit">{{services.length}}
+              <p data-cy="vServices" class="mb-2 text-left text-lg font-normal lg:text-xl text-secondary-50 h-fit">
+                {{services.length}}
                 verified services</p>
               @for (serv of services; track serv; let pos = $index) {
-                @if (currentIndexServ === pos) {
-                <a data-cy="nameServices" [style.display]="'-webkit-box'" [style.webkitBoxOrient]="'vertical'"
-                  [style.webkitLineClamp]="'2'" [class.break-all]="hasLongWord(serv, 20)"
-                  [class.break-words]="!hasLongWord(serv, 20)"
-                  class="text-md text-wrap line-clamp-2 mb-2 font-medium block items-center px-2.5 py-0.5 rounded-md text-primary-100 bg-secondary-50 w-fit animate-in">
-                  {{ serv }}
-                </a>
-                }
+              @if (currentIndexServ === pos) {
+              <a data-cy="nameServices" [style.display]="'-webkit-box'" [style.webkitBoxOrient]="'vertical'"
+                [style.webkitLineClamp]="'2'" [class.break-all]="hasLongWord(serv, 20)"
+                [class.break-words]="!hasLongWord(serv, 20)"
+                class="text-md text-wrap line-clamp-2 mb-2 font-medium block items-center px-2.5 py-0.5 rounded-md text-primary-100 bg-secondary-50 w-fit animate-in">
+                {{ serv }}
+              </a>
+              }
               }
             </div>
 
             <div class="flex flex-col">
-              <p data-cy="rPublishers" class="mb-2 text-left text-lg font-normal lg:text-xl text-secondary-50">{{publishers.length}}
+              <p data-cy="rPublishers" class="mb-2 text-left text-lg font-normal lg:text-xl text-secondary-50">
+                {{publishers.length}}
                 registered providers</p>
               @for (pub of publishers; track pub; let pos = $index) {
-                @if (currentIndexPub === pos) {
-                <a data-cy="nameOrgs" [style.display]="'-webkit-box'" [style.webkitBoxOrient]="'vertical'"
-                  [style.webkitLineClamp]="'2'" [class.break-all]="hasLongWord(pub, 20)"
-                  [class.break-words]="!hasLongWord(pub, 20)"
-                  class="text-md text-wrap line-clamp-2 font-medium block items-center px-2.5 py-0.5 rounded-md text-primary-100 bg-secondary-50 w-fit animate-in">
-                  {{ pub }}
-                </a>
-                }
+              @if (currentIndexPub === pos) {
+              <a data-cy="nameOrgs" [style.display]="'-webkit-box'" [style.webkitBoxOrient]="'vertical'"
+                [style.webkitLineClamp]="'2'" [class.break-all]="hasLongWord(pub, 20)"
+                [class.break-words]="!hasLongWord(pub, 20)"
+                class="text-md text-wrap line-clamp-2 font-medium block items-center px-2.5 py-0.5 rounded-md text-primary-100 bg-secondary-50 w-fit animate-in">
+                {{ pub }}
+              </a>
+              }
               }
             </div>
 
@@ -374,21 +377,27 @@
     </div>
   </section>
   @if(searchEnabled){
-    <section class="content mx-auto pt-8 pb-5 px-4 mx-auto max-w-screen-xl lg:pb-5 lg:pt-16 w-full flex items-center" [ngClass]="isFilterPanelShown ? 'sticky top-[118px] backdrop-blur-sm z-20': 'sticky top-[72px] backdrop-blur-sm z-20'">
-      <form class="mx-5 w-full">
-        <div class="flex">
-          <div class="relative w-full">
-            <input type="search" id="dashboardSearchBar" [formControl]="searchField" (keydown.enter)="filterSearch($event)" class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-secondary-500 dark:border-s-gray-700  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500" placeholder="{{ 'DASHBOARD._search_ph' | translate }}" required>
-            <button type="submit" id="dashboardSearchButton" (click)="filterSearch($event)" class="absolute top-0 end-0 p-2.5 text-sm font-medium h-full text-white bg-primary-100 rounded-e-lg border border-secondary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:border-secondary-400">
-              <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-              </svg>
-              <span class="sr-only">{{ 'DASHBOARD._search' | translate }}</span>
-            </button>
-          </div>
+  <section class="content mx-auto pt-8 pb-5 px-4 mx-auto max-w-screen-xl lg:pb-5 lg:pt-16 w-full flex items-center"
+    [ngClass]="isFilterPanelShown ? 'sticky top-[118px] backdrop-blur-sm z-20': 'sticky top-[72px] backdrop-blur-sm z-20'">
+    <form class="mx-5 w-full">
+      <div class="flex">
+        <div class="relative w-full">
+          <input type="search" id="dashboardSearchBar" [formControl]="searchField"
+            (keydown.enter)="filterSearch($event)"
+            class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-secondary-500 dark:border-s-gray-700  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+            placeholder="{{ 'DASHBOARD._search_ph' | translate }}" required>
+          <button type="submit" id="dashboardSearchButton" (click)="filterSearch($event)"
+            class="absolute top-0 end-0 p-2.5 text-sm font-medium h-full text-white bg-primary-100 rounded-e-lg border border-secondary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:border-secondary-400">
+            <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+            </svg>
+            <span class="sr-only">{{ 'DASHBOARD._search' | translate }}</span>
+          </button>
         </div>
-      </form>
-    </section>
+      </div>
+    </form>
+  </section>
   }
   <bae-off-featured data-cy="offFeatured"></bae-off-featured>
 </div>
