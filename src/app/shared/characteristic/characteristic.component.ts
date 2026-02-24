@@ -56,14 +56,16 @@ export class CharacteristicComponent implements OnInit {
       );
     }
 
-    // Emit initial value
-    this.control.valueChanges.subscribe((value) => {
-      if (!this.readOnly) { // Respetar el estado de solo lectura
-        this.valueChange.emit({
-          characteristicId: this.characteristic.id,
-          selectedValue: value,
-        });
-      }
+  }
+
+  onControlCommit(): void {
+    if (this.readOnly) {
+      return;
+    }
+
+    this.valueChange.emit({
+      characteristicId: this.characteristic.id,
+      selectedValue: this.control.value,
     });
   }
 
