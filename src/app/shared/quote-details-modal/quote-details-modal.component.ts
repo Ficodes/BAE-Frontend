@@ -9,7 +9,7 @@ import { NotificationService } from '../../services/notification.service';
 import { AccountServiceService } from '../../services/account-service.service';
 import { ApiServiceService } from '../../services/product-service.service';
 import { Quote } from '../../models/quote.model';
-import { QUOTE_STATUS_MESSAGES, TENDERING_STATUS_MESSAGES, COORDINATOR_STATUS_MESSAGES, QUOTE_CHAT_MESSAGES, QUOTE_ACTION_BUTTON_TEXTS, QUOTE_CATEGORIES } from '../../models/quote.constants';
+import { QUOTE_STATUS_MESSAGES, TENDERING_STATUS_MESSAGES, COORDINATOR_STATUS_MESSAGES, QUOTE_CHAT_MESSAGES, QUOTE_ACTION_BUTTON_TEXTS, QUOTE_CATEGORIES, QUOTE_STATUSES, TAILORED_STATUSES_LABELS_CUSTOMER, TAILORED_STATUSES_LABELS_PROVIDER, TENDER_COORDINATOR_STATUSES_LABELS, TENDER_RELATED_QUOTES_LABELS_CUSTOMER, TENDER_RELATED_QUOTES_LABELS_PROVIDER } from '../../models/quote.constants';
 import { API_ROLES } from '../../models/roles.constants';
 import { NotificationComponent } from '../notification/notification.component';
 import { ChatModalComponent } from '../chat-modal/chat-modal.component';
@@ -161,7 +161,7 @@ import { environment } from 'src/environments/environment';
               <p class="text-sm text-gray-700 dark:text-gray-300">The quote is in status:</p>
               <span class="px-3 py-1 text-sm font-semibold rounded-full"
                     [ngClass]="getStatusBadgeClass()">
-                {{ getPrimaryState() }}
+                {{ getStatusLabel() }}
               </span>
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">{{ getStatusExplanation() }}</p>
@@ -223,7 +223,7 @@ import { environment } from 'src/environments/environment';
           <div *ngIf="hasActionButtons() && getQuoteCategory() !== QUOTE_CATEGORIES.COORDINATOR" class="border-t dark:border-gray-700 pt-4">
             <div class="space-y-3">
               <!-- Provider: Accept Tender Invite (when pending, only while coordinator is in inProgress) -->
-              <div *ngIf="currentUserRole === 'seller' && getPrimaryState() === 'pending' && (getQuoteCategory() !== QUOTE_CATEGORIES.TENDER || getCoordinatorState() === 'inProgress')" class="flex items-center justify-between">
+              <div *ngIf="currentUserRole === 'seller' && getPrimaryState() === QUOTE_STATUSES.PENDING && (getQuoteCategory() !== QUOTE_CATEGORIES.TENDER || getCoordinatorState() === QUOTE_STATUSES.IN_PROGRESS)" class="flex items-center justify-between">
                 <p class="text-sm text-gray-600 dark:text-gray-400">
                   {{ getQuoteCategory() === QUOTE_CATEGORIES.TENDER ? ACTION_TEXTS.ACCEPT_TENDER_INVITE : ACTION_TEXTS.ACCEPT_QUOTE_PROVIDER }}
                 </p>
@@ -241,7 +241,7 @@ import { environment } from 'src/environments/environment';
               </div>
 
               <!-- Customer: Accept Proposal (tailored: when approved; tender: only when coordinator is 'accepted'/closed) -->
-              <div *ngIf="currentUserRole === 'customer' && getPrimaryState() === 'approved' && (getQuoteCategory() !== QUOTE_CATEGORIES.TENDER || getCoordinatorState() === 'accepted')" class="flex items-center justify-between">
+              <div *ngIf="currentUserRole === 'customer' && getPrimaryState() === QUOTE_STATUSES.APPROVED && (getQuoteCategory() !== QUOTE_CATEGORIES.TENDER || getCoordinatorState() === QUOTE_STATUSES.ACCEPTED)" class="flex items-center justify-between">
                 <p class="text-sm text-gray-600 dark:text-gray-400">{{ ACTION_TEXTS.ACCEPT_PROPOSAL_CUSTOMER }}</p>
                 <button
                   (click)="acceptProposal()"
@@ -261,7 +261,7 @@ import { environment } from 'src/environments/environment';
           <div *ngIf="getQuoteCategory() === QUOTE_CATEGORIES.COORDINATOR" class="border-t dark:border-gray-700 pt-4">
             <div class="space-y-3">
               <!-- Broadcast Message Button (hidden while tender is still in pending/draft) -->
-              <div *ngIf="currentUserRole === 'customer' && getPrimaryState() !== 'pending'" class="flex items-center justify-between">
+              <div *ngIf="currentUserRole === 'customer' && getPrimaryState() !== QUOTE_STATUSES.PENDING" class="flex items-center justify-between">
                 <p class="text-sm text-gray-600 dark:text-gray-400">Send a message to all invited providers in this tender</p>
                 <button
                   (click)="openBroadcastMessage()"
@@ -278,10 +278,10 @@ import { environment } from 'src/environments/environment';
           </div>
 
           <!-- Cancel Quote (Always Available except when Accepted) -->
-          <div *ngIf="getPrimaryState() !== 'accepted' && getPrimaryState() !== 'cancelled'" class="border-t dark:border-gray-700 pt-4">
+          <div *ngIf="getPrimaryState() !== QUOTE_STATUSES.ACCEPTED && getPrimaryState() !== QUOTE_STATUSES.CANCELLED" class="border-t dark:border-gray-700 pt-4">
             <div class="flex items-center justify-between">
               <p class="text-sm text-gray-600 dark:text-gray-400">
-                {{ getQuoteCategory() === QUOTE_CATEGORIES.COORDINATOR ? 'Cancel this tender and all the related quotes / invites' : (getQuoteCategory() === QUOTE_CATEGORIES.TENDER && currentUserRole === 'seller' && getPrimaryState() === 'pending' ? ACTION_TEXTS.DECLINE_TENDER_INVITE : ACTION_TEXTS.CANCEL_QUOTE_PROVIDER) }}
+                {{ getQuoteCategory() === QUOTE_CATEGORIES.COORDINATOR ? 'Cancel this tender and all the related quotes / invites' : (getQuoteCategory() === QUOTE_CATEGORIES.TENDER && currentUserRole === 'seller' && getPrimaryState() === QUOTE_STATUSES.PENDING ? ACTION_TEXTS.DECLINE_TENDER_INVITE : ACTION_TEXTS.CANCEL_QUOTE_PROVIDER) }}
               </p>
               <button
                 (click)="cancelQuote()"
@@ -297,7 +297,7 @@ import { environment } from 'src/environments/environment';
           </div>
 
           <!-- Create Offer Button (Provider only, when quote is accepted) -->
-          <div *ngIf="currentUserRole === 'seller' && getPrimaryState() === 'accepted'" class="border-t dark:border-gray-700 pt-4">
+          <div *ngIf="currentUserRole === 'seller' && getPrimaryState() === QUOTE_STATUSES.ACCEPTED" class="border-t dark:border-gray-700 pt-4">
             <div class="flex items-center justify-between">
               <p class="text-sm text-gray-600 dark:text-gray-400">{{ ACTION_TEXTS.CREATE_OFFER }}</p>
               <button
@@ -461,6 +461,7 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
   // Expose constants to template
   readonly ACTION_TEXTS = QUOTE_ACTION_BUTTON_TEXTS;
   readonly QUOTE_CATEGORIES = QUOTE_CATEGORIES;
+  readonly QUOTE_STATUSES = QUOTE_STATUSES;
 
   // Services
   private quoteService = inject(QuoteService);
@@ -657,6 +658,50 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
     return this.quote.state || 'unknown';
   }
 
+  /**
+   * Get user-friendly status label based on quote category and user role
+   */
+  getStatusLabel(): string {
+    const state = this.getPrimaryState();
+    if (!this.quote) return state;
+
+    // Determine which label set to use based on category and role
+    let labels: any;
+
+    if (this.getQuoteCategory() === QUOTE_CATEGORIES.COORDINATOR) {
+      // Coordinator quotes use their own label set
+      labels = TENDER_COORDINATOR_STATUSES_LABELS;
+    } else if (this.getQuoteCategory() === QUOTE_CATEGORIES.TENDER) {
+      // Tender child quotes use labels based on user role
+      labels = this.currentUserRole === 'customer'
+        ? TENDER_RELATED_QUOTES_LABELS_CUSTOMER
+        : TENDER_RELATED_QUOTES_LABELS_PROVIDER;
+    } else {
+      // Tailored quotes use labels based on user role
+      labels = this.currentUserRole === 'customer'
+        ? TAILORED_STATUSES_LABELS_CUSTOMER
+        : TAILORED_STATUSES_LABELS_PROVIDER;
+    }
+
+    // Map status to label
+    switch (state) {
+      case QUOTE_STATUSES.PENDING:
+        return labels.PENDING;
+      case QUOTE_STATUSES.IN_PROGRESS:
+        return labels.IN_PROGRESS;
+      case QUOTE_STATUSES.APPROVED:
+        return labels.APPROVED;
+      case QUOTE_STATUSES.ACCEPTED:
+        return labels.ACCEPTED;
+      case QUOTE_STATUSES.CANCELLED:
+        return labels.CANCELLED;
+      case QUOTE_STATUSES.REJECTED:
+        return labels.REJECTED;
+      default:
+        return state;
+    }
+  }
+
   // Returns the state of the coordinator quote (for tendering quotes)
   getCoordinatorState(): string | null {
     if (!this.coordinatorQuote) return null;
@@ -669,12 +714,12 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
   getStatusBadgeClass(): string {
     const state = this.getPrimaryState();
     const classes: Record<string, string> = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      inProgress: 'bg-blue-100 text-blue-800',
-      approved: 'bg-green-100 text-green-800',
-      accepted: 'bg-emerald-100 text-emerald-800',
-      rejected: 'bg-red-100 text-red-800',
-      cancelled: 'bg-gray-100 text-gray-800'
+      [QUOTE_STATUSES.PENDING]: 'bg-yellow-100 text-yellow-800',
+      [QUOTE_STATUSES.IN_PROGRESS]: 'bg-blue-100 text-blue-800',
+      [QUOTE_STATUSES.APPROVED]: 'bg-green-100 text-green-800',
+      [QUOTE_STATUSES.ACCEPTED]: 'bg-emerald-100 text-emerald-800',
+      [QUOTE_STATUSES.REJECTED]: 'bg-red-100 text-red-800',
+      [QUOTE_STATUSES.CANCELLED]: 'bg-gray-100 text-gray-800'
     };
     return classes[state] || 'bg-gray-100 text-gray-600';
   }
@@ -724,7 +769,7 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
 
   isQuoteFinalized(): boolean {
     const state = this.getPrimaryState();
-    return state === 'cancelled' || state === 'accepted' || state === 'rejected';
+    return state === QUOTE_STATUSES.CANCELLED || state === QUOTE_STATUSES.ACCEPTED || state === QUOTE_STATUSES.REJECTED;
   }
 
   hasAttachment(): boolean {
@@ -773,26 +818,26 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
     if (this.currentUserRole !== 'seller') return false;
     // For tendering quotes, only allow upload when the coordinator is in 'approved' (launched) state
     if (this.getQuoteCategory() === QUOTE_CATEGORIES.TENDER) {
-      return this.getCoordinatorState() === 'approved';
+      return this.getCoordinatorState() === QUOTE_STATUSES.APPROVED;
     }
     const state = this.getPrimaryState();
-    return state === 'inProgress' || state === 'approved';
+    return state === QUOTE_STATUSES.IN_PROGRESS || state === QUOTE_STATUSES.APPROVED;
   }
 
   canEditExpectedDate(): boolean {
     if (this.currentUserRole !== 'seller') return false;
     const state = this.getPrimaryState();
-    return !this.isQuoteFinalized() && (state === 'pending' || state === 'inProgress' || state === 'approved');
+    return !this.isQuoteFinalized() && (state === QUOTE_STATUSES.PENDING || state === QUOTE_STATUSES.IN_PROGRESS || state === QUOTE_STATUSES.APPROVED);
   }
 
   canRejectOrCancel(): boolean {
     const state = this.getPrimaryState();
     if (this.currentUserRole === 'seller') {
       // Sellers can cancel quotes in pending, inProgress, or approved states
-      return state === 'pending' || state === 'inProgress' || state === 'approved';
+      return state === QUOTE_STATUSES.PENDING || state === QUOTE_STATUSES.IN_PROGRESS || state === QUOTE_STATUSES.APPROVED;
     } else {
       // Customers can reject quotes only in approved state
-      return state === 'approved';
+      return state === QUOTE_STATUSES.APPROVED;
     }
   }
 
@@ -816,12 +861,12 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
     const state = this.getPrimaryState();
 
     // Provider: Accept Quote (when pending)
-    if (this.currentUserRole === 'seller' && state === 'pending') {
+    if (this.currentUserRole === 'seller' && state === QUOTE_STATUSES.PENDING) {
       return true;
     }
 
     // Customer: Accept Proposal (when approved)
-    if (this.currentUserRole === 'customer' && state === 'approved') {
+    if (this.currentUserRole === 'customer' && state === QUOTE_STATUSES.APPROVED) {
       return true;
     }
 
@@ -876,11 +921,11 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
         return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.ATTACHMENT_UPLOADED(fileName), this.currentUserId).pipe(
           switchMap(() => {
             // Auto-approve if in progress
-            if (this.getPrimaryState() === 'inProgress') {
-              return this.quoteService.updateQuoteStatus(quoteId, 'approved').pipe(
+            if (this.getPrimaryState() === QUOTE_STATUSES.IN_PROGRESS) {
+              return this.quoteService.updateQuoteStatus(quoteId, QUOTE_STATUSES.APPROVED).pipe(
                 switchMap((approvedQuote) => {
                   this.quote = approvedQuote;
-                  return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE('approved'), this.currentUserId);
+                  return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE(QUOTE_STATUSES.APPROVED), this.currentUserId);
                 })
               );
             }
@@ -892,7 +937,7 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
       next: () => {
         this.isUploading = false;
         this.notificationService.showSuccess('Attachment uploaded successfully');
-        if (this.getPrimaryState() === 'approved') {
+        if (this.getPrimaryState() === QUOTE_STATUSES.APPROVED) {
           this.notificationService.showSuccess('Quote has been approved and sent to customer');
         }
         this.quoteUpdated.emit(this.quote!);
@@ -915,10 +960,10 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
       this.isProcessing = true;
       const quoteId = this.quote!.id!;
 
-      this.quoteService.updateQuoteStatus(quoteId, 'inProgress').pipe(
+      this.quoteService.updateQuoteStatus(quoteId, QUOTE_STATUSES.IN_PROGRESS).pipe(
         switchMap((updatedQuote) => {
           this.quote = updatedQuote;
-          return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE('inProgress'), this.currentUserId);
+          return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE(QUOTE_STATUSES.IN_PROGRESS), this.currentUserId);
         })
       ).subscribe({
         next: () => {
@@ -947,10 +992,10 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
       this.isProcessing = true;
       const quoteId = this.quote!.id!;
 
-      this.quoteService.updateQuoteStatus(quoteId, 'accepted').pipe(
+      this.quoteService.updateQuoteStatus(quoteId, QUOTE_STATUSES.ACCEPTED).pipe(
         switchMap((updatedQuote) => {
           this.quote = updatedQuote;
-          return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE('accepted'), this.currentUserId);
+          return this.quoteService.addNoteToQuote(quoteId, QUOTE_CHAT_MESSAGES.STATUS_CHANGE(QUOTE_STATUSES.ACCEPTED), this.currentUserId);
         })
       ).subscribe({
         next: () => {
@@ -993,7 +1038,7 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
   }
 
   private cancelSingleQuote(quoteId: string) {
-    const newStatus = 'cancelled';
+    const newStatus = QUOTE_STATUSES.CANCELLED;
     this.quoteService.updateQuoteStatus(quoteId, newStatus).pipe(
       switchMap((updatedQuote) => {
         this.quote = updatedQuote;
@@ -1015,7 +1060,7 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
 
   private cancelCoordinatorWithCascade() {
     const coordinatorId = this.quote!.id!;
-    const newStatus = 'cancelled';
+    const newStatus = QUOTE_STATUSES.CANCELLED;
 
     // Step 1: Fetch all related tendering quotes for this coordinator
     this.quoteService.getTenderingQuotesByExternalId(this.currentUserId, coordinatorId, API_ROLES.BUYER).subscribe({

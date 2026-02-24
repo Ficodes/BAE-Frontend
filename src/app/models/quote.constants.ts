@@ -1,6 +1,7 @@
 /**
  * Quote status constants and messages used throughout the application
  *
+ *
  */
 
 /**
@@ -15,12 +16,88 @@ export const QUOTE_CATEGORIES = {
 export type QuoteCategoryType = typeof QUOTE_CATEGORIES[keyof typeof QUOTE_CATEGORIES];
 
 /**
- * Backend Tender category constants (backend/Tender model)
+ * Quote status constants (stored in quote.quoteItem[0].state)
  */
-export const TENDER_CATEGORIES = {
-  TENDERING: 'tendering',
-  COORDINATOR: 'coordinator'
+export const QUOTE_STATUSES = {
+  PENDING: 'pending',
+  IN_PROGRESS: 'inProgress',
+  APPROVED: 'approved',
+  ACCEPTED: 'accepted',
+  CANCELLED: 'cancelled',
+  REJECTED: 'rejected'
 } as const;
+
+export type QuoteStatus = typeof QUOTE_STATUSES[keyof typeof QUOTE_STATUSES];
+
+/**
+ * Tender status constants (frontend display states)
+ */
+export const TENDER_COORDINATOR_STATUSES_LABELS = {
+  PENDING: 'not-yet-submitted',
+  IN_PROGRESS: 'invites-sent-waiting-acceptance',
+  APPROVED: 'tender-started',
+  ACCEPTED: 'tender-closed',
+  CANCELLED: 'cancelled',
+  REJECTED: 'rejected'
+} as const;
+
+export type TenderCoordinatorStatusesLabel = typeof TENDER_COORDINATOR_STATUSES_LABELS[keyof typeof TENDER_COORDINATOR_STATUSES_LABELS];
+
+/**
+ * Tender status constants (frontend display states)
+ */
+export const TENDER_RELATED_QUOTES_LABELS_CUSTOMER = {
+  PENDING: 'invite-sent',
+  IN_PROGRESS: 'invite-accepted-by-provider',
+  APPROVED: 'offer-submitted-by-provider',
+  ACCEPTED: 'offering-accepted',
+  CANCELLED: 'request-canceled',
+  REJECTED: 'offering-rejected'
+} as const;
+
+export type TenderRelatedQuotesLabelsCustomer = typeof TENDER_RELATED_QUOTES_LABELS_CUSTOMER[keyof typeof TENDER_RELATED_QUOTES_LABELS_CUSTOMER];
+
+/**
+ * Tender status constants (frontend display states)
+ */
+export const TENDER_RELATED_QUOTES_LABELS_PROVIDER = {
+  PENDING: 'invite-received-to-tender',
+  IN_PROGRESS: 'invitation-accepted',
+  APPROVED: 'offering-submitted',
+  ACCEPTED: 'offering-accepted-by-customer',
+  CANCELLED: 'request-canceled',
+  REJECTED: 'offering-rejected'
+} as const;
+
+export type TenderRelatedQuotesLabelsProvider = typeof TENDER_RELATED_QUOTES_LABELS_PROVIDER[keyof typeof TENDER_RELATED_QUOTES_LABELS_PROVIDER];
+
+/**
+ * Tender status constants (frontend display states)
+ */
+export const TAILORED_STATUSES_LABELS_CUSTOMER = {
+  PENDING: 'request-sent-awaiting-feedback',
+  IN_PROGRESS: 'request-accepted-and-being-worked-on',
+  APPROVED: 'offering-submitted-by-provider',
+  ACCEPTED: 'offering-accepted',
+  CANCELLED: 'request-canceled',
+  REJECTED: 'rejected'
+} as const;
+
+export type TailoredStatusesLabelsCustomer = typeof TAILORED_STATUSES_LABELS_CUSTOMER[keyof typeof TAILORED_STATUSES_LABELS_CUSTOMER];
+
+/**
+ * Tender status constants (frontend display states)
+ */
+export const TAILORED_STATUSES_LABELS_PROVIDER = {
+  PENDING: 'request-received-pending-feedback',
+  IN_PROGRESS: 'request-accepted',
+  APPROVED: 'offering-submitted',
+  ACCEPTED: 'offering-accepted-by-customer',
+  CANCELLED: 'request-canceled',
+  REJECTED: 'rejected'
+} as const;
+
+export type TailoredStatusesLabelsProvider = typeof TAILORED_STATUSES_LABELS_PROVIDER[keyof typeof TAILORED_STATUSES_LABELS_PROVIDER];
 
 export interface StatusInfo {
   explanation: string;
@@ -33,6 +110,7 @@ export interface StatusMessages {
 }
 
 /**
+ * Quote status explanation messages for each state and role (for TAILORED quotes)
  * Quote status explanation messages for each state and role (for TAILORED quotes)
  */
 export const QUOTE_STATUS_MESSAGES: Record<string, StatusMessages> = {

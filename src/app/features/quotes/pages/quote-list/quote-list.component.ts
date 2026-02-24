@@ -16,6 +16,7 @@ import { QuoteDetailsModalComponent } from 'src/app/shared/quote-details-modal/q
 import { ChatModalComponent } from 'src/app/shared/chat-modal/chat-modal.component';
 import { AttachmentModalComponent } from 'src/app/shared/attachment-modal/attachment-modal.component';
 import { LoginInfo } from 'src/app/models/interfaces';
+import { QUOTE_STATUSES, TAILORED_STATUSES_LABELS_CUSTOMER, TAILORED_STATUSES_LABELS_PROVIDER } from 'src/app/models/quote.constants';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -91,11 +92,11 @@ import { environment } from 'src/environments/environment';
             class="form-select rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           >
             <option value="">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="inProgress">In Progress</option>
-            <option value="approved">Approved</option>
-            <option value="cancelled">Cancelled</option>
-            <option value="accepted">Accepted</option>
+            <option [value]="QUOTE_STATUSES.PENDING">Pending</option>
+            <option [value]="QUOTE_STATUSES.IN_PROGRESS">In Progress</option>
+            <option [value]="QUOTE_STATUSES.APPROVED">Approved</option>
+            <option [value]="QUOTE_STATUSES.CANCELLED">Cancelled</option>
+            <option [value]="QUOTE_STATUSES.ACCEPTED">Accepted</option>
           </select>
         </div>
       </div>
@@ -169,7 +170,7 @@ import { environment } from 'src/environments/environment';
             <div class="col-span-1">
               <span class="status-badge px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                     [ngClass]="getStateClass(getPrimaryState(quote))">
-                {{ getPrimaryState(quote) }}
+                {{ getStatusLabel(quote) }}
               </span>
             </div>
 
@@ -412,7 +413,17 @@ export class QuoteListComponent implements OnInit {
   showStateUpdate = false;
   quoteToUpdate: Quote | null = null;
   selectedState: QuoteStateType | null = null;
-  availableStates: QuoteStateType[] = ['pending', 'inProgress', 'approved', 'rejected', 'cancelled', 'accepted'];
+  availableStates: QuoteStateType[] = [
+    QUOTE_STATUSES.PENDING,
+    QUOTE_STATUSES.IN_PROGRESS,
+    QUOTE_STATUSES.APPROVED,
+    QUOTE_STATUSES.REJECTED,
+    QUOTE_STATUSES.CANCELLED,
+    QUOTE_STATUSES.ACCEPTED
+  ];
+
+  // Expose constants to template
+  readonly QUOTE_STATUSES = QUOTE_STATUSES;
 
   // Role management
   selectedRole: 'customer' | 'seller' = 'customer';
@@ -469,13 +480,6 @@ export class QuoteListComponent implements OnInit {
       next: (quotes) => {
         this.quotes = quotes;
 
-        // Debug: Log quote states and product info
-        console.log('Loaded quotes:', quotes.length);
-        quotes.forEach(quote => {
-          console.log(`Quote ${this.extractShortId(quote.id)}: main state = "${quote.state}", primary state = "${this.getPrimaryState(quote)}"`);
-          const productOffering = quote.quoteItem?.[0]?.productOffering;
-          console.log(`  - productOffering:`, productOffering);
-        });
 
         // Enrich quote data with organization and product names
         this.enrichQuoteData(quotes);
@@ -653,10 +657,10 @@ export class QuoteListComponent implements OnInit {
 
     // If the current user is a provider (seller) and the quote is in progress,
     // automatically update the status to 'approved' after successful PDF upload
-    if (this.selectedRole === 'seller' && this.getPrimaryState(updatedQuote) === 'inProgress') {
+    if (this.selectedRole === 'seller' && this.getPrimaryState(updatedQuote) === QUOTE_STATUSES.IN_PROGRESS) {
       console.log('Provider uploaded PDF, updating quote status to approved:', updatedQuote.id);
-      
-      this.quoteService.updateQuoteStatus(updatedQuote.id!, 'approved').subscribe({
+
+      this.quoteService.updateQuoteStatus(updatedQuote.id!, QUOTE_STATUSES.APPROVED).subscribe({
         next: (approvedQuote) => {
           // Update the quote again with the new status
           const approvedIndex = this.quotes.findIndex(q => q.id === approvedQuote.id);
@@ -761,7 +765,7 @@ export class QuoteListComponent implements OnInit {
     this.acceptConfirmCallback = () => {
       console.log('Accepting quote request:', quote.id);
 
-      this.quoteService.updateQuoteStatus(quote.id!, 'inProgress').subscribe({
+      this.quoteService.updateQuoteStatus(quote.id!, QUOTE_STATUSES.IN_PROGRESS).subscribe({
         next: (updatedQuote) => {
           const index = this.quotes.findIndex(q => q.id === updatedQuote.id);
           if (index !== -1) {
@@ -787,7 +791,7 @@ export class QuoteListComponent implements OnInit {
     this.acceptConfirmCallback = () => {
       console.log('Customer accepting quotation:', quote.id);
 
-      this.quoteService.updateQuoteStatus(quote.id!, 'accepted').subscribe({
+      this.quoteService.updateQuoteStatus(quote.id!, QUOTE_STATUSES.ACCEPTED).subscribe({
         next: (updatedQuote) => {
           const index = this.quotes.findIndex(q => q.id === updatedQuote.id);
           if (index !== -1) {
@@ -881,7 +885,7 @@ export class QuoteListComponent implements OnInit {
     this.cancelConfirmCallback = () => {
       console.log('Cancelling quote:', quote.id);
 
-      this.quoteService.updateQuoteStatus(quote.id!, 'cancelled').subscribe({
+      this.quoteService.updateQuoteStatus(quote.id!, QUOTE_STATUSES.CANCELLED).subscribe({
         next: (updatedQuote) => {
           const index = this.quotes.findIndex(q => q.id === updatedQuote.id);
           if (index !== -1) {
@@ -989,13 +993,43 @@ export class QuoteListComponent implements OnInit {
     if (Array.isArray(quote.quoteItem) && quote.quoteItem.length > 0) {
       return quote.quoteItem[0].state || 'unknown';
     }
-    
+
     // Fallback to main quote state if quoteItem state is not available
     if (quote.state) {
       return quote.state;
     }
-    
+
     return 'unknown';
+  }
+
+  /**
+   * Get user-friendly status label for a quote based on role
+   */
+  getStatusLabel(quote: Quote): string {
+    const state = this.getPrimaryState(quote);
+
+    // Use appropriate label based on user role
+    const labels = this.selectedRole === 'customer'
+      ? TAILORED_STATUSES_LABELS_CUSTOMER
+      : TAILORED_STATUSES_LABELS_PROVIDER;
+
+    // Map status to label
+    switch (state) {
+      case QUOTE_STATUSES.PENDING:
+        return labels.PENDING;
+      case QUOTE_STATUSES.IN_PROGRESS:
+        return labels.IN_PROGRESS;
+      case QUOTE_STATUSES.APPROVED:
+        return labels.APPROVED;
+      case QUOTE_STATUSES.ACCEPTED:
+        return labels.ACCEPTED;
+      case QUOTE_STATUSES.CANCELLED:
+        return labels.CANCELLED;
+      case QUOTE_STATUSES.REJECTED:
+        return labels.REJECTED;
+      default:
+        return state;
+    }
   }
 
   hasAttachment(quote: Quote): boolean {
@@ -1004,23 +1038,13 @@ export class QuoteListComponent implements OnInit {
   }
 
   isQuoteCancelled(quote: Quote): boolean {
-    // Check quoteItem state first (this is where the actual state is stored)
-    if (quote.quoteItem?.some(item => item.state === 'cancelled')) {
-      return true;
-    }
-    
-    // Fallback to main quote state
-    return quote.state === 'cancelled';
+    // Only check quoteItem state (this is the source of truth)
+    return quote.quoteItem?.some(item => item.state === QUOTE_STATUSES.CANCELLED) || false;
   }
 
   isQuoteAccepted(quote: Quote): boolean {
-    // Check quoteItem state first (this is where the actual state is stored)
-    if (quote.quoteItem?.some(item => item.state === 'accepted')) {
-      return true;
-    }
-    
-    // Fallback to main quote state
-    return quote.state === 'accepted';
+    // Only check quoteItem state (this is the source of truth)
+    return quote.quoteItem?.some(item => item.state === QUOTE_STATUSES.ACCEPTED) || false;
   }
 
   isQuoteFinalized(quote: Quote): boolean {
@@ -1093,32 +1117,32 @@ export class QuoteListComponent implements OnInit {
 
   getStateDisplay(state: QuoteStateType | undefined): string {
     if (!state) return 'Unknown';
-    
+
     const stateMap: Record<QuoteStateType, string> = {
-      'pending': 'Pending',
-      'inProgress': 'In Progress',
-      'approved': 'Approved',
-      'rejected': 'Rejected',
-      'cancelled': 'Cancelled',
-      'accepted': 'Accepted'
+      [QUOTE_STATUSES.PENDING]: 'Pending',
+      [QUOTE_STATUSES.IN_PROGRESS]: 'In Progress',
+      [QUOTE_STATUSES.APPROVED]: 'Approved',
+      [QUOTE_STATUSES.REJECTED]: 'Rejected',
+      [QUOTE_STATUSES.CANCELLED]: 'Cancelled',
+      [QUOTE_STATUSES.ACCEPTED]: 'Accepted'
     };
-    
+
     return stateMap[state] || state;
   }
 
   getStateClass(state: string): string {
     switch (state) {
-      case 'pending':
+      case QUOTE_STATUSES.PENDING:
         return 'status-pending';
-      case 'inProgress':
+      case QUOTE_STATUSES.IN_PROGRESS:
         return 'status-inProgress';
-      case 'approved':
+      case QUOTE_STATUSES.APPROVED:
         return 'status-approved';
-      case 'rejected':
+      case QUOTE_STATUSES.REJECTED:
         return 'status-rejected';
-      case 'cancelled':
+      case QUOTE_STATUSES.CANCELLED:
         return 'status-cancelled';
-      case 'accepted':
+      case QUOTE_STATUSES.ACCEPTED:
         return 'status-accepted';
       default:
         return 'status-unknown';
@@ -1126,6 +1150,6 @@ export class QuoteListComponent implements OnInit {
   }
 
   canUpdateState(state: QuoteStateType | undefined): boolean {
-    return state !== 'cancelled' && state !== 'accepted';
+    return state !== QUOTE_STATUSES.CANCELLED && state !== QUOTE_STATUSES.ACCEPTED;
   }
 } 
