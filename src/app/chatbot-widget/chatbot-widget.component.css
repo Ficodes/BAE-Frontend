@@ -29,14 +29,14 @@
 .chatbox {
     position: fixed;
     bottom: 2%;
-    right: 2%;
+    left: 2%;
 }
 
 /* CONTENT IS CLOSE */
 .chatbox__support {
     position: fixed;
     bottom: 120px;  /* Spostato più in alto per evitare il pulsante */
-    right: 20px;   /* Allineato con il pulsante */
+    left: 20px;   /* Allineato con il pulsante */
     width: 80vw;
     max-width: 400px;
     height: 70vh;
@@ -61,7 +61,7 @@
 .chatbox__button {
     position: fixed;
     bottom: 55px;
-    right: 20px;
+    left: 20px;
     z-index: 999;
 }
 
@@ -224,7 +224,7 @@
         width: 100vw;
         height: 50vh;
         bottom: 0;
-        right: 0;
+        left: 0;
         border-radius: 20px;
     }
 }
