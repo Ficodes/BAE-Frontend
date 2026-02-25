@@ -67,18 +67,13 @@
                 {{invoice?.billDate | date:'EEEE, dd/MM/yy, HH:mm'}}
               </td>
               <td class="px-6 py-4 text-center align-middle">
-                {{invoice?.billNo}}
-                @if(role==sellerRole){
-                  @if (editingIndex === idx) {
-                    <input [(ngModel)]="editableInvoiceName" type="text" id="invoicename"
-                      class="mb-2 border-gray-300 dark:border-secondary-200 bg-gray-50 dark:bg-secondary-300 border 
-                      dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 
-                      block w-full p-2.5" />
-                  } @else {
-                    {{invoice?.billNo}}
-                  }  
-                }@else{
-                  {{invoice?.billNo}}
+                @if (role == sellerRole && editingIndex === idx) {
+                  <input [(ngModel)]="editableInvoiceName" type="text" id="invoicename"
+                         class="mb-2 border-gray-300 dark:border-secondary-200 bg-gray-50 dark:bg-secondary-300 border
+      dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500
+      block w-full p-2.5" />
+                } @else {
+                  {{ invoice?.billNo }}
                 }
               </td>
               <td class="md:table-cell px-6 py-4 text-center align-middle">
@@ -105,15 +100,15 @@
                 @if(role==sellerRole){
                   @if (editingIndex === idx) {
                     <!-- Save button -->
-                    <button (click)="saveInvoice(idx, invoice);" type="button" 
-                      class="text-white bg-green-500 hover:bg-green-700 focus:ring-4 focus:outline-none 
+                    <button (click)="saveInvoice(idx, invoice);" type="button"
+                      class="text-white bg-green-500 hover:bg-green-700 focus:ring-4 focus:outline-none
                       focus:ring-green-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
                       <fa-icon [icon]="faSave" class="text-[18px] text-white align-middle"></fa-icon>
                     </button>
                   } @else {
                     <!-- Edit button -->
-                    <button (click)="editInvoice(idx, invoice);" type="button" 
-                      class="text-white bg-primary-100 hover:bg-blue-800 focus:ring-4 focus:outline-none 
+                    <button (click)="editInvoice(idx, invoice);" type="button"
+                      class="text-white bg-primary-100 hover:bg-blue-800 focus:ring-4 focus:outline-none
                       focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
                       <fa-icon [icon]="faEdit" class="text-[18px] text-white align-middle"></fa-icon>
                     </button>
