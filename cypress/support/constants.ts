@@ -217,8 +217,8 @@ export const checkHeaderPreLogin = () => {
     //cy.intercept( {method: 'GET', url: 'http://proxy.docker:8004/catalog/productOffering?*'}, product_offering).as('productOffering')
     cy.intercept( {method: 'GET', url: '**/config*'}, init_config).as('config')
     //cy.intercept('GET', '**/catalog/category/urn:ngsi-ld:category:*', category_dft).as('category');
-    cy.intercept({method: 'GET', url: '**/catalog/catalog*'}, default_catalog).as('catalog') 
-    cy.intercept( {method: 'GET', url: '**/catalog/category*'}, category_dft).as('category')  
+    cy.intercept({method: 'GET', url: '**/catalog/catalog*'}, default_catalog).as('catalog')
+    cy.intercept( {method: 'GET', url: '**/catalog/category*'}, category_dft).as('category')
     // Verify mocks are called 1 time
     cy.visit('/', {onBeforeLoad(win) {
         win.localStorage.setItem('color-theme', 'dark');
@@ -238,7 +238,6 @@ export const checkHeaderPreLogin = () => {
       if ($body.find('[data-cy=browse]').length > 0) cy.getBySel('browse').should('exist')
       if ($body.find('[data-cy=about]').length > 0) cy.getBySel('about').should('exist')
     })
-    cy.getBySel('registerAcc').should('exist')
     cy.getBySel('knowledge').should('exist')
     cy.getBySel('darkMode').should('exist')
 
@@ -255,7 +254,6 @@ export const checkHeaderPreLogin = () => {
 export const checkHeaderPostLogin = () => {
     // Verify header interactive elemements are displayed and work as expected
     cy.login().should('not.exist')
-    cy.getBySel('registerAcc').should('not.exist')
     cy.getBySel('loggedAcc').should('exist')
     cy.get('body').then(($body) => {
       if ($body.find('[data-cy=publishOffering]').length > 0) cy.getBySel('publishOffering').should('exist')
