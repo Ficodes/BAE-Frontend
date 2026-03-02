@@ -441,12 +441,12 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
         let value = this.getValues(selectedCharacteristics)[i]
         let valueType = this.filteredCharacteristics[idx].valueType
   
-        if (!valueType && isNaN(value)) {
-          valueType = 'string'
-        } else if(!valueType && (value == false || value == true)) {
+        if (!valueType && typeof value === 'boolean') {
           valueType = 'boolean'
-        } else if (!valueType && !isNaN(value)) {
+        } else if (!valueType && !isNaN(Number(value))) {
           valueType = 'number'
+        } else if (!valueType) {
+          valueType = 'string'
         }
   
         if(value==null && valueType=='number'){
