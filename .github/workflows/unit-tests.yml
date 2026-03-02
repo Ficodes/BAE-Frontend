@@ -41,4 +41,12 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
           CI: true
-        run: npm test -- --watch=false --no-progress
+        run: npm test -- --watch=false --no-progress --code-coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-coverage
+          path: coverage
+          if-no-files-found: warn
