@@ -20,9 +20,43 @@ describe('UpdatePricePlanComponent', () => {
     
     fixture = TestBed.createComponent(UpdatePricePlanComponent);
     component = fixture.componentInstance;
+    component.selectedProdSpec = {
+      productSpecCharacteristic: [],
+    } as any;
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('onClick should close overlays when click happens outside component', () => {
+    component.showEmoji = true;
+    component.showPriceComponents = true;
+    component.showProfile = true;
+    const detectSpy = spyOn((component as any).cdr, 'detectChanges');
+    spyOn((component as any).elementRef.nativeElement, 'contains').and.returnValue(false);
+
+    component.onClick(new Event('click'));
+
+    expect(component.showEmoji).toBeFalse();
+    expect(component.showPriceComponents).toBeFalse();
+    expect(component.showProfile).toBeFalse();
+    expect(detectSpy).toHaveBeenCalled();
+  });
+
+  it('changeDomeManaged should toggle dome managed mode', () => {
+    component.isDomeManaged = false;
+
+    component.changeDomeManaged();
+    expect(component.isDomeManaged).toBeTrue();
+
+    component.changeDomeManaged();
+    expect(component.isDomeManaged).toBeFalse();
+  });
+
+  it('hasLongWord should detect long words and handle undefined', () => {
+    expect(component.hasLongWord('short words', 20)).toBeFalse();
+    expect(component.hasLongWord('averyveryverylongword', 10)).toBeTrue();
+    expect(component.hasLongWord(undefined, 10)).toBeFalse();
   });
 });
