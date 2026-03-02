@@ -1,4 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
+import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { SellerOfferingsComponent } from './seller-offerings.component';
 
@@ -8,7 +12,9 @@ describe('SellerOfferingsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SellerOfferingsComponent]
+      schemas: [NO_ERRORS_SCHEMA],
+      declarations: [SellerOfferingsComponent],
+      imports: [HttpClientTestingModule, RouterTestingModule, TranslateModule.forRoot()]
     })
     .compileComponents();
     
