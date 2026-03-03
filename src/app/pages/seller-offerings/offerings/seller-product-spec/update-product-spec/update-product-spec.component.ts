@@ -86,9 +86,8 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     name: new FormControl('', [Validators.required, Validators.maxLength(100), noWhitespaceValidator]),
     description: new FormControl('', [Validators.maxLength(500)])
   });
-  stringCharSelected:boolean=true;
-  numberCharSelected:boolean=false;
-  rangeCharSelected:boolean=false;
+  charTypeSelected:string='string';
+  booleanDefaultTrue:boolean=true;
   isOptional:boolean=false;
   optionalDftTrue:boolean=false;
   prodChars:ProductSpecificationCharacteristic[]=[];
@@ -177,7 +176,6 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   numberUnit: string = '';
   fromValue: string = '';
   toValue: string = '';
-  booleanValue: boolean = false;
   rangeUnit: string = '';
 
   filenameRegex = /^[A-Za-z0-9_.-]+$/;
@@ -885,9 +883,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     this.showSummary=false;
 
     this.showCreateChar=false;
-    this.stringCharSelected=true;
-    this.numberCharSelected=false;
-    this.rangeCharSelected=false;
+    this.charTypeSelected='string';
     this.showPreview=false;
     this.refreshChars();
     initFlowbite();
@@ -1222,12 +1218,30 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     this.fromValue = '';
     this.toValue = '';
     this.rangeUnit = '';
-    this.stringCharSelected=true;
-    this.numberCharSelected=false;
-    this.rangeCharSelected=false;
+    this.charTypeSelected='string';
+    this.booleanDefaultTrue=true;
     this.isOptional=false;
     this.optionalDftTrue=false;
     this.creatingChars=[];
+  }
+
+  setBooleanDefaultValues(){
+    this.creatingChars=[
+      {
+        isDefault:this.booleanDefaultTrue,
+        value:true as any
+      },
+      {
+        isDefault:!this.booleanDefaultTrue,
+        value:false as any
+      }
+    ];
+  }
+
+  onBooleanDefaultChange(){
+    if(this.charTypeSelected == 'boolean'){
+      this.setBooleanDefaultValues();
+    }
   }
 
   removeClass(elem: HTMLElement, cls:string) {
@@ -1286,30 +1300,22 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   onTypeChange(event: any) {
-    if(event.target.value=='string'){
-      this.stringCharSelected=true;
-      this.numberCharSelected=false;
-      this.rangeCharSelected=false;
-      this.charsForm.reset();
-    }else if (event.target.value=='number'){
-      this.stringCharSelected=false;
-      this.numberCharSelected=true;
-      this.rangeCharSelected=false;
-      this.charsForm.reset();
-    }else if (event.target.value=='range'){
-      this.stringCharSelected=false;
-      this.numberCharSelected=false;
-      this.rangeCharSelected=true;
-      this.charsForm.reset();
-    }
+    this.charTypeSelected = event.target.value;
+    this.charsForm.reset();
     this.isOptional=false;
     this.optionalDftTrue=false;
-    this.creatingChars=[];
+    if(this.charTypeSelected == 'boolean'){
+      this.booleanDefaultTrue=true;
+      this.setBooleanDefaultValues();
+    } else {
+      this.booleanDefaultTrue=true;
+      this.creatingChars=[];
+    }
   }
 
 
   addCharValue(){
-    if(this.stringCharSelected){
+    if(this.charTypeSelected == 'string'){
       console.log('string')
       if(this.creatingChars.length==0){
         this.creatingChars.push({
@@ -1323,7 +1329,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
         })
       }
       this.stringValue='';  
-    } else if (this.numberCharSelected){
+    } else if (this.charTypeSelected == 'number'){
       console.log('number')
       if(this.creatingChars.length==0){
         this.creatingChars.push({
@@ -1340,7 +1346,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       }
       this.numberUnit='';
       this.numberValue='';
-    }else if(this.rangeCharSelected){
+    }else if(this.charTypeSelected == 'range'){
       console.log('range')
       // Validate that fromValue < toValue
       const fromVal = Number(this.fromValue);
@@ -1367,24 +1373,18 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
           valueTo:this.toValue as any,
           unitOfMeasure:this.rangeUnit})
       } 
-    }else{
-      console.log('boolean')
-      if(this.creatingChars.length==0){
-        this.creatingChars.push({
-          isDefault:true,
-          value:this.booleanValue as any
-        })
-      } else{
-        this.creatingChars.push({
-          isDefault:false,
-          value:this.booleanValue as any
-        })
-      }
+    } else if (this.charTypeSelected == 'boolean'){
+      console.log('boolean values are fixed')
+      return;
+    } else {
+      console.log('nothing')
     }
-    this.booleanValue=false;
   }
 
   removeCharValue(char:any,idx:any){
+    if(this.charTypeSelected == 'boolean'){
+      return;
+    }
     console.log(this.creatingChars)
     this.creatingChars.splice(idx, 1);
     console.log(this.creatingChars)
@@ -1411,7 +1411,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       })
 
       // create X - enabled characteristic
-      if(this.isOptional){
+      if(this.isOptional && this.charTypeSelected !== 'boolean'){
         this.prodChars.push({
           id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
           name: this.charsForm.value.name + ' - enabled',
@@ -1433,9 +1433,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     this.charsForm.reset();
     this.creatingChars=[];
     this.showCreateChar=false;
-    this.stringCharSelected=true;
-    this.numberCharSelected=false;
-    this.rangeCharSelected=false;
+    this.charTypeSelected='string';
     this.isOptional=false;
     this.optionalDftTrue=false;
     this.refreshChars();

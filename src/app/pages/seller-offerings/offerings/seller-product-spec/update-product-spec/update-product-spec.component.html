@@ -668,11 +668,12 @@
                             </div>
                             <div>
                                 <label class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._type' | translate }}</label>
-                                <select data-cy="charType" id="type" (change)="onTypeChange($event)"
+                                <select data-cy="charType" id="type" [(ngModel)]="charTypeSelected" [ngModelOptions]="{standalone: true}" (change)="onTypeChange($event)"
                                 class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                    <option selected value="string">String</option>
+                                    <option value="string">String</option>
                                     <option value="number">Number</option>
                                     <option value="range">Number range</option>
+                                    <option value="boolean">Boolean</option>
                                 </select>
                             </div>
                             <div class="col-span-2">
@@ -680,29 +681,31 @@
                                 <textarea id="description" formControlName="description" rows="4" maxLength="500"
                                 class="mb-2 min-h-fit bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"></textarea>
                             </div>
-                            <div class="col-span-2 flex align-items-middle h-fit">
-                                <label for="is-optional" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._make_optional' | translate }}</label>
-                                <label class="inline-flex items-center me-5 cursor-pointer ml-4">
-                                    <input type="checkbox" id="is-optional" [(ngModel)]="isOptional" [ngModelOptions]="{standalone: true}" class="sr-only peer">
-                                    <div class="relative w-11 h-6 bg-gray-400 dark:bg-gray-700 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-100 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-100"></div>
-                                </label>
-                            </div>
-                            @if(isOptional){
-                                <div>
-                                    <label class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._default_value' | translate }}</label>
-                                    <select [(ngModel)]="optionalDftTrue" [ngModelOptions]="{standalone: true}"
-                                    class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                        <option [value]="false">{{ 'UPDATE_PROD_SPEC._default_false' | translate }}</option>
-                                        <option [value]="true">{{ 'UPDATE_PROD_SPEC._default_true' | translate }}</option>
-                                    </select>
+                            @if(charTypeSelected !== 'boolean'){
+                                <div class="col-span-2 flex align-items-middle h-fit">
+                                    <label for="is-optional" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._make_optional' | translate }}</label>
+                                    <label class="inline-flex items-center me-5 cursor-pointer ml-4">
+                                        <input type="checkbox" id="is-optional" [(ngModel)]="isOptional" [ngModelOptions]="{standalone: true}" class="sr-only peer">
+                                        <div class="relative w-11 h-6 bg-gray-400 dark:bg-gray-700 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-100 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-100"></div>
+                                    </label>
                                 </div>
+                                @if(isOptional){
+                                    <div>
+                                        <label class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._default_value' | translate }}</label>
+                                        <select [(ngModel)]="optionalDftTrue" [ngModelOptions]="{standalone: true}"
+                                        class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                            <option [value]="false">{{ 'UPDATE_PROD_SPEC._default_false' | translate }}</option>
+                                            <option [value]="true">{{ 'UPDATE_PROD_SPEC._default_true' | translate }}</option>
+                                        </select>
+                                    </div>
+                                }
                             }
                         </form>
                         <div class="m-4">
-                            @if(creatingChars.length>0){
+                            @if(creatingChars.length > 0 && charTypeSelected !== 'boolean'){
                                 <label for="values" class="font-bold text-lg dark:text-white">Values</label>
                                 <div class="flex flex-col items-start pl-4  shadow-md sm:rounded-lg w-full bg-white dark:bg-secondary-300 dark:border-secondary-200 dark:text-white border border-gray-300 mb-2">
-                                    @if(rangeCharSelected){
+                                    @if(charTypeSelected === 'range'){
                                         @for (char of creatingChars; track char; let idx = $index) {
                                             <div class="flex w-full justify-between">
                                                 <div class="align-items-middle align-middle">
@@ -723,7 +726,7 @@
                                                 <div class="align-items-middle align-middle">
                                                     <input [checked]="char?.isDefault" (click)="selectDefaultChar(char,idx)" id="disabled-checked-checkbox" type="checkbox" value=""
                                                     class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-full focus:ring-blue-500 focus:ring-2">
-                                                    @if(numberCharSelected){
+                                                    @if(charTypeSelected === 'number'){
                                                         <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-white text-wrap break-all">{{char.value}} (<i>{{char?.unitOfMeasure}}</i>)</label>
                                                     } @else {
                                                         <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-white text-wrap break-all">{{char.value}}</label>
@@ -739,8 +742,8 @@
                                     }
                                 </div>
                             }
-                            <label for="values" [ngClass]="rangeCharSelected && creatingChars.length==1 ? 'hidden' : ''" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._add_values' | translate }}</label>
-                            @if(stringCharSelected){
+                            <label for="values" [ngClass]="((charTypeSelected === 'range' && creatingChars.length==1) || charTypeSelected === 'boolean') ? 'hidden' : ''" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._add_values' | translate }}</label>
+                            @if(charTypeSelected === 'string'){
                                 <div class="flex flex-row items-center align-items-middle">
                                     <input type="text" id="value" [(ngModel)]="stringValue"
                                     class="mr-4 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"/>
@@ -750,7 +753,7 @@
                                         </svg>                                                                              
                                     </button> 
                                 </div>
-                            } @else if (numberCharSelected){
+                            } @else if (charTypeSelected === 'number'){
                                 <div class="flex flex-col md:flex-row items-center align-items-middle">
                                     <div class="flex w-full mb-2 md:mb-0">
                                         <span class="inline-flex items-center px-3 text-sm text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white bg-gray-200 border rounded-e-0 border-gray-300 border-e-0 rounded-s-md">
@@ -773,7 +776,15 @@
                                         </svg>                                                                              
                                     </button> 
                                 </div>
-                            } @else if (rangeCharSelected && creatingChars.length==0){
+                            } @else if (charTypeSelected === 'boolean'){
+                                <div class="col-span-2 flex align-items-middle h-fit">
+                                    <label for="boolean-default" class="font-bold text-lg dark:text-white">Default value is true</label>
+                                    <label class="inline-flex items-center me-5 cursor-pointer ml-4">
+                                        <input data-cy="charBooleanDefault" id="boolean-default" type="checkbox" [(ngModel)]="booleanDefaultTrue" [ngModelOptions]="{standalone: true}" (change)="onBooleanDefaultChange()" class="sr-only peer">
+                                        <div class="relative w-11 h-6 bg-gray-400 dark:bg-gray-700 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-100 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-100"></div>
+                                    </label>
+                                </div>
+                            } @else if (charTypeSelected === 'range' && creatingChars.length==0){
                                 <div class="flex flex-col md:flex-row items-center align-items-middle">
                                     <div class="flex w-full mb-2 md:mb-0">
                                         <span class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white border rounded-e-0 border-gray-300 border-e-0 rounded-s-md">
