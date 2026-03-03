@@ -2,38 +2,30 @@ import { environment } from '../../environments/environment';
 import { NavHeaderLink, NavLink, ThemeConfig } from './theme.interfaces';
 
 const domeHeaderLinks: NavLink[] = [
+
   {
-    label: 'HEADER._verify',
-    id: 'verifyDropdown', // ID para el toggle de Flowbite
-    children: [
-      { id: 'guidelines', label: 'HEADER._guidelines', url: environment.KB_ONBOARDING_GUIDELINES_URL, environmentName: 'KB_ONBOARDING_GUIDELINES_URL', isRouterLink: false },
-      { id: 'registration', label: 'HEADER._registration', url: environment.REGISTRATION_FORM_URL, environmentName: 'REGISTRATION_FORM_URL', isRouterLink: false },
-      { id: 'guidelinesPublish', label: 'HEADER._guideline_publish', url: environment.KB_GUIDELNES_URL, environmentName: 'KB_GUIDELNES_URL', isRouterLink: false }
-    ]
+    label: 'HEADER._forCustomers',
+    url: ''
+
   },
   {
-    label: 'HEADER._browse',
-    id: 'searchDropdown', // ID para el toggle de Flowbite
-    children: [
-      { label: 'HEADER._services', url: '/search', isRouterLink: true },
-      { label: 'HEADER._catalogs', url: '/catalogues', isRouterLink: true }
-    ]
+    label: 'HEADER._forProviders',
+    url: ''
   },
   {
-    label: 'HEADER._about',
-    url: '/about',
-    isRouterLink: true
+    label: 'HEADER._marketplaceH',
+    url: ''
   },
+  {
+    label: 'HEADER._resources',
+    url: ''
+  },
+
   {
     label: 'HEADER._blog',
     url: '/blog',
     isRouterLink: true
   },
-  {
-    label: 'FOOTER._contact',
-    url: '/contact-us',
-    isRouterLink: true
-  }
 ];
 
 

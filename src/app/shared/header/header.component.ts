@@ -33,6 +33,7 @@ import { ShoppingCartServiceService } from "../../services/shopping-cart-service
 import { ThemeService } from "../../services/theme.service";
 import { NavLink, ThemeAuthUrlsConfig, ThemeConfig } from "../../themes";
 
+
 @Component({
   selector: 'bae-header',
   templateUrl: './header.component.html',
@@ -103,6 +104,14 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   sellerRole: string = environment.SELLER_ROLE;
   orgAdminRole: string = environment.ORG_ADMIN_ROLE;
   certifierRole: string = environment.CERTIFIER_ROLE;
+
+
+  scrolled = false;
+
+  @HostListener('window:scroll')
+  onScroll() {
+    this.scrolled = window.scrollY > 10;
+  }
 
   ngOnDestroy(): void {
     this.qrWindow?.close()
