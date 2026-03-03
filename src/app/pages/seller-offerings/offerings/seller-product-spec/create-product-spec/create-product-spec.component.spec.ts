@@ -435,13 +435,12 @@ describe('CreateProductSpecComponent', () => {
     const selectSpy = spyOn(component, 'selectStep');
     const refreshSpy = spyOn(component, 'refreshChars');
     component.showCreateChar = true;
-    component.numberCharSelected = true;
+    component.charTypeSelected = 'number';
     component.toggleChars();
     expect(selectSpy).toHaveBeenCalledWith('chars', 'chars-circle');
     expect(component.showChars).toBeTrue();
     expect(component.showCreateChar).toBeFalse();
-    expect(component.stringCharSelected).toBeTrue();
-    expect(component.numberCharSelected).toBeFalse();
+    expect(component.charTypeSelected).toBe('string');
     expect(refreshSpy).toHaveBeenCalled();
   });
 
@@ -633,14 +632,14 @@ describe('CreateProductSpecComponent', () => {
     component.stringValue = 'x';
     component.numberValue = '2';
     component.rangeUnit = 'ms';
-    component.numberCharSelected = true;
+    component.charTypeSelected = 'number';
     component.creatingChars = [{ isDefault: true } as any];
     component.refreshChars();
     expect(component.stringValue).toBe('');
     expect(component.numberValue).toBe('');
     expect(component.rangeUnit).toBe('');
-    expect(component.stringCharSelected).toBeTrue();
-    expect(component.numberCharSelected).toBeFalse();
+    expect(component.charTypeSelected).toBe('string');
+    expect(component.booleanDefaultTrue).toBeTrue();
     expect(component.creatingChars).toEqual([]);
   });
 
@@ -673,21 +672,42 @@ describe('CreateProductSpecComponent', () => {
     expect(component.stepsCircles).toContain('general-circle');
   });
 
-  it('onTypeChange should switch input type flags and clear draft values', () => {
+  it('onTypeChange should switch characteristic type and clear draft values', () => {
     component.creatingChars = [{ isDefault: true } as any];
     component.isOptional = true;
     component.optionalDftTrue = true;
+    component.booleanDefaultTrue = false;
     component.onTypeChange({ target: { value: 'number' } });
-    expect(component.numberCharSelected).toBeTrue();
-    expect(component.stringCharSelected).toBeFalse();
+    expect(component.charTypeSelected).toBe('number');
     expect(component.creatingChars).toEqual([]);
     expect(component.isOptional).toBeFalse();
+    component.onTypeChange({ target: { value: 'boolean' } });
+    expect(component.charTypeSelected).toBe('boolean');
+    expect(component.booleanDefaultTrue).toBeTrue();
+    expect(component.creatingChars.length).toBe(2);
+    expect(component.creatingChars[0].isDefault).toBeTrue();
+    expect(component.creatingChars[0].value as any).toBeTrue();
+    expect(component.creatingChars[1].isDefault).toBeFalse();
+    expect(component.creatingChars[1].value as any).toBeFalse();
     component.onTypeChange({ target: { value: 'range' } });
-    expect(component.rangeCharSelected).toBeTrue();
+    expect(component.charTypeSelected).toBe('range');
+  });
+
+  it('onBooleanDefaultChange should switch default between true and false', () => {
+    component.charTypeSelected = 'boolean';
+    component.booleanDefaultTrue = true;
+    component.onBooleanDefaultChange();
+    expect(component.creatingChars[0].isDefault).toBeTrue();
+    expect(component.creatingChars[1].isDefault).toBeFalse();
+
+    component.booleanDefaultTrue = false;
+    component.onBooleanDefaultChange();
+    expect(component.creatingChars[0].isDefault).toBeFalse();
+    expect(component.creatingChars[1].isDefault).toBeTrue();
   });
 
   it('addCharValue should add string values and assign default correctly', () => {
-    component.stringCharSelected = true;
+    component.charTypeSelected = 'string';
     component.stringValue = 'A';
     component.addCharValue();
     component.stringValue = 'B';
@@ -698,8 +718,7 @@ describe('CreateProductSpecComponent', () => {
   });
 
   it('addCharValue should add number values with units', () => {
-    component.stringCharSelected = false;
-    component.numberCharSelected = true;
+    component.charTypeSelected = 'number';
     component.numberValue = '100';
     component.numberUnit = 'ms';
     component.addCharValue();
@@ -709,9 +728,20 @@ describe('CreateProductSpecComponent', () => {
     expect(component.numberUnit).toBe('');
   });
 
+  it('addCharValue should not mutate fixed boolean values', () => {
+    component.charTypeSelected = 'boolean';
+    component.creatingChars = [
+      { isDefault: true, value: true } as any,
+      { isDefault: false, value: false } as any
+    ];
+    component.addCharValue();
+    expect(component.creatingChars.length).toBe(2);
+    expect(component.creatingChars[0].value as any).toBeTrue();
+    expect(component.creatingChars[1].value as any).toBeFalse();
+  });
+
   it('addCharValue should validate range and reject invalid intervals', () => {
-    component.stringCharSelected = false;
-    component.rangeCharSelected = true;
+    component.charTypeSelected = 'range';
     component.fromValue = '10';
     component.toValue = '5';
     component.addCharValue();
@@ -721,8 +751,7 @@ describe('CreateProductSpecComponent', () => {
   });
 
   it('addCharValue should add valid range values', () => {
-    component.stringCharSelected = false;
-    component.rangeCharSelected = true;
+    component.charTypeSelected = 'range';
     component.fromValue = '5';
     component.toValue = '10';
     component.rangeUnit = 'GB';
@@ -743,6 +772,18 @@ describe('CreateProductSpecComponent', () => {
     expect(component.creatingChars[1].isDefault).toBeTrue();
     component.removeCharValue(component.creatingChars[0], 0);
     expect(component.creatingChars.length).toBe(1);
+  });
+
+  it('removeCharValue should not remove values for boolean type', () => {
+    component.charTypeSelected = 'boolean';
+    component.creatingChars = [
+      { isDefault: true, value: true } as any,
+      { isDefault: false, value: false } as any
+    ];
+    component.removeCharValue(component.creatingChars[0], 0);
+    expect(component.creatingChars.length).toBe(2);
+    expect(component.creatingChars[0].value as any).toBeTrue();
+    expect(component.creatingChars[1].value as any).toBeFalse();
   });
 
   it('saveChar should reject duplicated names', () => {
@@ -767,6 +808,20 @@ describe('CreateProductSpecComponent', () => {
     expect(component.showCreateChar).toBeFalse();
     expect(component.isOptional).toBeFalse();
     expect(detectSpy).toHaveBeenCalled();
+  });
+
+  it('saveChar should ignore optional toggle for boolean characteristics', () => {
+    component.charTypeSelected = 'boolean';
+    component.charsForm.patchValue({ name: 'Enabled', description: 'desc' });
+    component.creatingChars = [
+      { isDefault: true, value: true } as any,
+      { isDefault: false, value: false } as any
+    ];
+    component.isOptional = true;
+    component.optionalDftTrue = true;
+    component.saveChar();
+    expect(component.prodChars.length).toBe(1);
+    expect(component.prodChars[0].name).toBe('Enabled');
   });
 
   it('deleteChar should remove characteristic and its related enabled one', () => {

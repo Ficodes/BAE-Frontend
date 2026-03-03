@@ -117,6 +117,28 @@ describe('PricePlanDrawerComponent', () => {
     ]);
   });
 
+  it('updateOrderChars should convert string boolean values to real booleans', () => {
+    component.filteredCharacteristics = [
+      {
+        id: 'platinum',
+        name: 'platinum',
+        productSpecCharacteristicValue: [{ value: true }, { value: false }],
+      },
+    ] as any;
+    component.form.setControl(
+      'characteristics',
+      (component as any).fb.group({
+        platinum: 'true',
+      })
+    );
+
+    component.updateOrderChars();
+
+    expect(component.orderChars).toEqual([
+      { name: 'platinum', value: true, valueType: 'boolean' },
+    ]);
+  });
+
   it('onToggleChange should disable and re-enable characteristic and trigger recalculation', () => {
     component.filteredCharacteristics = [
       { id: 'range-main', name: 'Range Main', productSpecCharacteristicValue: [] },

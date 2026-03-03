@@ -439,7 +439,20 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
       console.log(this.filteredCharacteristics[idx])
       if(!this.disabledCharacteristics.includes(this.filteredCharacteristics[idx].id)){
         let value = this.getValues(selectedCharacteristics)[i]
-        let valueType = this.filteredCharacteristics[idx].valueType
+        const characteristic = this.filteredCharacteristics[idx];
+        const hasBooleanValues = characteristic.productSpecCharacteristicValue?.some(
+          (charValue: any) => typeof charValue?.value === 'boolean'
+        ) ?? false;
+
+        // Defensive conversion for boolean selects serialized as "true"/"false".
+        if (hasBooleanValues && typeof value === 'string') {
+          const normalized = value.toLowerCase();
+          if (normalized === 'true' || normalized === 'false') {
+            value = normalized === 'true';
+          }
+        }
+
+        let valueType = characteristic.valueType
   
         if (!valueType && typeof value === 'boolean') {
           valueType = 'boolean'
@@ -453,9 +466,9 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
           value=0
         }
 
-        if(!this.filteredCharacteristics[idx].name?.endsWith('- enabled')){
+        if(!characteristic.name?.endsWith('- enabled')){
           this.orderChars.push({
-            "name": this.filteredCharacteristics[idx].name,
+            "name": characteristic.name,
             "value": value,
             "valueType": valueType,
           })
