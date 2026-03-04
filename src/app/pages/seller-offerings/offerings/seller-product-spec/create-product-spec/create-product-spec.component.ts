@@ -74,7 +74,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
   showPreview:boolean=false;
   showEmoji:boolean=false;
-  description:string='';  
+  description:string='';
   partyId:any='';
 
   //PRODUCT GENERAL INFO:
@@ -91,11 +91,9 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     name: new FormControl('', [Validators.required, Validators.maxLength(100), noWhitespaceValidator]),
     description: new FormControl('', [Validators.maxLength(500)])
   });
-  stringCharSelected:boolean=true;
-  numberCharSelected:boolean=false;
-  rangeCharSelected:boolean=false;
-  credentialsConfigSelected:boolean=false;
-  policyConfigSelected:boolean=false;
+  charTypeSelected:string='string';
+  booleanDefaultTrue:boolean=true;
+
   isOptional:boolean=false;
   optionalDftTrue:boolean=false;
   prodChars:ProductSpecificationCharacteristic[]=[];
@@ -181,7 +179,6 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   numberUnit: string = '';
   fromValue: string = '';
   toValue: string = '';
-  booleanValue: boolean = false;
   rangeUnit: string = '';
   jsonValue: string = '';
 
@@ -228,7 +225,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   @ViewChild('attachName') attachName!: ElementRef;
   @ViewChild('imgURL') imgURL!: ElementRef;
   @ViewChild('certificationName') certificationName!: ElementRef;
-  
+
 
   public files: NgxFileDropEntry[] = [];
 
@@ -336,7 +333,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     if(next==false){
       this.loadingBundle=true;
     }
-    
+
     let options = {
       "filters": ['Active','Launched'],
       "partyId": this.partyId,
@@ -346,7 +343,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
     this.paginationService.getItemsPaginated(this.bundlePage, this.PROD_SPEC_LIMIT, next, this.prodSpecs,this.nextProdSpecs, options,
       this.prodSpecService.getProdSpecByUser.bind(this.prodSpecService)).then(data => {
-      this.bundlePageCheck=data.page_check;      
+      this.bundlePageCheck=data.page_check;
       this.prodSpecs=data.items;
       this.nextProdSpecs=data.nextItems;
       this.bundlePage=data.page;
@@ -372,7 +369,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
         lifecycleStatus: prod.lifecycleStatus,
         name: prod.name
       });
-    }    
+    }
     this.cdr.detectChanges();
     console.log(this.prodSpecsBundle)
   }
@@ -383,7 +380,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       return true
     } else {
       return false;
-    } 
+    }
   }
 
   toggleCompliance(){
@@ -427,9 +424,9 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       //if (iso.name in this.verifiedISO) {
       //  delete this.verifiedISO[iso.name]
       //}
-    }  
+    }
     this.cdr.detectChanges();
-    console.log(this.prodSpecsBundle)    
+    console.log(this.prodSpecsBundle)
   }
 
   removeCert(iso:any){
@@ -438,7 +435,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       console.log('eliminar additional cert')
       this.additionalISOS.splice(index, 1);
       console.log(this.additionalISOS)
-    }  
+    }
     this.cdr.detectChanges();
   }
 
@@ -465,18 +462,18 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     } else {
       return false;
     }
-    
+
   }
 
   public dropped(files: NgxFileDropEntry[],sel:any) {
     this.files = files;
     for (const droppedFile of files) {
- 
+
       // Is it a file?
       if (droppedFile.fileEntry.isFile) {
         const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
         fileEntry.file((file: File) => {
-          console.log('dropped')       
+          console.log('dropped')
 
           if (file) {
             const reader = new FileReader();
@@ -641,7 +638,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
             };
             reader.readAsDataURL(file);
           }
- 
+
         });
       } else {
         // It was a directory (empty directories are added, otherwise only files)
@@ -654,11 +651,11 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   isValidFilename(filename: string): boolean {
     return this.filenameRegex.test(filename);
   }
- 
+
   public fileOver(event: any){
     console.log(event);
   }
- 
+
   public fileLeave(event: any){
     console.log('leave')
     console.log(event);
@@ -671,7 +668,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
   toggleUploadFile(sel:any){
     this.showUploadFile=true;
-    this.selectedISO=sel;    
+    this.selectedISO=sel;
   }
 
   uploadFile(){
@@ -691,11 +688,15 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     this.showSummary=false;
 
     this.showCreateChar=false;
+<<<<<<< HEAD
     this.stringCharSelected=true;
     this.numberCharSelected=false;
     this.rangeCharSelected=false;
     this.credentialsConfigSelected=false;
     this.policyConfigSelected=false;
+=======
+    this.charTypeSelected='string';
+>>>>>>> main
     this.showPreview=false;
     this.refreshChars();
   }
@@ -723,7 +724,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     if(next==false){
       this.loadingResourceSpec=true;
     }
-    
+
     let options = {
       "filters": ['Active','Launched'],
       "partyId": this.partyId,
@@ -733,7 +734,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
     this.paginationService.getItemsPaginated(this.resourceSpecPage, this.RES_SPEC_LIMIT, next, this.resourceSpecs,this.nextResourceSpecs, options,
       this.resSpecService.getResourceSpecByUser.bind(this.resSpecService)).then(data => {
-      this.resourceSpecPageCheck=data.page_check;      
+      this.resourceSpecPageCheck=data.page_check;
       this.resourceSpecs=data.items;
       this.nextResourceSpecs=data.nextItems;
       this.resourceSpecPage=data.page;
@@ -758,7 +759,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
         href: res.href,
         name: res.name
       });
-    }    
+    }
     this.cdr.detectChanges();
     console.log(this.selectedResourceSpecs)
   }
@@ -769,7 +770,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       return true
     } else {
       return false;
-    } 
+    }
   }
 
   toggleService(){
@@ -795,7 +796,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     if(next==false){
       this.loadingServiceSpec=true;
     }
-    
+
     let options = {
       "filters": ['Active','Launched'],
       "partyId": this.partyId,
@@ -805,7 +806,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
     this.paginationService.getItemsPaginated(this.serviceSpecPage, this.SERV_SPEC_LIMIT, next, this.serviceSpecs,this.nextServiceSpecs, options,
       this.servSpecService.getServiceSpecByUser.bind(this.servSpecService)).then(data => {
-      this.serviceSpecPageCheck=data.page_check;      
+      this.serviceSpecPageCheck=data.page_check;
       this.serviceSpecs=data.items;
       this.nextServiceSpecs=data.nextItems;
       this.serviceSpecPage=data.page;
@@ -830,7 +831,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
         href: serv.href,
         name: serv.name
       });
-    }    
+    }
     this.cdr.detectChanges();
     console.log(this.selectedServiceSpecs)
   }
@@ -841,7 +842,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       return true
     } else {
       return false;
-    } 
+    }
   }
 
   toggleAttach(){
@@ -856,13 +857,13 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     this.showRelationships=false;
     this.showSummary=false;
     this.showPreview=false;
-    setTimeout(() => {        
-      initFlowbite();   
+    setTimeout(() => {
+      initFlowbite();
     }, 100);
     this.refreshChars();
   }
 
-  removeImg(){    
+  removeImg(){
     this.showImgPreview=false;
     const index = this.prodAttachments.findIndex(item => item.url === this.imgPreview);
     if (index !== -1) {
@@ -895,7 +896,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
       this.prodAttachments.splice(index, 1);
-    }  
+    }
     this.cdr.detectChanges();
   }
 
@@ -932,7 +933,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     if(!urlonly){
       this.certificationName.nativeElement.value='';
       this.certFileName.reset();
-    }    
+    }
     this.isoToCreate='';
   }
 
@@ -960,7 +961,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     if(next==false){
       this.loadingprodSpecRel=true;
     }
-    
+
     let options = {
       "filters": ['Active','Launched'],
       "partyId": this.partyId,
@@ -970,7 +971,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
     this.paginationService.getItemsPaginated(this.prodSpecRelPage, this.PROD_SPEC_LIMIT, next, this.prodSpecRels, this.nextProdSpecRels, options,
       this.prodSpecService.getProdSpecByUser.bind(this.prodSpecService)).then(data => {
-      this.prodSpecRelPageCheck=data.page_check;      
+      this.prodSpecRelPageCheck=data.page_check;
       this.prodSpecRels=data.items;
       this.nextProdSpecRels=data.nextItems;
       this.prodSpecRelPage=data.page;
@@ -1009,8 +1010,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       console.log('eliminar')
       this.prodRelationships.splice(index, 1);
-    }   
-    this.cdr.detectChanges(); 
+    }
+    this.cdr.detectChanges();
   }
 
   refreshChars(){
@@ -1021,14 +1022,30 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     this.toValue = '';
     this.rangeUnit = '';
     this.jsonValue = '';
-    this.stringCharSelected=true;
-    this.numberCharSelected=false;
-    this.rangeCharSelected=false;
-    this.credentialsConfigSelected=false;
-    this.policyConfigSelected=false;
+    this.charTypeSelected='string';
+    this.booleanDefaultTrue=true;
     this.isOptional=false;
     this.optionalDftTrue=false;
     this.creatingChars=[];
+  }
+
+  setBooleanDefaultValues(){
+    this.creatingChars=[
+      {
+        isDefault:this.booleanDefaultTrue,
+        value:true as any
+      },
+      {
+        isDefault:!this.booleanDefaultTrue,
+        value:false as any
+      }
+    ];
+  }
+
+  onBooleanDefaultChange(){
+    if(this.charTypeSelected == 'boolean'){
+      this.setBooleanDefaultValues();
+    }
   }
 
   removeClass(elem: HTMLElement, cls:string) {
@@ -1066,10 +1083,10 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       this.stepsElements.splice(index, 1);
       this.selectMenu(document.getElementById(step),'text-primary-100 dark:text-primary-50')
-      this.unselectMenu(document.getElementById(step),'text-gray-500') 
+      this.unselectMenu(document.getElementById(step),'text-gray-500')
       for(let i=0; i<this.stepsElements.length;i++){
         this.unselectMenu(document.getElementById(this.stepsElements[i]),'text-primary-100 dark:text-primary-50')
-        this.selectMenu(document.getElementById(this.stepsElements[i]),'text-gray-500') 
+        this.selectMenu(document.getElementById(this.stepsElements[i]),'text-gray-500')
       }
       this.stepsElements.push(step);
     }
@@ -1087,56 +1104,21 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   onTypeChange(event: any) {
-    if(event.target.value=='string'){
-      this.stringCharSelected=true;
-      this.numberCharSelected=false;
-      this.rangeCharSelected=false;
-      this.credentialsConfigSelected=false;
-      this.policyConfigSelected=false;
-      this.charsForm.reset();
-    }else if (event.target.value=='number'){
-      this.stringCharSelected=false;
-      this.numberCharSelected=true;
-      this.rangeCharSelected=false;
-      this.credentialsConfigSelected=false;
-      this.policyConfigSelected=false;
-      this.charsForm.reset();
-    }else if(event.target.value=='range'){
-      this.stringCharSelected=false;
-      this.numberCharSelected=false;
-      this.rangeCharSelected=true;
-      this.credentialsConfigSelected=false;
-      this.policyConfigSelected=false;
-      this.charsForm.reset();
-    }else if(event.target.value=='credentialsConfiguration'){
-      this.stringCharSelected=false;
-      this.numberCharSelected=false;
-      this.rangeCharSelected=false;
-      this.credentialsConfigSelected=true;
-      this.policyConfigSelected=false;
-      this.charsForm.reset();
-    }else if(event.target.value=='authorizationPolicy'){
-      this.stringCharSelected=false;
-      this.numberCharSelected=false;
-      this.rangeCharSelected=false;
-      this.credentialsConfigSelected=false;
-      this.policyConfigSelected=true;
-      this.charsForm.reset();
-    } else {
-      this.stringCharSelected=false;
-      this.numberCharSelected=false;
-      this.rangeCharSelected=false;
-      this.credentialsConfigSelected=false;
-      this.policyConfigSelected=false;
-      this.charsForm.reset();
-    }
+    this.charTypeSelected = event.target.value;
+    this.charsForm.reset();
     this.isOptional=false;
     this.optionalDftTrue=false;
-    this.creatingChars=[];
+    if(this.charTypeSelected == 'boolean'){
+      this.booleanDefaultTrue=true;
+      this.setBooleanDefaultValues();
+    } else {
+      this.booleanDefaultTrue=true;
+      this.creatingChars=[];
+    }
   }
 
   addCharValue(){
-    if(this.stringCharSelected){
+    if(this.charTypeSelected == 'string'){
       console.log('string')
       if(this.creatingChars.length==0){
         this.creatingChars.push({
@@ -1150,7 +1132,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
         })
       }
       this.stringValue='';
-    } else if (this.numberCharSelected){
+    } else if (this.charTypeSelected == 'number'){
       console.log('number')
       if(this.creatingChars.length==0){
         this.creatingChars.push({
@@ -1167,8 +1149,19 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       }
       this.numberUnit='';
       this.numberValue='';
-    }else if(this.rangeCharSelected){
+    }else if(this.charTypeSelected == 'range'){
       console.log('range')
+      // Validate that fromValue < toValue
+      const fromVal = Number(this.fromValue);
+      const toVal = Number(this.toValue);
+      if (fromVal >= toVal) {
+        console.log('range validation error: valueFrom >= valueTo')
+        this.errorMessage = 'Invalid range: "From" value must be less than "To" value';
+        this.showError = true;
+        setTimeout(() => {this.showError = false}, 3000);
+        return;
+      }
+
       if(this.creatingChars.length==0){
         this.creatingChars.push({
           isDefault:true,
@@ -1183,50 +1176,18 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
           valueTo:this.toValue as any,
           unitOfMeasure:this.rangeUnit})
       }
-      this.fromValue='';
-      this.toValue='';
-      this.rangeUnit='';
-    }else if(this.credentialsConfigSelected || this.policyConfigSelected){
-      console.log('json')
-      try {
-        const jsonObj = JSON.parse(this.jsonValue);
-        if(this.creatingChars.length==0){
-          this.creatingChars.push({
-            isDefault:true,
-            value:jsonObj as any
-          })
-        } else{
-          this.creatingChars.push({
-            isDefault:false,
-            value:jsonObj as any
-          })
-        }
-        this.jsonValue='';
-      } catch (e) {
-        this.errorMessage='Invalid JSON format';
-        this.showError=true;
-        setTimeout(() => {
-          this.showError = false;
-        }, 3000);
-      }
+    } else if (this.charTypeSelected == 'boolean'){
+      console.log('boolean values are fixed')
+      return;
     } else {
-      console.log('boolean')
-      if(this.creatingChars.length==0){
-        this.creatingChars.push({
-          isDefault:true,
-          value:this.booleanValue as any
-        })
-      } else{
-        this.creatingChars.push({
-          isDefault:false,
-          value:this.booleanValue as any
-        })
-      }
+      console.log('nothing')
     }
-    this.booleanValue=false;
   }
 
   removeCharValue(char:any,idx:any){
+    if(this.charTypeSelected == 'boolean'){
+      return;
+    }
     console.log(this.creatingChars)
     this.creatingChars.splice(idx, 1);
     console.log(this.creatingChars)
@@ -1243,8 +1204,20 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   saveChar(){
-    if(this.charsForm.value.name != null){
-      let characteristic: any = {
+    if(this.charsForm.value.name!=null){
+
+      // In showFinish() only takes the first ocurrence in name for sending to proxy
+      // I validate the duplication here to prevent confusion in client when suddenly a characteristic with the same name dissapeared
+      if (this.prodChars.find((char)=> char.name === this.charsForm.value.name)){
+        console.log('name duplicated error')
+        this.errorMessage = 'Cannot save duplicated name in characteristics';
+        this.showError = true;
+        setTimeout(() => {this.showError = false}, 3000);
+        return
+      }
+
+      // Create the main characteristic
+      this.prodChars.push({
         id: 'urn:ngsi-ld:characteristic:' + uuidv4(),
         name: this.charsForm.value.name,
         description: this.charsForm.value.description != null ? this.charsForm.value.description : '',
@@ -1262,7 +1235,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       this.prodChars.push(characteristic);
 
       // Create the X - enabled characteristic
-      if(this.isOptional){
+      if(this.isOptional && this.charTypeSelected !== 'boolean'){
         this.prodChars.push({
           id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
           name: this.charsForm.value.name + ' - enabled',
@@ -1284,11 +1257,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     this.charsForm.reset();
     this.creatingChars=[];
     this.showCreateChar=false;
-    this.stringCharSelected=true;
-    this.numberCharSelected=false;
-    this.rangeCharSelected=false;
-    this.credentialsConfigSelected=false;
-    this.policyConfigSelected=false;
+    this.charTypeSelected='string';
     this.isOptional=false;
     this.optionalDftTrue=false;
     this.refreshChars();
@@ -1330,14 +1299,14 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
         const cleanedName = this.prodChars[i]?.name
         ?.replace('Compliance:', '')
         .trim();
-  
+
         const checkIso = this.availableISOS.findIndex(
           item => item.name === cleanedName
         );
         if (checkIso == -1) {
           if (this.prodChars[i].name != 'Compliance:SelfAtt') {
             console.log('--- check if deleted additional cert')
-            console.log(this.prodChars[i].name)    
+            console.log(this.prodChars[i].name)
             const checkAdditional = this.additionalISOS.findIndex(
               item => item.name === cleanedName
             );
@@ -1353,7 +1322,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
         } else {
           this.finishChars.push(this.prodChars[i])
         }
-        
+
       }
     }
     // Load compliance profile
@@ -1422,7 +1391,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
           }
         ],
         resourceSpecification: this.selectedResourceSpecs,
-        serviceSpecification: this.selectedServiceSpecs  
+        serviceSpecification: this.selectedServiceSpecs
       }
     }
     console.log('PRODUCTO A CREAR:')
@@ -1485,43 +1454,43 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n- First item\n- Second item'
-    });    
+    });
   }
 
   addOrderedList(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n1. First item\n2. Second item'
-    });    
+    });
   }
 
   addCode(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n`code`'
-    });    
+    });
   }
 
   addCodeBlock(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n```\ncode\n```'
-    }); 
+    });
   }
 
   addBlockquote(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n> blockquote'
-    });    
+    });
   }
 
   addLink(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + ' [title](https://www.example.com) '
-    });    
-  } 
+    });
+  }
 
   addTable(){
     const currentText = this.generalForm.value.description;
@@ -1544,7 +1513,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
-    }   
+    }
   }
 
   goToStep(index: number) {
@@ -1556,7 +1525,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
         return; // No permitir avanzar si el paso actual no es válido
       }
     }
-    
+
     this.currentStep = index;
     if(this.currentStep>this.highestStep){
       this.highestStep=this.currentStep
@@ -1572,8 +1541,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     }
     //Attachment
     if((this.currentStep==6 && this.BUNDLE_ENABLED) || (this.currentStep==5 && !this.BUNDLE_ENABLED)){
-      setTimeout(() => {        
-        initFlowbite();   
+      setTimeout(() => {
+        initFlowbite();
       }, 100);
     }
     //rels
@@ -1618,7 +1587,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
   canNavigate(index: number) {
       return (this.generalForm?.valid &&  (index <= this.currentStep)) || (this.generalForm?.valid &&  (index <= this.highestStep));
-  }  
+  }
 
   handleStepClick(index: number): void {
     if (this.canNavigate(index)) {
@@ -1628,6 +1597,6 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
   normalizeName(name?: string): string {
     return name?.replace(/compliance:/i, '').trim() ?? '';
-  }  
+  }
 
 }

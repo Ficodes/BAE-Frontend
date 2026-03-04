@@ -20,6 +20,14 @@ import { environment } from 'src/environments/environment';
 import { Location } from '@angular/common';
 import {firstValueFrom, Subject} from "rxjs";
 import { takeUntil } from 'rxjs/operators';
+import { UsageServiceService } from 'src/app/services/usage-service.service';
+
+interface UsageMetricCard {
+  id: string;
+  usageSpecId: string;
+  name: string;
+  description: string;
+}
 
 @Component({
   selector: 'app-product-details',
@@ -75,6 +83,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   checkCustom:boolean=false;
   textDivHeight:any;
   prodChars:any[]=[];
+  usageMetrics: UsageMetricCard[] = [];
   selfAtt:any='';
 
   errorMessage:any='';
@@ -119,6 +128,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     private cartService: ShoppingCartServiceService,
     private eventMessage: EventMessageService,
     private accService: AccountServiceService,
+    private usageService: UsageServiceService,
     private location: Location
   ) {
     this.showTermsMore=false;
@@ -256,6 +266,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
         }
       }
     }
+    await this.loadUsageMetrics(prices);
 
     if(this.prodSpec.productSpecCharacteristic != undefined) {
       // Avoid displaying the compliance credential && Avoid showing "- enabled" chars
@@ -375,6 +386,98 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       this.productAlreadyInCart=exists;
       this.cdr.detectChanges();
     }
+  }
+
+  async loadUsageMetrics(prices: any[] | undefined): Promise<void> {
+    if (!prices || prices.length === 0) {
+      this.usageMetrics = [];
+      return;
+    }
+
+    const metricsMap = new Map<string, UsageMetricCard>();
+    const usageSpecCache = new Map<string, any>();
+
+    for (const price of prices) {
+      await this.collectUsageMetricsFromPrice(price, metricsMap, usageSpecCache);
+    }
+
+    this.usageMetrics = Array.from(metricsMap.values());
+  }
+
+  private async collectUsageMetricsFromPrice(
+    price: any,
+    metricsMap: Map<string, UsageMetricCard>,
+    usageSpecCache: Map<string, any>
+  ): Promise<void> {
+    if (!price) {
+      return;
+    }
+
+    const bundledRelationships = Array.isArray(price.bundledPopRelationship) ? price.bundledPopRelationship : [];
+    if (bundledRelationships.length > 0) {
+      for (const relationship of bundledRelationships) {
+        if (!relationship?.id) {
+          continue;
+        }
+        try {
+          const linkedPrice = await this.api.getOfferingPrice(relationship.id);
+          await this.addMetricFromPrice(linkedPrice, metricsMap, usageSpecCache);
+        } catch (error) {
+          console.error('Error loading linked product offering price', error);
+        }
+      }
+      return;
+    }
+
+    await this.addMetricFromPrice(price, metricsMap, usageSpecCache);
+  }
+
+  private async addMetricFromPrice(
+    price: any,
+    metricsMap: Map<string, UsageMetricCard>,
+    usageSpecCache: Map<string, any>
+  ): Promise<void> {
+    const usageSpecId = price?.usageSpecId;
+    const metricName = this.getMetricName(price?.unitOfMeasure);
+
+    if (!usageSpecId || !metricName) {
+      return;
+    }
+
+    const metricKey = `${usageSpecId}:${metricName}`;
+    if (metricsMap.has(metricKey)) {
+      return;
+    }
+
+    let usageSpec = usageSpecCache.get(usageSpecId);
+    if (usageSpec === undefined) {
+      try {
+        usageSpec = await this.usageService.getUsageSpec(usageSpecId);
+      } catch (error) {
+        usageSpec = null;
+      }
+      usageSpecCache.set(usageSpecId, usageSpec);
+    }
+
+    metricsMap.set(metricKey, {
+      id: metricKey,
+      usageSpecId,
+      name: metricName,
+      description: usageSpec?.description || price?.description || 'No description available.',
+    });
+  }
+
+  private getMetricName(unitOfMeasure: any): string {
+    if (!unitOfMeasure) {
+      return '';
+    }
+    if (typeof unitOfMeasure === 'string') {
+      return unitOfMeasure;
+    }
+    if (typeof unitOfMeasure?.units === 'string') {
+      return unitOfMeasure.units;
+    }
+    return '';
   }
 
   toggleQuoteModal(){

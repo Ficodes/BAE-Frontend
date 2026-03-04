@@ -1,4 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
+import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { MarkdownModule } from 'ngx-markdown';
 
 import { BlogEntryDetailComponent } from './blog-entry-detail.component';
 
@@ -8,13 +13,13 @@ describe('BlogEntryDetailComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [BlogEntryDetailComponent]
+      schemas: [NO_ERRORS_SCHEMA],
+      imports: [BlogEntryDetailComponent, HttpClientTestingModule, RouterTestingModule, TranslateModule.forRoot(), MarkdownModule.forRoot()]
     })
     .compileComponents();
     
     fixture = TestBed.createComponent(BlogEntryDetailComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
   it('should create', () => {

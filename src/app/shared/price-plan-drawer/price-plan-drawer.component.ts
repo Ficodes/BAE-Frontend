@@ -10,8 +10,7 @@ import {EventMessageService} from "../../services/event-message.service";
 import { cartProduct } from 'src/app/models/interfaces';
 import { v4 as uuidv4 } from 'uuid';
 import { certifications } from 'src/app/models/certification-standards.const';
-import { UsageServiceService } from 'src/app/services/usage-service.service'
-import { ApiServiceService } from 'src/app/services/product-service.service'
+import { PricePlanMetricsService } from 'src/app/services/price-plan-metrics.service';
 type Product = components["schemas"]["ProductOffering"];
 type ProductSpecification = components["schemas"]["ProductSpecification"];
 type ProductOfferingTerm = components["schemas"]["ProductOfferingTerm"];
@@ -64,6 +63,9 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
 
   characteristics: ProductSpecificationCharacteristic[] = []; // Características dinámicas
   filteredCharacteristics: ProductSpecificationCharacteristic[] = [];
+  booleanCharacteristics: ProductSpecificationCharacteristic[] = [];
+  choiceCharacteristics: ProductSpecificationCharacteristic[] = [];
+  rangeCharacteristics: ProductSpecificationCharacteristic[] = [];
   disabledCharacteristics: any[] = [];
   canBeDisabledChars: any[]=[];
 
@@ -81,8 +83,7 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     private cartService: ShoppingCartServiceService,
     private eventMessage: EventMessageService,
     private cdr: ChangeDetectorRef,
-    private usageService: UsageServiceService,
-    private api: ApiServiceService) {
+    private pricePlanMetricsService: PricePlanMetricsService) {
     // Crear el formulario padre
     this.form = this.fb.group({
       selectedPricePlan: [null, Validators.required], // Plan de precios seleccionado
@@ -201,6 +202,11 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
 
   filterCharacteristics() {
     this.filteredCharacteristics = [];
+    this.booleanCharacteristics = [];
+    this.choiceCharacteristics = [];
+    this.rangeCharacteristics = [];
+    this.disabledCharacteristics = [];
+    this.canBeDisabledChars = [];
   
     // Set disabled prefixes
     const disabledPrefixes = this.characteristics
@@ -257,9 +263,48 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     });
   
     this.form.setControl('characteristics', characteristicsGroup);
+    this.groupCharacteristics();
   }
 
-  onToggleChange(event: Event, charName: any): void {
+  isBooleanCharacteristic(characteristic: ProductSpecificationCharacteristic): boolean {
+    const values = characteristic.productSpecCharacteristicValue;
+    if (!values || values.length === 0) {
+      return false;
+    }
+    return values.every((val: any) => typeof val?.value === 'boolean');
+  }
+
+  isRangeCharacteristic(characteristic: ProductSpecificationCharacteristic): boolean {
+    return characteristic.productSpecCharacteristicValue?.some(
+      (val: any) => val?.valueFrom !== undefined && val?.valueTo !== undefined
+    ) ?? false;
+  }
+
+  private isEnabledCharacteristic(characteristic: ProductSpecificationCharacteristic): boolean {
+    return characteristic.name?.endsWith('- enabled') ?? false;
+  }
+
+  private groupCharacteristics(): void {
+    const selectableCharacteristics = this.filteredCharacteristics.filter(
+      (characteristic) => !this.isEnabledCharacteristic(characteristic)
+    );
+
+    this.booleanCharacteristics = selectableCharacteristics.filter((characteristic) =>
+      this.isBooleanCharacteristic(characteristic)
+    );
+    this.rangeCharacteristics = selectableCharacteristics.filter(
+      (characteristic) =>
+        !this.isBooleanCharacteristic(characteristic) &&
+        this.isRangeCharacteristic(characteristic)
+    );
+    this.choiceCharacteristics = selectableCharacteristics.filter(
+      (characteristic) =>
+        !this.isBooleanCharacteristic(characteristic) &&
+        !this.isRangeCharacteristic(characteristic)
+    );
+  }
+
+  async onToggleChange(event: Event, charName: any): Promise<void> {
     const inputElement = event.target as HTMLInputElement;
     const isChecked = inputElement.checked;
     let char = this.filteredCharacteristics.find(char => char.name == charName+' - enabled')
@@ -285,7 +330,8 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
         );
       }
     }
-    this.calculatePrice();
+    await this.refreshAppliedMetrics();
+    await this.calculatePrice();
   }
 
   // Handle price plan selection
@@ -307,46 +353,10 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     }
 
     this.filterCharacteristics();
-
-    if(pricePlan.bundledPopRelationship){
-      for(let i=0;i<pricePlan.bundledPopRelationship.length;i++){
-        let comp = await this.api.getOfferingPrice(pricePlan.bundledPopRelationship[i].id)
-        if(comp.usageSpecId && comp.unitOfMeasure){
-          //let usageSpec = await this.usageService.getUsageSpec(comp.usageSpecId)
-          this.metrics.push({
-            priceId: comp.id,
-            usageSpecId: comp.usageSpecId,
-            //name: usageSpec.name,
-            unitOfMeasure: comp.unitOfMeasure.units,
-            value: 0  
-          })
-        }
-      }
-    }  
-
-    console.log('metrics----')
-    console.log(this.metrics)
-
-    /*if(this.metrics.length>0){
-      this.selectedMetric=this.metrics[0]
-      this.selectedUnitOfMeasure=this.metrics[0].unitOfMeasure
-      const grouped = this.metrics.reduce((acc, metric) => {
-        const key = metric.usageSpecId;
-      
-        if (!acc[key]) {
-          acc[key] = [];
-        }
-      
-        acc[key].push(metric);
-      
-        return acc;
-      }, {} as Record<string, typeof this.metrics>);
-      this.groupedMetrics=grouped;        
-    }  */
-
     this.selectedPricePlan = pricePlan;
+    await this.refreshAppliedMetrics();
     console.log(this.selectedPricePlan);
-    this.calculatePrice();
+    await this.calculatePrice();
   }
 
   onUsageSpecChange(event: Event): void {
@@ -369,7 +379,7 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
   
 
   // Handle characteristic value changes
-  onValueChange(event: { characteristicId: string; selectedValue: any }): void {
+  async onValueChange(event: { characteristicId: string; selectedValue: any }): Promise<void> {
     const characteristicsGroup = this.form.get('characteristics') as FormGroup;
     characteristicsGroup.get(event.characteristicId)?.setValue(event.selectedValue);
 
@@ -396,7 +406,67 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
       }
     }    
     console.log(char)*/
-    this.calculatePrice();
+    await this.refreshAppliedMetrics();
+    await this.calculatePrice();
+  }
+
+  private metricKey(metric: any): string {
+    if (!metric?.usageSpecId || !metric?.unitOfMeasure) {
+      return '';
+    }
+    return `${metric.usageSpecId}:${metric.unitOfMeasure}`;
+  }
+
+  private getSelectedCharacteristicsForMetrics(): { id: string; value: any }[] {
+    const selectedCharacteristics = this.form.get('characteristics')?.value || {};
+    const selectedCharacteristicValues: { id: string; value: any }[] = [];
+
+    for (const characteristicId of this.getKeys(selectedCharacteristics)) {
+      if (this.disabledCharacteristics.includes(characteristicId)) {
+        continue;
+      }
+      selectedCharacteristicValues.push({
+        id: characteristicId,
+        value: selectedCharacteristics[characteristicId],
+      });
+    }
+
+    return selectedCharacteristicValues;
+  }
+
+  private async refreshAppliedMetrics(): Promise<void> {
+    if (!this.selectedPricePlan) {
+      this.metrics = [];
+      return;
+    }
+
+    const selectedCharacteristicValues = this.getSelectedCharacteristicsForMetrics();
+    const previousMetricValues = new Map<string, number>();
+    for (const metric of this.metrics) {
+      const metricKey = this.metricKey(metric);
+      if (metricKey) {
+        previousMetricValues.set(metricKey, metric.value ?? 0);
+      }
+    }
+
+    try {
+      const appliedMetrics = await this.pricePlanMetricsService.getAppliedMetrics(
+        this.selectedPricePlan,
+        selectedCharacteristicValues
+      );
+      this.metrics = (Array.isArray(appliedMetrics) ? appliedMetrics : []).map((metric: any) => {
+        const metricKey = this.metricKey(metric);
+        if (!metricKey) {
+          return metric;
+        }
+        return {
+          ...metric,
+          value: previousMetricValues.has(metricKey) ? previousMetricValues.get(metricKey) : (metric.value ?? 0),
+        };
+      });
+    } catch (error) {
+      console.error('Error refreshing applied metrics', error);
+    }
   }
 
   hasLongWord(str: string | undefined, threshold = 20) {
@@ -441,23 +511,36 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
       console.log(this.filteredCharacteristics[idx])
       if(!this.disabledCharacteristics.includes(this.filteredCharacteristics[idx].id)){
         let value = this.getValues(selectedCharacteristics)[i]
-        let valueType = this.filteredCharacteristics[idx].valueType
+        const characteristic = this.filteredCharacteristics[idx];
+        const hasBooleanValues = characteristic.productSpecCharacteristicValue?.some(
+          (charValue: any) => typeof charValue?.value === 'boolean'
+        ) ?? false;
+
+        // Defensive conversion for boolean selects serialized as "true"/"false".
+        if (hasBooleanValues && typeof value === 'string') {
+          const normalized = value.toLowerCase();
+          if (normalized === 'true' || normalized === 'false') {
+            value = normalized === 'true';
+          }
+        }
+
+        let valueType = characteristic.valueType
   
-        if (!valueType && isNaN(value)) {
-          valueType = 'string'
-        } else if(!valueType && (value == false || value == true)) {
+        if (!valueType && typeof value === 'boolean') {
           valueType = 'boolean'
-        } else if (!valueType && !isNaN(value)) {
+        } else if (!valueType && !isNaN(Number(value))) {
           valueType = 'number'
+        } else if (!valueType) {
+          valueType = 'string'
         }
   
         if(value==null && valueType=='number'){
           value=0
         }
 
-        if(!this.filteredCharacteristics[idx].name?.endsWith('- enabled')){
+        if(!characteristic.name?.endsWith('- enabled')){
           this.orderChars.push({
-            "name": this.filteredCharacteristics[idx].name,
+            "name": characteristic.name,
             "value": value,
             "valueType": valueType,
           })

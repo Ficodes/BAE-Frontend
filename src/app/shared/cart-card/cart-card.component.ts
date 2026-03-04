@@ -105,95 +105,6 @@ export class CartCardComponent implements OnInit {
     }
   }
 
-  /*async addProductToCart(productOff:Product| undefined,options:boolean){
-    //this.localStorage.addCartItem(productOff as Product);
-    if(options==true){
-      console.log('termschecked:')
-      console.log(this.selected_terms)
-      if(productOff!= undefined && productOff?.productOfferingPrice != undefined){
-        let prodOptions = {
-          "id": productOff?.id,
-          "name": productOff?.name,
-          "image": this.getProductImage(),
-          "href": productOff.href,
-          "options": {
-            "characteristics": this.selected_chars,
-            "pricing": this.selected_price
-          },
-          "termsAccepted": this.selected_terms
-        }
-        this.lastAddedProd=prodOptions;
-      await this.cartService.addItemShoppingCart(prodOptions).subscribe({
-        next: data => {
-            console.log(data)
-            console.log('Update successful');
-        },
-        error: error => {
-            console.error('There was an error while updating!', error);
-            if(error.error.error){
-              console.log(error)
-              this.errorMessage='Error: '+error.error.error;
-            } else {
-              this.errorMessage='There was an error while adding item to the cart!';
-            }
-            this.showError=true;
-            setTimeout(() => {
-              this.showError = false;
-            }, 3000);
-        }
-      });
-    }
-    } else {
-      if(productOff!= undefined && productOff?.productOfferingPrice != undefined){
-        let prodOptions = {
-          "id": productOff?.id,
-          "name": productOff?.name,
-          "image": this.getProductImage(),
-          "href": productOff.href,
-          "options": {
-            "characteristics": this.selected_chars,
-            "pricing": this.selected_price
-          },
-          "termsAccepted": true
-        }
-        this.lastAddedProd=prodOptions;
-      await this.cartService.addItemShoppingCart(prodOptions).subscribe({
-        next: data => {
-            console.log(data)
-            console.log('Update successful');
-        },
-        error: error => {
-            console.error('There was an error while updating!', error);
-            if(error.error.error){
-              console.log(error)
-              this.errorMessage='Error: '+error.error.error;
-            } else {
-              this.errorMessage='There was an error while adding item to the cart!';
-            }
-            this.showError=true;
-            setTimeout(() => {
-              this.showError = false;
-            }, 3000);
-        }
-      });
-    }
-    }
-    if(productOff!== undefined){
-      this.eventMessage.emitAddedCartItem(productOff as cartProduct);
-      this.eventMessage.emitCloseCartCard(productOff as cartProduct);
-      this.check_char=false;
-      this.check_terms=false;
-      this.check_prices=false;
-      this.selected_chars=[];
-      this.selected_price={};
-      this.selected_terms=false;
-      this.cdr.detectChanges();
-    }
-
-    this.cdr.detectChanges();
-  }
-*/
-
   async addProductToCart(productOff: Product | undefined, options: boolean) {
     if (!productOff || !productOff.productOfferingPrice) return;
 
@@ -399,7 +310,7 @@ export class CartCardComponent implements OnInit {
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
-    }   
+    }
   }
 
 }
