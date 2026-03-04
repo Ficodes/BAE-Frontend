@@ -48,6 +48,35 @@ export class ThemeService {
     }
   }
 
+  private applyThemeBrowserMetadata(theme: ThemeConfig): void {
+    if (!isPlatformBrowser(this.platformId) || !this.document) {
+      return;
+    }
+
+    const browserTitle = theme.browserTitle || theme.displayName;
+    if (browserTitle) {
+      this.document.title = browserTitle;
+    }
+
+    const faviconUrl = theme.assets?.faviconUrl;
+    if (!faviconUrl) {
+      return;
+    }
+
+    const normalizedFaviconUrl = faviconUrl.startsWith('/') ? faviconUrl : `/${faviconUrl}`;
+    let favicon = this.document.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
+
+    if (!favicon && this.document.head) {
+      favicon = this.renderer.createElement('link');
+      this.renderer.setAttribute(favicon, 'rel', 'icon');
+      this.renderer.appendChild(this.document.head, favicon);
+    }
+
+    if (favicon) {
+      this.renderer.setAttribute(favicon, 'href', normalizedFaviconUrl);
+    }
+  }
+
   /**
    * Inicializa y aplica el tema especificado por la configuración del proveedor.
    * Este método debe ser llamado una vez al inicio de la aplicación (ej. en AppComponent o un APP_INITIALIZER).
@@ -76,6 +105,7 @@ export class ThemeService {
       // Si ya hay un tema aplicado y es diferente, quitar la clase vieja.
       const oldTheme = this.currentThemeSubject.value;
       this.applyThemeClassToBody(themeToApply.name, oldTheme?.name);
+      this.applyThemeBrowserMetadata(themeToApply);
       this.currentThemeSubject.next(themeToApply);
 
       try {
