@@ -614,7 +614,13 @@
                                             <td class="px-6 py-4 text-wrap break-all">
                                                 @for (char of prod.productSpecCharacteristicValue; track char; let last = $last) {
                                                     @if(char.value || char.value == 0){
-                                                        @if(char.unitOfMeasure){
+                                                        @if(prod.valueType === 'credentialsConfiguration' || prod.valueType === 'authorizationPolicy'){
+                                                            @if(!last){
+                                                                {{getValuePreview(char.value)}},
+                                                            } @else {
+                                                                {{getValuePreview(char.value)}}
+                                                            }
+                                                        } @else if(char.unitOfMeasure){
                                                             @if(!last){
                                                                 {{char.value}} (<i>{{char?.unitOfMeasure}}</i>),
                                                             } @else {
@@ -674,6 +680,10 @@
                                     <option value="number">Number</option>
                                     <option value="range">Number range</option>
                                     <option value="boolean">Boolean</option>
+                                    @if(DATA_SPACE_ENABLED){
+                                        <option value="credentialsConfiguration">Credentials Configuration</option>
+                                        <option value="authorizationPolicy">Authorization Policy</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col-span-2">
@@ -681,7 +691,7 @@
                                 <textarea id="description" formControlName="description" rows="4" maxLength="500"
                                 class="mb-2 min-h-fit bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"></textarea>
                             </div>
-                            @if(charTypeSelected !== 'boolean'){
+                            @if(charTypeSelected !== 'boolean' && charTypeSelected !== 'credentialsConfiguration' && charTypeSelected !== 'authorizationPolicy'){
                                 <div class="col-span-2 flex align-items-middle h-fit">
                                     <label for="is-optional" class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._make_optional' | translate }}</label>
                                     <label class="inline-flex items-center me-5 cursor-pointer ml-4">
@@ -728,6 +738,8 @@
                                                     class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-full focus:ring-blue-500 focus:ring-2">
                                                     @if(charTypeSelected === 'number'){
                                                         <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-white text-wrap break-all">{{char.value}} (<i>{{char?.unitOfMeasure}}</i>)</label>
+                                                    } @else if (charTypeSelected === 'credentialsConfiguration' || charTypeSelected === 'authorizationPolicy') {
+                                                        <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-white text-wrap break-all">{{getValuePreview(char.value)}}</label>
                                                     } @else {
                                                         <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-white text-wrap break-all">{{char.value}}</label>
                                                     }    
@@ -813,6 +825,21 @@
                                         </svg>                                                                              
                                     </button> 
                                 </div>
+                            } @else if (charTypeSelected == "credentialsConfiguration" || charTypeSelected == "authorizationPolicy"){
+                                @if(creatingChars.length === 0){
+                                    <div class="flex flex-col w-full">
+                                        <label for="json-value" class="font-bold text-sm dark:text-white mb-2">{{ 'UPDATE_PROD_SPEC._json_value' | translate }}</label>
+                                        <textarea id="json-value" [(ngModel)]="jsonValue" rows="10"
+                                        class="mb-2 min-h-fit bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-mono"
+                                        placeholder='{"example": "Enter your JSON here"}'></textarea>
+                                        <button (click)="addCharValue()" [disabled]="!jsonValue" [ngClass]="!jsonValue ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" type="button" class="text-white w-fit bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center inline-flex items-center">
+                                            <svg class="w-4 h-4 mr-2 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+                                            </svg>
+                                            {{ 'UPDATE_PROD_SPEC._add_json' | translate }}
+                                        </button>
+                                    </div>
+                                }
                             }
                             <div class="flex w-full justify-items-center justify-center mt-4">
                                 <button data-cy="btnSaveCharacteristic" type="button" (click)="saveChar()" [disabled]="!charsForm.valid || creatingChars.length==0" [ngClass]="!charsForm.valid || creatingChars.length==0 ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
@@ -1562,7 +1589,13 @@
                                                 <td class="px-6 py-4 text-wrap break-all">
                                                     @for (char of prod.productSpecCharacteristicValue; track char; let last = $last) {
                                                         @if(char.value || char.value == 0){
-                                                            @if(char.unitOfMeasure){
+                                                            @if(prod.valueType === 'credentialsConfiguration' || prod.valueType === 'authorizationPolicy'){
+                                                                @if(!last){
+                                                                    {{getValuePreview(char.value)}},
+                                                                } @else {
+                                                                    {{getValuePreview(char.value)}}
+                                                                }
+                                                            } @else if(char.unitOfMeasure){
                                                                 @if(!last){
                                                                     {{char.value}} (<i>{{char?.unitOfMeasure}}</i>),
                                                                 } @else {

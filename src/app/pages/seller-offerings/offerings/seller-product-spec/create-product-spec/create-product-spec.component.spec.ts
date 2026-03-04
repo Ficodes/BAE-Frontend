@@ -693,6 +693,26 @@ describe('CreateProductSpecComponent', () => {
     expect(component.charTypeSelected).toBe('range');
   });
 
+  it('onTypeChange should reset draft values for JSON-based characteristic types', () => {
+    component.stringValue = 'old';
+    component.numberValue = '1';
+    component.numberUnit = 'ms';
+    component.fromValue = '1';
+    component.toValue = '2';
+    component.rangeUnit = 'GB';
+    component.jsonValue = '{"old": true}';
+    component.creatingChars = [{ isDefault: true, value: { old: true } } as any];
+
+    component.onTypeChange({ target: { value: 'credentialsConfiguration' } });
+
+    expect(component.charTypeSelected).toBe('credentialsConfiguration');
+    expect(component.stringValue).toBe('');
+    expect(component.numberValue).toBe('');
+    expect(component.rangeUnit).toBe('');
+    expect(component.jsonValue).toBe('');
+    expect(component.creatingChars).toEqual([]);
+  });
+
   it('onBooleanDefaultChange should switch default between true and false', () => {
     component.charTypeSelected = 'boolean';
     component.booleanDefaultTrue = true;
@@ -762,6 +782,46 @@ describe('CreateProductSpecComponent', () => {
     expect(component.creatingChars[0].unitOfMeasure).toBe('GB');
   });
 
+  it('addCharValue should parse and add JSON values for credentialsConfiguration', () => {
+    component.charTypeSelected = 'credentialsConfiguration';
+    component.jsonValue = '{"issuer":"did:example:123","format":"jwt_vc"}';
+
+    component.addCharValue();
+
+    expect(component.creatingChars.length).toBe(1);
+    expect(component.creatingChars[0].isDefault).toBeTrue();
+    expect(component.creatingChars[0].value as any).toEqual({
+      issuer: 'did:example:123',
+      format: 'jwt_vc'
+    });
+    expect(component.jsonValue).toBe('');
+  });
+
+  it('addCharValue should allow only one JSON value for JSON-based characteristic types', () => {
+    component.charTypeSelected = 'credentialsConfiguration';
+    component.jsonValue = '{"issuer":"did:example:123"}';
+    component.addCharValue();
+    component.jsonValue = '{"issuer":"did:example:456"}';
+
+    component.addCharValue();
+
+    expect(component.creatingChars.length).toBe(1);
+    expect(component.creatingChars[0].value as any).toEqual({ issuer: 'did:example:123' });
+    expect(component.showError).toBeTrue();
+    expect(component.errorMessage).toBe('Only one JSON value is allowed');
+  });
+
+  it('addCharValue should reject invalid JSON for authorizationPolicy', () => {
+    component.charTypeSelected = 'authorizationPolicy';
+    component.jsonValue = '{"policy":';
+
+    component.addCharValue();
+
+    expect(component.showError).toBeTrue();
+    expect(component.errorMessage).toBe('Invalid JSON format');
+    expect(component.creatingChars).toEqual([]);
+  });
+
   it('removeCharValue and selectDefaultChar should manage created char values', () => {
     component.creatingChars = [
       { isDefault: true, value: 'A' } as any,
@@ -824,6 +884,33 @@ describe('CreateProductSpecComponent', () => {
     expect(component.prodChars[0].name).toBe('Enabled');
   });
 
+  it('saveChar should persist credentialsConfiguration metadata', () => {
+    component.charTypeSelected = 'credentialsConfiguration';
+    component.charsForm.patchValue({ name: 'Credential Config', description: 'desc' });
+    component.creatingChars = [{ isDefault: true, value: { issuer: 'did:example:issuer' } } as any];
+    component.isOptional = true;
+    component.optionalDftTrue = true;
+
+    component.saveChar();
+
+    expect(component.prodChars.length).toBe(1);
+    expect((component.prodChars[0] as any).valueType).toBe('credentialsConfiguration');
+    expect((component.prodChars[0] as any)['@schemaLocation']).toContain('credentialConfigCharacteristic.json');
+    expect(component.prodChars.find(char => char.name === 'Credential Config - enabled')).toBeUndefined();
+  });
+
+  it('saveChar should persist authorizationPolicy metadata', () => {
+    component.charTypeSelected = 'authorizationPolicy';
+    component.charsForm.patchValue({ name: 'Authorization Policy', description: 'desc' });
+    component.creatingChars = [{ isDefault: true, value: { permission: [] } } as any];
+
+    component.saveChar();
+
+    expect(component.prodChars.length).toBe(1);
+    expect((component.prodChars[0] as any).valueType).toBe('authorizationPolicy');
+    expect((component.prodChars[0] as any)['@schemaLocation']).toContain('policyCharacteristic.json');
+  });
+
   it('deleteChar should remove characteristic and its related enabled one', () => {
     const detectSpy = spyOn((component as any).cdr, 'detectChanges');
     component.prodChars = [
@@ -840,6 +927,15 @@ describe('CreateProductSpecComponent', () => {
   it('checkInput should identify blank inputs', () => {
     expect(component.checkInput('   ')).toBeTrue();
     expect(component.checkInput('abc')).toBeFalse();
+  });
+
+  it('getValuePreview should truncate long values and keep short ones', () => {
+    const shortValue = component.getValuePreview({ key: 'value' }, 80);
+    const longValue = component.getValuePreview({ long: 'a'.repeat(200) }, 40);
+
+    expect(shortValue).toContain('"key":"value"');
+    expect(longValue.endsWith('...')).toBeTrue();
+    expect(longValue.length).toBe(43);
   });
 
   it('showFinish should build final product payload and activate summary step', () => {
@@ -873,6 +969,37 @@ describe('CreateProductSpecComponent', () => {
     expect(component.productSpecToCreate?.serviceSpecification?.length).toBe(1);
     expect(selectSpy).toHaveBeenCalledWith('summary', 'summary-circle');
     expect(refreshSpy).toHaveBeenCalled();
+  });
+
+  it('showFinish should rebuild finishChars and not keep deleted characteristics from previous summary', () => {
+    component.partyId = 'party-1';
+    component.generalForm.patchValue({
+      name: 'My Product',
+      description: 'Desc',
+      version: '1.0',
+      brand: 'Brand',
+      number: 'PN-1'
+    });
+    component.selectedISOS = [];
+    component.additionalISOS = [];
+    component.prodRelationships = [];
+    component.prodAttachments = [];
+    component.selectedResourceSpecs = [];
+    component.selectedServiceSpecs = [];
+
+    component.prodChars = [
+      { id: 'char-1', name: 'A', productSpecCharacteristicValue: [{ value: 'x' }] } as any,
+      { id: 'char-2', name: 'B', productSpecCharacteristicValue: [{ value: 'y' }] } as any
+    ];
+    component.showFinish();
+    expect(component.productSpecToCreate?.productSpecCharacteristic?.some((c: any) => c.name === 'A')).toBeTrue();
+    expect(component.productSpecToCreate?.productSpecCharacteristic?.some((c: any) => c.name === 'B')).toBeTrue();
+
+    component.prodChars = [{ id: 'char-2', name: 'B', productSpecCharacteristicValue: [{ value: 'y' }] } as any];
+    component.showFinish();
+
+    expect(component.productSpecToCreate?.productSpecCharacteristic?.some((c: any) => c.name === 'A')).toBeFalse();
+    expect(component.productSpecToCreate?.productSpecCharacteristic?.some((c: any) => c.name === 'B')).toBeTrue();
   });
 
   it('createProduct should call API and go back on success', () => {

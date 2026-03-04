@@ -47,6 +47,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   RES_SPEC_LIMIT: number = environment.RES_SPEC_LIMIT;
   DOME_TRUST_LINK: string = environment.DOME_TRUST_LINK;
   BUNDLE_ENABLED: boolean= environment.BUNDLE_ENABLED;
+  DATA_SPACE_ENABLED: boolean = environment.DATA_SPACE_ENABLED;
   MAX_FILE_SIZE: number=environment.MAX_FILE_SIZE;
 
   //CONTROL VARIABLES:
@@ -178,6 +179,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   fromValue: string = '';
   toValue: string = '';
   rangeUnit: string = '';
+  jsonValue: string = '';
 
   filenameRegex = /^[A-Za-z0-9_.-]+$/;
   private destroy$ = new Subject<void>();
@@ -1224,6 +1226,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     this.fromValue = '';
     this.toValue = '';
     this.rangeUnit = '';
+    this.jsonValue = '';
     this.charTypeSelected='string';
     this.booleanDefaultTrue=true;
     this.isOptional=false;
@@ -1308,6 +1311,13 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   onTypeChange(event: any) {
     this.charTypeSelected = event.target.value;
     this.charsForm.reset();
+    this.stringValue = '';
+    this.numberValue = '';
+    this.numberUnit = '';
+    this.fromValue = '';
+    this.toValue = '';
+    this.rangeUnit = '';
+    this.jsonValue = '';
     this.isOptional=false;
     this.optionalDftTrue=false;
     if(this.charTypeSelected == 'boolean'){
@@ -1317,6 +1327,20 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       this.booleanDefaultTrue=true;
       this.creatingChars=[];
     }
+  }
+
+  private isJsonCharacteristicType(type: string): boolean {
+    return type === 'credentialsConfiguration' || type === 'authorizationPolicy';
+  }
+
+  private getSchemaLocationForType(type: string): string | null {
+    if (type === 'credentialsConfiguration') {
+      return 'https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/main/schemas/credentials/credentialConfigCharacteristic.json';
+    }
+    if (type === 'authorizationPolicy') {
+      return 'https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/policy-support/schemas/odrl/policyCharacteristic.json';
+    }
+    return null;
   }
 
 
@@ -1379,6 +1403,26 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
           valueTo:this.toValue as any,
           unitOfMeasure:this.rangeUnit})
       } 
+    } else if (this.isJsonCharacteristicType(this.charTypeSelected)) {
+      if (this.creatingChars.length > 0) {
+        this.errorMessage = 'Only one JSON value is allowed';
+        this.showError = true;
+        setTimeout(() => {this.showError = false}, 3000);
+        return;
+      }
+      try {
+        const parsedJson = JSON.parse(this.jsonValue);
+        this.creatingChars.push({
+          isDefault: true,
+          value: parsedJson as any
+        });
+        this.jsonValue = '';
+      } catch (error) {
+        this.errorMessage = 'Invalid JSON format';
+        this.showError = true;
+        setTimeout(() => {this.showError = false}, 3000);
+        return;
+      }
     } else if (this.charTypeSelected == 'boolean'){
       console.log('boolean values are fixed')
       return;
@@ -1409,15 +1453,23 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   saveChar(){
     if(this.charsForm.value.name!=null){
       // Create the main characteristic
-      this.prodChars.push({
+      const characteristic: any = {
         id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
         name: this.charsForm.value.name,
         description: this.charsForm.value.description != null ? this.charsForm.value.description : '',
         productSpecCharacteristicValue: this.creatingChars
-      })
+      };
+
+      const schemaLocation = this.getSchemaLocationForType(this.charTypeSelected);
+      if (schemaLocation) {
+        characteristic.valueType = this.charTypeSelected;
+        characteristic['@schemaLocation'] = schemaLocation;
+      }
+
+      this.prodChars.push(characteristic);
 
       // create X - enabled characteristic
-      if(this.isOptional && this.charTypeSelected !== 'boolean'){
+      if(this.isOptional && this.charTypeSelected !== 'boolean' && !this.isJsonCharacteristicType(this.charTypeSelected)){
         this.prodChars.push({
           id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
           name: this.charsForm.value.name + ' - enabled',
@@ -1488,6 +1540,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   setProductData(){
+    this.finishChars = [];
     console.log('--- set product data')
     console.log(this.prodChars)
     for(let i=0; i< this.prodChars.length; i++){
@@ -1587,6 +1640,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
         lifecycleStatus: this.prodStatus,
         //isBundle: this.bundleChecked,
         //bundledProductSpecification: this.prodSpecsBundle,
+        productSpecCharacteristic: this.finishChars,
         productSpecificationRelationship: rels,
         attachment: this.prodAttachments,
         resourceSpecification: this.selectedResourceSpecs,
@@ -1737,6 +1791,25 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     } else {
       return false
     }   
+  }
+
+  getValuePreview(value: any, maxLength = 80): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    let rawValue = '';
+    if (typeof value === 'string') {
+      rawValue = value;
+    } else {
+      try {
+        rawValue = JSON.stringify(value);
+      } catch {
+        rawValue = String(value);
+      }
+    }
+
+    return rawValue.length > maxLength ? `${rawValue.slice(0, maxLength)}...` : rawValue;
   }
 
   goToStep(index: number) {

@@ -717,12 +717,14 @@ describe('UpdateProductSpecComponent', () => {
     component.stringValue = 'x';
     component.numberValue = '2';
     component.rangeUnit = 'ms';
+    component.jsonValue = '{"a":1}';
     component.charTypeSelected = 'number';
     component.creatingChars = [{ isDefault: true } as any];
     component.refreshChars();
     expect(component.stringValue).toBe('');
     expect(component.numberValue).toBe('');
     expect(component.rangeUnit).toBe('');
+    expect(component.jsonValue).toBe('');
     expect(component.charTypeSelected).toBe('string');
     expect(component.booleanDefaultTrue).toBeTrue();
     expect(component.creatingChars).toEqual([]);
@@ -776,6 +778,26 @@ describe('UpdateProductSpecComponent', () => {
     expect(component.creatingChars[1].value as any).toBeFalse();
     component.onTypeChange({ target: { value: 'range' } });
     expect(component.charTypeSelected).toBe('range');
+  });
+
+  it('onTypeChange should reset draft values for JSON-based characteristic types', () => {
+    component.stringValue = 'old';
+    component.numberValue = '1';
+    component.numberUnit = 'ms';
+    component.fromValue = '1';
+    component.toValue = '2';
+    component.rangeUnit = 'GB';
+    component.jsonValue = '{"old": true}';
+    component.creatingChars = [{ isDefault: true, value: { old: true } } as any];
+
+    component.onTypeChange({ target: { value: 'credentialsConfiguration' } });
+
+    expect(component.charTypeSelected).toBe('credentialsConfiguration');
+    expect(component.stringValue).toBe('');
+    expect(component.numberValue).toBe('');
+    expect(component.rangeUnit).toBe('');
+    expect(component.jsonValue).toBe('');
+    expect(component.creatingChars).toEqual([]);
   });
 
   it('onBooleanDefaultChange should switch default between true and false', () => {
@@ -847,6 +869,46 @@ describe('UpdateProductSpecComponent', () => {
     expect(component.creatingChars[0].unitOfMeasure).toBe('GB');
   });
 
+  it('addCharValue should parse and add JSON values for credentialsConfiguration', () => {
+    component.charTypeSelected = 'credentialsConfiguration';
+    component.jsonValue = '{"issuer":"did:example:123","format":"jwt_vc"}';
+
+    component.addCharValue();
+
+    expect(component.creatingChars.length).toBe(1);
+    expect(component.creatingChars[0].isDefault).toBeTrue();
+    expect(component.creatingChars[0].value as any).toEqual({
+      issuer: 'did:example:123',
+      format: 'jwt_vc'
+    });
+    expect(component.jsonValue).toBe('');
+  });
+
+  it('addCharValue should allow only one JSON value for JSON-based characteristic types', () => {
+    component.charTypeSelected = 'credentialsConfiguration';
+    component.jsonValue = '{"issuer":"did:example:123"}';
+    component.addCharValue();
+    component.jsonValue = '{"issuer":"did:example:456"}';
+
+    component.addCharValue();
+
+    expect(component.creatingChars.length).toBe(1);
+    expect(component.creatingChars[0].value as any).toEqual({ issuer: 'did:example:123' });
+    expect(component.showError).toBeTrue();
+    expect(component.errorMessage).toBe('Only one JSON value is allowed');
+  });
+
+  it('addCharValue should reject invalid JSON for authorizationPolicy', () => {
+    component.charTypeSelected = 'authorizationPolicy';
+    component.jsonValue = '{"policy":';
+
+    component.addCharValue();
+
+    expect(component.showError).toBeTrue();
+    expect(component.errorMessage).toBe('Invalid JSON format');
+    expect(component.creatingChars).toEqual([]);
+  });
+
   it('removeCharValue and selectDefaultChar should manage created char values', () => {
     component.creatingChars = [
       { isDefault: true, value: 'A' } as any,
@@ -907,6 +969,33 @@ describe('UpdateProductSpecComponent', () => {
     component.saveChar();
     expect(component.prodChars.length).toBe(1);
     expect(component.prodChars[0].name).toBe('Enabled');
+  });
+
+  it('saveChar should persist credentialsConfiguration metadata', () => {
+    component.charTypeSelected = 'credentialsConfiguration';
+    component.charsForm.patchValue({ name: 'Credential Config', description: 'desc' });
+    component.creatingChars = [{ isDefault: true, value: { issuer: 'did:example:issuer' } } as any];
+    component.isOptional = true;
+    component.optionalDftTrue = true;
+
+    component.saveChar();
+
+    expect(component.prodChars.length).toBe(1);
+    expect((component.prodChars[0] as any).valueType).toBe('credentialsConfiguration');
+    expect((component.prodChars[0] as any)['@schemaLocation']).toContain('credentialConfigCharacteristic.json');
+    expect(component.prodChars.find(char => char.name === 'Credential Config - enabled')).toBeUndefined();
+  });
+
+  it('saveChar should persist authorizationPolicy metadata', () => {
+    component.charTypeSelected = 'authorizationPolicy';
+    component.charsForm.patchValue({ name: 'Authorization Policy', description: 'desc' });
+    component.creatingChars = [{ isDefault: true, value: { permission: [] } } as any];
+
+    component.saveChar();
+
+    expect(component.prodChars.length).toBe(1);
+    expect((component.prodChars[0] as any).valueType).toBe('authorizationPolicy');
+    expect((component.prodChars[0] as any)['@schemaLocation']).toContain('policyCharacteristic.json');
   });
 
   it('deleteChar should remove characteristic and its related enabled one', () => {
@@ -1017,6 +1106,15 @@ describe('UpdateProductSpecComponent', () => {
     expect(component.hasLongWord('small words only', 20)).toBeFalse();
     expect(component.hasLongWord('averyveryveryveryverylongword here', 10)).toBeTrue();
     expect(component.hasLongWord(undefined, 10)).toBeFalse();
+  });
+
+  it('getValuePreview should truncate long values and keep short ones', () => {
+    const shortValue = component.getValuePreview({ key: 'value' }, 80);
+    const longValue = component.getValuePreview({ long: 'a'.repeat(200) }, 40);
+
+    expect(shortValue).toContain('"key":"value"');
+    expect(longValue.endsWith('...')).toBeTrue();
+    expect(longValue.length).toBe(43);
   });
 
   it('goToStep should update current step without validating current form', () => {
