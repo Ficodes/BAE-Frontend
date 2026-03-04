@@ -91,4 +91,24 @@ describe('SellerOfferingsComponent', () => {
 
     expect(component.feedback).toBeFalse();
   });
+
+  it('event subscription should show feedback after product spec creation only for DOME theme', () => {
+    component.feedback = false;
+    component.isDomeTheme = true;
+    component.userInfo = { expire: 9999999999 };
+
+    eventMessage.emitSellerProductSpec(true);
+
+    expect(component.feedback).toBeTrue();
+  });
+
+  it('event subscription should not show feedback for non-DOME theme', () => {
+    component.feedback = false;
+    component.isDomeTheme = false;
+    component.userInfo = { expire: 9999999999 };
+
+    eventMessage.emitSellerProductSpec(true);
+
+    expect(component.feedback).toBeFalse();
+  });
 });
