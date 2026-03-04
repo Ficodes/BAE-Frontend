@@ -466,18 +466,18 @@
                                             <div class="flex items-center pl-4">
                                                 <input disabled checked id="disabled-checked-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 dark:bg-gray-600 dark:border-gray-800 rounded-full focus:ring-blue-500 focus:ring-2">
                                                 @if(val.value !== undefined && val.value !== null){
-                                                    <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 dark:bg-secondary-200 dark:border-gray-800 text-wrap break-words">{{val.value}}{{val.unitOfMeasure ? ' (' + val.unitOfMeasure + ')' : ''}}</label>
+                                                    <label [title]="getCharacteristicValueLabel(val)" for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 dark:bg-secondary-200 dark:border-gray-800 text-wrap break-all">{{ getCharacteristicValuePreview(val) }}</label>
                                                 } @else {
-                                                    <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 dark:bg-secondary-200 dark:border-gray-800 text-wrap break-words">{{val.valueFrom}} - {{val.valueTo}}{{val.unitOfMeasure ? ' (' + val.unitOfMeasure + ')' : ''}}</label>
+                                                    <label [title]="getCharacteristicRangeLabel(val)" for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 dark:bg-secondary-200 dark:border-gray-800 text-wrap break-all">{{ getCharacteristicRangePreview(val) }}</label>
                                                 }
                                             </div>
                                         } @else {
                                             <div class="flex items-center pl-4">
                                                 <input disabled id="disabled-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 dark:border-gray-800 border-gray-300 rounded-full focus:ring-blue-500 focus:ring-2">
                                                 @if(val.value !== undefined && val.value !== null){
-                                                    <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 text-wrap break-words">{{val.value}}{{val.unitOfMeasure ? ' (' + val.unitOfMeasure + ')' : ''}}</label>
+                                                    <label [title]="getCharacteristicValueLabel(val)" for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 text-wrap break-all">{{ getCharacteristicValuePreview(val) }}</label>
                                                 } @else {
-                                                    <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 text-wrap break-words">{{val.valueFrom}} - {{val.valueTo}}{{val.unitOfMeasure ? ' (' + val.unitOfMeasure + ')' : ''}}</label>
+                                                    <label [title]="getCharacteristicRangeLabel(val)" for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 text-wrap break-all">{{ getCharacteristicRangePreview(val) }}</label>
                                                 }
                                             </div>
                                         }

@@ -1021,6 +1021,70 @@ async deleteProduct(product: Product | undefined){
     }   
   }
 
+  getCharacteristicValueLabel(valueSpec: any): string {
+    const valueLabel = this.formatCharacteristicScalar(valueSpec?.value);
+    const unitLabel = this.getUnitLabel(valueSpec?.unitOfMeasure);
+
+    return unitLabel ? `${valueLabel} (${unitLabel})` : valueLabel;
+  }
+
+  getCharacteristicValuePreview(valueSpec: any): string {
+    return this.truncateCharacteristicLabel(this.getCharacteristicValueLabel(valueSpec));
+  }
+
+  getCharacteristicRangeLabel(valueSpec: any): string {
+    const fromLabel = this.formatCharacteristicScalar(valueSpec?.valueFrom);
+    const toLabel = this.formatCharacteristicScalar(valueSpec?.valueTo);
+    const unitLabel = this.getUnitLabel(valueSpec?.unitOfMeasure);
+    const rangeLabel = `${fromLabel} - ${toLabel}`;
+
+    return unitLabel ? `${rangeLabel} (${unitLabel})` : rangeLabel;
+  }
+
+  getCharacteristicRangePreview(valueSpec: any): string {
+    return this.truncateCharacteristicLabel(this.getCharacteristicRangeLabel(valueSpec));
+  }
+
+  private formatCharacteristicScalar(value: any): string {
+    if (value === undefined || value === null) {
+      return '';
+    }
+
+    if (typeof value === 'object') {
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return String(value);
+      }
+    }
+
+    return String(value);
+  }
+
+  private getUnitLabel(unitOfMeasure: any): string {
+    if (!unitOfMeasure) {
+      return '';
+    }
+
+    if (typeof unitOfMeasure === 'string') {
+      return unitOfMeasure;
+    }
+
+    if (typeof unitOfMeasure?.units === 'string') {
+      return unitOfMeasure.units;
+    }
+
+    return '';
+  }
+
+  private truncateCharacteristicLabel(label: string, maxLength = 120): string {
+    if (!label) {
+      return '';
+    }
+
+    return label.length > maxLength ? `${label.slice(0, maxLength)}...` : label;
+  }
+
   normalizeName(name?: string): string {
     return name?.replace(/compliance:/i, '').trim() ?? '';
   }  

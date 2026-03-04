@@ -461,4 +461,57 @@ describe('ProductDetailsComponent', () => {
     expect(component.normalizeName('Compliance:ISO/IEC 27001')).toBe('ISO/IEC 27001');
     expect(component.normalizeName(undefined)).toBe('');
   });
+
+  it('getCharacteristicValueLabel should stringify object values and append unit', () => {
+    const label = component.getCharacteristicValueLabel({
+      value: { issuer: 'vault', endpoint: 'https://example.test' },
+      unitOfMeasure: 'json',
+    });
+
+    expect(label).toBe('{"issuer":"vault","endpoint":"https://example.test"} (json)');
+  });
+
+  it('getCharacteristicValueLabel should keep boolean false and omit empty unit', () => {
+    const label = component.getCharacteristicValueLabel({
+      value: false,
+    });
+
+    expect(label).toBe('false');
+  });
+
+  it('getCharacteristicRangeLabel should support object unit and avoid empty parenthesis', () => {
+    const withUnit = component.getCharacteristicRangeLabel({
+      valueFrom: 1,
+      valueTo: 10,
+      unitOfMeasure: { units: 'GB' },
+    });
+    const withoutUnit = component.getCharacteristicRangeLabel({
+      valueFrom: 5,
+      valueTo: 15,
+      unitOfMeasure: {},
+    });
+
+    expect(withUnit).toBe('1 - 10 (GB)');
+    expect(withoutUnit).toBe('5 - 15');
+  });
+
+  it('getCharacteristicValuePreview should truncate long values with ellipsis', () => {
+    const longValue = 'x'.repeat(140);
+    const preview = component.getCharacteristicValuePreview({
+      value: longValue,
+    });
+
+    expect(preview.endsWith('...')).toBeTrue();
+    expect(preview.length).toBe(123);
+  });
+
+  it('getCharacteristicRangePreview should keep short values unchanged', () => {
+    const preview = component.getCharacteristicRangePreview({
+      valueFrom: 1,
+      valueTo: 3,
+      unitOfMeasure: 'GB',
+    });
+
+    expect(preview).toBe('1 - 3 (GB)');
+  });
 });
