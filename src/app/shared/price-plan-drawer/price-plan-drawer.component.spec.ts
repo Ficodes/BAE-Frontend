@@ -7,8 +7,7 @@ import { of, throwError } from 'rxjs';
 import { PriceServiceService } from 'src/app/services/price-service.service';
 import { ShoppingCartServiceService } from 'src/app/services/shopping-cart-service.service';
 import { EventMessageService } from 'src/app/services/event-message.service';
-import { UsageServiceService } from 'src/app/services/usage-service.service';
-import { ApiServiceService } from 'src/app/services/product-service.service';
+import { PricePlanMetricsService } from 'src/app/services/price-plan-metrics.service';
 import { MarkdownService } from 'ngx-markdown';
 
 import { PricePlanDrawerComponent } from './price-plan-drawer.component';
@@ -20,8 +19,7 @@ describe('PricePlanDrawerComponent', () => {
   let eventMessageSpy: jasmine.SpyObj<EventMessageService>;
 
   const priceServiceSpy = jasmine.createSpyObj<PriceServiceService>('PriceServiceService', ['calculatePrice']);
-  const usageServiceSpy = jasmine.createSpyObj<UsageServiceService>('UsageServiceService', ['getUsageSpec']);
-  const apiServiceSpy = jasmine.createSpyObj<ApiServiceService>('ApiServiceService', ['getOfferingPrice']);
+  const pricePlanMetricsSpy = jasmine.createSpyObj<PricePlanMetricsService>('PricePlanMetricsService', ['getAppliedMetrics']);
 
   beforeEach(async () => {
     cartServiceSpy = jasmine.createSpyObj<ShoppingCartServiceService>('ShoppingCartServiceService', ['addItemShoppingCart']);
@@ -29,7 +27,7 @@ describe('PricePlanDrawerComponent', () => {
 
     priceServiceSpy.calculatePrice.and.returnValue(of({ orderTotalPrice: [] }));
     cartServiceSpy.addItemShoppingCart.and.resolveTo();
-    apiServiceSpy.getOfferingPrice.and.resolveTo({});
+    pricePlanMetricsSpy.getAppliedMetrics.and.resolveTo([]);
 
     await TestBed.configureTestingModule({
       schemas: [NO_ERRORS_SCHEMA],
@@ -38,8 +36,7 @@ describe('PricePlanDrawerComponent', () => {
         { provide: PriceServiceService, useValue: priceServiceSpy },
         { provide: ShoppingCartServiceService, useValue: cartServiceSpy },
         { provide: EventMessageService, useValue: eventMessageSpy },
-        { provide: UsageServiceService, useValue: usageServiceSpy },
-        { provide: ApiServiceService, useValue: apiServiceSpy },
+        { provide: PricePlanMetricsService, useValue: pricePlanMetricsSpy },
         { provide: MarkdownService, useValue: {} },
       ]
     })
@@ -139,7 +136,7 @@ describe('PricePlanDrawerComponent', () => {
     ]);
   });
 
-  it('onToggleChange should disable and re-enable characteristic and trigger recalculation', () => {
+  it('onToggleChange should disable and re-enable characteristic and trigger recalculation', async () => {
     component.filteredCharacteristics = [
       { id: 'range-main', name: 'Range Main', productSpecCharacteristicValue: [] },
       { id: 'range-enabled', name: 'Range Main - enabled', productSpecCharacteristicValue: [] },
@@ -152,11 +149,11 @@ describe('PricePlanDrawerComponent', () => {
     );
     const calculateSpy = spyOn(component, 'calculatePrice').and.resolveTo();
 
-    component.onToggleChange({ target: { checked: false } } as any, 'Range Main');
+    await component.onToggleChange({ target: { checked: false } } as any, 'Range Main');
     expect(component.form.get('characteristics')?.get('range-enabled')?.value).toBeFalse();
     expect(component.disabledCharacteristics).toContain('range-main');
 
-    component.onToggleChange({ target: { checked: true } } as any, 'Range Main');
+    await component.onToggleChange({ target: { checked: true } } as any, 'Range Main');
     expect(component.form.get('characteristics')?.get('range-enabled')?.value).toBeTrue();
     expect(component.disabledCharacteristics).not.toContain('range-main');
     expect(calculateSpy).toHaveBeenCalledTimes(2);
@@ -288,12 +285,9 @@ describe('PricePlanDrawerComponent', () => {
       priceType: 'usage',
       bundledPopRelationship: [{ id: 'pop-1' }, { id: 'pop-2' }],
     };
-    apiServiceSpy.getOfferingPrice.and.callFake(async (id: string) => {
-      if (id === 'pop-1') {
-        return { id: 'pop-1', usageSpecId: 'usage-1', unitOfMeasure: { units: 'GB' } };
-      }
-      return { id: 'pop-2' };
-    });
+    pricePlanMetricsSpy.getAppliedMetrics.and.resolveTo([
+      { priceId: 'pop-1', usageSpecId: 'usage-1', unitOfMeasure: 'GB', value: 0 },
+    ]);
     spyOn(component, 'filterCharacteristics');
     spyOn(component, 'calculatePrice').and.resolveTo();
 
@@ -318,7 +312,7 @@ describe('PricePlanDrawerComponent', () => {
   });
 
   it('onMetricChange should update metric value and trigger recalculation', () => {
-    const metric = { value: 0, unitOfMeasure: 'GB' };
+    const metric = { value: 0, unitOfMeasure: 'GB', usageSpecId: 'u1' };
     const calculateSpy = spyOn(component, 'calculatePrice').and.resolveTo();
 
     component.onMetricChange({ target: { valueAsNumber: 25 } } as any, metric);
@@ -327,19 +321,42 @@ describe('PricePlanDrawerComponent', () => {
     expect(calculateSpy).toHaveBeenCalled();
   });
 
-  it('onValueChange should update form characteristic control and trigger recalculation', () => {
+  it('onValueChange should update form characteristic control and trigger recalculation', async () => {
     component.form.setControl(
       'characteristics',
       (component as any).fb.group({
         c1: 1,
       })
     );
+    component.filteredCharacteristics = [{ id: 'c1', name: 'Char 1', productSpecCharacteristicValue: [] }] as any;
+    component.selectedPricePlan = { id: 'pp-1' };
+    pricePlanMetricsSpy.getAppliedMetrics.and.resolveTo([{ usageSpecId: 'u1', unitOfMeasure: 'GB', value: 0 }]);
     const calculateSpy = spyOn(component, 'calculatePrice').and.resolveTo();
 
-    component.onValueChange({ characteristicId: 'c1', selectedValue: 7 });
+    await component.onValueChange({ characteristicId: 'c1', selectedValue: 7 });
 
     expect(component.form.get('characteristics')?.get('c1')?.value).toBe(7);
+    expect(pricePlanMetricsSpy.getAppliedMetrics).toHaveBeenCalled();
+    const selectedCharsArg = pricePlanMetricsSpy.getAppliedMetrics.calls.mostRecent().args[1];
+    expect(selectedCharsArg).toEqual([{ id: 'c1', value: 7 }]);
     expect(calculateSpy).toHaveBeenCalled();
+  });
+
+  it('onValueChange should update metrics using applied metrics service response', async () => {
+    component.form.setControl(
+      'characteristics',
+      (component as any).fb.group({
+        c1: 'small',
+      })
+    );
+    component.filteredCharacteristics = [{ id: 'c1', name: 'Size', productSpecCharacteristicValue: [] }] as any;
+    component.selectedPricePlan = { id: 'pp-1' };
+    pricePlanMetricsSpy.getAppliedMetrics.and.resolveTo([{ usageSpecId: 'u2', unitOfMeasure: 'CPU', value: 0 }]);
+    spyOn(component, 'calculatePrice').and.resolveTo();
+
+    await component.onValueChange({ characteristicId: 'c1', selectedValue: 'large' });
+
+    expect(component.metrics).toEqual([{ usageSpecId: 'u2', unitOfMeasure: 'CPU', value: 0 }]);
   });
 
   it('calculatePrice should return early for free offers', async () => {
