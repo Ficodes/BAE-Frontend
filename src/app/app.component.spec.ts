@@ -18,10 +18,10 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'DOME Marketplace'`, () => {
+  it(`should have as title 'BAE Marketplace'`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('DOME Marketplace');
+    expect(app.title).toEqual('BAE Marketplace');
   });
 
   it('should render shell layout', () => {
