@@ -64,6 +64,9 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
 
   characteristics: ProductSpecificationCharacteristic[] = []; // Características dinámicas
   filteredCharacteristics: ProductSpecificationCharacteristic[] = [];
+  booleanCharacteristics: ProductSpecificationCharacteristic[] = [];
+  choiceCharacteristics: ProductSpecificationCharacteristic[] = [];
+  rangeCharacteristics: ProductSpecificationCharacteristic[] = [];
   disabledCharacteristics: any[] = [];
   canBeDisabledChars: any[]=[];
 
@@ -201,6 +204,11 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
 
   filterCharacteristics() {
     this.filteredCharacteristics = [];
+    this.booleanCharacteristics = [];
+    this.choiceCharacteristics = [];
+    this.rangeCharacteristics = [];
+    this.disabledCharacteristics = [];
+    this.canBeDisabledChars = [];
   
     // Set disabled prefixes
     const disabledPrefixes = this.characteristics
@@ -255,6 +263,45 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     });
   
     this.form.setControl('characteristics', characteristicsGroup);
+    this.groupCharacteristics();
+  }
+
+  isBooleanCharacteristic(characteristic: ProductSpecificationCharacteristic): boolean {
+    const values = characteristic.productSpecCharacteristicValue;
+    if (!values || values.length === 0) {
+      return false;
+    }
+    return values.every((val: any) => typeof val?.value === 'boolean');
+  }
+
+  isRangeCharacteristic(characteristic: ProductSpecificationCharacteristic): boolean {
+    return characteristic.productSpecCharacteristicValue?.some(
+      (val: any) => val?.valueFrom !== undefined && val?.valueTo !== undefined
+    ) ?? false;
+  }
+
+  private isEnabledCharacteristic(characteristic: ProductSpecificationCharacteristic): boolean {
+    return characteristic.name?.endsWith('- enabled') ?? false;
+  }
+
+  private groupCharacteristics(): void {
+    const selectableCharacteristics = this.filteredCharacteristics.filter(
+      (characteristic) => !this.isEnabledCharacteristic(characteristic)
+    );
+
+    this.booleanCharacteristics = selectableCharacteristics.filter((characteristic) =>
+      this.isBooleanCharacteristic(characteristic)
+    );
+    this.rangeCharacteristics = selectableCharacteristics.filter(
+      (characteristic) =>
+        !this.isBooleanCharacteristic(characteristic) &&
+        this.isRangeCharacteristic(characteristic)
+    );
+    this.choiceCharacteristics = selectableCharacteristics.filter(
+      (characteristic) =>
+        !this.isBooleanCharacteristic(characteristic) &&
+        !this.isRangeCharacteristic(characteristic)
+    );
   }
 
   onToggleChange(event: Event, charName: any): void {

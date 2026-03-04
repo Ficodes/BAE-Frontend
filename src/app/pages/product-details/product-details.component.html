@@ -423,6 +423,28 @@
                     </div>
                 }
             }
+
+            @if(usageMetrics.length > 0){
+                <h2 class="text-4xl font-extrabold text-primary-100 dark:text-primary-50 text-center pb-8 pt-12">Usage metrics</h2>
+                <div class="container mx-auto px-4">
+                    <div class="flex flex-wrap -mx-4 justify-center">
+                        @for (metric of usageMetrics; track metric.id) {
+                            <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-8">
+                                <div class="border border-gray-200 rounded-lg shadow bg-white dark:bg-secondary-200 dark:border-gray-800 shadow-md p-8 h-full">
+                                    <h3 [ngClass]="{
+                                        'break-all': hasLongWord(metric.name, 20),
+                                        'break-words': !hasLongWord(metric.name, 20)
+                                        }" class="text-2xl font-bold mb-4 dark:text-white break-words">{{metric.name}}</h3>
+                                    <markdown [ngClass]="{
+                                        'break-all': hasLongWord(metric.description, 20),
+                                        'break-words': !hasLongWord(metric.description, 20)
+                                        }" class="text-gray-700 dark:text-gray-200 text-wrap break-words" [data]="metric.description"></markdown>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
             
         </div>
 
@@ -443,19 +465,19 @@
                                         @if (val?.isDefault == true) {
                                             <div class="flex items-center pl-4">
                                                 <input disabled checked id="disabled-checked-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 dark:bg-gray-600 dark:border-gray-800 rounded-full focus:ring-blue-500 focus:ring-2">
-                                                @if(val.value){
-                                                    <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 dark:bg-secondary-200 dark:border-gray-800 text-wrap break-words">{{val.value}} ({{val.unitOfMeasure}})</label>
+                                                @if(val.value !== undefined && val.value !== null){
+                                                    <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 dark:bg-secondary-200 dark:border-gray-800 text-wrap break-words">{{val.value}}{{val.unitOfMeasure ? ' (' + val.unitOfMeasure + ')' : ''}}</label>
                                                 } @else {
-                                                    <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 dark:bg-secondary-200 dark:border-gray-800 text-wrap break-words">{{val.valueFrom}} - {{val.valueTo}} ({{val?.unitOfMeasure}})</label>
+                                                    <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 dark:bg-secondary-200 dark:border-gray-800 text-wrap break-words">{{val.valueFrom}} - {{val.valueTo}}{{val.unitOfMeasure ? ' (' + val.unitOfMeasure + ')' : ''}}</label>
                                                 }
                                             </div>
                                         } @else {
                                             <div class="flex items-center pl-4">
                                                 <input disabled id="disabled-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 dark:border-gray-800 border-gray-300 rounded-full focus:ring-blue-500 focus:ring-2">
-                                                @if(val.value){
-                                                    <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 text-wrap break-words">{{val.value}} ({{val.unitOfMeasure}})</label>
+                                                @if(val.value !== undefined && val.value !== null){
+                                                    <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 text-wrap break-words">{{val.value}}{{val.unitOfMeasure ? ' (' + val.unitOfMeasure + ')' : ''}}</label>
                                                 } @else {
-                                                    <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 text-wrap break-words">{{val.valueFrom}} - {{val.valueTo}} ({{val?.unitOfMeasure}})</label>
+                                                    <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 text-wrap break-words">{{val.valueFrom}} - {{val.valueTo}}{{val.unitOfMeasure ? ' (' + val.unitOfMeasure + ')' : ''}}</label>
                                                 }
                                             </div>
                                         }
@@ -659,5 +681,3 @@
     [width]="'w-2/3'"
     (closeDrawer)="closeDrawer()">
   </app-price-plan-drawer>
-
-
