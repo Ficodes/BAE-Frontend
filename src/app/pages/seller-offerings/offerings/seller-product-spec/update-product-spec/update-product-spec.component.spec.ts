@@ -467,6 +467,68 @@ describe('UpdateProductSpecComponent', () => {
     expect(refreshSpy).toHaveBeenCalled();
   });
 
+  it('populateProductInfo should preserve existing characteristic ids', () => {
+    component.prod = {
+      ...component.prod,
+      productSpecCharacteristic: [
+        {
+          id: 'urn:ngsi-ld:characteristic:platinum-id',
+          name: 'platinum',
+          description: 'desc',
+          productSpecCharacteristicValue: [{ isDefault: true, value: true }]
+        }
+      ]
+    } as any;
+
+    component.populateProductInfo();
+
+    expect(component.prodChars.length).toBe(1);
+    expect(component.prodChars[0].id).toBe('urn:ngsi-ld:characteristic:platinum-id');
+  });
+
+  it('setProductData should preserve selected ISO ids', () => {
+    component.finishChars = [];
+    component.prodChars = [];
+    component.selectedISOS = [
+      { id: 'urn:ngsi-ld:characteristic:iso-id', name: 'Compliance:ISO27001', url: 'https://iso' }
+    ];
+    component.generalForm.patchValue({
+      name: 'My Product',
+      version: '1.0',
+      brand: 'Brand',
+      description: '',
+      number: ''
+    });
+
+    component.setProductData();
+
+    const isoChar = component.productSpecToUpdate?.productSpecCharacteristic?.find(
+      (item: any) => item.name === 'Compliance:ISO27001'
+    );
+    expect(isoChar?.id).toBe('urn:ngsi-ld:characteristic:iso-id');
+  });
+
+  it('setProductData should preserve Compliance:VC id when available', () => {
+    component.finishChars = [];
+    component.prodChars = [];
+    component.complianceVCId = 'urn:ngsi-ld:characteristic:vc-id';
+    component.complianceVC = 'vc-token';
+    component.generalForm.patchValue({
+      name: 'My Product',
+      version: '1.0',
+      brand: 'Brand',
+      description: '',
+      number: ''
+    });
+
+    component.setProductData();
+
+    const vcChar = component.productSpecToUpdate?.productSpecCharacteristic?.find(
+      (item: any) => item.name === 'Compliance:VC'
+    );
+    expect(vcChar?.id).toBe('urn:ngsi-ld:characteristic:vc-id');
+  });
+
   it('toggleResource should reset resource pagination and request first page', () => {
     const selectSpy = spyOn(component, 'selectStep');
     const getSpy = spyOn(component, 'getResSpecs');

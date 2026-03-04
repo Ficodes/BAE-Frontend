@@ -114,6 +114,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   verifiedISO:string[] = [];
   selectedISO:any;
   complianceVC:any = null;
+  complianceVCId:string = '';
   showUploadFile:boolean=false;
   selfAtt:any;
   checkExistingSelfAtt:boolean=false;
@@ -301,6 +302,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       for(let i = 0; i < this.prod.productSpecCharacteristic.length; i++) {
         // Check if this is a VC
         if (this.prod.productSpecCharacteristic[i].name == 'Compliance:VC') {
+          this.complianceVCId = this.prod.productSpecCharacteristic[i].id || '';
           // Decode the token
           try {
             const decoded = jwtDecode(this.prod.productSpecCharacteristic[i].productSpecCharacteristicValue[0].value)
@@ -348,6 +350,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
         if (index !== -1) {
           console.log('adding sel iso')
           this.selectedISOS.push({
+            id: this.prod.productSpecCharacteristic[i].id,
             name: this.prod.productSpecCharacteristic[i].name,
             url: this.prod.productSpecCharacteristic[i].productSpecCharacteristicValue[0].value,
             mandatory: this.availableISOS[index].mandatory,
@@ -361,6 +364,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
           console.log('--- additional isos')
           console.log(this.prod.productSpecCharacteristic[i])
           this.additionalISOS.push({
+            id: this.prod.productSpecCharacteristic[i].id,
             name: this.prod.productSpecCharacteristic[i].name,
             url: this.prod.productSpecCharacteristic[i].productSpecCharacteristicValue[0].value
           })
@@ -380,7 +384,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
         const index = this.selectedISOS.findIndex(item => item.name === this.prod.productSpecCharacteristic[i].name);
         if (index == -1) {
           this.prodChars.push({
-            id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
+            id: this.prod.productSpecCharacteristic[i].id ? this.prod.productSpecCharacteristic[i].id : 'urn:ngsi-ld:characteristic:'+uuidv4(),
             name: this.prod.productSpecCharacteristic[i].name,
             description: this.prod.productSpecCharacteristic[i].description ? this.prod.productSpecCharacteristic[i].description : '',
             productSpecCharacteristicValue: this.prod.productSpecCharacteristic[i].productSpecCharacteristicValue
@@ -1521,7 +1525,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       const index = this.finishChars.findIndex(item => item.name === this.selectedISOS[i].name);
       if (index == -1) {
         this.finishChars.push({
-          id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
+          id: this.selectedISOS[i].id ? this.selectedISOS[i].id : 'urn:ngsi-ld:characteristic:'+uuidv4(),
           name: this.selectedISOS[i].name,
           productSpecCharacteristicValue: [{
             isDefault: true,
@@ -1539,7 +1543,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       const index = this.finishChars.findIndex(item => item.name === this.additionalISOS[i].name);
       if (index == -1) {
         this.finishChars.push({
-          id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
+          id: this.additionalISOS[i].id ? this.additionalISOS[i].id : 'urn:ngsi-ld:characteristic:'+uuidv4(),
           name: this.additionalISOS[i].name,
           productSpecCharacteristicValue: [{
             isDefault: true,
@@ -1553,7 +1557,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     // Load compliance VCs
     if(this.complianceVC != null) {
       this.finishChars.push({
-        id: `urn:ngsi-ld:characteristic:${uuidv4()}`,
+        id: this.complianceVCId ? this.complianceVCId : `urn:ngsi-ld:characteristic:${uuidv4()}`,
         name: `Compliance:VC`,
         productSpecCharacteristicValue: [{
           isDefault: true,
