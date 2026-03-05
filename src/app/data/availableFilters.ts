@@ -102,25 +102,11 @@ const availableFilters: Filter[] = [
     ],
   },
   {
-    name: 'lifecycle_status',
-    children: [{ name: 'Launched' }, { name: 'Active' }],
-  },
-  {
-    name: 'recurring_charge_period_type',
-    children: [{ name: 'YEARLY' }, { name: 'MONTHLY' }],
-  },
-  {
     name: 'compliance_profile',
     children: [
-      { name: 'ISO 22301:2019' },
-      { name: 'ISO/IEC 19086-4:2019' },
-      { name: 'ISO/IEC 20000-1:2018' },
-      { name: 'ISO/IEC 27000:2018' },
-      { name: 'ISO/IEC 27001:2022' },
-      { name: 'ISO/IEC 27002:2022' },
-      { name: 'ISO/IEC 27017:2015' },
-      { name: 'ISO/IEC 27018:2019' },
-      { name: 'ISO/IEC 27701:2019' },
+      { name: 'Baseline' },
+      { name: 'Professional' },
+      { name: 'Professional+' },
     ],
   },
 ]

@@ -123,6 +123,7 @@ describe('SearchComponent', () => {
   });
 
   it('constructor should react to AddedFilter and RemovedFilter events', async () => {
+    component.aiSearchEnabled = false;
     const getProductsSpy = spyOn(component, 'getProducts').and.resolveTo();
     const checkPanelSpy = spyOn(component, 'checkPanel').and.stub();
 
@@ -164,6 +165,7 @@ describe('SearchComponent', () => {
   });
 
   it('ngOnInit should load products when there is no cached state', async () => {
+    component.aiSearchEnabled = false;
     stateMock.hasState.and.returnValue(false);
     routeParamGetSpy.and.callFake((key: string) => (key === 'keywords' ? 'cloud' : null));
     paginationSpy.getItemsPaginated.and.resolveTo({

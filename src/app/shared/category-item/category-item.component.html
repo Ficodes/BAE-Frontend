@@ -23,8 +23,8 @@
             'break-all': hasLongWord(data.name, 20),
             'break-words': !hasLongWord(data.name, 20)
             }" class="text-left justify-start text-wrap break-words">{{ data.name }}
-            @if (data?.count) {
-              <span class="ml-1 text-sm text-gray-400">({{ data?.count }})</span>
+            @if (data.count) {
+              <span class="ml-1 text-sm text-gray-400">({{ data.count }})</span>
             }
           </span>
           <div class="justify-end inline-flex">
