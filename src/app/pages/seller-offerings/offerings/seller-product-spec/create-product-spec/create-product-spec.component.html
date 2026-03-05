@@ -30,10 +30,10 @@
         <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white pb-4">{{ 'CREATE_PROD_SPEC._new' | translate }}</h2>
         <ol class="flex items-start w-full text-sm font-medium text-center text-gray-500 dark:text-gray-400">
             @for (step of steps; track i; let i = $index) {
-              <li 
+              <li
                   (click)="handleStepClick(i)"
                   [class.cursor-not-allowed]="!canNavigate(i)"
-                  [class.opacity-50]="!canNavigate(i)"          
+                  [class.opacity-50]="!canNavigate(i)"
                   [class.text-primary-100]="currentStep === i"
                   class="flex-1 cursor-pointer">
                 <span class="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 mx-auto border-2 border-primary-100 dark:border-primary-50 shrink-0 rounded-full"
@@ -68,7 +68,7 @@
                             <label for="prod-number" class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._id_number' | translate }}</label>
                             <input data-cy="inputIdNumber" formControlName="number" type="text" id="prod-number"
                             class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
-                        
+
                         </div>
                         <label for="prod-name" class="font-bold text-lg col-span-2 dark:text-white">{{ 'CREATE_PROD_SPEC._product_description' | translate }}</label>
                         <app-markdown-textarea class="col-span-2" formControlName="description"></app-markdown-textarea>
@@ -111,9 +111,9 @@
                                             {{ 'OFFERINGS._no_prod' | translate }}
                                         </div>
                                     </div>
-                                </div>                    
+                                </div>
                             }@else{
-                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white m-4">                        
+                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white m-4">
                                 <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
                                     <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
                                     <tr>
@@ -162,7 +162,7 @@
                                                 }
                                             </td>
                                             <td class="hidden lg:table-cell px-6 py-4">
-                                                {{prod.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}} 
+                                                {{prod.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}}
                                             </td>
                                             <td class="px-6 py-4">
                                                 <input id="select-checkbox" [checked]="isProdInBundle(prod)" type="checkbox" value="" (click)="addProdToBundle(prod)" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
@@ -213,7 +213,7 @@
                         <p class="mb-2 text-gray-800 dark:text-gray-200">
                             {{ selfAtt ? selfAtt.productSpecCharacteristicValue[0].value : 'Upload your self attestation document' }}
                         </p>
-                        
+
                         <div class="flex items-center justify-between">
                             <button data-cy="productSpecUploadFirst" (click)="toggleUploadSelfAtt();$event.stopPropagation();" type="button" class="text-white file-select-button mr-4 bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
                                 <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -224,8 +224,8 @@
                                 <button (click)="removeSelfAtt()" type="button" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
                                     <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-                                    </svg>                                                                                                
-                                </button> 
+                                    </svg>
+                                </button>
                             }
                         </div>
 
@@ -259,8 +259,8 @@
                             </div>
                         }
                     }
-                    
-                    <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white dark:bg-secondary-300 m-4">                        
+
+                    <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white dark:bg-secondary-300 m-4">
                         <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
                             <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
                                 <tr>
@@ -287,7 +287,7 @@
                                         <td class="px-6 py-4 text-wrap break-all">
                                             {{sel.url}}
                                             <!--<input readonly type="text" [(ngModel)]="selectedISOS[idx].url" value="{{sel.url}}" [id]="'iso-'+sel.name"
-                                            class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-2 border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" /> -->                                     
+                                            class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-2 border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" /> -->
                                         </td>
                                         <td class="px-6 py-4 inline-flex">
                                             <button data-cy="productSpecUploadSecond" (click)="toggleUploadFile(sel);$event.stopPropagation();" type="button" class="text-white file-select-button mr-4 bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
@@ -299,7 +299,7 @@
                                                 <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
                                                 </svg>
-                                            </button>                                              
+                                            </button>
                                         </td>
                                     </tr>
                                 } @empty {
@@ -323,10 +323,10 @@
                         <!-- Group container to enable hover effects -->
                         <div class="relative inline-block group">
                             <!-- Tooltip (Only exists if checkValidISOS() is true and only appears on hover) -->
-                            <div *ngIf="checkValidISOS()" 
-                                class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 
-                                    bg-gray-900 text-white text-xs rounded-lg p-2 shadow-lg z-50 
-                                    transition-opacity duration-200 w-max max-w-xs whitespace-normal break-words 
+                            <div *ngIf="checkValidISOS()"
+                                class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2
+                                    bg-gray-900 text-white text-xs rounded-lg p-2 shadow-lg z-50
+                                    transition-opacity duration-200 w-max max-w-xs whitespace-normal break-words
                                     opacity-0 invisible group-hover:opacity-100 group-hover:visible">
                                     {{ 'CREATE_PROD_SPEC._file_check' | translate }}
                                 <!-- Tooltip Arrow -->
@@ -351,7 +351,7 @@
                         <h3 class="font-bold text-primary-100 dark:text-primary-50 text-left ml-4">
                             You added the following additional certifications:
                         </h3>
-                        <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white dark:bg-secondary-300 m-4"> 
+                        <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white dark:bg-secondary-300 m-4">
                         <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
                             <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
                                 <tr>
@@ -376,14 +376,14 @@
                                             {{normalizeName(cert.name)}}
                                         </td>
                                         <td class="px-6 py-4 text-wrap break-all">
-                                            {{cert.url}}                                      
+                                            {{cert.url}}
                                         </td>
-                                        <td class="px-6 py-4 inline-flex">                                        
+                                        <td class="px-6 py-4 inline-flex">
                                             <button (click)="removeCert(cert)" type="button" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
                                                 <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-                                                </svg>                                                                                                
-                                            </button>                                              
+                                                </svg>
+                                            </button>
                                         </td>
                                     </tr>
                                 }
@@ -397,7 +397,7 @@
                                 Add an additional certification
                                 <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
-                                </svg>                                  
+                                </svg>
                             </button>
                         </div>
                     } @else {
@@ -405,12 +405,12 @@
                             <h3 class="font-bold text-primary-100 dark:text-primary-50 text-left ml-4">
                                 Add an additional certification:
                             </h3>
-                            <div class="lg:flex lg:grid lg:grid-cols-2 w-full gap-4 align-items-middle align-middle border border-gray-200 rounded-lg p-4">                            
+                            <div class="lg:flex lg:grid lg:grid-cols-2 w-full gap-4 align-items-middle align-middle border border-gray-200 rounded-lg p-4">
                                 <div class="h-fit">
                                     <label for="cert-name" class="font-bold text-lg dark:text-white">{{ 'PROFILE._name' | translate }}</label>
                                     <input #certificationName type="text" id="cert-name" [formControl]="certFileName"
                                     [ngClass]="certFileName.invalid == true ? 'border-red-600' : 'border-gray-300'"
-                                    class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />    
+                                    class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
                                 </div>
                                 @if(isoToCreate==''){
                                     <ngx-file-drop class="p-4 w-full" dropZoneLabel="Drop files here" (onFileDrop)="dropped($event,'attach')" (onFileOver)="fileOver($event)" (onFileLeave)="fileLeave($event)">
@@ -422,11 +422,11 @@
                                                 <div class="flex w-full justify-center">
                                                     <p class="text-gray-500 mr-2 w-fit">{{ 'UPDATE_PROD_SPEC._drop_files' | translate }}
                                                         <button (click)="openFileSelector()" class="font-medium text-primary-100 dark:text-primary-50 hover:underline">{{ 'UPDATE_PROD_SPEC._select_files' | translate }}</button>
-                                                    </p> 
+                                                    </p>
                                                 </div>
                                             </div>
                                         </ng-template>
-                                    </ngx-file-drop> 
+                                    </ngx-file-drop>
                                 } @else {
                                     <div class="relative w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">
                                         <span class="sr-only">Info</span>
@@ -436,7 +436,7 @@
                                         <button (click)="clearAdditionalCert(true)" class="z-10 absolute top-2 right-2 p-1 font-bold text-white bg-red-500 rounded-3xl">
                                             <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-                                            </svg>                                  
+                                            </svg>
                                         </button>
                                     </div>
                                 }
@@ -448,16 +448,16 @@
                                         Save
                                         <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                             <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M11 16h2m6.707-9.293-2.414-2.414A1 1 0 0 0 16.586 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.414a1 1 0 0 0-.293-.707ZM16 20v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v6h8ZM9 4h6v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4Z"/>
-                                        </svg>                                                                   
+                                        </svg>
                                     </button>
-                                    <button type="button" (click)="clearAdditionalCert(false);showCert=false;"                                    
+                                    <button type="button" (click)="clearAdditionalCert(false);showCert=false;"
                                     class="flex ml-4 text-gray-900 justify-end bg-gray-400 hover:bg-primary-50 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
-                                        Discard                                                                 
+                                        Discard
                                     </button>
                                 </div>
                         </div>
                     }
-    
+
                 }
                 @if ((currentStep === 2 && !BUNDLE_ENABLED) || (currentStep === 3 && BUNDLE_ENABLED)) {
                     @if (prodChars.length === 0){
@@ -473,7 +473,7 @@
                           </div>
                         </div>
                     } @else {
-                        <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white m-4">                        
+                        <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white m-4">
                             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
                                     <tr>
@@ -505,12 +505,18 @@
                                                 'break-all': hasLongWord(prod.description, 20),
                                                 'break-words': !hasLongWord(prod.description, 20)
                                                 }" class="hidden lg:table-cell px-6 py-4 text-wrap break-words">
-                                                {{prod.description}}                                       
+                                                {{prod.description}}
                                             </td>
                                             <td class="px-6 py-4 text-wrap break-all">
                                                 @for (char of prod.productSpecCharacteristicValue; track char; let last=$last) {
                                                     @if(char.value || char.value == 0){
-                                                        @if(char.unitOfMeasure){
+                                                        @if(prod.valueType === 'credentialsConfiguration' || prod.valueType === 'authorizationPolicy'){
+                                                            @if(!last){
+                                                                {{getValuePreview(char.value)}},
+                                                            } @else {
+                                                                {{getValuePreview(char.value)}}
+                                                            }
+                                                        } @else if(char.unitOfMeasure){
                                                             @if(!last){
                                                                 {{char.value}} (<i>{{char?.unitOfMeasure}}</i>),
                                                             } @else {
@@ -522,31 +528,31 @@
                                                             } @else {
                                                                 {{char.value}}
                                                             }
-                                                        }                                                    
+                                                        }
                                                     } @else {
                                                         @if(!last){
                                                             {{char.valueFrom}} - {{char.valueTo}} (<i>{{char?.unitOfMeasure}}</i>),
                                                         } @else {
                                                             {{char.valueFrom}} - {{char.valueTo}} (<i>{{char?.unitOfMeasure}}</i>)
                                                         }
-                                                    }                                                
-                                                }                                   
+                                                    }
+                                                }
                                             </td>
                                             <td class="px-6 py-4">
                                                 <button (click)="deleteChar(prod)" class="font-bold text-white bg-red-500 rounded-3xl">
                                                     <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-                                                    </svg>                                  
-                                                </button>    
+                                                    </svg>
+                                                </button>
                                             </td>
                                         </tr>
                                         }
                                     }
                                 </tbody>
                             </table>
-                        </div>                        
+                        </div>
                     }
-                    @if(showCreateChar==false){
+                    @if(!showCreateChar){
                         <div class="flex w-full justify-items-center justify-center">
                             <button data-cy="btnNewCharacteristic" type="button" (click)="showCreateChar=!showCreateChar" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                                 {{ 'CREATE_PROD_SPEC._new_char' | translate }}
@@ -564,11 +570,16 @@
                             </div>
                             <div>
                                 <label class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._type' | translate }}</label>
-                                <select data-cy="charType" id="type" (change)="onTypeChange($event)"
+                                <select data-cy="charType" id="type" [(ngModel)]="charTypeSelected" [ngModelOptions]="{standalone: true}" (change)="onTypeChange($event)"
                                 class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                    <option selected value="string">String</option>
+                                    <option value="string">String</option>
                                     <option value="number">Number</option>
                                     <option value="range">Number range</option>
+                                    <option value="boolean">Boolean</option>
+                                    @if(DATA_SPACE_ENABLED){
+                                        <option value="credentialsConfiguration">Credentials Configuration</option>
+                                        <option value="authorizationPolicy">Authorization Policy</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col-span-2">
@@ -576,40 +587,42 @@
                                 <textarea data-cy="charDescription" id="description" formControlName="description" rows="4" maxLength="500"
                                 class="mb-2 min-h-fit bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"></textarea>
                             </div>
-                            <div class="col-span-2 flex align-items-middle h-fit">
-                                <label for="is-optional" class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._make_optional' | translate }}</label>
-                                <label class="inline-flex items-center me-5 cursor-pointer ml-4">
-                                    <input type="checkbox" id="is-optional" [(ngModel)]="isOptional" [ngModelOptions]="{standalone: true}" class="sr-only peer">
-                                    <div class="relative w-11 h-6 bg-gray-400 dark:bg-gray-700 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-100 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-100"></div>
-                                </label>
-                            </div>
-                            @if(isOptional){
-                                <div>
-                                    <label class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._default_value' | translate }}</label>
-                                    <select [(ngModel)]="optionalDftTrue" [ngModelOptions]="{standalone: true}"
-                                    class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                        <option [value]="false">{{ 'CREATE_PROD_SPEC._default_false' | translate }}</option>
-                                        <option [value]="true">{{ 'CREATE_PROD_SPEC._default_true' | translate }}</option>
-                                    </select>
+                            @if(charTypeSelected !== 'boolean' && charTypeSelected !== 'credentialsConfiguration' && charTypeSelected !== 'authorizationPolicy'){
+                                <div class="col-span-2 flex align-items-middle h-fit">
+                                    <label for="is-optional" class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._make_optional' | translate }}</label>
+                                    <label class="inline-flex items-center me-5 cursor-pointer ml-4">
+                                        <input type="checkbox" id="is-optional" [(ngModel)]="isOptional" [ngModelOptions]="{standalone: true}" class="sr-only peer">
+                                        <div class="relative w-11 h-6 bg-gray-400 dark:bg-gray-700 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-100 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-100"></div>
+                                    </label>
                                 </div>
+                                @if(isOptional){
+                                    <div>
+                                        <label class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._default_value' | translate }}</label>
+                                        <select [(ngModel)]="optionalDftTrue" [ngModelOptions]="{standalone: true}"
+                                        class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                            <option [value]="false">{{ 'CREATE_PROD_SPEC._default_false' | translate }}</option>
+                                            <option [value]="true">{{ 'CREATE_PROD_SPEC._default_true' | translate }}</option>
+                                        </select>
+                                    </div>
+                                }
                             }
                         </form>
                         <div class="m-4">
-                            @if(creatingChars.length>0){
+                            @if(creatingChars.length > 0 && charTypeSelected !== 'boolean'){
                                 <label for="values" class="font-bold text-lg dark:text-white">Values</label>
                                 <div class="flex flex-col items-start pl-4  shadow-md sm:rounded-lg w-full bg-white dark:bg-secondary-300 dark:border-secondary-200 dark:text-white border border-gray-300 mb-2">
-                                    @if(rangeCharSelected){
+                                    @if(charTypeSelected === 'range'){
                                         @for (char of creatingChars; track char; let idx = $index) {
                                             <div class="flex w-full justify-between">
                                                 <div class="align-items-middle align-middle">
-                                                    <input [checked]="char?.isDefault" (click)="selectDefaultChar(char,idx)" id="disabled-checked-checkbox" type="checkbox" value="" 
+                                                    <input [checked]="char?.isDefault" (click)="selectDefaultChar(char,idx)" id="disabled-checked-checkbox" type="checkbox" value=""
                                                     class="align-middle w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-full focus:ring-blue-500 focus:ring-2">
-                                                    <label for="disabled-checked-checkbox" class="ms-2 align-middle text-sm font-medium text-gray-700 dark:text-white text-wrap break-all">{{char.valueFrom}} - {{char.valueTo}} (<i>{{char?.unitOfMeasure}}</i>)</label>    
+                                                    <label for="disabled-checked-checkbox" class="ms-2 align-middle text-sm font-medium text-gray-700 dark:text-white text-wrap break-all">{{char.valueFrom}} - {{char.valueTo}} (<i>{{char?.unitOfMeasure}}</i>)</label>
                                                 </div>
                                                 <button (click)="removeCharValue(char,idx)" class="m-2 text-white bg-red-500 rounded-3xl">
                                                     <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-                                                    </svg>                                  
+                                                    </svg>
                                                 </button>
                                             </div>
                                         }
@@ -617,26 +630,28 @@
                                         @for (char of creatingChars; track char; let idx = $index) {
                                             <div class="flex w-full justify-between">
                                                 <div class="align-items-middle align-middle">
-                                                    <input [checked]="char?.isDefault" (click)="selectDefaultChar(char,idx)" id="disabled-checked-checkbox" type="checkbox" value="" 
+                                                    <input [checked]="char?.isDefault" (click)="selectDefaultChar(char,idx)" id="disabled-checked-checkbox" type="checkbox" value=""
                                                     class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-full focus:ring-blue-500 focus:ring-2">
-                                                    @if(numberCharSelected){
+                                                    @if(charTypeSelected === 'number'){
                                                         <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-white text-wrap break-all">{{char.value}} (<i>{{char?.unitOfMeasure}}</i>)</label>
+                                                    } @else if (charTypeSelected === 'credentialsConfiguration' || charTypeSelected === 'authorizationPolicy') {
+                                                        <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-white text-wrap break-all">{{getValuePreview(char.value)}}</label>
                                                     } @else {
                                                         <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-white text-wrap break-all">{{char.value}}</label>
-                                                    }    
+                                                    }
                                                 </div>
                                                 <button (click)="removeCharValue(char,idx)" class="m-2 text-white bg-red-500 rounded-3xl">
                                                     <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-                                                    </svg>                                  
+                                                    </svg>
                                                 </button>
                                             </div>
                                         }
                                     }
                                 </div>
                             }
-                            <label for="values" [ngClass]="rangeCharSelected && creatingChars.length==1 ? 'hidden' : ''" class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._add_values' | translate }}</label>
-                            @if(stringCharSelected){
+                            <label for="values" [ngClass]="((charTypeSelected === 'range' && creatingChars.length==1) || charTypeSelected === 'boolean') ? 'hidden' : ''" class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._add_values' | translate }}</label>
+                            @if(charTypeSelected === 'string'){
                                 <div class="flex flex-row items-center align-items-middle">
                                     <input data-cy="charStringValue" type="text" id="value" [(ngModel)]="stringValue"
                                     class="mr-4 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
@@ -646,7 +661,7 @@
                                         </svg>
                                     </button>
                                 </div>
-                            } @else if (numberCharSelected){
+                            } @else if (charTypeSelected === 'number'){
                                 <div class="flex flex-col md:flex-row items-center align-items-middle">
                                     <div class="flex w-full mb-2 md:mb-0">
                                         <span class="inline-flex items-center px-3 text-sm text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white bg-gray-200 border rounded-e-0 border-gray-300 border-e-0 rounded-s-md">
@@ -669,7 +684,15 @@
                                         </svg>
                                     </button>
                                 </div>
-                            } @else if (rangeCharSelected && creatingChars.length==0){
+                            } @else if (charTypeSelected === 'boolean'){
+                                <div class="col-span-2 flex align-items-middle h-fit">
+                                    <label for="boolean-default" class="font-bold text-lg dark:text-white">Default value</label>
+                                    <label class="inline-flex items-center me-5 cursor-pointer ml-4">
+                                        <input data-cy="charBooleanDefault" id="boolean-default" type="checkbox" [(ngModel)]="booleanDefaultTrue" [ngModelOptions]="{standalone: true}" (change)="onBooleanDefaultChange()" class="sr-only peer">
+                                        <div class="relative w-11 h-6 bg-gray-400 dark:bg-gray-700 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-100 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-100"></div>
+                                    </label>
+                                </div>
+                            } @else if (charTypeSelected === 'range' && creatingChars.length==0){
                                 <div class="flex flex-col md:flex-row items-center align-items-middle">
                                     <div class="flex w-full mb-2 md:mb-0">
                                         <span class="inline-flex items-center px-3 text-sm text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white bg-gray-200 border rounded-e-0 border-gray-300 border-e-0 rounded-s-md">
@@ -698,6 +721,21 @@
                                         </svg>
                                     </button>
                                 </div>
+                            } @else if (charTypeSelected == "credentialsConfiguration" || charTypeSelected == "authorizationPolicy"){
+                                @if(creatingChars.length === 0){
+                                    <div class="flex flex-col w-full">
+                                        <label for="json-value" class="font-bold text-sm dark:text-white mb-2">{{ 'CREATE_PROD_SPEC._json_value' | translate }}</label>
+                                        <textarea id="json-value" [(ngModel)]="jsonValue" rows="10"
+                                        class="mb-2 min-h-fit bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-mono"
+                                        placeholder='{"example": "Enter your JSON here"}'></textarea>
+                                        <button (click)="addCharValue()" [disabled]="!jsonValue" [ngClass]="!jsonValue ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" type="button" class="text-white w-fit bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center inline-flex items-center">
+                                            <svg class="w-4 h-4 mr-2 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+                                            </svg>
+                                            {{ 'CREATE_PROD_SPEC._add_json' | translate }}
+                                        </button>
+                                    </div>
+                                }
                             }
                             <div class="flex w-full justify-items-center justify-center mt-4">
                                 <button data-cy="btnSaveCharacteristic" type="button" (click)="saveChar()"  [disabled]="!charsForm.valid || creatingChars.length==0" [ngClass]="!charsForm.valid || creatingChars.length==0 ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
@@ -707,7 +745,7 @@
                                     </svg>
                                 </button>
                             </div>
-    
+
                         </div>
                     }
                     <!--<div class="flex w-full justify-items-end justify-end ml-4 mt-4">
@@ -717,9 +755,9 @@
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
                             </svg>
                         </button>
-                    </div>-->                    
+                    </div>-->
                 }
-            
+
                 @if ((currentStep === 3 && !BUNDLE_ENABLED) || (currentStep === 4 && BUNDLE_ENABLED)) {
                     @if(loadingResourceSpec){
                         <div role="status" class="w-full h-fit flex justify-center align-middle">
@@ -740,7 +778,7 @@
                                         {{ 'OFFERINGS._no_res' | translate }}
                                     </div>
                                 </div>
-                            </div>                    
+                            </div>
                         }@else{
                         <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white m-4">
                         <table data-cy="tableResourceSpecs" class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
@@ -781,7 +819,7 @@
                                             }
                                         </td>
                                         <td class="hidden lg:table-cell px-6 py-4">
-                                            {{res.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}} 
+                                            {{res.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}}
                                         </td>
                                         <td class="px-6 py-4">
                                             <input id="select-checkbox" [checked]="isResSelected(res)" type="checkbox" value="" (click)="addResToSelected(res)" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
@@ -842,7 +880,7 @@
                                         {{ 'OFFERINGS._no_serv' | translate }}
                                     </div>
                                 </div>
-                            </div>                    
+                            </div>
                         }@else{
                         <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white m-4">
                             <table data-cy="tableServiceSpecs" class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
@@ -883,7 +921,7 @@
                                             }
                                         </td>
                                         <td class="hidden lg:table-cell px-6 py-4">
-                                            {{serv.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}} 
+                                            {{serv.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}}
                                         </td>
                                         <td class="px-6 py-4">
                                             <input id="select-checkbox" [checked]="isServSelected(serv)" type="checkbox" value="" (click)="addServToSelected(serv)" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
@@ -931,7 +969,7 @@
                             <svg data-popover-target="popover-default" class="flex self-center w-6 h-6 text-primary-100" clip-rule="evenodd" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                             </svg>
-                        </div> 
+                        </div>
                         <div data-popover id="popover-default" role="tooltip" class="absolute z-10 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
                             <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
                                 <h3 class="font-semibold text-gray-900 dark:text-white">{{ 'CREATE_PROD_SPEC._file_res' | translate }}</h3>
@@ -942,14 +980,14 @@
                             </div>
                             <div data-popper-arrow></div>
                         </div>
-                    </div>                     
+                    </div>
                     @if(showImgPreview){
                         <div class="relative isolate flex flex-col justify-end overflow-hidden rounded-2xl px-8 pb-8 pt-40 max-w-sm mx-auto m-4 shadow-lg">
                             <img src="{{imgPreview}}" class="absolute inset-0 h-full w-full object-cover">
                             <button (click)="removeImg()" class="z-10 absolute top-2 right-2 p-1 font-bold text-white bg-red-500 rounded-3xl">
                                 <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-                                </svg>                                  
+                                </svg>
                             </button>
                         </div>
                     } @else {
@@ -963,7 +1001,7 @@
                                         <div class="flex w-full justify-center">
                                             <p class="text-gray-500 mr-2 w-fit">{{ 'CREATE_PROD_SPEC._drop_files' | translate }}
                                                 <button data-cy="productSpecAttachSelectFile" (click)="openFileSelector()" class="font-medium text-primary-100 dark:text-primary-50 hover:underline">{{ 'CREATE_PROD_SPEC._select_files' | translate }}</button>
-                                            </p> 
+                                            </p>
                                         </div>
                                     </div>
                                 </ng-template>
@@ -978,7 +1016,7 @@
                                 <!-- Tooltip Arrow -->
                                 <div class="absolute left-1/2 transform -translate-x-1/2 translate-y-1 w-2 h-2 bg-gray-900 rotate-45"></div>
                             </div>
-                        
+
                             <div class="flex items-center h-fit w-full justify-between">
                                 <!-- Input Field -->
                                 <input #imgURL type="text" id="att-name"
@@ -987,20 +1025,20 @@
                                     class="w-full bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5"
                                     [ngClass]="attImageName.invalid && attImageName.touched ? 'border-red-500' : 'dark:border-secondary-200'"
                                 />
-                                
+
                                 <!-- Submit Button -->
                                 <button (click)="saveImgFromURL()"
-                                    [disabled]="!attImageName.valid" 
+                                    [disabled]="!attImageName.valid"
                                     [ngClass]="!attImageName.valid ? 'opacity-50' : 'hover:bg-primary-50'"
                                     class="text-white bg-primary-100 rounded-3xl p-1 ml-2 h-fit">
                                     <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11.917 9.724 16.5 19 7.5"/>                                    
-                                    </svg>                                  
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11.917 9.724 16.5 19 7.5"/>
+                                    </svg>
                                 </button>
                             </div>
                         </div>
-                                                                      
-                        
+
+
                     }
                     <h4 class="text-lg font-bold ml-4 dark:text-white">{{ 'CREATE_PROD_SPEC._add_att' | translate }}</h4>
                     @if(prodAttachments.length == 0){
@@ -1016,7 +1054,7 @@
                             </div>
                         </div>
                     } @else {
-                        <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white m-4">                        
+                        <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white m-4">
                             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
                                     <tr>
@@ -1041,20 +1079,20 @@
                                                 {{att.name}}
                                             </td>
                                             <td class="px-6 py-4 text-wrap break-all">
-                                                {{att.url}} 
+                                                {{att.url}}
                                             </td>
                                             <td class="px-6 py-4">
                                                 <button (click)="removeAtt(att)" class="font-bold text-white bg-red-500 rounded-3xl">
                                                     <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-                                                    </svg>                                  
-                                                </button>    
+                                                    </svg>
+                                                </button>
                                             </td>
                                         </tr>
                                     }
                                 </tbody>
                             </table>
-                            </div>                        
+                            </div>
                     }
                     @if(showNewAtt==false){
                         <div class="flex w-full justify-items-center justify-center">
@@ -1062,17 +1100,17 @@
                                 {{ 'CREATE_PROD_SPEC._new_att' | translate }}
                                 <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
-                                </svg>                                  
+                                </svg>
                             </button>
                         </div>
                     } @else {
                         <div class="m-4 w-full">
-                            <div class="lg:flex lg:grid lg:grid-cols-2 w-full gap-4 align-items-middle align-middle border border-gray-200 dark:border-secondary-200 rounded-lg p-4">                            
+                            <div class="lg:flex lg:grid lg:grid-cols-2 w-full gap-4 align-items-middle align-middle border border-gray-200 dark:border-secondary-200 rounded-lg p-4">
                                 <div class="h-fit">
                                     <label for="att-name" class="font-bold text-lg dark:text-white">{{ 'PROFILE._name' | translate }}</label>
                                     <input #attachName type="text" id="att-name" [formControl]="attFileName"
                                     [ngClass]="attFileName.invalid == true ? 'border-red-600' : 'border-gray-300'"
-                                    class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />    
+                                    class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
                                 </div>
                                 @if(attachToCreate.url==''){
                                     <ngx-file-drop class="p-4 w-full" dropZoneLabel="Drop files here" (onFileDrop)="dropped($event,'attach')" (onFileOver)="fileOver($event)" (onFileLeave)="fileLeave($event)">
@@ -1084,7 +1122,7 @@
                                                 <div class="flex w-full justify-center">
                                                     <p class="text-gray-500 mr-2 w-fit">{{ 'CREATE_PROD_SPEC._drop_files' | translate }}
                                                         <button (click)="openFileSelector()" class="font-medium text-primary-100 dark:text-primary-50 hover:underline">{{ 'CREATE_PROD_SPEC._select_files' | translate }}</button>
-                                                    </p> 
+                                                    </p>
                                                 </div>
                                             </div>
                                         </ng-template>
@@ -1098,7 +1136,7 @@
                                         <button (click)="clearAtt()" class="z-10 absolute top-2 right-2 p-1 font-bold text-white bg-red-500 rounded-3xl">
                                             <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-                                            </svg>                                  
+                                            </svg>
                                         </button>
                                     </div>
                                 }
@@ -1111,7 +1149,7 @@
                                     {{ 'CREATE_PROD_SPEC._save_att' | translate }}
                                     <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M11 16h2m6.707-9.293-2.414-2.414A1 1 0 0 0 16.586 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.414a1 1 0 0 0-.293-.707ZM16 20v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v6h8ZM9 4h6v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4Z"/>
-                                    </svg>                                                                   
+                                    </svg>
                                 </button>
                             </div>
                         </div>
@@ -1123,7 +1161,7 @@
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
                             </svg>
                         </button>
-                    </div> --> 
+                    </div> -->
                 }
                 @if ((currentStep === 6 && !BUNDLE_ENABLED) || (currentStep === 7 && BUNDLE_ENABLED)) {
                     <div class="m-4">
@@ -1140,7 +1178,7 @@
                               </div>
                             </div>
                         } @else {
-                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white m-4">                        
+                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white m-4">
                                 <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
                                     <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
                                         <tr>
@@ -1185,7 +1223,7 @@
                                                     }
                                                 </td>
                                                 <td class="hidden lg:table-cell px-6 py-4">
-                                                    {{rel.productSpec.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}} 
+                                                    {{rel.productSpec.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}}
                                                 </td>
                                                 <td class="px-6 py-4">
                                                     <button data-cy="productSpecDeleteRelationship" (click)="deleteRel(rel)" class="font-bold text-white bg-red-500 rounded-3xl">
@@ -1211,7 +1249,7 @@
                             </div>
                         } @else {
                             <label class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._relationship_type' | translate }}</label>
-                            <select id="type" (change)="onRelChange($event)" 
+                            <select id="type" (change)="onRelChange($event)"
                             class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                                 <option selected value="migration">Migration</option>
                                 <option value="dependency">Dependency</option>
@@ -1237,9 +1275,9 @@
                                                 {{ 'OFFERINGS._no_prod_rel' | translate }}
                                             </div>
                                         </div>
-                                    </div>                    
+                                    </div>
                                 }@else{
-                                <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mt-4">                        
+                                <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mt-4">
                                     <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
                                         <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
                                             <tr>
@@ -1256,7 +1294,7 @@
                                         </thead>
                                         <tbody>
                                             @for (rel of prodSpecRels; track rel) {
-                                                <tr class="border-b hover:bg-gray-200 dark:border-gray-700 dark:hover:bg-secondary-200" (click)="selectRelationship(rel)" 
+                                                <tr class="border-b hover:bg-gray-200 dark:border-gray-700 dark:hover:bg-secondary-200" (click)="selectRelationship(rel)"
                                                     [ngClass]="rel.id == selectedProdSpec.id ? 'bg-gray-300 dark:bg-secondary-200' : 'bg-white dark:bg-secondary-300'">
                                                     <td [ngClass]="{
                                                         'break-all': hasLongWord(rel.name, 20),
@@ -1272,7 +1310,7 @@
                                                         }
                                                     </td>
                                                     <td class="px-6 py-4 hidden md:table-cell">
-                                                        {{rel.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}} 
+                                                        {{rel.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}}
                                                     </td>
                                                 </tr>
                                             }
@@ -1361,7 +1399,7 @@
                                 }
                             </div>
                         </div>
-                        
+
                         <div class="mb-4">
                             <label class="font-bold text-lg mr-4 dark:text-white">{{ 'CREATE_PROD_SPEC._status' | translate }}</label>
                             @if(productSpecToCreate?.lifecycleStatus == 'Active'){
@@ -1377,7 +1415,7 @@
 
                         @if(productSpecToCreate?.description !=''){
                             <label class="font-bold text-lg dark:text-white">{{ 'UPDATE_PROD_SPEC._product_description' | translate }}</label>
-                            <div class="px-4 py-2 bg-white rounded-lg p-4 dark:bg-secondary-300 border dark:border-secondary-200"> 
+                            <div class="px-4 py-2 bg-white rounded-lg p-4 dark:bg-secondary-300 border dark:border-secondary-200">
                                 <markdown [ngClass]="{
                                     'break-all': hasLongWord(productSpecToCreate?.description, 20),
                                     'break-words': !hasLongWord(productSpecToCreate?.description, 20)
@@ -1394,7 +1432,7 @@
 
                         @if(prodSpecsBundle.length>0){
                             <label class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._bundle' | translate }}</label>
-                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">                        
+                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">
                                 <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
                                     <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
                                         <tr>
@@ -1430,12 +1468,12 @@
                                         }
                                     </tbody>
                                 </table>
-                            </div>  
+                            </div>
                         }
-                        
+
                         @if(prodChars.length>0){
                             <label class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._chars' | translate }}</label>
-                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">                        
+                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">
                                 <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
                                     <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
                                         <tr>
@@ -1463,12 +1501,18 @@
                                                     'break-all': hasLongWord(prod.description, 20),
                                                     'break-words': !hasLongWord(prod.description, 20)
                                                     }" class="hidden lg:table-cell px-6 py-4 text-wrap break-words">
-                                                    {{prod.description}}                                       
+                                                    {{prod.description}}
                                                 </td>
                                                 <td class="px-6 py-4 text-wrap break-all">
                                                     @for (char of prod.productSpecCharacteristicValue; track char; let last = $last) {
                                                         @if(char.value || char.value == 0){
-                                                            @if(char.unitOfMeasure){
+                                                            @if(prod.valueType === 'credentialsConfiguration' || prod.valueType === 'authorizationPolicy'){
+                                                                @if(!last){
+                                                                    {{getValuePreview(char.value)}},
+                                                                } @else {
+                                                                    {{getValuePreview(char.value)}}
+                                                                }
+                                                            } @else if(char.unitOfMeasure){
                                                                 @if(!last){
                                                                     {{char.value}} (<i>{{char?.unitOfMeasure}}</i>),
                                                                 } @else {
@@ -1480,15 +1524,15 @@
                                                                 } @else {
                                                                     {{char.value}}
                                                                 }
-                                                            }                                                    
+                                                            }
                                                         } @else {
                                                             @if(!last){
                                                                 {{char.valueFrom}} - {{char.valueTo}} (<i>{{char?.unitOfMeasure}}</i>),
                                                             } @else {
                                                                 {{char.valueFrom}} - {{char.valueTo}} (<i>{{char?.unitOfMeasure}}</i>)
                                                             }
-                                                        }                                                
-                                                    }                                   
+                                                        }
+                                                    }
                                                 </td>
                                             </tr>
                                         }
@@ -1499,7 +1543,7 @@
 
                         @if(selectedResourceSpecs.length>0){
                             <label class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._resource' | translate }}</label>
-                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">                        
+                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">
                                 <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
                                     <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
                                         <tr>
@@ -1521,12 +1565,12 @@
                                         }
                                     </tbody>
                                 </table>
-                            </div>  
+                            </div>
                         }
 
                         @if(selectedServiceSpecs.length>0){
                             <label class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._service' | translate }}</label>
-                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">                        
+                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">
                                 <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
                                     <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
                                         <tr>
@@ -1548,12 +1592,12 @@
                                         }
                                     </tbody>
                                 </table>
-                            </div>  
+                            </div>
                         }
 
                         @if(prodAttachments.length>0){
                             <label class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._attachments' | translate }}</label>
-                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">                        
+                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">
                                 <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
                                     <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
                                         <tr>
@@ -1575,18 +1619,18 @@
                                                     {{att.name}}
                                                 </td>
                                                 <td class="px-6 py-4 text-wrap break-all">
-                                                    {{att.url}} 
+                                                    {{att.url}}
                                                 </td>
                                             </tr>
                                         }
                                     </tbody>
                                 </table>
-                            </div>  
+                            </div>
                         }
 
                         @if(prodRelationships.length>0){
                             <label class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._relationships' | translate }}</label>
-                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">                        
+                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">
                                 <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
                                     <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
                                         <tr>
@@ -1628,7 +1672,7 @@
                                                     }
                                                 </td>
                                                 <td class="hidden lg:table-cell px-6 py-4">
-                                                    {{rel.productSpec.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}} 
+                                                    {{rel.productSpec.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}}
                                                 </td>
                                             </tr>
                                         }
@@ -1665,7 +1709,7 @@
                     </svg>
                     {{ 'CREATE_OFFER._previous' | translate }}
                 </button>
-        
+
                 <button data-cy="btnNext"
                         (click)="goToStep(currentStep + 1)"
                         [disabled]="currentStep === steps.length - 1 || !validateCurrentStep() || !canNavigate(currentStep) || isStepDisabled()"
@@ -1686,12 +1730,12 @@
                     (click)="createProduct()"
                     [disabled]="isStepDisabled() || loading"
                     [ngClass]="loading || isStepDisabled() ? 'opacity-50' : 'hover:bg-primary-50'"
-            
+
                     class="px-4 py-2 text-base font-medium text-white rounded-lg bg-primary-100">
                         {{ 'CREATE_PROD_SPEC._create_prod' | translate }}
                     </button>
                 }
-            </div>          
+            </div>
         </div>
     </div>
 
@@ -1699,7 +1743,7 @@
 
 <!-- BILL ADDRESS DELETE modal -->
 @if (showUploadFile){
-    <div id="upload-file-modal" [ngClass]="showUploadFile ? 'backdrop-blur-sm': ''" tabindex="-1" aria-hidden="true" 
+    <div id="upload-file-modal" [ngClass]="showUploadFile ? 'backdrop-blur-sm': ''" tabindex="-1" aria-hidden="true"
     class="flex overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-40 justify-center items-center w-full md:inset-0 h-modal md:h-full shadow-2xl">
         <div class="relative p-4 w-full max-w-md h-full md:h-auto" (click)="$event.stopPropagation();">
             <!-- Modal content -->
@@ -1714,14 +1758,14 @@
                     <ng-template ngx-file-drop-content-tmp let-openFileSelector="openFileSelector">
                         <svg class="w-12 h-12 text-primary-100 mx-auto" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2"/>
-                        </svg>                        
+                        </svg>
                         <p class="text-gray-500 mr-4">{{ 'CREATE_PROD_SPEC._drop_files' | translate }}
                             <button data-cy="productSpecSelectFile" (click)="openFileSelector()" class="font-medium text-primary-100 dark:text-primary-50 hover:underline">{{ 'CREATE_PROD_SPEC._select_files' | translate }}</button>
-                        </p>                       
+                        </p>
                     </ng-template>
-                </ngx-file-drop>  
+                </ngx-file-drop>
 
-              
+
                 <div class="flex justify-center items-center space-x-4">
                     <button data-cy="productSpecCancelUpload" (click)="showUploadFile=false;$event.stopPropagation();" type="button" class="py-2 px-3 text-sm font-medium text-gray-500 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10">
                         {{ 'CREATE_PROD_SPEC._cancel' | translate }}

@@ -11,8 +11,9 @@ export interface Tender {
   tenderNote?: string;
   attachment?: TenderAttachment;
   selectedProviders: string[];
-  external_id?: string;  // ID of parent tender (for child tenders)
-  provider?: string;      // Provider name (for child tenders)
+  external_id?: string;   // ID of parent tender (for child tenders)
+  provider?: string;       // Provider name (for child tenders)
+  buyerPartyId?: string;   // Buyer org URN (for child tenders, used in provider view)
   createdAt?: string;
   updatedAt?: string;
   

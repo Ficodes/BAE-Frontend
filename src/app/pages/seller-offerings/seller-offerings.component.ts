@@ -45,6 +45,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   custom_offer_partyId:any=null;
   catalog_to_update:any;
   feedback:boolean=false;
+  isDomeTheme: boolean = (environment.providerThemeName || '').toUpperCase() === 'DOME';
   userInfo:any;
   activeSection: string = 'catalogs'; // default
   sectionActions : Record<string, () => void> = {
@@ -70,7 +71,11 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     .pipe(takeUntil(this.destroy$))
     .subscribe(ev => {
       if(ev.type === 'SellerProductSpec') {   
-        if(ev.value == true && (JSON.stringify(this.userInfo) != '{}' && (((this.userInfo.expire - moment().unix())-4) > 0))) {
+        if(
+          ev.value == true &&
+          this.isDomeTheme &&
+          (JSON.stringify(this.userInfo) != '{}' && (((this.userInfo.expire - moment().unix())-4) > 0))
+        ) {
           this.feedback=true;
         }  
         this.goToProdSpec();

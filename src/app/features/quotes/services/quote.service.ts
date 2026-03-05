@@ -4,6 +4,7 @@ import { Observable, map, forkJoin } from 'rxjs';
 import { Quote, Quote_Create, Quote_Update, QuoteStateType } from 'src/app/models/quote.model';
 import { Tender } from 'src/app/models/tender.model';
 import { ApiRole, API_ROLES } from 'src/app/models/roles.constants';
+import { QUOTE_STATUSES, QUOTE_CATEGORIES } from 'src/app/models/quote.constants';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
@@ -365,11 +366,11 @@ export class QuoteService {
   // Helper methods for quote status checking
   
   isQuoteCancelled(quote: Quote): boolean {
-    return quote.quoteItem?.some(item => item.state === 'cancelled') || false;
+    return quote.quoteItem?.some(item => item.state === QUOTE_STATUSES.CANCELLED) || false;
   }
 
   isQuoteAccepted(quote: Quote): boolean {
-    return quote.quoteItem?.some(item => item.state === 'accepted') || false;
+    return quote.quoteItem?.some(item => item.state === QUOTE_STATUSES.ACCEPTED) || false;
   }
 
   isQuoteFinalized(quote: Quote): boolean {
@@ -556,9 +557,9 @@ export class QuoteService {
 
     // Map quote category to tender category
     let category: 'coordinator' | 'tendering' = 'coordinator';
-    if (quote.category === 'tender') {
+    if (quote.category === QUOTE_CATEGORIES.TENDER) {
       category = 'tendering';
-    } else if (quote.category === 'coordinator') {
+    } else if (quote.category === QUOTE_CATEGORIES.COORDINATOR) {
       category = 'coordinator';
     }
 
@@ -578,18 +579,21 @@ export class QuoteService {
     // - approved → sent → 'launched'
     // - accepted/cancelled/rejected → closed → 'closed'
     let state: 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed' = 'draft';
-    if (quoteItemState === 'pending') state = 'draft';
-    else if (quoteItemState === 'inProgress') state = 'pre-launched';
-    else if (quoteItemState === 'approved') state = 'sent';
-    else if (quoteItemState === 'accepted') state = 'closed';
-    else if (quoteItemState === 'cancelled') state = 'closed';
-    else if (quoteItemState === 'rejected') state = 'closed';
+    if (quoteItemState === QUOTE_STATUSES.PENDING) state = 'draft';
+    else if (quoteItemState === QUOTE_STATUSES.IN_PROGRESS) state = 'pre-launched';
+    else if (quoteItemState === QUOTE_STATUSES.APPROVED) state = 'sent';
+    else if (quoteItemState === QUOTE_STATUSES.ACCEPTED) state = 'closed';
+    else if (quoteItemState === QUOTE_STATUSES.CANCELLED) state = 'closed';
+    else if (quoteItemState === QUOTE_STATUSES.REJECTED) state = 'closed';
 
-    // Extract external_id and provider from quote
+    // Extract external_id, provider and buyerPartyId from quote
     const external_id = quote.externalId;
     const provider = quote.relatedParty
       ?.find(party => party.role?.toLowerCase() === API_ROLES.SELLER.toLowerCase())
       ?.name;
+    const buyerPartyId = quote.relatedParty
+      ?.find(party => party.role?.toLowerCase() === API_ROLES.BUYER.toLowerCase())
+      ?.id;
 
     return {
       id: quote.id,
@@ -601,6 +605,7 @@ export class QuoteService {
       selectedProviders,
       external_id,
       provider,
+      buyerPartyId,
       createdAt: quote.quoteDate,
       updatedAt: quote.quoteDate,
       effectiveQuoteCompletionDate: quote.effectiveQuoteCompletionDate,

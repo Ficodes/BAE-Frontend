@@ -95,11 +95,9 @@ export class ProviderService {
         if (Array.isArray(response)) return response as Provider[];
         if (response?.data && Array.isArray(response.data)) return response.data as Provider[];
         return [];
-      }),
-      catchError((error) => {
-        console.warn('Providers for tender (new) API failed:', error);
-        return of([]);
       })
+      // No catchError here — callers must handle HTTP errors themselves so they can
+      // distinguish a genuine empty search result from a failed request.
     );
   }
 

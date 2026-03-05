@@ -44,6 +44,7 @@ export class AppInitService {
                 environment.providerThemeName = config.theme ?? 'default';
                 environment.QUOTES_ENABLED = config.quotesEnabled ?? false
                 environment.TENDER_ENABLED = config.tenderingEnabled ?? false
+                environment.DATA_SPACE_ENABLED = config.dataSpaceEnabled ?? false
                 environment.LEAR_URL = config.learUrl ?? ''
                 environment.AI_SEARCH_ENABLED = aiConfig.aiEnabled ?? config.aiEnabled ?? false;
                 environment.AI_SEARCH_API_KEY = aiConfig.aiApiKey ?? config.aiApiKey ?? '';

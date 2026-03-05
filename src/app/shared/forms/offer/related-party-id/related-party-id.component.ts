@@ -41,7 +41,7 @@ export class RelatedPartyIdComponent implements OnInit {
   //CATEGORIES
   loading:boolean=false;
   parties:any[]=[];
-  selectedParty:any={}
+  selectedParty:any = null;
   searchTerm: string = '';
   incomingValue: any = null;
 
@@ -55,27 +55,44 @@ export class RelatedPartyIdComponent implements OnInit {
   }
 
   async ngOnInit() {
-    // 1. Load list
-    this.parties = await this.accService.getOrgList();
-    console.log("Parties loaded:", this.parties);
-  
-    // 2. Determine initial selected party  
-    if (this.incomingValue) {
-      // incomingValue might already be the object
-      this.selectedParty = this.parties.find(p => p.id === this.incomingValue.id);
-    } 
-    else if (this.partyId) {
-      this.selectedParty = this.parties.find(p => p.id === this.partyId);
+    this.loading = true;
+    try {
+      // 1. Load default list (can be paginated/truncated by API defaults)
+      this.parties = await this.accService.getOrgList();
+      console.log("Parties loaded:", this.parties);
+
+      // 2. Determine requested party id from incoming value or input
+      const requestedPartyId = this.incomingValue?.id ?? this.partyId;
+
+      if (requestedPartyId) {
+        // 3. Try selecting from current page
+        this.selectedParty = this.parties.find(p => p.id === requestedPartyId) ?? null;
+
+        // 4. Fallback: if not in list, fetch by id and inject into the options
+        if (!this.selectedParty) {
+          try {
+            const requestedParty = await this.accService.getOrgInfo(requestedPartyId);
+            if (requestedParty?.id) {
+              this.parties = [requestedParty, ...this.parties.filter(p => p.id !== requestedParty.id)];
+              this.selectedParty = requestedParty;
+            }
+          } catch (error) {
+            console.error('Unable to load requested party by id:', requestedPartyId, error);
+          }
+        }
+      } else if (this.incomingValue?.id) {
+        this.selectedParty = this.incomingValue;
+      }
+
+      // 5. Emit to parent form (full object)
+      this.onChange(this.selectedParty ?? null);
+      this.onTouched();
+
+      this.cdr.detectChanges();
+      console.log("Selected party after init:", this.selectedParty);
+    } finally {
+      this.loading = false;
     }
-  
-    // 3. Emit to parent form (full object!)
-    this.onChange(this.selectedParty ?? null);
-    this.onTouched();
-  
-    // UI refresh
-    this.cdr.detectChanges();
-  
-    console.log("Selected party after init:", this.selectedParty);
   }
   
   

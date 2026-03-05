@@ -47,6 +47,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   RES_SPEC_LIMIT: number = environment.RES_SPEC_LIMIT;
   DOME_TRUST_LINK: string = environment.DOME_TRUST_LINK;
   BUNDLE_ENABLED: boolean= environment.BUNDLE_ENABLED;
+  DATA_SPACE_ENABLED: boolean = environment.DATA_SPACE_ENABLED;
   MAX_FILE_SIZE: number=environment.MAX_FILE_SIZE;
 
   //CONTROL VARIABLES:
@@ -86,9 +87,8 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     name: new FormControl('', [Validators.required, Validators.maxLength(100), noWhitespaceValidator]),
     description: new FormControl('', [Validators.maxLength(500)])
   });
-  stringCharSelected:boolean=true;
-  numberCharSelected:boolean=false;
-  rangeCharSelected:boolean=false;
+  charTypeSelected:string='string';
+  booleanDefaultTrue:boolean=true;
   isOptional:boolean=false;
   optionalDftTrue:boolean=false;
   prodChars:ProductSpecificationCharacteristic[]=[];
@@ -115,6 +115,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   verifiedISO:string[] = [];
   selectedISO:any;
   complianceVC:any = null;
+  complianceVCId:string = '';
   showUploadFile:boolean=false;
   selfAtt:any;
   checkExistingSelfAtt:boolean=false;
@@ -177,8 +178,8 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   numberUnit: string = '';
   fromValue: string = '';
   toValue: string = '';
-  booleanValue: boolean = false;
   rangeUnit: string = '';
+  jsonValue: string = '';
 
   filenameRegex = /^[A-Za-z0-9_.-]+$/;
   private destroy$ = new Subject<void>();
@@ -303,6 +304,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       for(let i = 0; i < this.prod.productSpecCharacteristic.length; i++) {
         // Check if this is a VC
         if (this.prod.productSpecCharacteristic[i].name == 'Compliance:VC') {
+          this.complianceVCId = this.prod.productSpecCharacteristic[i].id || '';
           // Decode the token
           try {
             const decoded = jwtDecode(this.prod.productSpecCharacteristic[i].productSpecCharacteristicValue[0].value)
@@ -350,6 +352,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
         if (index !== -1) {
           console.log('adding sel iso')
           this.selectedISOS.push({
+            id: this.prod.productSpecCharacteristic[i].id,
             name: this.prod.productSpecCharacteristic[i].name,
             url: this.prod.productSpecCharacteristic[i].productSpecCharacteristicValue[0].value,
             mandatory: this.availableISOS[index].mandatory,
@@ -363,6 +366,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
           console.log('--- additional isos')
           console.log(this.prod.productSpecCharacteristic[i])
           this.additionalISOS.push({
+            id: this.prod.productSpecCharacteristic[i].id,
             name: this.prod.productSpecCharacteristic[i].name,
             url: this.prod.productSpecCharacteristic[i].productSpecCharacteristicValue[0].value
           })
@@ -382,9 +386,11 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
         const index = this.selectedISOS.findIndex(item => item.name === this.prod.productSpecCharacteristic[i].name);
         if (index == -1) {
           this.prodChars.push({
-            id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
+            id: this.prod.productSpecCharacteristic[i].id ? this.prod.productSpecCharacteristic[i].id : 'urn:ngsi-ld:characteristic:'+uuidv4(),
             name: this.prod.productSpecCharacteristic[i].name,
             description: this.prod.productSpecCharacteristic[i].description ? this.prod.productSpecCharacteristic[i].description : '',
+            valueType: this.prod.productSpecCharacteristic[i].valueType,
+            '@schemaLocation': this.prod.productSpecCharacteristic[i]['@schemaLocation'],
             productSpecCharacteristicValue: this.prod.productSpecCharacteristic[i].productSpecCharacteristicValue
           });
         }
@@ -885,9 +891,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     this.showSummary=false;
 
     this.showCreateChar=false;
-    this.stringCharSelected=true;
-    this.numberCharSelected=false;
-    this.rangeCharSelected=false;
+    this.charTypeSelected='string';
     this.showPreview=false;
     this.refreshChars();
     initFlowbite();
@@ -1222,12 +1226,31 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     this.fromValue = '';
     this.toValue = '';
     this.rangeUnit = '';
-    this.stringCharSelected=true;
-    this.numberCharSelected=false;
-    this.rangeCharSelected=false;
+    this.jsonValue = '';
+    this.charTypeSelected='string';
+    this.booleanDefaultTrue=true;
     this.isOptional=false;
     this.optionalDftTrue=false;
     this.creatingChars=[];
+  }
+
+  setBooleanDefaultValues(){
+    this.creatingChars=[
+      {
+        isDefault:this.booleanDefaultTrue,
+        value:true as any
+      },
+      {
+        isDefault:!this.booleanDefaultTrue,
+        value:false as any
+      }
+    ];
+  }
+
+  onBooleanDefaultChange(){
+    if(this.charTypeSelected == 'boolean'){
+      this.setBooleanDefaultValues();
+    }
   }
 
   removeClass(elem: HTMLElement, cls:string) {
@@ -1286,30 +1309,43 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   onTypeChange(event: any) {
-    if(event.target.value=='string'){
-      this.stringCharSelected=true;
-      this.numberCharSelected=false;
-      this.rangeCharSelected=false;
-      this.charsForm.reset();
-    }else if (event.target.value=='number'){
-      this.stringCharSelected=false;
-      this.numberCharSelected=true;
-      this.rangeCharSelected=false;
-      this.charsForm.reset();
-    }else if (event.target.value=='range'){
-      this.stringCharSelected=false;
-      this.numberCharSelected=false;
-      this.rangeCharSelected=true;
-      this.charsForm.reset();
-    }
+    this.charTypeSelected = event.target.value;
+    this.charsForm.reset();
+    this.stringValue = '';
+    this.numberValue = '';
+    this.numberUnit = '';
+    this.fromValue = '';
+    this.toValue = '';
+    this.rangeUnit = '';
+    this.jsonValue = '';
     this.isOptional=false;
     this.optionalDftTrue=false;
-    this.creatingChars=[];
+    if(this.charTypeSelected == 'boolean'){
+      this.booleanDefaultTrue=true;
+      this.setBooleanDefaultValues();
+    } else {
+      this.booleanDefaultTrue=true;
+      this.creatingChars=[];
+    }
+  }
+
+  private isJsonCharacteristicType(type: string): boolean {
+    return type === 'credentialsConfiguration' || type === 'authorizationPolicy';
+  }
+
+  private getSchemaLocationForType(type: string): string | null {
+    if (type === 'credentialsConfiguration') {
+      return 'https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/main/schemas/credentials/credentialConfigCharacteristic.json';
+    }
+    if (type === 'authorizationPolicy') {
+      return 'https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/policy-support/schemas/odrl/policyCharacteristic.json';
+    }
+    return null;
   }
 
 
   addCharValue(){
-    if(this.stringCharSelected){
+    if(this.charTypeSelected == 'string'){
       console.log('string')
       if(this.creatingChars.length==0){
         this.creatingChars.push({
@@ -1323,7 +1359,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
         })
       }
       this.stringValue='';  
-    } else if (this.numberCharSelected){
+    } else if (this.charTypeSelected == 'number'){
       console.log('number')
       if(this.creatingChars.length==0){
         this.creatingChars.push({
@@ -1340,7 +1376,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       }
       this.numberUnit='';
       this.numberValue='';
-    }else if(this.rangeCharSelected){
+    }else if(this.charTypeSelected == 'range'){
       console.log('range')
       // Validate that fromValue < toValue
       const fromVal = Number(this.fromValue);
@@ -1367,24 +1403,38 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
           valueTo:this.toValue as any,
           unitOfMeasure:this.rangeUnit})
       } 
-    }else{
-      console.log('boolean')
-      if(this.creatingChars.length==0){
-        this.creatingChars.push({
-          isDefault:true,
-          value:this.booleanValue as any
-        })
-      } else{
-        this.creatingChars.push({
-          isDefault:false,
-          value:this.booleanValue as any
-        })
+    } else if (this.isJsonCharacteristicType(this.charTypeSelected)) {
+      if (this.creatingChars.length > 0) {
+        this.errorMessage = 'Only one JSON value is allowed';
+        this.showError = true;
+        setTimeout(() => {this.showError = false}, 3000);
+        return;
       }
+      try {
+        const parsedJson = JSON.parse(this.jsonValue);
+        this.creatingChars.push({
+          isDefault: true,
+          value: parsedJson as any
+        });
+        this.jsonValue = '';
+      } catch (error) {
+        this.errorMessage = 'Invalid JSON format';
+        this.showError = true;
+        setTimeout(() => {this.showError = false}, 3000);
+        return;
+      }
+    } else if (this.charTypeSelected == 'boolean'){
+      console.log('boolean values are fixed')
+      return;
+    } else {
+      console.log('nothing')
     }
-    this.booleanValue=false;
   }
 
   removeCharValue(char:any,idx:any){
+    if(this.charTypeSelected == 'boolean'){
+      return;
+    }
     console.log(this.creatingChars)
     this.creatingChars.splice(idx, 1);
     console.log(this.creatingChars)
@@ -1403,15 +1453,23 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   saveChar(){
     if(this.charsForm.value.name!=null){
       // Create the main characteristic
-      this.prodChars.push({
+      const characteristic: any = {
         id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
         name: this.charsForm.value.name,
         description: this.charsForm.value.description != null ? this.charsForm.value.description : '',
         productSpecCharacteristicValue: this.creatingChars
-      })
+      };
+
+      const schemaLocation = this.getSchemaLocationForType(this.charTypeSelected);
+      if (schemaLocation) {
+        characteristic.valueType = this.charTypeSelected;
+        characteristic['@schemaLocation'] = schemaLocation;
+      }
+
+      this.prodChars.push(characteristic);
 
       // create X - enabled characteristic
-      if(this.isOptional){
+      if(this.isOptional && this.charTypeSelected !== 'boolean' && !this.isJsonCharacteristicType(this.charTypeSelected)){
         this.prodChars.push({
           id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
           name: this.charsForm.value.name + ' - enabled',
@@ -1433,9 +1491,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     this.charsForm.reset();
     this.creatingChars=[];
     this.showCreateChar=false;
-    this.stringCharSelected=true;
-    this.numberCharSelected=false;
-    this.rangeCharSelected=false;
+    this.charTypeSelected='string';
     this.isOptional=false;
     this.optionalDftTrue=false;
     this.refreshChars();
@@ -1484,6 +1540,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   setProductData(){
+    this.finishChars = [];
     console.log('--- set product data')
     console.log(this.prodChars)
     for(let i=0; i< this.prodChars.length; i++){
@@ -1523,7 +1580,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       const index = this.finishChars.findIndex(item => item.name === this.selectedISOS[i].name);
       if (index == -1) {
         this.finishChars.push({
-          id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
+          id: this.selectedISOS[i].id ? this.selectedISOS[i].id : 'urn:ngsi-ld:characteristic:'+uuidv4(),
           name: this.selectedISOS[i].name,
           productSpecCharacteristicValue: [{
             isDefault: true,
@@ -1541,7 +1598,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       const index = this.finishChars.findIndex(item => item.name === this.additionalISOS[i].name);
       if (index == -1) {
         this.finishChars.push({
-          id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
+          id: this.additionalISOS[i].id ? this.additionalISOS[i].id : 'urn:ngsi-ld:characteristic:'+uuidv4(),
           name: this.additionalISOS[i].name,
           productSpecCharacteristicValue: [{
             isDefault: true,
@@ -1555,7 +1612,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     // Load compliance VCs
     if(this.complianceVC != null) {
       this.finishChars.push({
-        id: `urn:ngsi-ld:characteristic:${uuidv4()}`,
+        id: this.complianceVCId ? this.complianceVCId : `urn:ngsi-ld:characteristic:${uuidv4()}`,
         name: `Compliance:VC`,
         productSpecCharacteristicValue: [{
           isDefault: true,
@@ -1587,7 +1644,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
         productSpecificationRelationship: rels,
         attachment: this.prodAttachments,
         resourceSpecification: this.selectedResourceSpecs,
-        serviceSpecification: this.selectedServiceSpecs  
+        serviceSpecification: this.selectedServiceSpecs
       }
     }
   }
@@ -1734,6 +1791,25 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     } else {
       return false
     }   
+  }
+
+  getValuePreview(value: any, maxLength = 80): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    let rawValue = '';
+    if (typeof value === 'string') {
+      rawValue = value;
+    } else {
+      try {
+        rawValue = JSON.stringify(value);
+      } catch {
+        rawValue = String(value);
+      }
+    }
+
+    return rawValue.length > maxLength ? `${rawValue.slice(0, maxLength)}...` : rawValue;
   }
 
   goToStep(index: number) {
