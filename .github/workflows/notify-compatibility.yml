@@ -1,0 +1,219 @@
+name: Open Umbrella Stack PR
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Component version (e.g. 4.4.0 or v4.4.0)"
+        required: true
+      release_notes:
+        description: "Optional release notes for PR context"
+        required: false
+      release_url:
+        description: "Optional release URL for PR context"
+        required: false
+      umbrella_repository:
+        description: "Optional override for umbrella repository (org/repo)"
+        required: false
+      umbrella_base_branch:
+        description: "Optional override for umbrella base branch"
+        required: false
+      stack_file:
+        description: "Optional override for stack file path"
+        required: false
+
+permissions:
+  contents: read
+
+env:
+  UMBRELLA_REPOSITORY: FIWARE-TMForum/Business-API-Ecosystem
+  UMBRELLA_BASE_BRANCH: master
+  UMBRELLA_STACK_FILE: stack.yml
+
+jobs:
+  open-umbrella-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve release metadata
+        id: meta
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            RAW_VERSION="$(jq -r '.release.tag_name // empty' "$GITHUB_EVENT_PATH")"
+            RELEASE_NAME="$(jq -r '.release.name // empty' "$GITHUB_EVENT_PATH")"
+            RELEASE_URL="$(jq -r '.release.html_url // empty' "$GITHUB_EVENT_PATH")"
+            BODY="$(jq -r '.release.body // empty' "$GITHUB_EVENT_PATH")"
+          else
+            RAW_VERSION="${{ inputs.version }}"
+            RELEASE_NAME="${{ inputs.version }}"
+            RELEASE_URL="${{ inputs.release_url }}"
+            BODY="${{ inputs.release_notes }}"
+          fi
+
+          UMBRELLA_REPOSITORY_INPUT="${{ inputs.umbrella_repository }}"
+          UMBRELLA_BASE_BRANCH_INPUT="${{ inputs.umbrella_base_branch }}"
+          STACK_FILE_INPUT="${{ inputs.stack_file }}"
+
+          UMBRELLA_REPOSITORY="${UMBRELLA_REPOSITORY_INPUT:-${{ env.UMBRELLA_REPOSITORY }}}"
+          UMBRELLA_BASE_BRANCH="${UMBRELLA_BASE_BRANCH_INPUT:-${{ env.UMBRELLA_BASE_BRANCH }}}"
+          STACK_FILE="${STACK_FILE_INPUT:-${{ env.UMBRELLA_STACK_FILE }}}"
+
+          VERSION="${RAW_VERSION#v}"
+          SAFE_VERSION="$(echo "$VERSION" | tr '/ _' '-' | tr -cd '[:alnum:].-')"
+          BRANCH_NAME="chore/stack-front-${SAFE_VERSION}"
+
+          if [[ -z "$VERSION" ]]; then
+            echo "Version is empty. Verify release tag or workflow_dispatch input."
+            exit 1
+          fi
+
+          if [[ -z "$RELEASE_NAME" ]]; then
+            RELEASE_NAME="$RAW_VERSION"
+          fi
+
+          if [[ -z "$BODY" ]]; then
+            BODY="_No release notes provided._"
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "source_tag=$RAW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "release_name=$RELEASE_NAME" >> "$GITHUB_OUTPUT"
+          echo "release_url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+          echo "umbrella_repository=$UMBRELLA_REPOSITORY" >> "$GITHUB_OUTPUT"
+          echo "umbrella_base_branch=$UMBRELLA_BASE_BRANCH" >> "$GITHUB_OUTPUT"
+          echo "stack_file=$STACK_FILE" >> "$GITHUB_OUTPUT"
+          {
+            echo "release_body<<EOF"
+            echo "$BODY"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Validate workflow configuration
+        shell: bash
+        run: |
+          if [[ "${{ steps.meta.outputs.umbrella_repository }}" == "your-org/umbrella-repo" ]]; then
+            echo "Please set UMBRELLA_REPOSITORY in workflow env or workflow_dispatch input."
+            exit 1
+          fi
+
+          if [[ -z "${{ secrets.UMBRELLA_REPO_PAT || secrets.COMPAT_REPO_PAT }}" ]]; then
+            echo "Set UMBRELLA_REPO_PAT (or COMPAT_REPO_PAT) with repo write permissions to the umbrella repository."
+            exit 1
+          fi
+
+      - name: Checkout umbrella repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.umbrella_repository }}
+          ref: ${{ steps.meta.outputs.umbrella_base_branch }}
+          token: ${{ secrets.UMBRELLA_REPO_PAT || secrets.COMPAT_REPO_PAT }}
+          path: umbrella
+
+      - name: Install yq
+        shell: bash
+        run: |
+          sudo wget -q -O /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Update stack.yml version
+        id: stack
+        shell: bash
+        run: |
+          TARGET_FILE="umbrella/${{ steps.meta.outputs.stack_file }}"
+
+          if [[ ! -f "$TARGET_FILE" ]]; then
+            echo "Stack file not found: $TARGET_FILE"
+            exit 1
+          fi
+
+          STACK_LENGTH="$(yq e '.stacks | length' "$TARGET_FILE")"
+          if [[ ! "$STACK_LENGTH" =~ ^[0-9]+$ || "$STACK_LENGTH" -lt 1 ]]; then
+            echo "No stack entries found in $TARGET_FILE"
+            exit 1
+          fi
+
+          LAST_INDEX=$((STACK_LENGTH - 1))
+          NEW_STACK_ID="$(date -u +%Y.%m.%d)"
+          export NEW_STACK_ID
+
+          yq -i ".stacks = [(.stacks[$LAST_INDEX] | .front = strenv(VERSION) | .id = strenv(NEW_STACK_ID))]" "$TARGET_FILE"
+
+          echo "stack_source_index=$LAST_INDEX" >> "$GITHUB_OUTPUT"
+          echo "stack_id=$(yq e '.stacks[0].id' "$TARGET_FILE")" >> "$GITHUB_OUTPUT"
+          echo "stack_description=$(yq e '.stacks[0].description' "$TARGET_FILE")" >> "$GITHUB_OUTPUT"
+          echo "proxy_branch=$(yq e '.stacks[0].proxy' "$TARGET_FILE")" >> "$GITHUB_OUTPUT"
+          echo "charging_branch=$(yq e '.stacks[0].charging' "$TARGET_FILE")" >> "$GITHUB_OUTPUT"
+          echo "frontend_branch=$(yq e '.stacks[0].front' "$TARGET_FILE")" >> "$GITHUB_OUTPUT"
+          echo "tm_version=$(yq e '.stacks[0].apis' "$TARGET_FILE")" >> "$GITHUB_OUTPUT"
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+
+      - name: Build PR body
+        id: prbody
+        shell: bash
+        run: |
+          PR_BODY_FILE="${RUNNER_TEMP}/umbrella-stack-pr-body.md"
+          cat > "$PR_BODY_FILE" <<EOF
+          This PR was created automatically from a release in \`${{ github.repository }}\`.
+
+          ## Stack update
+          - Source entry: last stack entry (index \`${{ steps.stack.outputs.stack_source_index }}\`)
+          - Stack id: \`${{ steps.stack.outputs.stack_id }}\`
+          - Stack description: \`${{ steps.stack.outputs.stack_description }}\`
+          - New version: \`${{ steps.meta.outputs.version }}\`
+          - Updated file: \`${{ steps.meta.outputs.stack_file }}\`
+          - Updated field: \`stacks[last].front\`
+          - Array rewrite: \`stacks\` now contains only the new entry
+
+          ## System testing setup
+          SYSTEM_TESTING: ACTIVATE
+          PROXY_BRANCH: ${{ steps.stack.outputs.proxy_branch }}
+          CHARGING_BRANCH: ${{ steps.stack.outputs.charging_branch }}
+          FRONTEND_BRANCH: ${{ steps.stack.outputs.frontend_branch }}
+          TM_VERSION: ${{ steps.stack.outputs.tm_version }}
+
+          ## Source release context
+          - Source repository: \`${{ github.repository }}\`
+          - Source release: \`${{ steps.meta.outputs.release_name }}\`
+          - Source tag/input: \`${{ steps.meta.outputs.source_tag }}\`
+          - Source release URL: ${{ steps.meta.outputs.release_url }}
+          - Triggered by: \`${{ github.actor }}\`
+          - Trigger run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          ## Release notes
+          ${{ steps.meta.outputs.release_body }}
+          EOF
+          echo "file=$PR_BODY_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Create pull request in umbrella repository
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          path: umbrella
+          token: ${{ secrets.UMBRELLA_REPO_PAT || secrets.COMPAT_REPO_PAT }}
+          branch: ${{ steps.meta.outputs.branch_name }}
+          base: ${{ steps.meta.outputs.umbrella_base_branch }}
+          title: >-
+            chore(stack): bump front to
+            ${{ steps.meta.outputs.version }}
+          commit-message: >-
+            chore(stack): bump front to
+            ${{ steps.meta.outputs.version }}
+          body-path: ${{ steps.prbody.outputs.file }}
+          labels: |
+            automated
+            compatibility
+          delete-branch: true
+
+      - name: Workflow summary
+        shell: bash
+        run: |
+          if [[ -n "${{ steps.cpr.outputs.pull-request-url }}" ]]; then
+            echo "Created PR: ${{ steps.cpr.outputs.pull-request-url }}"
+          else
+            echo "No PR created (likely no changes detected in stack file)."
+          fi
