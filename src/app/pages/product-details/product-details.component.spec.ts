@@ -514,4 +514,37 @@ describe('ProductDetailsComponent', () => {
 
     expect(preview).toBe('1 - 3 (GB)');
   });
+
+  it('isOptionalCharacteristic should detect companion - enabled characteristic', () => {
+    component.prodSpec = {
+      productSpecCharacteristic: [
+        { name: 'Storage' },
+        { name: 'Storage - enabled' },
+        { name: 'RAM' },
+      ],
+    } as any;
+
+    expect(component.isOptionalCharacteristic({ name: 'Storage' })).toBeTrue();
+    expect(component.isOptionalCharacteristic({ name: 'RAM' })).toBeFalse();
+  });
+
+  it('boolean helpers should classify boolean characteristics and return default state', () => {
+    const boolChar = {
+      productSpecCharacteristicValue: [
+        { value: true, isDefault: false },
+        { value: false, isDefault: true },
+      ],
+    };
+    const nonBoolChar = {
+      productSpecCharacteristicValue: [
+        { value: 'small', isDefault: true },
+        { value: 'large', isDefault: false },
+      ],
+    };
+
+    expect(component.isBooleanCharacteristic(boolChar)).toBeTrue();
+    expect(component.getBooleanDefaultValue(boolChar)).toBeFalse();
+    expect(component.isBooleanCharacteristic(nonBoolChar)).toBeFalse();
+    expect(component.getBooleanDefaultValue({ productSpecCharacteristicValue: [] })).toBeFalse();
+  });
 });

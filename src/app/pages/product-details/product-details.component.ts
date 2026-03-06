@@ -1045,6 +1045,37 @@ async deleteProduct(product: Product | undefined){
     return this.truncateCharacteristicLabel(this.getCharacteristicRangeLabel(valueSpec));
   }
 
+  isOptionalCharacteristic(characteristic: any): boolean {
+    const baseName = (characteristic?.name ?? '').toString().trim();
+    if (!baseName || !this.prodSpec?.productSpecCharacteristic) {
+      return false;
+    }
+
+    const expectedOptionalName = `${baseName} - enabled`.toLowerCase();
+    return this.prodSpec.productSpecCharacteristic.some((char: any) =>
+      (char?.name ?? '').toString().trim().toLowerCase() === expectedOptionalName
+    );
+  }
+
+  isBooleanCharacteristic(characteristic: any): boolean {
+    const values = characteristic?.productSpecCharacteristicValue;
+    if (!Array.isArray(values) || values.length === 0) {
+      return false;
+    }
+
+    return values.every((valueSpec: any) => typeof valueSpec?.value === 'boolean');
+  }
+
+  getBooleanDefaultValue(characteristic: any): boolean {
+    const values = characteristic?.productSpecCharacteristicValue;
+    if (!Array.isArray(values) || values.length === 0) {
+      return false;
+    }
+
+    const defaultValueSpec = values.find((valueSpec: any) => valueSpec?.isDefault === true) ?? values[0];
+    return defaultValueSpec?.value === true;
+  }
+
   private formatCharacteristicScalar(value: any): string {
     if (value === undefined || value === null) {
       return '';

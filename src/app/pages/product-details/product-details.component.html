@@ -456,32 +456,56 @@
                     <div class="flex flex-wrap -mx-4 justify-center">
                         @for (char of prodChars; track char.id; let idx = $index) {
                             <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-8">
-                                <div class="border border-gray-200 rounded-lg shadow bg-white dark:bg-secondary-200 dark:border-gray-800 shadow-md p-8 h-full">
+                                <div class="relative border border-gray-200 rounded-lg shadow bg-white dark:bg-secondary-200 dark:border-gray-800 shadow-md p-8 h-full">
                                     <h3 [ngClass]="{
                                         'break-all': hasLongWord(char.name, 20),
                                         'break-words': !hasLongWord(char.name, 20)
-                                        }" class="text-2xl font-bold mb-4 dark:text-white break-words">{{char.name}}</h3>
-                                    @for (val of char?.productSpecCharacteristicValue; track val.value) {
-                                        @if (val?.isDefault == true) {
-                                            <div class="flex items-center pl-4">
-                                                <input disabled checked id="disabled-checked-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 dark:bg-gray-600 dark:border-gray-800 rounded-full focus:ring-blue-500 focus:ring-2">
-                                                @if(val.value !== undefined && val.value !== null){
-                                                    <label [title]="getCharacteristicValueLabel(val)" for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 dark:bg-secondary-200 dark:border-gray-800 text-wrap break-all">{{ getCharacteristicValuePreview(val) }}</label>
-                                                } @else {
-                                                    <label [title]="getCharacteristicRangeLabel(val)" for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 dark:bg-secondary-200 dark:border-gray-800 text-wrap break-all">{{ getCharacteristicRangePreview(val) }}</label>
-                                                }
+                                        }" class="text-2xl font-bold mb-4 dark:text-white break-words pr-28">{{char.name}}</h3>
+                                    @if (char.description) {
+                                        <markdown [ngClass]="{
+                                            'break-all': hasLongWord(char.description, 20),
+                                            'break-words': !hasLongWord(char.description, 20)
+                                            }" class="text-sm text-gray-700 dark:text-gray-200 text-wrap break-words mb-4" [data]="char.description"></markdown>
+                                    }
+                                    @if (isOptionalCharacteristic(char)) {
+                                        <span class="absolute top-4 right-4 inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/60 dark:text-blue-200">Optional</span>
+                                    }
+                                    <div class="mt-3">
+                                        @if (isBooleanCharacteristic(char)) {
+                                            <div class="pl-4 flex items-center gap-2">
+                                                <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Default</span>
+                                                <span
+                                                    class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium"
+                                                    [ngClass]="getBooleanDefaultValue(char)
+                                                      ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
+                                                      : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'">
+                                                    {{ getBooleanDefaultValue(char) ? 'Enabled' : 'Disabled' }}
+                                                </span>
                                             </div>
                                         } @else {
-                                            <div class="flex items-center pl-4">
-                                                <input disabled id="disabled-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 dark:border-gray-800 border-gray-300 rounded-full focus:ring-blue-500 focus:ring-2">
-                                                @if(val.value !== undefined && val.value !== null){
-                                                    <label [title]="getCharacteristicValueLabel(val)" for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 text-wrap break-all">{{ getCharacteristicValuePreview(val) }}</label>
+                                            @for (val of char?.productSpecCharacteristicValue; track val.value) {
+                                                @if (val?.isDefault == true) {
+                                                    <div class="flex items-center pl-4">
+                                                        <input disabled checked id="disabled-checked-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 dark:bg-gray-600 dark:border-gray-800 rounded-full focus:ring-blue-500 focus:ring-2">
+                                                        @if(val.value !== undefined && val.value !== null){
+                                                            <label [title]="getCharacteristicValueLabel(val)" for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 dark:bg-secondary-200 dark:border-gray-800 text-wrap break-all">{{ getCharacteristicValuePreview(val) }}</label>
+                                                        } @else {
+                                                            <label [title]="getCharacteristicRangeLabel(val)" for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 dark:bg-secondary-200 dark:border-gray-800 text-wrap break-all">{{ getCharacteristicRangePreview(val) }}</label>
+                                                        }
+                                                    </div>
                                                 } @else {
-                                                    <label [title]="getCharacteristicRangeLabel(val)" for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 text-wrap break-all">{{ getCharacteristicRangePreview(val) }}</label>
+                                                    <div class="flex items-center pl-4">
+                                                        <input disabled id="disabled-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 dark:border-gray-800 border-gray-300 rounded-full focus:ring-blue-500 focus:ring-2">
+                                                        @if(val.value !== undefined && val.value !== null){
+                                                            <label [title]="getCharacteristicValueLabel(val)" for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 text-wrap break-all">{{ getCharacteristicValuePreview(val) }}</label>
+                                                        } @else {
+                                                            <label [title]="getCharacteristicRangeLabel(val)" for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 text-wrap break-all">{{ getCharacteristicRangePreview(val) }}</label>
+                                                        }
+                                                    </div>
                                                 }
-                                            </div>
+                                            }
                                         }
-                                    }
+                                    </div>
                                 </div>
                             </div>
                         } @empty {

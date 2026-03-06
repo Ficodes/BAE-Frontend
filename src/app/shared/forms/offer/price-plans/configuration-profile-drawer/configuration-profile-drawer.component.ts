@@ -35,9 +35,12 @@ export class ConfigurationProfileDrawerComponent implements OnInit {
     let profileChars = [];
     for(let i=0;i<this.profileData.length;i++){
       //if (!certifications.some(certification => certification.name === this.profileData[i].name) && this.profileData[i].name != 'Compliance:SelfAtt') {
+      const charName = (this.profileData[i]?.name ?? '').toString().trim();
+      const isOptionalToggle = charName.toLowerCase().endsWith('- enabled');
 
-      if (!certifications.some(certification => certification.name === this.profileData[i].name)
-          && !this.profileData[i].name.startsWith('Compliance:')
+      if (!certifications.some(certification => certification.name === charName)
+          && !charName.startsWith('Compliance:')
+          && !isOptionalToggle
           && this.profileData[i].valueType != 'credentialsConfiguration'
           && this.profileData[i].valueType != 'authorizationPolicy') {
         profileChars.push(this.profileData[i]);
@@ -57,12 +60,13 @@ export class ConfigurationProfileDrawerComponent implements OnInit {
 
 
   private createCharacteristicForm(char: any): FormGroup {
+    const defaultOption = char.productSpecCharacteristicValue.find((v: any) => v.isDefault);
+    const defaultValue = defaultOption?.value ?? defaultOption?.valueFrom ?? '';
+
     return this.fb.group({
       id: new FormControl(char.id),
       name: new FormControl(char.name),
-      selectedValue: new FormControl(
-        char.productSpecCharacteristicValue.find((v: any) => v.isDefault)?.value || ''
-      ),
+      selectedValue: new FormControl(defaultValue),
       options: new FormControl(char.productSpecCharacteristicValue || [])
     });
   }
@@ -72,7 +76,16 @@ export class ConfigurationProfileDrawerComponent implements OnInit {
   }
 
   changeProfileValue(index: number, event: any) {
-    this.characteristics.at(index).patchValue({ selectedValue: event.target.value });
+    const rawValue = event.target.value;
+    let parsedValue: any = rawValue;
+
+    if (rawValue === 'true') {
+      parsedValue = true;
+    } else if (rawValue === 'false') {
+      parsedValue = false;
+    }
+
+    this.characteristics.at(index).patchValue({ selectedValue: parsedValue });
     console.log(this.characteristics.at(index))
   }
 

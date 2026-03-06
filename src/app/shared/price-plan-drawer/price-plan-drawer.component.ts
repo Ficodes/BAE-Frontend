@@ -68,6 +68,7 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
   rangeCharacteristics: ProductSpecificationCharacteristic[] = [];
   disabledCharacteristics: any[] = [];
   canBeDisabledChars: any[]=[];
+  private readonly boundHandleEscape = (event: KeyboardEvent) => this.handleEscape(event);
 
   @HostListener('document:keydown.escape', ['$event'])
   handleEscape(event: KeyboardEvent): void {
@@ -95,7 +96,8 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // Escuchar eventos de teclado (por si necesitas otros)
-    document.addEventListener('keydown', this.handleEscape.bind(this));
+    document.addEventListener('keydown', this.boundHandleEscape);
+    this.toggleBodyScroll(this.isOpen);
     // Configurar los términos y condiciones
     this.tsAndCs = { description: '' };
     console.log('---- producto')
@@ -134,6 +136,10 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['isOpen']) {
+      this.toggleBodyScroll(!!changes['isOpen'].currentValue);
+    }
+
     if (changes['prodSpec'] && this.isFree) {
       this.characteristics = this.prodSpec.productSpecCharacteristic || [];
       this.filterCharacteristics();
@@ -187,13 +193,20 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     // Eliminar eventos de teclado al destruir el componente
-    document.removeEventListener('keydown', this.handleEscape.bind(this));
+    document.removeEventListener('keydown', this.boundHandleEscape);
+    this.toggleBodyScroll(false);
   }
 
   // Método para cerrar el drawer
   onClose(): void {
     this.isOpen = false;
+    this.toggleBodyScroll(false);
     this.closeDrawer.emit();
+  }
+
+  private toggleBodyScroll(lockScroll: boolean): void {
+    document.body.style.overflow = lockScroll ? 'hidden' : '';
+    document.documentElement.style.overflow = lockScroll ? 'hidden' : '';
   }
 
   disableChars(){

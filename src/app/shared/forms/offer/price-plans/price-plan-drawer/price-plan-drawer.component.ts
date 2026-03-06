@@ -308,14 +308,18 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
   currentPage = 0;
   pageSize = 5;
 
+  private isOptionalToggleCharacteristicName(name: any): boolean {
+    return (name ?? '').toString().trim().toLowerCase().endsWith('- enabled');
+  }
+
   get paginatedProfileData() {
-    const data = this.formGroup?.get('prodSpecCharValueUse')?.value || [];
+    const data = this.getProcessedProfileData();
     const startIndex = this.currentPage * this.pageSize;
     return data.slice(startIndex, startIndex + this.pageSize);
   }
 
   get totalPages() {
-    const data = this.formGroup?.get('prodSpecCharValueUse')?.value || [];
+    const data = this.getProcessedProfileData();
     return Math.ceil(data.length / this.pageSize);
   }
 
@@ -333,12 +337,15 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
 
   getProcessedProfileData() {
     if(this.formGroup?.get('prodSpecCharValueUse')?.value){
-      return this.formGroup?.get('prodSpecCharValueUse')?.value?.map((char: any) => ({
+      return this.formGroup?.get('prodSpecCharValueUse')?.value
+        ?.filter((char: any) => !this.isOptionalToggleCharacteristicName(char?.name))
+        .map((char: any) => ({
         ...char,
         selectedValue: char.productSpecCharacteristicValue?.find((v: any) => v.isDefault) || null
       })) || [];
     } else {
       return this.formGroup?.get('productProfile')?.value?.selectedValues
+        ?.filter((char: any) => !this.isOptionalToggleCharacteristicName(char?.name)) || [];
     }
 
   }
@@ -353,7 +360,7 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
           ...char,
           productSpecCharacteristicValue: char.productSpecCharacteristicValue.map((opt: any) => ({
             ...opt,
-            isDefault: opt.value === selectedChar.selectedValue, // Set isDefault to true if it matches
+            isDefault: String(opt.value) === String(selectedChar.selectedValue), // Keep matching stable for boolean values from select controls
           })),
         };
       }

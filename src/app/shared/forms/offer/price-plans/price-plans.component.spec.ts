@@ -24,4 +24,20 @@ describe('PricePlansComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('mapProductProfile should keep boolean false selectedValue', () => {
+    const mapped = (component as any).mapProductProfile([
+      {
+        id: 'char-1',
+        name: 'platinum',
+        productSpecCharacteristicValue: [
+          { value: true, isDefault: false },
+          { value: false, isDefault: true }
+        ]
+      }
+    ]);
+
+    const selectedValues = mapped.get('selectedValues') as any;
+    expect(selectedValues.at(0).get('selectedValue')?.value).toBeFalse();
+  });
 });

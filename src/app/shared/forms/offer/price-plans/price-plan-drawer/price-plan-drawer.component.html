@@ -74,7 +74,7 @@
               {{ 'FORMS.PRICE_PLANS._config_profile' | translate }}
             </h3>
           @if(!checkPriceCompChars()){
-          @if ((formGroup.get('prodSpecCharValueUse')?.value?.length > 0) || (formGroup.get('productProfile')?.value?.selectedValues.length > 0)){      
+          @if (getProcessedProfileData().length > 0){      
             <div class="overflow-x-auto">
               <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
@@ -84,11 +84,11 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr *ngFor="let char of getProcessedProfileData()" class="bg-white dark:bg-gray-800 border-b">
+                <tr *ngFor="let char of paginatedProfileData" class="bg-white dark:bg-gray-800 border-b">
                   <td class="px-4 py-1">{{ char.name }}</td>
                   <td class="px-4 py-1">
-                    @if (char.selectedValue) {
-                      @if(char.selectedValue.value){
+                    @if (char.selectedValue !== null && char.selectedValue !== undefined) {
+                      @if(char.selectedValue?.value !== undefined){
                         {{ char.selectedValue.value }}
                         {{ char.selectedValue.unitOfMeasure || '' }}
                       } @else {
