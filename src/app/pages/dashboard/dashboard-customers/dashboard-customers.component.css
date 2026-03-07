@@ -1,0 +1,109 @@
+.dc-wrap {
+  position: relative;
+  width: 100%;
+  isolation: isolate;
+}
+
+.dc-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #f3f6ff;
+}
+
+.dc-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* ellissi visibili (radial gradient), blur leggero */
+.dc-ellipse {
+  position: absolute;
+  width: 720px;
+  height: 720px;
+  border-radius: 9999px;
+  transform: rotate(180deg);
+  opacity: 1;
+
+  background: radial-gradient(circle at 35% 35%,
+      rgba(182, 202, 236, 0.95) 0%,
+      rgba(182, 202, 236, 0.65) 38%,
+      rgba(182, 202, 236, 0) 72%);
+
+  filter: blur(10px);
+}
+
+/* posizioni (più simili al render figma) */
+.dc-e1 {
+  left: -220px;
+  top: -190px;
+}
+
+.dc-e2 {
+  right: -260px;
+  top: 60px;
+}
+
+.dc-e3 {
+  left: 50%;
+  top: -240px;
+  transform: translateX(-50%) rotate(180deg);
+}
+
+.dc-e4 {
+  left: 140px;
+  bottom: -360px;
+}
+
+/* overlay figma: gradiente + blur, ma NON esagerato */
+.dc-blur {
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(226.59deg,
+      rgba(255, 242, 242, 0.18) 25.7%,
+      rgba(255, 250, 250, 0.28) 94.73%);
+
+  backdrop-filter: blur(90px);
+  -webkit-backdrop-filter: blur(90px);
+
+  transform: rotate(180deg);
+}
+
+/* responsive */
+@media (max-width: 1024px) {
+  .dc-ellipse {
+    width: 620px;
+    height: 620px;
+    filter: blur(9px);
+  }
+
+  .dc-e2 {
+    right: -300px;
+  }
+}
+
+@media (max-width: 640px) {
+  .dc-ellipse {
+    width: 520px;
+    height: 520px;
+    filter: blur(8px);
+  }
+
+  .dc-e1 {
+    left: -280px;
+    top: -230px;
+  }
+
+  .dc-e2 {
+    right: -320px;
+    top: 10px;
+  }
+
+  .dc-e4 {
+    left: 40px;
+    bottom: -380px;
+  }
+}

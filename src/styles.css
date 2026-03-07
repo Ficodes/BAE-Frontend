@@ -17,6 +17,10 @@
   }
 }
 
+.blinker {
+  font-family: "Blinker", system-ui, sans-serif;
+}
+
 /* El resto de tus estilos... */
 :root {
   /* Default light mode colors */
@@ -35,7 +39,8 @@
 }
 
 ngx-file-drop .ngx-file-drop__drop-zone {
-  border-color: rgb(var(--theme-primary-100)) !important; /* your theme color */
+  border-color: rgb(var(--theme-primary-100)) !important;
+  /* your theme color */
 }
 
 /* Default styles for Markdown elements */
@@ -80,24 +85,29 @@ markdown h6 {
   font-weight: bold;
   margin-bottom: 0.5em;
 }
+
 .price-plan markdown h2 {
   font-size: 1em;
   font-weight: bold;
   margin-bottom: 0.5em;
 }
+
 .price-plan markdown h3 {
   font-size: 0.83em;
   font-weight: bold;
   margin-bottom: 0.5em;
 }
+
 .price-plan markdown h4 {
   font-size: 0.67em;
   margin-bottom: 0.5em;
 }
+
 .price-plan markdown h5 {
   font-size: 0.5em;
   margin-bottom: 0.5em;
 }
+
 .price-plan markdown h6 {
   font-size: 0.5em;
   margin-bottom: 0.5em;
@@ -193,18 +203,18 @@ markdown a:hover {
   text-decoration: underline;
 }
 
-   :root {
-     fa-layers {
-       /*font-size: 1.5em;*/
+:root {
+  fa-layers {
+    /*font-size: 1.5em;*/
 
-       fa-layers-counter {
-         font-size: 2em;
-         position: absolute;
-         top: -0.1em;
-         right: -0.1em;
-       }
-     }
-   }
+    fa-layers-counter {
+      font-size: 2em;
+      position: absolute;
+      top: -0.1em;
+      right: -0.1em;
+    }
+  }
+}
 
 /* Autofill background configuration */
 :root {

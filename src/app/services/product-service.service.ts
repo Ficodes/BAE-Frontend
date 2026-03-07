@@ -1,14 +1,13 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import {catchError, lastValueFrom, map, Observable, of} from 'rxjs';
-import { Category, LoginInfo } from '../models/interfaces';
-import { environment } from 'src/environments/environment';
-import {components} from "../models/product-catalog";
-type ProductOffering = components["schemas"]["ProductOffering"];
-import {LocalStorageService} from "./local-storage.service";
-import * as moment from 'moment';
-import { ProductOffering as ProductOfferingModel } from '../models/product.model';
 import { jwtDecode } from "jwt-decode";
+import { catchError, lastValueFrom, Observable, of } from 'rxjs';
+import { environment } from 'src/environments/environment';
+import { Category } from '../models/interfaces';
+import { components } from "../models/product-catalog";
+import { ProductOffering as ProductOfferingModel } from '../models/product.model';
+import { LocalStorageService } from "./local-storage.service";
+type ProductOffering = components["schemas"]["ProductOffering"];
 
 @Injectable({
   providedIn: 'root'
@@ -17,27 +16,27 @@ export class ApiServiceService {
   public static BASE_URL: String = environment.BASE_URL;
   public static API_PRODUCT: String = environment.PRODUCT_CATALOG;
   public static PRODUCT_LIMIT: number = environment.PRODUCT_LIMIT;
-  public static CATALOG_LIMIT: number= environment.CATALOG_LIMIT;
+  public static CATALOG_LIMIT: number = environment.CATALOG_LIMIT;
   public static CATEGORY_LIMIT: number = environment.CATEGORY_LIMIT;
 
-  constructor(private http: HttpClient,private localStorage: LocalStorageService) { }
+  constructor(private http: HttpClient, private localStorage: LocalStorageService) { }
 
   getAllProducts(): Observable<ProductOfferingModel[]> {
-    const fakeLimit = 999;
-    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering?lifecycleStatus=Launched&limit=${fakeLimit}`;
+    const productsLimit = 100;
+    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering?lifecycleStatus=Launched&limit=${productsLimit}`;
     return this.http.get<ProductOfferingModel[]>(url);
   }
 
-  getProducts(page:any,keywords:any) {
+  getProducts(page: any, keywords: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering?limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}&lifecycleStatus=Launched`;
-    if(keywords!=undefined){
-      url=url+'&keyword='+keywords;
+    if (keywords != undefined) {
+      url = url + '&keyword=' + keywords;
     }
 
     return lastValueFrom(this.http.get<any[]>(url));
   }
 
-  async getProductsDetails(offers:any[]){
+  async getProductsDetails(offers: any[]) {
     let normalized: any[] = [];
 
     if (Array.isArray(offers)) {
@@ -45,7 +44,7 @@ export class ApiServiceService {
     } else if (offers && typeof offers === 'object') {
       normalized = [offers]; // wrap single object into array
     }
-    return await Promise.all(normalized.map(async (offer:any): Promise<ProductOffering> => {
+    return await Promise.all(normalized.map(async (offer: any): Promise<ProductOffering> => {
       try {
         // Getting specs and prices in parallel
         const [spec, prodPrices] = await Promise.all([
@@ -96,10 +95,10 @@ export class ApiServiceService {
     }));
   }
 
-  getProductsByCategory(ids:Category[],page:any,keywords:any) {
-    let id_str='';
-    for(let i = 0; i < ids.length; i++){
-      if(i == 0){
+  getProductsByCategory(ids: Category[], page: any, keywords: any) {
+    let id_str = '';
+    for (let i = 0; i < ids.length; i++) {
+      if (i == 0) {
         id_str = 'category.id=' + ids[i].id
       } else {
         id_str = id_str + ',' + ids[i].id
@@ -116,25 +115,25 @@ export class ApiServiceService {
     } else {
       url = `${baseUrl}?${query}`
     }
-    if(keywords!=undefined){
-      url=url+'&keyword='+keywords;
+    if (keywords != undefined) {
+      url = url + '&keyword=' + keywords;
     }
     return lastValueFrom(this.http.get<any[]>(url));
   }
 
-  getProductsByCatalog(catalogId:any,page:any){
+  getProductsByCatalog(catalogId: any, page: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog/${catalogId}/productOffering?lifecycleStatus=Launched&limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}`
 
     return lastValueFrom(this.http.get<any[]>(url));
   }
 
-  getProductsByCategoryAndCatalog(ids:Category[],catalogId:any,page:any) {
-    let id_str='';
-    for(let i=0; i<ids.length;i++){
-      if(i==0){
-        id_str = 'category.id='+ids[i].id
+  getProductsByCategoryAndCatalog(ids: Category[], catalogId: any, page: any) {
+    let id_str = '';
+    for (let i = 0; i < ids.length; i++) {
+      if (i == 0) {
+        id_str = 'category.id=' + ids[i].id
       } else {
-        id_str = id_str+','+ids[i].id
+        id_str = id_str + ',' + ids[i].id
       }
     }
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog/${catalogId}/productOffering?lifecycleStatus=Launched&${id_str}&limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}`;
@@ -142,43 +141,43 @@ export class ApiServiceService {
     return lastValueFrom(this.http.get<any[]>(url));
   }
 
-  getProductById(id:any) {
+  getProductById(id: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering/${id}`;
 
     return lastValueFrom(this.http.get<any>(url));
   }
 
-  getProductOfferByOwner(page:any, status:any[], partyId:any, sort:any, isBundle:any) {
+  getProductOfferByOwner(page: any, status: any[], partyId: any, sort: any, isBundle: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering?limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}&relatedParty.id=${partyId}`;
 
-    if(sort!=undefined){
-      url=url+'&sort='+sort
+    if (sort != undefined) {
+      url = url + '&sort=' + sort
     }
-    if(isBundle!=undefined){
-      url=url+'&isBundle='+isBundle
+    if (isBundle != undefined) {
+      url = url + '&isBundle=' + isBundle
     }
-    let lifeStatus=''
-    if(status.length>0){
-      for(let i=0; i < status.length; i++){
-        if(i==status.length-1){
-          lifeStatus=lifeStatus+status[i]
+    let lifeStatus = ''
+    if (status.length > 0) {
+      for (let i = 0; i < status.length; i++) {
+        if (i == status.length - 1) {
+          lifeStatus = lifeStatus + status[i]
         } else {
-          lifeStatus=lifeStatus+status[i]+','
+          lifeStatus = lifeStatus + status[i] + ','
         }
       }
-      url=url+'&lifecycleStatus='+lifeStatus;
+      url = url + '&lifecycleStatus=' + lifeStatus;
     }
 
     return lastValueFrom(this.http.get<any>(url));
   }
 
-  getProductSpecification(id:any) {
+  getProductSpecification(id: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productSpecification/${id}`;
 
     return lastValueFrom(this.http.get<any>(url));
   }
 
-  getProductPrice(id:any) {
+  getProductPrice(id: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOfferingPrice/${id}`
 
     return lastValueFrom(this.http.get<any>(url));
@@ -197,18 +196,18 @@ export class ApiServiceService {
     );
   }
 
-  getCategories(status:any[]){
+  getCategories(status: any[]) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/category?limit=${ApiServiceService.CATEGORY_LIMIT}`;
-    let lifeStatus=''
-    if(status.length>0){
-      for(let i=0; i < status.length; i++){
-        if(i==status.length-1){
-          lifeStatus=lifeStatus+status[i]
+    let lifeStatus = ''
+    if (status.length > 0) {
+      for (let i = 0; i < status.length; i++) {
+        if (i == status.length - 1) {
+          lifeStatus = lifeStatus + status[i]
         } else {
-          lifeStatus=lifeStatus+status[i]+','
+          lifeStatus = lifeStatus + status[i] + ','
         }
       }
-      url=url+'&lifecycleStatus='+lifeStatus;
+      url = url + '&lifecycleStatus=' + lifeStatus;
     }
 
     return lastValueFrom(
@@ -226,7 +225,7 @@ export class ApiServiceService {
     if (environment.DFT_CATALOG_ID && environment.DFT_CATALOG_ID !== '') {
       // Return the default catalog categories
       const catalog = await this.getCatalog(environment.DFT_CATALOG_ID);
-      if(catalog.category) {
+      if (catalog.category) {
         categories = await Promise.all(catalog.category.map(async (category: any) => {
           return this.getCategoryById(category.id)
         }));
@@ -239,33 +238,33 @@ export class ApiServiceService {
     return categories;
   }
 
-  getCategoryById(id:any) {
+  getCategoryById(id: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/category/${id}`;
 
     return lastValueFrom(this.http.get<any>(url));
   }
 
-  getCategoriesByParentId(id:any){
+  getCategoriesByParentId(id: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/category?parentId=${id}`;
 
     return lastValueFrom(this.http.get<any[]>(url));
   }
 
-  postCategory(category:any){
+  postCategory(category: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/category`;
 
     return this.http.post<any>(url, category);
   }
 
-  updateCategory(category:any,id:any){
+  updateCategory(category: any, id: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/category/${id}`;
 
     return this.http.patch<any>(url, category);
   }
 
-  getCatalogs(page:any,filter:any): Promise<any> {
+  getCatalogs(page: any, filter: any): Promise<any> {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog?limit=${ApiServiceService.CATALOG_LIMIT}&offset=${page}&lifecycleStatus=Launched`;
-    if(filter!=undefined){
+    if (filter != undefined) {
       url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog?limit=${ApiServiceService.CATALOG_LIMIT}&offset=${page}&lifecycleStatus=Launched&body=${filter}`;
     }
     console.log('getcatalogs')
@@ -274,98 +273,98 @@ export class ApiServiceService {
     return lastValueFrom(this.http.get<any>(url));
   }
 
-  getCatalogsByUser(page:any,filter:any,status:any[],partyId:any) {
+  getCatalogsByUser(page: any, filter: any, status: any[], partyId: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog?limit=${ApiServiceService.CATALOG_LIMIT}&offset=${page}&relatedParty.id=${partyId}`;
-    let lifeStatus=''
-    if(status)
-    if(status.length>0){
-      for(let i=0; i < status.length; i++){
-        if(i==status.length-1){
-          lifeStatus=lifeStatus+status[i]
-        } else {
-          lifeStatus=lifeStatus+status[i]+','
+    let lifeStatus = ''
+    if (status)
+      if (status.length > 0) {
+        for (let i = 0; i < status.length; i++) {
+          if (i == status.length - 1) {
+            lifeStatus = lifeStatus + status[i]
+          } else {
+            lifeStatus = lifeStatus + status[i] + ','
+          }
         }
+        url = url + '&lifecycleStatus=' + lifeStatus;
       }
-      url=url+'&lifecycleStatus='+lifeStatus;
-    }
 
-    if(filter!=undefined){
-      url = url+`&body=${filter}`;
+    if (filter != undefined) {
+      url = url + `&body=${filter}`;
     }
 
     return lastValueFrom(this.http.get<any>(url));
   }
 
-  getCatalog(id:any){
+  getCatalog(id: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog/${id}`;
 
     return lastValueFrom(this.http.get<any>(url));
   }
 
-  postCatalog(catalog:any){
+  postCatalog(catalog: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog`;
 
     return this.http.post<any>(url, catalog);
   }
 
-  updateCatalog(catalog:any,id:any){
+  updateCatalog(catalog: any, id: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog/${id}`;
 
     return this.http.patch<any>(url, catalog);
   }
 
-  getServiceSpec(id:any){
+  getServiceSpec(id: any) {
     let url = `${ApiServiceService.BASE_URL}/service/serviceSpecification/${id}`;
 
     return lastValueFrom(this.http.get<any>(url));
   }
 
-  getResourceSpec(id:any){
+  getResourceSpec(id: any) {
     let url = `${ApiServiceService.BASE_URL}/resource/resourceSpecification/${id}`;
 
     return lastValueFrom(this.http.get<any>(url));
   }
 
-  postOfferingPrice(price:any){
+  postOfferingPrice(price: any) {
     //POST - El item va en el body de la petición
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOfferingPrice`;
     return this.http.post<any>(url, price);
   }
 
-  updateOfferingPrice(price:any,id:any){
+  updateOfferingPrice(price: any, id: any) {
     //POST - El item va en el body de la petición
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOfferingPrice/${id}`;
     return this.http.patch<any>(url, price);
   }
 
-  getOfferingPrice(id:any){
+  getOfferingPrice(id: any) {
     //POST - El item va en el body de la petición
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOfferingPrice/${id}`;
     return lastValueFrom(this.http.get<any>(url));
   }
 
-  postProductOffering(prod:any,catalogId:any){
+  postProductOffering(prod: any, catalogId: any) {
     //POST - El item va en el body de la petición
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog/${catalogId}/productOffering`;
-    if(!catalogId){
+    if (!catalogId) {
       url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering`;
-    }    
+    }
     return this.http.post<any>(url, prod);
   }
 
-  updateProductOffering(prod:any,id:any){
+  updateProductOffering(prod: any, id: any) {
     //POST - El item va en el body de la petición
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering/${id}`;
     return this.http.patch<any>(url, prod);
   }
 
-  postSLA(sla:any){
+  postSLA(sla: any) {
     //POST - El item va en el body de la petición
     let url = `${ApiServiceService.BASE_URL}/SLAManagement/sla`;
     return this.http.post<any>(url, sla);
   }
 
-  getSLA(id:any){
+  getSLA(id: any) {
     //POST - El item va en el body de la petición
     let url = `${ApiServiceService.BASE_URL}/SLAManagement/sla/${id}`;
     return lastValueFrom(this.http.get<any>(url));
@@ -374,8 +373,8 @@ export class ApiServiceService {
   getComplianceLevel(prodSpec: any) {
     let level = 'NL';
 
-    if(prodSpec.productSpecCharacteristic != undefined) {
-      let vcProf = prodSpec.productSpecCharacteristic.find(((p:any) => {
+    if (prodSpec.productSpecCharacteristic != undefined) {
+      let vcProf = prodSpec.productSpecCharacteristic.find(((p: any) => {
         return p.name === `Compliance:VC`
       }));
 
@@ -386,7 +385,7 @@ export class ApiServiceService {
 
         if ('verifiableCredential' in decoded) {
           credential = decoded.verifiableCredential;
-        } else if('vc' in decoded) {
+        } else if ('vc' in decoded) {
           credential = decoded.vc;
         }
 

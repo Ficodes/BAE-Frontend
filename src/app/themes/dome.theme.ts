@@ -5,20 +5,31 @@ const domeHeaderLinks: NavLink[] = [
 
   {
     label: 'HEADER._forCustomers',
-    url: ''
+    url: 'https://onboarding.dome-marketplace.eu/?page=buyer'
 
   },
   {
     label: 'HEADER._forProviders',
-    url: ''
+    url: 'https://onboarding.dome-marketplace.eu/?page=seller'
   },
   {
+    id: 'dropdown-marketplace',
     label: 'HEADER._marketplaceH',
-    url: ''
+    children: [{
+      label: 'HEADER._browse_serv',
+      url: '/search',
+      isRouterLink: true,
+    },
+    {
+      label: 'HEADER._catalogs',
+      url: '/catalogues',
+      isRouterLink: true
+    }
+    ]
   },
   {
     label: 'HEADER._resources',
-    url: ''
+    url: 'https://knowledgebase.dome-marketplace-prd.org/'
   },
 
   {

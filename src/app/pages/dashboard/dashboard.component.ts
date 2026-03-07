@@ -1,4 +1,4 @@
-import { NgClass, SlicePipe } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, SecurityContext } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -19,9 +19,15 @@ import { ThemeService } from 'src/app/services/theme.service';
 import { EuropeTrademarkComponent } from 'src/app/shared/europe-trademark/europe-trademark.component';
 import { ThemeConfig } from 'src/app/themes';
 import { environment } from 'src/environments/environment';
+import { DashboardCustomersComponent } from './dashboard-customers/dashboard-customers.component';
+import { DashboardEcosystemComponent } from './dashboard-ecosystem/dashboard-ecosystem.component';
+import { DashboardHeroComponent } from './dashboard-hero/dashboard-hero.component';
+import { DashboardProvidersComponent } from './dashboard-providers/dashboard-providers.component';
+import { DashboardServicesComponent } from './dashboard-services/dashboard-services.component';
+import { DashboardStatsComponent } from './dashboard-stats/dashboard-stats.component';
 import { DashboardWhatsDome } from './dashboard-whatsdome/dashboard-whatsdome.component';
 
-interface Stats {
+export interface IDashboardStats {
   services: number;
   providers: number;
 }
@@ -31,7 +37,7 @@ interface Stats {
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
   standalone: true,
-  imports: [TranslateModule, SlicePipe, EuropeTrademarkComponent, ReactiveFormsModule, FeaturedComponent, NgClass, DashboardWhatsDome],
+  imports: [TranslateModule, EuropeTrademarkComponent, ReactiveFormsModule, FeaturedComponent, NgClass, DashboardWhatsDome, DashboardHeroComponent, DashboardStatsComponent, DashboardServicesComponent, DashboardCustomersComponent, DashboardProvidersComponent, DashboardEcosystemComponent],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   private unSub = new Subject<void>();
@@ -55,7 +61,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   currentIndexPub = 0;
   delay = 2000;
 
-  stats?: Stats;
+  stats?: IDashboardStats;
 
   constructor(
     private productService: ApiServiceService,
@@ -164,7 +170,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         ),
         map((items) => {
           const result = new Set<number>();
-          const max = Math.min(3, items.length);
+          const max = Math.min(15, items.length);
 
           while (result.size < max) {
             result.add(Math.floor(Math.random() * items.length));
@@ -175,7 +181,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
         takeUntil(this.unSub),
       )
       .subscribe((picked) => {
-        this.productOfferings = picked;
+        this.productService.getProductsDetails(picked).then((data) => {
+          this.productOfferings = data as ProductOffering[];
+        })
       });
   }
 

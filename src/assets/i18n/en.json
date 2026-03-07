@@ -300,6 +300,12 @@
   },
   "europeTrademark": "Distributed Open Marketplace for Europe (DOME) Project has received funding from European Union’s Digital Europe Programme under the Grant Agreement No 101084071.",
   "DASHBOARD": {
+    "stats": {
+      "title": "A secure federated marketplace",
+      "subtitle": "EU-based compliance & data sovereignty framework with a growing ecosystem of B2B partners.",
+      "services": "Verified services available across the ecosystem",
+      "providers": "Registered and verified providers"
+    },
     "_title": "DOME Marketplace is out! See what's new",
     "_header": "Digital Trust to move forward",
     "_subheader": "Join the first open distributed marketplace ecosystem for cloud, edge & AI services in Europe.",
@@ -1344,7 +1350,7 @@
     "_marketplace": "DOME MARKETPLACE",
     "_open_menu": "Open main menu",
     "_home": "Home",
-    "_catalogs": "Providers catalogues",
+    "_catalogs": "Providers catalog",
     "_search": "Search",
     "_browse": "Browse",
     "_cloud": "Cloud Services",
@@ -1374,7 +1380,8 @@
     "_verify": "Publish your offering",
     "_info": "Info",
     "_orders": "Product Orders",
-    "_blog": "Blog"
+    "_blog": "Blog",
+    "_browse_serv": "Browse services"
   },
   "PRODUCT_DETAILS": {
     "_back": "Back",
