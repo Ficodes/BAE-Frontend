@@ -112,12 +112,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
             class="form-select rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           >
             <option value="">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="inProgress">In Progress</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-            <option value="cancelled">Cancelled</option>
-            <option value="accepted">Accepted</option>
+            <option *ngFor="let opt of filterStatusOptions" [value]="opt.value">{{ opt.label }}</option>
           </select>
         </div>
       </div>
@@ -940,6 +935,19 @@ export class TenderListComponent implements OnInit {
     }
   }
 
+  get filterStatusOptions(): { value: string; label: string }[] {
+    const labels = this.selectedRole === UI_ROLES.BUYER
+      ? TENDER_COORDINATOR_STATUSES_LABELS
+      : TENDER_RELATED_QUOTES_LABELS_PROVIDER;
+    return [
+      { value: QUOTE_STATUSES.PENDING,     label: labels.PENDING },
+      { value: QUOTE_STATUSES.IN_PROGRESS, label: labels.IN_PROGRESS },
+      { value: QUOTE_STATUSES.APPROVED,    label: labels.APPROVED },
+      { value: QUOTE_STATUSES.ACCEPTED,    label: labels.ACCEPTED },
+      { value: QUOTE_STATUSES.CANCELLED,   label: labels.CANCELLED },
+      { value: QUOTE_STATUSES.REJECTED,    label: labels.REJECTED },
+    ];
+  }
 
   viewDetails(quote: Quote) {
     this.selectedQuoteId = quote.id!;
@@ -1769,8 +1777,9 @@ export class TenderListComponent implements OnInit {
 
     switch (actionType) {
       case 'viewDetails':
-      case 'chat':
         return isCancelled; // Only disabled for cancelled quotes
+      case 'chat':
+        return false; // Chat is always available — users should be able to communicate regardless of quote status
       case 'addAttachment':
       case 'cancel':
         return isFinalized; // Disabled for both accepted and cancelled

@@ -67,6 +67,7 @@ export const environment = {
     DOME_YOUTUBE: 'https://www.youtube.com/channel/UC8UiL59S0JiaYYr14w5eOzA',
     DOME_X: 'https://x.com/DomeMarketplace',
     BUNDLE_ENABLED: false,
+    DATA_SPACE_ENABLED: false,
     DFT_CATALOG_ID: '',
     MAX_FILE_SIZE:3145728,
     providerThemeName: 'default',
@@ -92,5 +93,11 @@ export const environment = {
     ADMIN_ROLE: 'Admin',
     ORG_ADMIN_ROLE: 'orgAdmin',
     CERTIFIER_ROLE: 'certifier',
+    AI_SEARCH_ENABLED: true,
+    AI_SEARCH_API_KEY: '28791420a51be86495cab108f32221fa458469e29a04b33567b057c95878bd72',
+    AI_SEARCH_API_URL: 'https://dome.expertcustomers.ai/rag/',
+    AI_SEARCH_SCORE_THRESHOLD: 0.3,
+    AI_SEARCH_ANSWER_MAX_ITEMS: 5,
+    AI_SEARCH_PROFILE: 'dome_dev2',
     LEAR_URL: ''
 };

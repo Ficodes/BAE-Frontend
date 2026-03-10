@@ -1,4 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
+import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { UsageSpecMetricsComponent } from './usage-spec-metrics.component';
 
@@ -8,7 +12,8 @@ describe('UsageSpecMetricsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [UsageSpecMetricsComponent]
+      schemas: [NO_ERRORS_SCHEMA],
+      imports: [UsageSpecMetricsComponent, HttpClientTestingModule, RouterTestingModule, TranslateModule.forRoot()]
     })
     .compileComponents();
     

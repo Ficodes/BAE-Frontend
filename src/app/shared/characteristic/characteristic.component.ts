@@ -43,11 +43,10 @@ export class CharacteristicComponent implements OnInit {
   control = new FormControl();
 
   ngOnInit(): void {
-    const defaultValue = this.characteristic.productSpecCharacteristicValue?.find(
+    const defaultCharacteristicValue = this.characteristic.productSpecCharacteristicValue?.find(
       (val) => val.isDefault
-    )?.value || this.characteristic.productSpecCharacteristicValue?.find(
-      (val) => val.isDefault
-    )?.valueFrom;
+    );
+    const defaultValue = defaultCharacteristicValue?.value ?? defaultCharacteristicValue?.valueFrom;
 
     console.log('defaultValue: ', defaultValue);
     if (defaultValue !== undefined) {
@@ -72,6 +71,14 @@ export class CharacteristicComponent implements OnInit {
   isSlider(): boolean {
     const values = this.characteristic.productSpecCharacteristicValue;
     return values?.some((val) => val.valueFrom !== undefined && val.valueTo !== undefined) || false;
+  }
+
+  isBoolean(): boolean {
+    const values = this.characteristic.productSpecCharacteristicValue;
+    if (!values || values.length === 0) {
+      return false;
+    }
+    return values.every((val) => typeof val.value === 'boolean');
   }
 
   getSliderRange(): { min: number; max: number } | null {

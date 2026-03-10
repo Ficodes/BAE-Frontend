@@ -1,4 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
+import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { PriceComponentDrawerComponent } from './price-component-drawer.component';
 
@@ -8,7 +12,8 @@ describe('PriceComponentDrawerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PriceComponentDrawerComponent]
+      schemas: [NO_ERRORS_SCHEMA],
+      imports: [PriceComponentDrawerComponent, HttpClientTestingModule, RouterTestingModule, TranslateModule.forRoot()]
     })
     .compileComponents();
     

@@ -470,7 +470,7 @@ export class PricePlansComponent implements OnInit, OnDestroy, ControlValueAcces
             id: [spec.id],
             name: [spec.name],
             selectedValue: [
-              spec.productSpecCharacteristicValue.find((v: { isDefault: boolean }) => v.isDefault)?.value || null,
+              spec.productSpecCharacteristicValue.find((v: { isDefault: boolean }) => v.isDefault)?.value ?? null,
               Validators.required
             ]
           })

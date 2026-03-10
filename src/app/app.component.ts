@@ -21,7 +21,7 @@ import { filter } from 'rxjs';
   styleUrls: ['./app.component.css'], 
 })
 export class AppComponent implements OnInit {
-  title = 'DOME Marketplace';
+  title = 'BAE Marketplace';
   showPanel = false;
   providerThemeName=environment.providerThemeName;
   isProduction:boolean = environment.isProduction;

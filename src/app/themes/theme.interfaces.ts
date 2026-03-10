@@ -65,6 +65,7 @@ export interface DashboardConfig {
 export interface ThemeConfig {
   name: string; // Theme Id, ej: 'DOME', 'OCEAN'
   displayName?: string; // Name to be displayed, ej: 'Dome Marketplace', 'Ocean Breeze'
+  browserTitle?: string; // Browser tab title
   isDefault?: boolean; // Optional: sets default theme
   assets: ThemeAssetConfig;
   links?: ThemeLinkConfig;

@@ -1,4 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
+import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { ProviderRevenueSharingComponent } from './provider-revenue-sharing.component';
 
@@ -8,7 +12,8 @@ describe('ProviderRevenueSharingComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ProviderRevenueSharingComponent]
+      schemas: [NO_ERRORS_SCHEMA],
+      imports: [ProviderRevenueSharingComponent, HttpClientTestingModule, RouterTestingModule, TranslateModule.forRoot()]
     })
     .compileComponents();
     

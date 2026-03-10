@@ -8,6 +8,7 @@ import { QuoteService } from 'src/app/features/quotes/services/quote.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
 import { ProviderService, Provider } from 'src/app/services/provider.service';
+import { AccountServiceService } from 'src/app/services/account-service.service';
 import { Tender, TenderAttachment } from 'src/app/models/tender.model';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { API_ROLES } from 'src/app/models/roles.constants';
@@ -436,6 +437,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   private notificationService = inject(NotificationService);
   private localStorage = inject(LocalStorageService);
   private providerService = inject(ProviderService);
+  private accountService = inject(AccountServiceService);
   private router = inject(Router);
 
   // Properties for tender creation modal
@@ -520,8 +522,8 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
       }
     }
     
-    // Load filter options
-    this.loadFilterOptions();
+    // Filter options (categories, countries, compliance levels) and the provider list
+    // are loaded lazily in proceedToProviderSelection() when the user enters step 3.
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -648,6 +650,8 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
         
         // Move to Step 2: Date fields
         this.tenderCreationStep = 2;
+        // Notify the parent dashboard so the new tender appears in the list immediately
+        this.tenderUpdated.emit();
       },
       error: (error) => {
         console.error('Error creating tender:', error);
@@ -825,6 +829,16 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
         this.tenderLoading = false;
         this.notificationService.showSuccess('Tender details saved successfully!');
         this.tenderCreationStep = 3;
+
+        // Reset any previously active filters silently (emitEvent:false avoids
+        // triggering the valueChanges → emitFilters → loadTenderProviders chain)
+        this.orgFilters = { categories: [], countries: [], complianceLevels: [] };
+        this.countriesCtrl.setValue([], { emitEvent: false });
+        this.categoriesCtrl.setValue([], { emitEvent: false });
+        this.complianceLevelsCtrl.setValue([], { emitEvent: false });
+
+        // Load filter criteria and the provider list in parallel
+        this.loadFilterOptions();
         this.loadTenderProviders();
       },
       error: (error: any) => {
@@ -836,51 +850,29 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Load providers from the provider API
+   * Load providers from the search API.
+   * An empty result set is valid (no providers match the active filters).
+   * Only falls back to the full party-organisation list when the search
+   * endpoint returns an actual HTTP error.
    */
   loadTenderProviders() {
     this.tenderLoading = true;
     this.tenderError = null;
 
-    console.log('Loading providers from API...');
-
     this.providerService.getProvidersForTenderNew(this.orgFilters).subscribe({
       next: (providers) => {
-        // If search endpoint returns empty or fails, fallback to basic endpoint
-        if (!providers || providers.length === 0) {
-          console.log('Search returned no providers, trying fallback endpoint...');
-          this.providerService.getProvidersForTender().subscribe({
-            next: (fallbackProviders) => {
-              this.tenderProviders = fallbackProviders;
-              console.log('Fallback loaded providers:', fallbackProviders.length);
-              this.tenderLoading = false;
-              this.updateAvailableProviders();
+        this.tenderProviders = providers ?? [];
+        console.log('Search loaded providers:', this.tenderProviders.length);
+        this.tenderLoading = false;
+        this.updateAvailableProviders();
 
-              if (this.tenderCreationStep === 3) {
-                this.loadInvitedProviders();
-              }
-            },
-            error: (fallbackErr) => {
-              this.tenderError = 'Failed to load providers from both endpoints: ' + (fallbackErr.message || 'Unknown error');
-              this.tenderLoading = false;
-              console.error('Fallback endpoint also failed:', fallbackErr);
-            }
-          });
-        } else {
-          this.tenderProviders = providers;
-          console.log('Search loaded providers:', providers.length);
-          this.tenderLoading = false;
-          this.updateAvailableProviders();
-
-          // After providers are loaded, load invited providers (if in edit mode)
-          if (this.tenderCreationStep === 3) {
-            this.loadInvitedProviders();
-          }
+        if (this.tenderCreationStep === 3) {
+          this.loadInvitedProviders();
         }
       },
       error: (err) => {
-        // Search endpoint failed completely, try fallback
-        console.warn('Search endpoint failed, trying fallback...', err);
+        // HTTP error from the search endpoint — fall back to the full organisation list
+        console.warn('Search endpoint returned an error, falling back to full provider list:', err);
         this.providerService.getProvidersForTender().subscribe({
           next: (fallbackProviders) => {
             this.tenderProviders = fallbackProviders;
@@ -895,7 +887,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
           error: (fallbackErr) => {
             this.tenderError = 'Failed to load providers: ' + (fallbackErr.message || 'Unknown error');
             this.tenderLoading = false;
-            console.error('Error loading tender providers:', fallbackErr);
+            console.error('Fallback endpoint also failed:', fallbackErr);
           }
         });
       }
@@ -987,7 +979,13 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Load already invited providers by fetching tendering quotes with the coordinator quote's externalId
+   * Load already invited providers by fetching tendering quotes with the coordinator quote's externalId.
+   *
+   * Name resolution priority:
+   *  1. Match the provider's org URN (tender.selectedProviders[0]) against the already-loaded
+   *     tenderProviders list — this covers the common case with no extra API calls.
+   *  2. Fall back to AccountServiceService.getOrgInfo() for providers not in the cached list
+   *     (e.g. when reopening the modal without navigating to the provider-search step first).
    */
   loadInvitedProviders() {
     if (!this.createdQuoteId || !this.currentUserId) {
@@ -998,34 +996,46 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
     console.log('Loading invited providers for externalId:', this.createdQuoteId);
 
     this.tenderLoading = true;
-    
+
     this.quoteService.getTenderingQuotesByUser(this.currentUserId, API_ROLES.BUYER).subscribe({
-      next: (tenders) => {
+      next: async (tenders) => {
         console.log('Received tenders:', tenders);
-        
-        // Clear existing invited providers
-        this.invitedProviders = [];
-        
-        // Filter tenders that match our createdQuoteId as externalId
-        const matchingTenders = tenders.filter(t => t.external_id === this.createdQuoteId);
-        
-        // Convert to invited providers format
-        matchingTenders.forEach(tender => {
-          // TODO: Get proper provider info once provider service is available
-          const provider: Provider = {
-            id: tender.provider || undefined,
-            tradingName: tender.provider || 'Unknown Provider'
-          };
-          
-          if (tender.id) {
-            this.invitedProviders.push({
-              provider: provider,
-              quoteId: tender.id
-            });
-            console.log('Added invited provider:', provider.tradingName, 'with quote ID:', tender.id);
-          }
-        });
-        
+
+        // Filter tenders that match our coordinator quote as their parent
+        const matchingTenders = tenders.filter(t => t.external_id === this.createdQuoteId && !!t.id);
+
+        // Resolve provider display names, then populate invitedProviders
+        const entries = await Promise.all(
+          matchingTenders.map(async (tender) => {
+            // The org URN lives in selectedProviders[0] (mapped from relatedParty[Seller].id)
+            const providerOrgUrn = tender.selectedProviders?.[0];
+
+            // 1. Try the already-loaded provider list first (no extra network call)
+            const knownProvider = providerOrgUrn
+              ? this.tenderProviders.find(p => p.id === providerOrgUrn)
+              : undefined;
+
+            if (knownProvider) {
+              return { provider: knownProvider, quoteId: tender.id! };
+            }
+
+            // 2. Fall back to account service to get the trading name by org URN
+            let tradingName = providerOrgUrn || 'Unknown Provider';
+            if (providerOrgUrn) {
+              try {
+                const org = await this.accountService.getOrgInfo(providerOrgUrn);
+                tradingName = org?.tradingName || org?.name || providerOrgUrn;
+              } catch {
+                // Network error — keep the URN as a recognisable fallback
+              }
+            }
+
+            const provider: Provider = { id: providerOrgUrn, tradingName };
+            return { provider, quoteId: tender.id! };
+          })
+        );
+
+        this.invitedProviders = entries;
         console.log('Total invited providers loaded:', this.invitedProviders.length);
         this.tenderLoading = false;
       },
@@ -1155,8 +1165,33 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
             this.tenderLoading = false;
           },
           error: (error) => {
-            console.error('Error deleting quote:', error);
-            this.notificationService.showError('Failed to remove provider invitation: ' + (error.message || 'Unknown error'));
+            // TEMPORARY WORKAROUND — sandbox environment issue:
+            // The TMForum/BAE backend successfully deletes the quote but then attempts to
+            // notify a downstream microservice (charging/events) that is unreachable in sandbox.
+            // This causes the BAE to return 500 {error: "Service unreachable"} AFTER the deletion
+            // has already completed. As a result, the HTTP 500 reaches this error handler even
+            // though the underlying operation succeeded.
+            //
+            // We detect this specific case (HTTP 500 + "Service unreachable" in the response body)
+            // and treat it as a success so the UI stays consistent with the actual backend state.
+            //
+            // TODO: Remove this workaround once the sandbox downstream service is reachable
+            // and the BAE no longer returns 500 on successful quote deletion.
+            const isKnownFalsePositive =
+              error.status === 500 &&
+              error.error?.error === 'Service unreachable';
+
+            if (isKnownFalsePositive) {
+              console.warn(
+                '[WORKAROUND] deleteQuote returned 500 "Service unreachable" for quoteId:', quoteId,
+                '— quote was deleted on the backend. Removing from UI anyway.'
+              );
+              this.invitedProviders = this.invitedProviders.filter(ip => ip.quoteId !== quoteId);
+              this.notificationService.showSuccess('Provider invitation removed successfully');
+            } else {
+              console.error('Error deleting quote:', error);
+              this.notificationService.showError('Failed to remove provider invitation: ' + (error.message || 'Unknown error'));
+            }
             this.tenderLoading = false;
           }
         });
@@ -1245,10 +1280,11 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Load filter options (countries, categories, compliance levels)
+   * Load filter options (countries, categories, compliance levels).
+   * Only fetches the option lists — does NOT reset selected filter values
+   * or trigger a provider reload.
    */
   private loadFilterOptions(): void {
-    this.clearFilters();
     this.providerService.getFilterOptions().subscribe({
       next: ({ categories, countries, complianceLevels }) => {
         this.categoriesOptions = categories ?? [];

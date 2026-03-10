@@ -92,11 +92,7 @@ import { environment } from 'src/environments/environment';
             class="form-select rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           >
             <option value="">All Statuses</option>
-            <option [value]="QUOTE_STATUSES.PENDING">Pending</option>
-            <option [value]="QUOTE_STATUSES.IN_PROGRESS">In Progress</option>
-            <option [value]="QUOTE_STATUSES.APPROVED">Approved</option>
-            <option [value]="QUOTE_STATUSES.CANCELLED">Cancelled</option>
-            <option [value]="QUOTE_STATUSES.ACCEPTED">Accepted</option>
+            <option *ngFor="let opt of filterStatusOptions" [value]="opt.value">{{ opt.label }}</option>
           </select>
         </div>
       </div>
@@ -605,6 +601,20 @@ export class QuoteListComponent implements OnInit {
     });
   }
 
+  get filterStatusOptions(): { value: string; label: string }[] {
+    const labels = this.selectedRole === 'customer'
+      ? TAILORED_STATUSES_LABELS_CUSTOMER
+      : TAILORED_STATUSES_LABELS_PROVIDER;
+    return [
+      { value: QUOTE_STATUSES.PENDING,     label: labels.PENDING },
+      { value: QUOTE_STATUSES.IN_PROGRESS, label: labels.IN_PROGRESS },
+      { value: QUOTE_STATUSES.APPROVED,    label: labels.APPROVED },
+      { value: QUOTE_STATUSES.ACCEPTED,    label: labels.ACCEPTED },
+      { value: QUOTE_STATUSES.CANCELLED,   label: labels.CANCELLED },
+      { value: QUOTE_STATUSES.REJECTED,    label: labels.REJECTED },
+    ];
+  }
+
   createQuote() {
     this.router.navigate(['/quotes/new']);
   }
@@ -1058,8 +1068,9 @@ export class QuoteListComponent implements OnInit {
 
     switch (actionType) {
       case 'viewDetails':
-      case 'chat':
         return isCancelled; // Only disabled for cancelled quotes
+      case 'chat':
+        return false; // Chat is always available — users should be able to communicate regardless of quote status
       case 'addAttachment':
       case 'cancel':
         return isFinalized; // Disabled for both accepted and cancelled
