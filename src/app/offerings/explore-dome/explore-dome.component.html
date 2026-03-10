@@ -1,0 +1,35 @@
+<div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16">
+    <div class="bg-cover bg-right-bottom bg-opacity-25 rounded-lg" style="background-image: url(assets/images/bg_2_shadow.png)">
+        <div class="px-5 py-5 bg-blue-900/20 rounded-lg">
+            <h2 class="pb-2 text-5xl font-extrabold text-white mb-4 text-center pt-8">{{ 'EXPLORE._title' | translate }}</h2>
+            <p class="mb-8 text-lg font-normal text-gray-300 lg:text-xl sm:px-16 xl:px-48 text-center">{{ 'EXPLORE._subtitle' | translate }}</p>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-4 pb-4 pl-8 pr-8 lg:pl-16 lg:pr-16">
+                <div class="m-2">
+                    <h2 class="pb-2 text-xl font-extrabold text-white mb-4 text-start">{{ 'EXPLORE._events_title' | translate }}</h2>
+                    <p class="mb-8 text-base font-normal text-gray-300 text-start">{{ 'EXPLORE._events_desc' | translate }}</p>
+                </div>
+                <div class="m-2">
+                    <h2 class="pb-2 text-xl font-extrabold text-white mb-4 text-start">{{ 'EXPLORE._updates_title' | translate }}</h2>
+                    <p class="mb-8 text-base font-normal text-gray-300 text-start">{{ 'EXPLORE._updates_desc' | translate }}</p>
+                </div>
+                <div class="m-2">
+                    <h2 class="pb-2 text-xl font-extrabold text-white mb-4 text-start">{{ 'EXPLORE._resources_title' | translate }}</h2>
+                    <p class="mb-8 text-base font-normal text-gray-300 text-start">{{ 'EXPLORE._resources_desc' | translate }}</p>
+                </div>
+    
+            </div>
+
+            <div class="flex items-center justify-center pb-8">
+                <a href="{{domeAbout}}" target="_blank" class="h-fit w-fit text-primary-100 bg-white hover:bg-primary-50 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                    
+                    <svg class="mr-2 rtl:rotate-180 w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                    </svg>
+                    {{ 'EXPLORE._go' | translate }}
+                </a>
+                   
+            </div>
+        </div>
+
+    </div>
+</div>

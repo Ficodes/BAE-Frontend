@@ -1,0 +1,143 @@
+@import url("https://fonts.googleapis.com/css2?family=Blinker:wght@300;400;600;700;800&display=swap");
+
+:host {
+  --primary-100: #b6caec;
+}
+
+.ellipse {
+  position: absolute;
+  background: var(--primary-100);
+  border-radius: 9999px;
+  transform: rotate(180deg);
+}
+
+.effect1 {
+  left: -7.76%;
+  top: -1.15%;
+  width: 47.43%;
+  height: 85.08%;
+}
+
+.effect2 {
+  left: 84.37%;
+  top: 13.53%;
+  width: 31.25%;
+  height: 57.66%;
+}
+
+.effect3 {
+  left: 32.6%;
+  top: 0%;
+  width: 34.79%;
+  height: 63.67%;
+}
+
+.effect4 {
+  left: 13.33%;
+  top: 48.02%;
+  width: 24.68%;
+  height: 46.51%;
+}
+
+.blur-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(226.59deg,
+      rgba(255, 242, 242, 0.03) 25.7%,
+      rgba(255, 250, 250, 0.07) 94.73%);
+  backdrop-filter: blur(187.5px);
+  -webkit-backdrop-filter: blur(187.5px);
+  transform: rotate(180deg);
+}
+
+.icon-badge {
+  width: 70px;
+  height: 45px;
+  border-radius: 9999px;
+  background: white;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-badge fa-icon {
+  font-size: 22px;
+  color: #1f5bb5;
+}
+
+.feature-title {
+  font-weight: 700;
+  font-size: 20px;
+  color: #0f172a;
+}
+
+.feature-desc {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #111827;
+}
+
+.dome-watermark {
+  position: absolute;
+  left: -157px;
+  bottom: -138px;
+  width: 652px;
+  height: auto;
+  opacity: 0.3;
+  pointer-events: none;
+  user-select: none;
+  filter: blur(0.2px);
+  z-index: 1;
+
+}
+
+@media (max-width: 1024px) {
+  .dome-watermark {
+    width: 340px;
+    left: -95px;
+    bottom: -120px;
+    opacity: 0.8;
+  }
+}
+
+@media (max-width: 640px) {
+  .dome-watermark {
+    width: 260px;
+    left: -80px;
+    bottom: -95px;
+    opacity: 0.8;
+  }
+}
+
+.hover-card {
+  padding: 22px 26px;
+  border-radius: 28px;
+
+  transition:
+    background 0.35s ease,
+    box-shadow 0.35s ease,
+    transform 0.35s ease;
+}
+
+
+.hover-card:hover {
+  background: rgba(255, 255, 255, 0.75);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  transform: translateY(-4px);
+
+  box-shadow:
+    0 20px 40px rgba(15, 23, 42, 0.08),
+    0 4px 10px rgba(15, 23, 42, 0.05);
+}
+
+.hover-card:hover .icon-badge {
+  background: var(--primary-100);
+  transform: scale(1.05);
+  transition: all 0.35s ease;
+}

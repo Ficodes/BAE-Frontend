@@ -1,0 +1,381 @@
+import {Component, EventEmitter, OnInit, Output, ChangeDetectorRef, Input, OnDestroy} from '@angular/core';
+import {Category} from "../../models/interfaces";
+import {Subject} from "rxjs";
+import {LocalStorageService} from "../../services/local-storage.service";
+import {EventMessageService} from "../../services/event-message.service";
+import { ApiServiceService } from 'src/app/services/product-service.service';
+import { initFlowbite } from 'flowbite';
+import {faCircleCheck} from "@fortawesome/pro-solid-svg-icons";
+import {faCircle} from "@fortawesome/pro-regular-svg-icons";
+import { takeUntil } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
+import availableFilters, { type Filter } from '../../data/availableFilters';
+
+@Component({
+  selector: 'bae-categories-filter',
+  templateUrl: './categories-filter.component.html',
+  styleUrl: './categories-filter.component.css'
+})
+export class CategoriesFilterComponent implements OnInit, OnDestroy {
+
+  classListFirst = 'flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-b-0 border-gray-200 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-tertiary-100 gap-3';
+  classListLast  = 'flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-gray-200 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-tertiary-100 gap-3';
+  classList      = 'flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-b-0 border-gray-200 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-tertiary-100 gap-3';
+  
+  classListFirstChecked = 'flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-2 border-primary-50 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-primary-50 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3';
+  classListLastChecked  = 'flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-2 border-primary-50 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-primary-50 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3';
+  classListChecked      = 'flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-2 border-primary-50 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-primary-50 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3';
+    
+  labelClass: string = "text-gray-500 bg-white border-2 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 peer-checked:border-primary-50 hover:text-gray-600 dark:peer-checked:bg-primary-50 dark:peer-checked:text-secondary-100 peer-checked:text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:bg-tertiary-100 dark:hover:bg-primary-50";
+  categories: Category[] = [];
+  checkedCategories: any[] = [];
+  selected: Category[] = [];
+  dismissSubject: Subject<any> = new Subject();
+  catalog:any;
+  cs: Category[] = [];
+  @Output() selectedCategories = new EventEmitter<Category[]>();
+  @Input() catalogId: any = undefined;
+
+  // AI Search facets
+  aiSearchEnabled = environment.AI_SEARCH_ENABLED;
+  aiFacets: Record<string, Record<string | number, number>> = {};
+  aiFacetCategories: Category[] = [];
+  originalCategories: Category[] = []; // Store original categories from API
+  aiSearchPerformed: boolean = false; // Track if AI search has been performed
+
+  protected readonly faCircleCheck = faCircleCheck;
+  protected readonly faCircle = faCircle;
+
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private localStorage: LocalStorageService,
+    private eventMessage: EventMessageService,
+    private api: ApiServiceService,
+    private cdr: ChangeDetectorRef
+    ) {
+      this.categories = [];
+      this.eventMessage.messages$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(ev => {
+        const cat = ev.value as Category;
+        if(ev.type === 'AddedFilter' && !this.isCheckedCategory(cat)){
+          this.checkedCategories.push(cat.id);
+          this.cdr.detectChanges();
+        } else if(ev.type === 'RemovedFilter' && this.isCheckedCategory(cat)){
+          const index = this.checkedCategories.findIndex(item => item === cat.id);
+          if (index !== -1) {
+            this.checkedCategories.splice(index, 1);
+            this.cdr.detectChanges();
+          }
+        } else if(ev.type === 'AiSearchFacets' && this.aiSearchEnabled){
+          const facets = ev.value as Record<string, Record<string | number, number>>;
+          if (facets && Object.keys(facets).length > 0 && !this.aiSearchPerformed) {
+            this.aiSearchPerformed = true;
+            this.aiFacets = facets;
+            this.updateAiFacetCategories();
+            this.cdr.detectChanges();
+          }
+        } else if(ev.type === 'AiSearchCleared' && this.aiSearchEnabled){
+          this.restoreOriginalCategories();
+          this.cdr.detectChanges();
+        }
+      })
+    }
+
+  async ngOnInit() {
+    this.selected = this.localStorage.getObject('selected_categories') as Category[] || [] ;
+    for(let i=0; i<this.selected.length;i++){
+      this.checkedCategories.push(this.selected[i].id)
+    }
+
+    if (this.aiSearchEnabled) {
+      this.categories = this.convertFiltersToCategories(availableFilters);
+      this.originalCategories = [...this.categories];
+      this.cdr.detectChanges();
+      initFlowbite();
+      return;
+    }
+
+    if(this.catalogId!=undefined){
+      let data = await this.api.getCatalog(this.catalogId);
+      if(data.category){
+        for (let i=0; i<data.category.length; i++){
+          let categoryInfo = await this.api.getCategoryById(data.category[i].id)
+          await this.findChildrenByParent(categoryInfo);
+        }
+        this.originalCategories = [...this.categories];
+        initFlowbite();
+      } else {
+        let launched = await this.api.getLaunchedCategories()
+          for(let i=0; i < launched.length; i++){
+            this.findChildren(launched[i],launched)
+          }
+          this.originalCategories = [...this.categories];
+          this.cdr.detectChanges();
+          initFlowbite();
+      }
+    } else {
+      let data = await this.api.getLaunchedCategories()
+      for(let i=0; i < data.length; i++){
+        this.findChildren(data[i],data)
+      }
+      this.originalCategories = [...this.categories];
+      this.cdr.detectChanges();
+      initFlowbite();
+    }
+  }
+
+  ngAfterViewInit() {
+    initFlowbite();
+  }
+
+  ngOnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  findChildren(parent:any,data:any[]){
+    let childs = data.filter((p => p.parentId === parent.id));
+    parent["children"] = childs;
+    if(parent.isRoot == true){
+      this.categories.push(parent)
+    } else {
+      this.saveChildren(this.categories,parent)
+    }
+    if(childs.length != 0){
+      for(let i=0; i < childs.length; i++){
+        this.findChildren(childs[i],data)
+      }
+    }
+  }
+
+  async findChildrenByParent(parent:any){
+    let childs: any[] = []
+    let c = await this.api.getCategoriesByParentId(parent.id)
+      childs=c;
+      parent["children"] = childs;
+      if(parent.isRoot == true){
+        this.categories.push(parent)
+      } else {
+        this.saveChildren(this.categories,parent)
+      }
+      if(childs.length != 0){
+        for(let i=0; i < childs.length; i++){
+          await this.findChildrenByParent(childs[i])
+        }
+      }
+      initFlowbite();
+
+  }
+
+  saveChildren(superCategories:any[],parent:any){
+    for(let i=0; i < superCategories.length; i++){
+      let children = superCategories[i].children;
+      if (children != undefined){
+        let check = children.find((element: { id: any; }) => element.id == parent.id) 
+        if (check != undefined) {
+          let idx = children.findIndex((element: { id: any; }) => element.id == parent.id)
+          children[idx] = parent
+          superCategories[i].children = children         
+        }
+        this.saveChildren(children,parent)
+      }          
+    }
+  }
+
+  notifyDismiss(cat: Category) {
+    this.dismissSubject.next(cat);
+    this.removeCategory(cat);
+  }
+
+  addCategory(cat: Category) {
+    const index = this.selected.indexOf(cat, 0);
+    if(index == -1) {
+      this.selected.push(cat);
+      this.checkedCategories.push(cat.id);
+      this.selectedCategories.emit(this.selected);
+      this.localStorage.setObject('selected_categories', this.selected);
+      this.eventMessage.emitAddedFilter(cat);
+    }
+  }
+
+  removeCategory(cat: Category) {
+    const index = this.selected.indexOf(cat, 0);
+    if(index > -1) {
+      this.selected.splice(index,1);
+      this.selectedCategories.emit(this.selected);
+      this.localStorage.setObject('selected_categories', this.selected);
+      this.eventMessage.emitRemovedFilter(cat);
+      const checkId = this.checkedCategories.findIndex(item => item === cat.id);
+      if (checkId !== -1) {
+        this.checkedCategories.splice(checkId, 1);
+      }
+    }
+  }
+  
+  isRoot(cat: Category,idx:any){
+    const index = this.categories.indexOf(cat, 0);
+    let children = this.categories[index].children;
+
+    if (children != undefined && children.length >0) {
+      return children
+    } else {
+      return []
+    }
+
+  }
+
+  onClick(cat:Category){
+    if(!this.isCheckedCategory(cat)) {
+      this.checkedCategories.push(cat.id);
+      this.localStorage.addCategoryFilter(cat);
+      this.eventMessage.emitAddedFilter(cat);
+    } else {
+      this.localStorage.removeCategoryFilter(cat);
+      this.eventMessage.emitRemovedFilter(cat);
+      const index = this.checkedCategories.findIndex(item => item === cat.id);
+      if (index !== -1) {
+        this.checkedCategories.splice(index, 1);
+      }
+    }
+  }
+
+  isCheckedCategory(cat:Category){
+    const index = this.checkedCategories.findIndex(item => item === cat.id);
+    if (index !== -1) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  isChildsChecked(childs:Category[]|undefined):boolean {
+    let check = false
+    if (childs != undefined){
+        for(let i=0; i<childs.length;i++){
+          if(this.isCheckedCategory(childs[i])){
+            check = true            
+            return check;
+          } else {
+            check = this.isChildsChecked(childs[i].children)
+            if(check==true){
+              return check;
+            }
+          }
+        }      
+    }
+    return check
+  }
+
+  checkClasses(first:boolean,last:boolean,cat:Category){
+    let categoryCheck=this.isChildsChecked(cat.children);
+    if(first==true){
+      if(categoryCheck){
+        return this.classListFirstChecked
+      } else {
+        return this.classListFirst
+      }
+    } else if(last==true){
+      if(categoryCheck){
+        return this.classListLastChecked
+      } else {
+        return this.classListLast
+      }
+    } else {
+      if(categoryCheck){
+        return this.classListChecked
+      } else {
+        return this.classList
+      }
+    }
+  }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }
+  }
+
+  private updateAiFacetCategories(): void {
+    if (this.originalCategories.length === 0) {
+      return;
+    }
+
+    this.categories = this.originalCategories.map(rootCat => {
+      const facetKey = rootCat.id; // e.g. 'technical_approach'
+      const facetData = this.aiFacets[facetKey || ''] || {};
+
+      return {
+        ...rootCat,
+        children: this.applyFacetCounts(rootCat.children || [], facetData, facetKey || '')
+      };
+    });
+
+    initFlowbite();
+  }
+
+  private applyFacetCounts(children: Category[], facetData: Record<string | number, number>, rootFilterKey: string): Category[] {
+    const result: Category[] = [];
+    for (const child of children) {
+      const count = facetData[child.name] ?? 0;
+      const updatedChildren = child.children && child.children.length > 0
+        ? this.applyFacetCounts(child.children, facetData, rootFilterKey)
+        : [];
+
+      if (count > 0 || updatedChildren.length > 0) {
+        result.push({
+          ...child,
+          count: count > 0 ? count : child.count,
+          children: updatedChildren
+        });
+      }
+    }
+    return result;
+  }
+
+  private formatFacetName(key: string): string {
+    return key
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
+  private restoreOriginalCategories(): void {
+    if (this.originalCategories.length > 0) {
+      this.categories = [...this.originalCategories];
+      this.aiSearchPerformed = false;
+      this.aiFacetCategories = [];
+      this.aiFacets = {};
+      initFlowbite();
+    }
+  }
+
+  private convertFiltersToCategories(filters: Filter[]): Category[] {
+    return filters.map(filter => this.convertFilterToCategory(filter, true, filter.name));
+  }
+
+  private convertFilterToCategory(filter: Filter, isRoot: boolean = false, rootFilterName?: string): Category {
+    const filterKey = rootFilterName || filter.name;
+    const sanitizedId = this.sanitizeIdForCss(filter.name);
+    const category: Category = {
+      id: isRoot ? filter.name : `${filterKey}::${filter.name}`,
+      name: isRoot ? this.formatFacetName(filter.name) : filter.name,
+      isRoot: isRoot,
+      children: filter.children ? filter.children.map(child => this.convertFilterToCategory(child, false, filterKey)) : [],
+      sanitizedId: isRoot ? sanitizedId : `${this.sanitizeIdForCss(filterKey)}-${sanitizedId}`
+    };
+    return category;
+  }
+
+  private sanitizeIdForCss(str: string): string {
+    return str
+      .replace(/\s+/g, '-') 
+      .replace(/[()]/g, '')
+      .replace(/[^a-zA-Z0-9_-]/g, '')
+      .toLowerCase();
+  }
+
+}

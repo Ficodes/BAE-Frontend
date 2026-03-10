@@ -1,0 +1,13 @@
+.floating-div {
+    position: relative; /* Position the div relative to its normal position */
+    top: -50px; /* Adjust as needed */
+    left: 50%; /* Adjust as needed */
+    transform: translateX(-50%); /* Center horizontally */
+    padding: 10px;
+    border-radius: 5px;
+    /* Additional styles for the floating div */
+  }
+
+  .disabled {
+    cursor: not-allowed; /* Change the cursor when the div is disabled */
+  }

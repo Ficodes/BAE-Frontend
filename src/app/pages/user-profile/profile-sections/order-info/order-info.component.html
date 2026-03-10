@@ -1,0 +1,359 @@
+    <!-- FILTERS -->
+    <div class="w-full h-fit mb-4 bg-secondary-50 rounded-lg dark:bg-secondary-100 dark:border-gray-800 border-secondary-50 border flex flex-col shadow-lg">
+        <div class="flex w-full flex-cols items-center justify-between">
+        <div class="mb-4 lg:mb-0 lg:w-1/4 p-8 justify-start">
+            <h2 class="text-xl font-bold dark:text-white">{{ 'PRODUCT_INVENTORY._search_criteria' | translate }}</h2>  
+        </div>  
+        </div>
+        <div class="flex w-full flex-col items-center lg:flex-row justify-between">
+
+            <div class="p-8 w-full">
+                <div class="flex flex-row mb-1">
+                <fa-icon [icon]="faSwatchbook" class="fa-base text-primary-100 align-middle mr-2"></fa-icon>
+                <h2 class="text-base dark:text-white font-bold">{{ 'OFFERINGS._filter_state' | translate }}</h2>
+                </div>
+                <button id="dropdownStateButton" data-dropdown-toggle="dropdown"
+                class="text-black dark:text-white w-full justify-between shadow bg-white dark:bg-secondary-200 hover:bg-gray-100 dark:hover:bg-secondary-300 focus:ring-4 focus:outline-none focus:ring-primary-100 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center shadow-lg"
+                type="button">
+                {{ 'OFFERINGS._filter_state' | translate }}
+                <svg class="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+                </button>
+                
+                <div id="dropdown" class="z-20 hidden w-fit md:w-1/5 p-3 bg-white rounded-lg shadow dark:bg-secondary-200">
+                <h6 class="mb-3 text-sm font-medium text-gray-900 dark:text-white">
+                    {{ 'OFFERINGS._status' | translate }}
+                </h6>
+                <ul class="space-y-2 text-sm" aria-labelledby="dropdownStateButton">
+                    <li class="flex items-center">
+                        <input id="acknowledged" type="checkbox" value="" (change)="onStateFilterChange('acknowledged')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+                
+                        <label for="acknowledged" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {{ 'PROFILE._acknowledged' | translate }}
+                        </label>
+                    </li>
+                
+                    <li class="flex items-center">
+                        <input id="inProgress" type="checkbox" value="" (change)="onStateFilterChange('inProgress')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+                
+                        <label for="inProgress" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {{ 'PROFILE._in_progress' | translate }}
+                        </label>
+                    </li>
+                
+                    <li class="flex items-center">
+                        <input id="completed" type="checkbox" value=""  (change)="onStateFilterChange('completed')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded text-primary-600 focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+                
+                        <label for="completed" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {{ 'PROFILE._completed' | translate }}
+                        </label>
+                    </li>
+                
+                    <li class="flex items-center">
+                        <input id="failed" type="checkbox" value="" (change)="onStateFilterChange('failed')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+                
+                        <label for="failed" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {{ 'PROFILE._failed' | translate }}
+                        </label>
+                    </li>
+            
+                    <li class="flex items-center">
+                        <input id="pending" type="checkbox" value=""  (change)="onStateFilterChange('pending')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+                
+                        <label for="pending" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {{ 'PROFILE._pending' | translate }}
+                        </label>
+                    </li>
+            
+                    <li class="flex items-center">
+                        <input id="cancelled" type="checkbox" value="" (change)="onStateFilterChange('cancelled')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+                
+                        <label for="cancelled" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {{ 'PROFILE._cancelled' | translate }}
+                        </label>
+                    </li>
+                </ul>
+                </div>
+                
+            </div>
+            @if(isSeller){
+                <div class="p-8 w-full">
+                    <div class="flex flex-row mb-1">
+                        <fa-icon [icon]="faIdCard" class="fa-base text-primary-100 align-middle mr-2"></fa-icon>
+                        <h2 class="text-base dark:text-white font-bold">{{ 'OFFERINGS._filter_role' | translate }}</h2>
+                      </div>
+                      <select id="roles" (change)="onRoleChange($event)" 
+                      class="text-black border-0 dark:text-white w-full justify-between shadow bg-white dark:bg-secondary-200 hover:bg-gray-100 dark:hover:bg-secondary-300 focus:ring-4 focus:outline-none focus:ring-primary-100 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center shadow-lg">
+                        <option class="text-left" value="Customer">{{ 'OFFERINGS._customer' | translate }}</option>
+                        <option class="text-left" value="Seller">{{ 'OFFERINGS._seller' | translate }}</option>
+                      </select>
+                </div>
+            }
+        </div>
+    </div>
+            
+<!-- END FILTERS -->
+
+
+@if (loading && !loading_more) {
+    <div role="status" class="w-3/4 md:w-4/5 h-full flex justify-center align-middle">
+      <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+          <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+      </svg>
+      <span class="sr-only">Loading...</span>
+    </div>
+} @else {
+        <div class="bg-secondary-50 dark:bg-secondary-100 border border-secondary-50 dark:border-gray-800 p-8 rounded-lg">
+            <!-- <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'PROFILE._order_list' | translate }}</h2>
+            <hr class="h-px mr-4 ml-4 bg-primary-100 dark:bg-white border-0">-->
+                <div class="m-4 relative overflow-x-auto shadow-md sm:rounded-lg">
+                    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
+                            <tr>
+                                <th scope="col" class="hidden md:table-cell px-6 py-3 text-center align-middle">
+                                    {{ 'PRODUCT_INVENTORY._order_id' | translate }}
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-center align-middle">
+                                    {{ 'PRODUCT_INVENTORY._status' | translate }}
+                                </th>
+                                <th scope="col" class="hidden md:table-cell px-6 py-3 text-center align-middle">
+                                    {{ 'PRODUCT_INVENTORY._priority' | translate }}
+                                </th>
+                                <th scope="col" class="hidden md:table-cell px-6 py-3 text-center align-middle">
+                                    {{ 'PRODUCT_INVENTORY._bill' | translate }}
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-center align-middle">
+                                    {{ 'PROFILE._date' | translate }}
+                                </th>
+                                <th scope="col" class="text-center align-middle">
+                                    {{ 'PROFILE._actions' | translate }} 
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (order of orders; track order.id; let idx = $index) {
+                                <tr class="border-b bg-gray-100 hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                                    <td class="hidden md:table-cell px-6 py-4 text-center align-middle">
+                                        {{order.id}}
+                                    </td>
+                                    <td class="px-6 py-4 text-center align-middle">                                                
+                                        @if(order.state == 'inProgress'){
+                                            <span class="bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{order.state}}</span>
+                                        } @else if(order.state ===  'partial') {
+                                                    <span class="bg-blue-100 dark:bg-secondary-300 text-purple-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-purple-500">{{order.state}}</span>
+                                        } @else if(order.state ==  'completed') {
+                                            <span class="bg-blue-100 dark:bg-secondary-300 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500">{{order.state}}</span>
+                                        } @else if(order.state == 'failed') {
+                                            <span class="bg-blue-100 dark:bg-secondary-300 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{order.state}}</span>
+                                        } @else if(order.state == 'pending') {
+                                            <span class="bg-blue-100 dark:bg-secondary-300 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{order.state}}</span>
+                                        }@else if(order.state == 'acknowledged'){
+                                            <span class="bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{order.state}}</span>
+                                        }@else if(order.state == 'cancelled') {
+                                            <span class="bg-blue-100 dark:bg-secondary-300 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{order.state}}</span>
+                                        }
+                                    </td>
+                                    <td class="hidden md:table-cell px-6 py-4 text-center align-middle">
+                                        {{order.priority}}
+                                    </td>
+                                    <td class="hidden md:table-cell px-6 py-4 text-center align-middle">
+                                        {{order.billingAccount.name}}
+                                    </td>
+                                    <td class="px-6 py-4 text-center align-middle">
+                                        {{order?.orderDate | date:'EEEE, dd/MM/yy, HH:mm'}}
+                                    </td>
+                                    <td class="px-6 py-4 text-center align-middle">
+                                        <button (click)="toggleShowDetails(order);$event.stopPropagation();" type="button" class="text-white bg-primary-100 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
+                                            <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
+                                                <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                                                    <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+                                                    <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>
+                                                </g>
+                                                </svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    @if(orders.length == 0){
+                        <div class="text-center items-center w-full col-span-2">
+                            <span class="text-primary-100 text-sm text-center w-full font-medium">{{ 'PROFILE._no_orders' | translate }}</span>
+                        </div>
+                    }
+                </div>
+
+            @if (!loading_more) {
+                @if (page_check) {
+                <div class="flex pb-6 justify-center align-middle">
+                    <button (click)="next()" class="flex cursor-pointer shadow-lg items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 dark:text-white bg-white dark:bg-primary-100 dark:hover:bg-secondary-100 border border-gray-300 dark:border-secondary-200 rounded-lg hover:bg-gray-200">
+                    Load more
+                    <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+                    </svg>
+                    </button>
+                </div>
+                }
+            } @else {
+                <div role="status" class="w-full h-full flex justify-center align-middle">
+                <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+                </svg>
+                <span class="sr-only">Loading...</span>
+                </div>
+            }
+        </div>
+}
+
+
+<!-- ORDER DETAILS modal -->
+@if (showOrderDetails){
+    <div id="order-details-modal" [ngClass]="showOrderDetails ? 'backdrop-blur-sm': ''" tabindex="-1" aria-hidden="true" class="flex justify-center overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%)] max-h-full shadow-2xl">
+        <div class="w-full md:w-3/4 lg:w-1/2 relative bg-secondary-50 dark:bg-secondary-100 border border-secondary-50 dark:border-gray-800 rounded-lg shadow bg-cover bg-right-bottom" (click)="$event.stopPropagation();">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-2 rounded-t dark:border-gray-600 shadow-lg">
+                <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'PROFILE._order_details' | translate }}</h2>                
+                <button (click)="showOrderDetails=false;" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="delete-bill-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">{{ 'CARD._close' | translate }}</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <div class="w-full h-full">
+                <div class="p-4 relative overflow-x-auto rounded-lg">
+                    <div class="flex flex-row gap-2 pb-2 text-gray-600">
+                        <p class="w-fit text-base font-bold shrink-0 dark:text-white">
+                            {{ 'PRODUCT_INVENTORY._order_id' | translate }}
+                        </p>
+                        <h3 class="text-base dark:text-gray-200">
+                            {{orderToShow.id}}
+                        </h3>
+                    </div>
+                    <div class="flex flex-row gap-2 pb-2 text-gray-600">
+                        <p class="w-fit text-base font-bold shrink-0 dark:text-white">
+                            {{ 'PRODUCT_INVENTORY._state' | translate }}
+                        </p>
+                        @if(orderToShow.state == 'inProgress'){
+                            <span class="bg-blue-100 dark:bg-secondary-100 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400 w-fit">{{orderToShow.state}}</span>
+                        } @else if(orderToShow.state ==  'partial') {
+                            <span class="bg-blue-100 dark:bg-secondary-100 text-purple-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-purple-500 w-fit">{{orderToShow.state}}</span>
+                        } @else if(orderToShow.state ==  'completed') {
+                            <span class="bg-blue-100 dark:bg-secondary-100 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500 w-fit">{{orderToShow.state}}</span>
+                        } @else if(orderToShow.state == 'failed') {
+                            <span class="bg-blue-100 dark:bg-secondary-100 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{orderToShow.state}}</span>
+                        } @else if(orderToShow.state == 'pending') {
+                            <span class="bg-blue-100 dark:bg-secondary-100 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{orderToShow.state}}</span>
+                        }@else if(orderToShow.state == 'acknowledged'){
+                            <span class="bg-blue-100 dark:bg-secondary-100 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{orderToShow.state}}</span>
+                        }@else if(orderToShow.state == 'cancelled') {
+                            <span class="bg-blue-100 dark:bg-secondary-100 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{orderToShow.state}}</span>
+                        }
+                    </div>
+                    <div class="flex flex-row gap-2 pb-2 text-gray-600">
+                        <p class="w-fit text-base font-bold shrink-0 dark:text-white">
+                            {{ 'PRODUCT_INVENTORY._priority' | translate }}
+                        </p>
+                        <h3 class="text-base dark:text-gray-200">
+                            {{orderToShow.priority}}
+                        </h3>
+                    </div>
+                    <div class="flex flex-row gap-2 pb-2 text-gray-600">
+                        <p class="w-fit text-base font-bold shrink-0 dark:text-white">
+                            {{ 'PROFILE._billing_address' | translate }}
+                        </p>
+                        <h3 class="text-base dark:text-gray-200">
+                            {{orderToShow.billingAccount.contact[0].contactMedium[1].characteristic.city}}, {{orderToShow.billingAccount.contact[0].contactMedium[1].characteristic.street1}}, {{orderToShow.billingAccount.contact[0].contactMedium[1].characteristic.country}} ({{orderToShow.billingAccount.name}})
+                        </h3>
+                    </div>
+                    <div class="flex flex-row gap-2 pb-2 text-gray-600">
+                        <p class="w-fit text-base font-bold shrink-0 dark:text-white">
+                            {{ 'PROFILE._email' | translate }}
+                        </p>
+                        <h3 class="text-base dark:text-gray-200">
+                            {{orderToShow.billingAccount.contact[0].contactMedium[0].characteristic.emailAddress}}
+                        </h3>
+                    </div>
+                    <div class="flex flex-row gap-2 pb-2 text-gray-600">
+                        <p class="w-fit text-base font-bold shrink-0 dark:text-white">
+                            {{ 'PROFILE._date' | translate }}
+                        </p>
+                        <h3 class="text-base dark:text-gray-200">
+                            {{orderToShow?.orderDate | date:'EEEE, dd/MM/yy, HH:mm'}}
+                        </h3>
+                    </div>
+                    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200 rounded-lg border border-1 border-secondary-50 dark:border-gray-800">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-center align-middle">
+                                    {{ 'PROFILE._img' | translate }}
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-center align-middle">
+                                    {{ 'PROFILE._name' | translate }}
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-center align-middle">
+                                    {{ 'PROFILE._price' | translate }}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (item of orderToShow.productOrderItem; track item.id; let idx = $index) {
+                                <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                                    <td class="px-6 py-4 text-center align-middle flex justify-center items-center">
+                                        <img class="w-16 object-contain z-10 dark:text-white" src="{{getProductImage(item)}}" alt="Product image">
+                                    </td>
+                                    <td class="px-6 py-4 text-center align-middle">
+                                        {{item.name}}
+                                    </td>
+                                    @if(item.productOfferingPrice){
+                                        @if(item.productOfferingPrice.priceType == 'custom'){
+                                            <td class="px-6 py-4 text-center align-middle">
+                                                {{ 'PROFILE._custom' | translate }}
+                                            </td>
+                                        } @else {
+                                            <td class="px-6 py-4 text-center align-middle">
+                                                {{item?.productOfferingPrice?.price}} {{item?.productOfferingPrice?.unit}} {{item?.productOfferingPrice?.text}}
+                                            </td>
+                                        }
+                                    } @else {
+                                        <td class="px-6 py-4 text-center align-middle">
+                                            {{ 'SHOPPING_CART._free' | translate }}
+                                        </td>                                        
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <hr class="h-px my-2 bg-gray-200 border-0 dark:bg-gray-700">
+                    <div class="flex block">
+                       <p class="flex float-left w-1/2 ml-2 text-sm text-gray-500 dark:text-gray-200">{{ 'CART_DRAWER._subtotal' | translate }}:</p>
+                       <hr class="h-px my-2 bg-gray-200 border-0">
+                          <div class="flex grid grid-cols-1 grid-flow-row w-1/2">
+                             @for (price of getTotalPrice(orderToShow.productOrderItem); track price) {
+                                <p class="flex block justify-end mr-2 text-sm text-gray-500 dark:text-gray-200">{{price.price}} {{price.unit}} {{price.text}}</p>
+                             } @empty {
+                                @if(check_custom==true){
+                                    <p class="flex flex-right text-gray-700 justify-end text-gray-500 dark:text-gray-200">{{ 'PROFILE._custom' | translate }}</p>
+                                } @else {
+                                    <p class="flex flex-right text-gray-700 justify-end text-gray-500 dark:text-gray-200">{{ 'PROFILE._free' | translate }}</p>
+                                }                                
+                             }
+                          </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}

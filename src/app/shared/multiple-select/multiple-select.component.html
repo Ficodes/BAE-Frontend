@@ -1,0 +1,41 @@
+<div class="relative w-full">
+    <!-- Selected Items -->
+    <div 
+      class="border border-gray-500 dark:border-gray-300 rounded-md p-2 flex flex-wrap gap-1 cursor-pointer" 
+      (click)="toggleDropdown()"
+    >
+      <span 
+        *ngFor="let item of selectedItems" 
+        class="bg-blue-200 dark:bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded"
+      >
+        {{ item }}
+        <button 
+          class="ml-1 text-blue-800 hover:text-red-500" 
+          (click)="removeItem(item, $event)"
+        >x</button>
+      </span>
+      <span *ngIf="selectedItems.length === 0" class="text-gray-500 dark:text-gray-400">Select items...</span>
+    </div>
+  
+    <!-- Dropdown -->
+    <div 
+      *ngIf="isOpen" 
+      class="absolute mt-1 w-full bg-white dark:bg-secondary-300 dark:text-white border border-gray-500 dark:border-gray-300 rounded-md shadow-lg z-10"
+    >
+      <ul class="max-h-48 overflow-y-auto">
+        <li 
+          *ngFor="let option of options" 
+          (click)="toggleSelection(option)" 
+          class="cursor-pointer p-2 hover:bg-gray-200 dark:hover:bg-secondary-200"
+        >
+          <input 
+            type="checkbox" 
+            [checked]="selectedItems.includes(option)" 
+            class="mr-2"
+          />
+          {{ option }}
+        </li>
+      </ul>
+    </div>
+  </div>
+  

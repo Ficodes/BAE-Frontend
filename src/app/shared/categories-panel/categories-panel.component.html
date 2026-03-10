@@ -1,0 +1,29 @@
+<div class="bg-secondary-50 dark:bg-secondary-200 dark:text-white">
+  <div id="chips" class="flex justify-center items-center	min-h-[58px] p-2">
+    <span class="mr-4 ml-2 min-w-fit"><fa-icon [icon]="faFilterList" class="mr-2"></fa-icon>{{ 'CATEGORIES_FILTER._applied_filters' | translate }}</span>
+    <div class="overflow-x-auto max-h-[46px] inline-flex">
+      @if(selected.length > 0){
+        @for(category of selected; track category.id; let idx = $index) {
+        <span [ngClass]="{
+          'break-all': hasLongWord(category?.name, 20),
+          'break-words': !hasLongWord(category?.name, 20)
+          }" [id]="'badge-dismiss-'+idx" class="text-wrap break-words" title="{{category?.name}}"
+        class="inline-flex min-w-fit mb-1 justify-between items-center px-2 py-1 me-2 text-xs font-medium text-primary-100 border border-1 border-primary-100 bg-secondary-50 rounded dark:bg-secondary-100 dark:text-secondary-50">
+          <span [ngClass]="{
+            'break-all': hasLongWord(category?.name, 20),
+            'break-words': !hasLongWord(category?.name, 20)
+            }" class="line-clamp-1 min-w-fit text-wrap break-words"><fa-icon [icon]="faTag" class="mr-2"></fa-icon>{{category?.name}}</span>
+          <button type="button" (click)="notifyDismiss(category)"
+          class="inline-flex items-center p-1 ms-2 text-sm text-primary-100 dark:text-secondary-50 bg-transparent rounded-sm hover:bg-primary-100 hover:text-secondary-50 dark:hover:bg-primary-50 dark:hover:text-primary-100" [attr.data-dismiss-target]="'#badge-dismiss-'+idx" aria-label="Remove">
+          <svg class="w-2 h-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+          </svg>
+          <span class="sr-only">{{ 'CATEGORIES_FILTER._remove_badge' | translate }}</span>
+          </button>
+        </span>
+        }
+      }
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,78 @@
+<div class="overflow-x-auto mt-2">
+  <table class="w-full text-sm text-left text-gray-500 dark:text-gray-200">
+    <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300">
+    <tr>
+      <th class="px-6 py-3">{{ 'FORMS.PRICE_PLANS._name' | translate }}</th>
+      <th class="px-6 py-3">{{ 'FORMS.PRICE_PLANS._description' | translate }}</th>
+      <th class="px-6 py-3 text-center">{{ 'FORMS.PRICE_PLANS._online_payment' | translate }}</th>
+      <th class="px-6 py-3 text-center">{{ 'FORMS.PRICE_PLANS._actions' | translate }}</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Mostrar los Price Plans -->
+      @for (plan of pricePlans; track i; let i = $index) {
+        <tr class="border-b dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+          <td class="px-6 py-4">{{ plan.name }}</td>
+          <td class="px-6 py-4">{{ plan.description }}</td>
+          <td class="px-6 py-4 text-center">
+            <span *ngIf="plan.paymentOnline" class="text-green-500 font-semibold">{{ '_yes' | translate }}</span>
+            <span *ngIf="!plan.paymentOnline" class="text-red-500 font-semibold">{{ '_no' | translate }}</span>
+          </td>
+          <td class="px-6 py-4 text-center flex justify-center gap-3">
+            <!-- Botón Editar -->
+            <button (click)="editPricePlan(plan)" class="text-blue-500 hover:text-secondary-400 transition">
+              <svg class="min-w-4 w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                <path fill="currentColor"
+                      d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4
+                      10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2
+                      27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4
+                      452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1 0 32c0 8.8 7.2 16 16 16l32 0zM362.7 18.7L348.3
+                      33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25
+                      25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6
+                      0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"/>
+              </svg>
+            </button>
+            <!-- Botón Eliminar -->
+            <button (click)="confirmDelete(plan, i)" class="text-red-500 hover:text-red-700 transition">
+              <svg class="min-w-4 w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                <path fill="currentColor"
+                      d="M163.8 0L284.2 0c12.1 0 23.2 6.8 28.6 17.7L320 32l96 0c17.7 0 32 14.3 32 32s-14.3 32-32
+                      32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 7.2-14.3C140.6 6.8 151.7 0 163.8 0zM32 128l384
+                      0L394.8 467c-1.6 25.3-22.6 45-47.9 45l-245.8 0c-25.3 0-46.3-19.7-47.9-45L32 128zM143 239c-9.4
+                      9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4
+                      24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47
+                      47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"/>
+              </svg>
+            </button>
+          </td>
+        </tr>
+      }
+      @empty {
+        <tr>
+          <td colspan="4" class="text-center py-4 text-gray-500">
+
+            <div class="flex items-center justify-center p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
+              <img class="h-8 max-h-8 mr-2" alt="" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pg0KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDE5LjAuMCwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPg0KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJDYXBhXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB2aWV3Qm94PSIwIDAgNTEyLjAwMSA1MTIuMDAxIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIuMDAxIDUxMi4wMDE7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnPg0KCTxnPg0KCQk8cGF0aCBkPSJNMzk2LjczOSwxMTQuODQ2Yy0yLjE1OS0yLjE1OS00Ljk5NC0zLjIzOS03LjgzMS0zLjIzOWMtMi44MzUsMC01LjY3MSwxLjA3OS03LjgzLDMuMjM4DQoJCQljLTQuMzE4LDQuMzE4LTQuMzE4LDExLjM0NCwwLDE1LjY2MWM0LjMxOSw0LjMyLDExLjM0NCw0LjMxOCwxNS42Niwwdi0wLjAwMWMyLjA5Mi0yLjA5MiwzLjI0NC00Ljg3MiwzLjI0NC03LjgzDQoJCQlDMzk5Ljk4MywxMTkuNzE5LDM5OC44MzEsMTE2LjkzOCwzOTYuNzM5LDExNC44NDZ6Ii8+DQoJPC9nPg0KPC9nPg0KPGc+DQoJPGc+DQoJCTxwYXRoIGQ9Ik0yMTMuNDA5LDI3Ny4zN2MtMi45OTgtMi45OTgtNS44MjktNC40NDktOC40OTctNC4zNjFjLTIuNjY3LDAuMDkxLTUuMzIsMS40NTMtNy45NTcsNC4wOTFsLTguOTAyLDguOTAybDE2LjcyNCwxNi43MjQNCgkJCWw4LjkwMi04LjkwMmMyLjYzNy0yLjYzNyw0LTUuMjg5LDQuMDkxLTcuOTU3QzIxNy44NiwyODMuMjAxLDIxNi40MDcsMjgwLjM2OSwyMTMuNDA5LDI3Ny4zN3oiLz4NCgk8L2c+DQo8L2c+DQo8Zz4NCgk8Zz4NCgkJPHBhdGggZD0iTTUxMS4yNTcsMTk3LjY0NEw0ODYuODYzLDYyLjcxOWMtMy40NDEtMTkuMDM3LTE4LjU0My0zNC4xNC0zNy41OC0zNy41ODJMMzE0LjM1NywwLjc0NA0KCQkJYy0xNS4wMzgtMi43MTktMzAuNDU3LDIuMTA5LTQxLjI1OCwxMi45MUwxMy42NTUsMjczLjA5OUM0Ljg1LDI4MS45MDQsMCwyOTMuNjExLDAsMzA2LjA2M2MwLDEyLjQ1Miw0Ljg0OSwyNC4xNiwxMy42NTUsMzIuOTY0DQoJCQlsMTU5LjMyLDE1OS4zMTljOC44MDUsOC44MDYsMjAuNTEyLDEzLjY1NSwzMi45NjQsMTMuNjU1czI0LjE2LTQuODQ5LDMyLjk2NC0xMy42NTVsMjU5LjQ0NC0yNTkuNDQ0DQoJCQlDNTA5LjE0OCwyMjguMSw1MTMuOTc0LDIxMi42NzYsNTExLjI1NywxOTcuNjQ0eiBNMTkyLjA1MywzODYuNzQ4Yy0wLjYzLDIuMTI5LTEuOTAzLDQuMTUxLTMuODIsNi4wNjgNCgkJCWMtMS45MiwxLjkyLTMuOTQxLDMuMTkzLTYuMDY5LDMuODIxYy0yLjEyOCwwLjYzMS0zLjg3OSwwLjI1NS01LjI2LTEuMTI1bC01Ny4wOTQtNTcuMDk0Yy0xLjM3OC0xLjM3OC0xLjg0NC0zLjA0LTEuMzk0LTQuOTg4DQoJCQljMC40NDgtMS45NDgsMS41MTMtMy43NjEsMy4xOTItNS40NDFsMzEuMi0zMS4yYzEuMzc4LTEuMzc4LDMuMDI4LTEuODI4LDQuOTQ0LTEuMzVjMS45MiwwLjQ4LDMuNjg2LDEuNTI5LDUuMzA1LDMuMTQ5DQoJCQljMS43MzgsMS43MzksMi44MzMsMy41ODIsMy4yODMsNS41MjljMC40NDgsMS45NSwwLjAxMywzLjU4Mi0xLjMwNSw0LjlsLTIzLjI4OCwyMy4yODhsMTUuMTk2LDE1LjE5NmwxMy41NzctMTMuNTc3DQoJCQljMS4zMTctMS4zMTcsMi44OTEtMS44MTMsNC43Mi0xLjQ4NGMxLjgyOCwwLjMzLDMuNDkyLDEuMjQ2LDQuOTg5LDIuNzQzYzEuMzc5LDEuMzc5LDIuMjQ4LDIuOTY4LDIuNjA4LDQuNzY1DQoJCQljMC4zNTgsMS43OTgtMC4xNSwzLjM4OC0xLjUyOCw0Ljc2NmwtMTMuNTc3LDEzLjU3N2wyMy4xOTcsMjMuMTk3QzE5Mi4zMSwzODIuODY4LDE5Mi42ODMsMzg0LjYyMSwxOTIuMDUzLDM4Ni43NDh6DQoJCQkgTTI2OC40NzksMzA4Ljk3M2MtMC4zMjksMy40NDctMS41NDQsNi4yMi0zLjY0Miw4LjMxOGMtMi4wOTksMi4wOTktNC40NjUsMi43MjctNy4xMDMsMS44ODhMMjIxLjUsMzA3LjU4MWwtNS45MzQsNS45MzQNCgkJCWwyMS42NjgsMjEuNjY4YzEuMzgsMS4zOCwxLjc1MywzLjEzNCwxLjEyNCw1LjI2MWMtMC42MzEsMi4xMy0xLjkwNCw0LjE1Mi0zLjgyMSw2LjA2OWMtMS45MTksMS45MTktMy45NDEsMy4xOTItNi4wNjgsMy44Mg0KCQkJYy0yLjEyOSwwLjYzMi0zLjg4LDAuMjU2LTUuMjYtMS4xMjRsLTU3LjE4NC01Ny4xODRjLTEuMTM5LTEuMTM5LTEuNzIyLTIuNTMxLTEuNzUzLTQuMTgyYy0wLjAyOS0xLjY0NywwLjU4Ni0zLjEwMiwxLjg0NS00LjM2DQoJCQlsMTguNjEyLTE4LjYxMmMxNC43NDUtMTQuNzQ1LDI4LjUzMy0xNS43MDUsNDEuMzYtMi44NzhjOS4zNSw5LjM1MiwxMS44MDcsMTkuMDYzLDcuMzcyLDI5LjEzMWwzMC44MzksOC45MDMNCgkJCWMwLjcyMSwwLjEyLDEuNDA5LDAuNTEsMi4wNjgsMS4xNjlDMjY4LjEwNSwzMDIuOTM2LDI2OC44MDksMzA1LjUyNywyNjguNDc5LDMwOC45NzN6IE0zMTguMTU2LDI2Mi44OTRsLTMyLjAwOCwzMi4wMDgNCgkJCWMtMS42NzksMS42NzktMy40OTEsMi43NDItNS40NDEsMy4xOTJjLTEuOTQ4LDAuNDUtMy42MDktMC4wMTUtNC45ODktMS4zOTVsLTU3LjA5NC01Ny4wOTRjLTEuMzc4LTEuMzc4LTEuODQ0LTMuMDQtMS4zOTQtNC45ODgNCgkJCWMwLjQ0OS0xLjk0OSwxLjUxMy0zLjc2MSwzLjE5Mi01LjQ0MWwzMi4wMDktMzIuMDA4YzEuMzc4LTEuMzc4LDMuMDI4LTEuODI4LDQuOTQ0LTEuMzVjMS45MiwwLjQ4LDMuNjg2LDEuNTI5LDUuMzA1LDMuMTQ5DQoJCQljMS43MzgsMS43MzksMi44MzMsMy41ODIsMy4yODMsNS41MjljMC40NDgsMS45NSwwLjAxMywzLjU4Mi0xLjMwNSw0LjlsLTI0LjA5NywyNC4wOTdsMTUuMTk2LDE1LjE5NmwxMy40ODgtMTMuNDg4DQoJCQljMS4zMTctMS4zMTcsMi44OTItMS44MTMsNC43Mi0xLjQ4NGMxLjgyOCwwLjMzLDMuNDkzLDEuMjQ1LDQuOTksMi43NDJjMS4zNzksMS4zNzksMi4yNDgsMi45NjgsMi42MDcsNC43NjYNCgkJCWMwLjM1OCwxLjc5OC0wLjE1LDMuMzg4LTEuNTI4LDQuNzY2bC0xMy40ODgsMTMuNDg4bDE1LjI4NCwxNS4yODRsMjQuMDk3LTI0LjA5N2MxLjMxNy0xLjMxNywyLjk1Mi0xLjc1Miw0LjktMS4zMDQNCgkJCWMxLjk0OSwwLjQ1MSwzLjc5LDEuNTQ0LDUuNTI5LDMuMjgzYzEuNjE3LDEuNjE3LDIuNjY4LDMuMzg2LDMuMTQ4LDUuMzA0QzMxOS45ODUsMjU5Ljg2OCwzMTkuNTM0LDI2MS41MTUsMzE4LjE1NiwyNjIuODk0eg0KCQkJIE0zNjYuNjE3LDIxNC40MzJsLTMyLjAxLDMyLjAxYy0xLjY3OSwxLjY3OS0zLjQ5MiwyLjc0My01LjQ0MSwzLjE5MmMtMS45NDgsMC40NS0zLjYwOS0wLjAxNS00Ljk4OS0xLjM5NWwtNTcuMDk0LTU3LjA5NA0KCQkJYy0xLjM3OC0xLjM3OC0xLjg0NC0zLjA0LTEuMzk0LTQuOTg4YzAuNDQ5LTEuOTQ5LDEuNTEzLTMuNzYxLDMuMTkyLTUuNDQxbDMyLjAwOC0zMi4wMDhjMS4zNzgtMS4zNzgsMy4wMjgtMS44MjgsNC45NDQtMS4zNQ0KCQkJYzEuOTE5LDAuNDgxLDMuNjg2LDEuNTI5LDUuMzA1LDMuMTQ5YzEuNzM4LDEuNzM5LDIuODMzLDMuNTgyLDMuMjgzLDUuNTI5YzAuNDQ4LDEuOTUsMC4wMTMsMy41ODItMS4zMDUsNC45bC0yNC4wOTcsMjQuMDk3DQoJCQlsMTUuMTk2LDE1LjE5NmwxMy40ODgtMTMuNDg4YzEuMzE3LTEuMzE3LDIuODkxLTEuODEzLDQuNzItMS40ODRjMS44MjgsMC4zMywzLjQ5MiwxLjI0Niw0Ljk4OSwyLjc0Mw0KCQkJYzEuMzc5LDEuMzc5LDIuMjQ4LDIuOTY4LDIuNjA4LDQuNzY1YzAuMzU4LDEuNzk4LTAuMTUsMy4zODgtMS41MjgsNC43NjZsLTEzLjQ4OCwxMy40ODhsMTUuMjg0LDE1LjI4NGwyNC4wOTctMjQuMDk3DQoJCQljMS4zMTctMS4zMTcsMi45NTItMS43NTEsNC45LTEuMzAzYzEuOTUsMC40NSwzLjc5MSwxLjU0Myw1LjUzLDMuMjgyYzEuNjE3LDEuNjE3LDIuNjY3LDMuMzg3LDMuMTQ4LDUuMzA0DQoJCQlDMzY4LjQ0NywyMTEuNDA2LDM2Ny45OTYsMjEzLjA1NCwzNjYuNjE3LDIxNC40MzJ6IE00MTcuOTcxLDE1MS43NGMtOC4wMTIsOC4wMTItMTguNTM3LDEyLjAxOC0yOS4wNjEsMTIuMDE4DQoJCQljLTEwLjUyNiwwLTIxLjA1LTQuMDA2LTI5LjA2Mi0xMi4wMTljLTE2LjAyNi0xNi4wMjUtMTYuMDI2LTQyLjA5OSwwLTU4LjEyNGMxNi4wMjQtMTYuMDI1LDQyLjA5OS0xNi4wMjYsNTguMTIzLDANCgkJCWM3Ljc2NCw3Ljc2MywxMi4wMzgsMTguMDg0LDEyLjAzOCwyOS4wNjJDNDMwLjAwOSwxMzMuNjU1LDQyNS43MzQsMTQzLjk3Niw0MTcuOTcxLDE1MS43NHoiLz4NCgk8L2c+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8L3N2Zz4NCg==" />
+              <span class="font-medium">{{ 'FORMS.PRICE_PLANS._no_price_plans' | translate }}</span>
+            </div>
+
+
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div *ngIf="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+    <h2 class="text-lg font-semibold text-gray-700 dark:text-white">{{ 'FORMS.PRICE_PLANS._sure_delete' | translate }}</h2>
+    <p class="text-gray-500 dark:text-gray-300">{{ 'FORMS.PRICE_PLANS._cant_be_undone' | translate }}</p>
+    <div class="flex justify-end mt-4 space-x-3">
+      <button (click)="showDeleteModal = false" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded">{{ 'FORMS.PRICE_PLANS._cancel' | translate }}</button>
+      <button (click)="deletePricePlan()" class="px-4 py-2 bg-red-500 text-white rounded">{{ 'FORMS.PRICE_PLANS._delete' | translate }}</button>
+    </div>
+  </div>
+</div>
+

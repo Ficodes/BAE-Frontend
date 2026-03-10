@@ -1,0 +1,11 @@
+.wrapper:hover .text-custom {
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.wrapper:hover .num-custom {
+  font-size: 45px;
+  font-weight: 700;
+
+}

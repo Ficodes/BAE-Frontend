@@ -1,0 +1,61 @@
+<div class="m-8">
+
+    <div  class="mb-4">
+        <label class="font-bold text-lg dark:text-white">{{ 'USAGE_SPECS._name' | translate }}</label>
+        <label [ngClass]="{
+            'break-all': hasLongWord(usageSpecForm.get('generalInfo.name')?.value, 20),
+            'break-words': !hasLongWord(usageSpecForm.get('generalInfo.name')?.value, 20)
+            }" class="mb-2 bg-gray-50 text-wrap break-words dark:bg-secondary-300 dark:border-secondary-200 dark:text-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            {{ usageSpecForm.get('generalInfo.name')?.value }}
+        </label>
+
+    </div>
+   
+   @if(usageSpecForm.get('generalInfo.description')?.value !=''){
+        <label class="font-bold text-lg dark:text-white">{{ 'USAGE_SPECS._description' | translate }}</label>
+        <div class="px-4 py-2 bg-white rounded-lg p-4 mb-4 dark:bg-secondary-300 dark:text-white border dark:border-secondary-200">
+            <markdown [ngClass]="{
+                'break-all': hasLongWord(usageSpecForm.get('generalInfo.description')?.value, 20),
+                'break-words': !hasLongWord(usageSpecForm.get('generalInfo.description')?.value, 20)
+                }" class="bg-gray-50 dark:bg-secondary-300 dark:text-white text-gray-900 text-wrap break-words" [data]="usageSpecForm.get('generalInfo.description')?.value"></markdown>
+        </div>
+    }
+
+    @if(usageSpecForm.get('metrics')?.value){
+        <label class="font-bold text-lg dark:text-white">Metrics</label>
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">
+        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
+                <tr>
+                    <th scope="col" class="px-6 py-3">
+                        {{ 'USAGE_SPECS._name' | translate }}
+                    </th>
+                    <th scope="col" class="hidden md:table-cell px-6 py-3">
+                        {{ 'USAGE_SPECS._description' | translate }}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (metric of usageSpecForm.get('metrics')?.value; track metric) {
+                    <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                        <td [ngClass]="{
+                            'break-all': hasLongWord(metric.name, 20),
+                            'break-words': !hasLongWord(metric.name, 20)
+                            }" class="px-6 py-4 text-wrap break-words">
+                            {{metric.name}}
+                        </td>
+                        <td [ngClass]="{
+                            'break-all': hasLongWord(metric.description, 20),
+                            'break-words': !hasLongWord(metric.description, 20)
+                            }" class="hidden md:table-cell px-6 py-4 break-words">
+                            {{metric.description}}
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            
+        </table>
+    </div>
+    }
+
+</div>

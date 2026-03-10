@@ -1,0 +1,608 @@
+@if (loading) {
+    <div role="status" class="w-3/4 md:w-4/5 h-full flex justify-center align-middle">
+      <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+          <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+      </svg>
+      <span class="sr-only">Loading...</span>
+    </div>
+  } @else {
+    <div class="bg-secondary-50 dark:bg-secondary-100 border border-secondary-50 dark:border-gray-800 p-8 rounded-lg">
+        <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'PROFILE._organization' | translate }}</h2>
+        <hr class="h-px mr-4 ml-4 bg-primary-100 dark:bg-white border-0">
+        <form class="m-4 grid md:grid-cols-2 gap-4" [formGroup]="profileForm">
+            <div>
+                <span class="font-bold dark:text-white">{{ 'PROFILE._name' | translate }} (*)</span>
+                <input type="text" formControlName="name" id="name" [readonly]="isReadOnly"
+                [ngClass]="{
+                    'bg-gray-100 dark:bg-gray-700 cursor-not-allowed': isReadOnly,
+                    'bg-gray-50 dark:bg-secondary-300': !isReadOnly,
+                    'border-red-600': (profileForm.get('name')?.invalid == true && profileForm.value.name!='') || (profileForm.get('name')?.touched && profileForm.value.name==''),
+                    'border-gray-300 dark:border-secondary-200': !((profileForm.get('name')?.invalid == true && profileForm.value.name!='') || (profileForm.get('name')?.touched && profileForm.value.name==''))
+                }"
+                class="mb-2 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                @if(profileForm.get('name')?.invalid && profileForm.get('name')?.errors?.['required'] && (profileForm.get('name')?.touched && profileForm.value.name=='')){
+                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">This field is mandatory.</span></p>
+                }
+            </div>
+            <div>
+                <span class="font-bold dark:text-white">{{ 'PROFILE._website' | translate }}</span>
+                <input type="text" formControlName="website" id="website" [readonly]="isReadOnly"
+                [ngClass]="{
+                    'bg-gray-100 dark:bg-gray-700 cursor-not-allowed': isReadOnly,
+                    'bg-gray-50 dark:bg-secondary-300': !isReadOnly
+                }"
+                class="mb-2 border border-gray-300 text-gray-900 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+            </div>
+            <div>
+                <span class="font-bold dark:text-white">{{ 'PROFILE._country' | translate }} (*)</span>
+                <select data-cy="orgCountry" id="country" formControlName="country" [disabled]="isReadOnly"
+                [ngClass]="{
+                    'bg-gray-100 dark:bg-gray-700 cursor-not-allowed pointer-events-none': isReadOnly,
+                    'bg-gray-50 dark:bg-secondary-300': !isReadOnly
+                }"
+                class="mb-2 border border-gray-300 text-gray-900 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    <option *ngFor="let country of euCountries" [value]="country.code">
+                      {{ country.name }}
+                    </option>
+                </select>
+            </div>
+            <div>
+                <span class="font-bold dark:text-white">{{ 'PROFILE._did' | translate }}</span>
+                <input type="text" formControlName="did" id="did"
+                class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+            </div>
+
+            <label class="font-bold text-lg col-span-2 dark:text-white">{{ 'UPDATE_OFFER._description' | translate }}</label>
+            @if(isReadOnly) {
+                <!-- Read-only view: Show only the preview -->
+                <div class="w-full col-span-2 mb-4 border border-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 dark:border-secondary-200">
+                    <div class="px-4 py-2 rounded-lg">
+                        <markdown [ngClass]="{
+                            'break-all': hasLongWord(description, 20),
+                            'break-words': !hasLongWord(description, 20)
+                        }" class="text-gray-800 dark:text-gray-200 text-wrap break-words" [data]="description"></markdown>
+                    </div>
+                </div>
+            } @else {
+                <!-- Editable view: Show toolbar and editor -->
+                <div class="w-full col-span-2 mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-secondary-200 dark:border-secondary-200">
+                    <div class="flex items-center justify-between px-3 py-2 border-b">
+                        <div class="flex flex-wrap items-center divide-gray-200 dark:divide-secondary-200 sm:divide-x sm:rtl:divide-x-reverse">
+                            <div class="flex items-center space-x-1 rtl:space-x-reverse sm:pe-4 text-gray-500 dark:text-gray-200">
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addBold()" type="button"
+                                    class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5h4.5a3.5 3.5 0 1 1 0 7H8m0-7v7m0-7H6m2 7h6.5a3.5 3.5 0 1 1 0 7H8m0-7v7m0 0H6"/>
+                                    </svg>
+                                    <span class="sr-only">Bold</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addItalic()" type="button"
+                                    class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8.874 19 6.143-14M6 19h6.33m-.66-14H18"/>
+                                    </svg>
+                                    <span class="sr-only">Italic</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addList()" type="button"
+                                    class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M9 8h10M9 12h10M9 16h10M4.99 8H5m-.02 4h.01m0 4H5"/>
+                                    </svg>
+                                    <span class="sr-only">Add list</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addOrderedList()" type="button"
+                                    class="hidden lg:block p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6h8m-8 6h8m-8 6h8M4 16a2 2 0 1 1 3.321 1.5L4 20h5M4 5l2-1v6m-2 0h4"/>
+                                    </svg>
+                                    <span class="sr-only">Add ordered list</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addBlockquote()" type="button"
+                                    class="hidden md:block p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd" d="M5 6a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Zm0 12a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Zm1.65-9.76A1 1 0 0 0 5 9v6a1 1 0 0 0 1.65.76l3.5-3a1 1 0 0 0 0-1.52l-3.5-3ZM12 10a1 1 0 0 1 1-1h5a1 1 0 1 1 0 2h-5a1 1 0 0 1-1-1Zm0 4a1 1 0 0 1 1-1h5a1 1 0 1 1 0 2h-5a1 1 0 0 1-1-1Z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span class="sr-only">Add blockquote</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addTable()" type="button"
+                                    class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-width="2" d="M3 11h18m-9 0v8m-8 0h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Z"/>
+                                    </svg>
+                                    <span class="sr-only">Add table</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addCode()" type="button"
+                                    class="hidden md:block p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 8-4 4 4 4m8 0 4-4-4-4m-2-3-4 14"/>
+                                    </svg>
+                                    <span class="sr-only">Add code</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addCodeBlock()" type="button"
+                                    class="hidden md:block p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 3v4a1 1 0 0 1-1 1H5m5 4-2 2 2 2m4-4 2 2-2 2m5-12v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7.914a1 1 0 0 1 .293-.707l3.914-3.914A1 1 0 0 1 9.914 3H18a1 1 0 0 1 1 1Z"/>
+                                      </svg>
+                                    <span class="sr-only">Add code block</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addLink()" type="button"
+                                    class="hidden md:block p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.213 9.787a3.391 3.391 0 0 0-4.795 0l-3.425 3.426a3.39 3.39 0 0 0 4.795 4.794l.321-.304m-.321-4.49a3.39 3.39 0 0 0 4.795 0l3.424-3.426a3.39 3.39 0 0 0-4.794-4.795l-1.028.961"/>
+                                    </svg>
+                                    <span class="sr-only">Add link</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="showEmoji=!showEmoji;$event.stopPropagation();" type="button"
+                                    class="hidden lg:block p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM13.5 6a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm-7 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm3.5 9.5A5.5 5.5 0 0 1 4.6 11h10.81A5.5 5.5 0 0 1 10 15.5Z"/>
+                                    </svg>
+                                    <span class="sr-only">Add emoji</span>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" (click)="showPreview=!showPreview;togglePreview()" data-tooltip-target="tooltip-fullscreen" class="rounded cursor-pointer text-gray-500 dark:text-gray-200 p-2 sm:ms-auto hover:text-gray-900 dark:hover:text-gray-900 hover:bg-gray-100">
+                            <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-width="2" d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"/>
+                                <path stroke="currentColor" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                              </svg>
+
+                            <span class="sr-only">{{ 'CREATE_CATALOG._preview' | translate }}</span>
+                        </button>
+                        <div id="tooltip-fullscreen" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip">
+                            {{ 'CREATE_CATALOG._show_preview' | translate }}
+                            <div class="tooltip-arrow" data-popper-arrow></div>
+                        </div>
+                    </div>
+                    <div class="px-4 py-2 bg-white dark:bg-secondary-300 rounded-b-lg">
+                        <label for="editor" class="sr-only">Publish post</label>
+                        @if(showPreview){
+                                <markdown [ngClass]="{
+                                    'break-all': hasLongWord(description, 20),
+                                    'break-words': !hasLongWord(description, 20)
+                                    }" class="text-gray-800 dark:text-gray-200 text-wrap break-words" [data]="description"></markdown>
+
+                        }@else{
+                            <textarea id="editor" formControlName="description" rows="8" class="block w-full min-h-fit px-0 text-sm text-gray-800 dark:text-gray-200 bg-white dark:bg-secondary-300 border-0" placeholder="Add product description..." ></textarea>
+                        }
+                        @if(showEmoji){
+                            <emoji-mart (click)="$event.stopPropagation();" [darkMode]="false" [style]="{ position: 'relative', left: '200px', top: '-500px' }" (emojiClick)="addEmoji($event)"></emoji-mart>
+                        }
+
+                    </div>
+                </div>
+            }
+        </form>
+
+        @if(!isReadOnly){
+        <div class="flex">
+            <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'PROFILE._add_logo' | translate }}</h2>
+            <div class="flex inline-flex ml-2 align-middle">
+                <svg data-popover-target="popover-logo" class="flex self-center w-6 h-6 text-primary-100" clip-rule="evenodd" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+            </div>
+        </div>
+        <div data-popover id="popover-logo" role="tooltip" class="absolute z-20 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+            <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                <h3 class="font-semibold text-gray-900 dark:text-white">Logo requirements</h3>
+            </div>
+            <div class="px-3 py-2 inline-block">
+                <p class="inline-block">The supported formats are SVG and PNG. The logo size should follow an 1:1 aspect ratio (e.g. 160x160px resolution) and transparent background.
+                </p>
+            </div>
+            <div data-popper-arrow></div>
+        </div>
+        <hr class="h-px mr-4 ml-4 bg-primary-100 dark:bg-white border-0">
+        @if(showImgPreview){
+            <div class="relative isolate flex flex-col justify-end overflow-hidden rounded-2xl px-8 pb-8 pt-40 max-w-sm mx-auto m-4 shadow-lg">
+                <img src="{{imgPreview}}" class="absolute inset-0 h-full w-full object-cover">
+                <button (click)="removeImg()" class="z-10 absolute top-2 right-2 p-1 font-bold text-white bg-red-500 rounded-3xl">
+                    <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+                    </svg>                                  
+                </button>
+            </div>
+        } @else {
+            <div class="flex w-full justify-center justify-items-center">
+                <ngx-file-drop class="m-4 p-4 w-full" dropZoneLabel="Drop files here" (onFileDrop)="dropped($event,'img')" (onFileOver)="fileOver($event)" (onFileLeave)="fileLeave($event)">
+                    <ng-template class="w-full" ngx-file-drop-content-tmp let-openFileSelector="openFileSelector">
+                        <div class="w-full flex flex-col justify-items-center justify-center">
+                            <svg class="w-12 h-12 text-primary-100 mx-auto" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2"/>
+                            </svg>
+                            <div class="flex w-full justify-center">
+                                <p class="text-gray-500 mr-2 w-fit">{{ 'CREATE_PROD_SPEC._drop_files' | translate }}
+                                    <button (click)="openFileSelector()" class="font-medium text-primary-100 dark:text-primary-50 hover:underline">{{ 'CREATE_PROD_SPEC._select_files' | translate }}</button>
+                                </p> 
+                            </div>
+                        </div>
+                    </ng-template>
+                </ngx-file-drop>
+            </div>
+            <label class="font-bold ml-6 dark:text-white">{{ 'PROFILE._add_logo_url' | translate }}</label>
+            <div class="relative w-full ml-6 mt-2 mb-2">
+                <!-- Tooltip (Above the Input, Positioned Up) -->
+                <div *ngIf="attImageName.invalid && attImageName.touched"
+                    class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-max bg-gray-900 text-white text-xs rounded-lg p-2 shadow-lg z-50">
+                    {{ 'UPDATE_PROD_SPEC._file_name' | translate }}
+                    <!-- Tooltip Arrow -->
+                    <div class="absolute left-1/2 transform -translate-x-1/2 translate-y-1 w-2 h-2 bg-gray-900 rotate-45"></div>
+                </div>
+            
+                <div class="flex items-center h-fit w-full justify-between">
+                    <!-- Input Field -->
+                    <input #imgURL type="text" id="att-name"
+                        [formControl]="attImageName"
+                        (blur)="attImageName.markAsTouched()"
+                        class="w-full bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5"
+                        [ngClass]="attImageName.invalid && attImageName.touched ? 'border-red-500' : 'dark:border-secondary-200'"
+                    />
+                    
+                    <!-- Submit Button -->
+                    <button (click)="saveImgFromURL()"
+                        [disabled]="!attImageName.valid" 
+                        [ngClass]="!attImageName.valid ? 'opacity-50' : 'hover:bg-primary-50'"
+                        class="text-white bg-primary-100 rounded-3xl p-1 ml-2 h-fit">
+                        <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11.917 9.724 16.5 19 7.5"/>                                    
+                        </svg>                                  
+                    </button>
+                </div>
+            </div>
+        }
+        }
+
+        <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'PROFILE._contact_info' | translate }}</h2>
+        <hr class="h-px mr-4 ml-4 bg-primary-100 dark:bg-white border-0">
+        <div class="m-4 relative overflow-x-auto shadow-md sm:rounded-lg">
+            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
+                    <tr>
+                        <th scope="col" class="px-6 py-3">
+                            {{ 'PROFILE._medium_type' | translate }}
+                        </th>
+                        <th scope="col" class="px-6 py-3 hidden md:table-cell">
+                            {{ 'PROFILE._info' | translate }}
+                        </th>
+                        @if(!isReadOnly){
+                            <th scope="col" class="px-6 py-3">
+                                {{ 'PROFILE._actions' | translate }}
+                            </th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @for(medium of contactmediums; track medium) {
+                        <tr class="border-b hover:bg-gray-200 dark:border-gray-700 dark:hover:bg-secondary-200">
+                            <td class="px-6 py-4">
+                                {{medium.mediumType}}
+                            </td>
+                            <td class="px-6 py-4 hidden md:table-cell">
+                                @if(medium.mediumType == 'Email'){
+                                    {{medium.characteristic.emailAddress}}
+                                } @else if(medium.mediumType == 'PostalAddress') {
+                                    {{medium.characteristic.street1}}, {{medium.characteristic.postCode}} ({{medium.characteristic.city}}) {{medium.characteristic.stateOrProvince}}, {{medium.characteristic.country}}
+                                } @else {
+                                    ({{medium.characteristic.contactType}}) {{medium.characteristic.phoneNumber}}
+                                }
+                            </td>
+                            @if(!isReadOnly){
+                            <td class="px-6 py-4 inline-flex">
+                                <button data-cy="editContact" type="button" (click)="showEdit(medium)" class="text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 lg:p-2.5 text-center inline-flex items-center me-2">
+                                    <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd" d="M14 4.182A4.136 4.136 0 0 1 16.9 3c1.087 0 2.13.425 2.899 1.182A4.01 4.01 0 0 1 21 7.037c0 1.068-.43 2.092-1.194 2.849L18.5 11.214l-5.8-5.71 1.287-1.31.012-.012Zm-2.717 2.763L6.186 12.13l2.175 2.141 5.063-5.218-2.141-2.108Zm-6.25 6.886-1.98 5.849a.992.992 0 0 0 .245 1.026 1.03 1.03 0 0 0 1.043.242L10.282 19l-5.25-5.168Zm6.954 4.01 5.096-5.186-2.218-2.183-5.063 5.218 2.185 2.15Z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                                <button data-cy="deleteContact" type="button" (click)="removeMedium(medium)" class="text-white bg-red-800 hover:bg-red-900 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 lg:p-2.5 text-center inline-flex items-center me-2">
+                                    <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd" d="M8.586 2.586A2 2 0 0 1 10 2h4a2 2 0 0 1 2 2v2h3a1 1 0 1 1 0 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8a1 1 0 0 1 0-2h3V4a2 2 0 0 1 .586-1.414ZM10 6h4V4h-4v2Zm1 4a1 1 0 1 0-2 0v8a1 1 0 1 0 2 0v-8Zm4 0a1 1 0 1 0-2 0v8a1 1 0 1 0 2 0v-8Z" clip-rule="evenodd"/>
+                                        </svg>
+                                </button>
+                            </td>
+                            }
+                        </tr>
+                    } @empty {
+                        <div class="flex justify-center w-full m-4">
+                            <div class="flex w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">
+                              <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                              </svg>
+                              <div>
+                                  {{ 'PROFILE._no_mediums' | translate }}
+                              </div>
+                            </div>
+                        </div>                          
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if(!isReadOnly){
+        <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'PROFILE._add_new_contact' | translate }}</h2>
+        <hr class="h-px mr-4 ml-4 bg-primary-100 dark:bg-white border-0">
+        <div class="mr-8">
+            <select id="type" (change)="onTypeChange($event)"
+            class="m-4 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full">
+                <option value="email">Email</option>
+                <option value="address">Postal Address</option>
+                <option value="phone">Phone Number</option>
+            </select>
+        </div>
+
+        <form class="grid h-full grid-cols-2 gap-5 m-4" [formGroup]="mediumForm">
+            @if(emailSelected){
+                <div class="col-span-2">
+                    <label class="font-bold text-lg dark:text-white">{{ 'PROFILE._email' | translate }}</label>
+                    <input formControlName="email" type="text" id="prod-name"                    
+                    class="mb-2 bg-gray-50 dark:bg-secondary-300 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    [ngClass]="(mediumForm.get('email')?.invalid == true && mediumForm.value.email!='') || (mediumForm.get('email')?.touched == true && mediumForm.value.email=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"/>              
+                </div>
+            } @else if(addressSelected){
+                <div>
+                    <label for="address.country" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._country' | translate }}</label>
+                    <input data-cy="orgCountry" id="address.country" formControlName="country" name="address.country" type="text"
+                    class="mb-2 bg-gray-50 text-gray-900 dark:bg-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    [ngClass]="(mediumForm.get('country')?.invalid == true && mediumForm.value.country!='') || (mediumForm.get('country')?.touched && mediumForm.value.country=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'">
+                </div>
+                <div>
+                    <label for="address.city" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._city' | translate }}</label>
+                    <input id="address.city" formControlName="city" name="address.city" type="text"
+                    class="mb-2 bg-gray-50 text-gray-900 dark:bg-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    [ngClass]="(mediumForm.get('city')?.invalid == true && mediumForm.value.city!='') || (mediumForm.get('city')?.touched && mediumForm.value.city=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'">
+                </div>
+                <div>
+                    <label for="address.state" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._state' | translate }}</label>
+                    <input id="address.state" formControlName="stateOrProvince" name="address.state" type="text"
+                    class="mb-2 bg-gray-50 text-gray-900 dark:bg-secondary-300  dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    [ngClass]="(mediumForm.get('stateOrProvince')?.invalid == true && mediumForm.value.stateOrProvince!='') || (mediumForm.get('stateOrProvince')?.touched && mediumForm.value.stateOrProvince=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'">
+                </div>
+                <div>
+                    <label for="address.zip" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._post_code' | translate }}</label>
+                    <input id="address.zip" formControlName="postCode" name="address.zip" type="text"
+                    class="mb-2 bg-gray-50 text-gray-900 dark:bg-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    [ngClass]="(mediumForm.get('postCode')?.invalid == true && mediumForm.value.postCode!='') || (mediumForm.get('postCode')?.touched && mediumForm.value.postCode=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'">
+                </div>
+                <div class="col-span-2">
+                    <label for="address.street_address" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._street' | translate }}</label>
+                    <textarea id="address.street_address" formControlName="street" name="address.street_address"
+                    class="mb-2 min-h-fit bg-gray-50 text-gray-900 dark:bg-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" rows="4"
+                    [ngClass]="(mediumForm.get('street')?.invalid == true && mediumForm.value.street!='') || (mediumForm.get('street')?.touched && mediumForm.value.street=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"></textarea>
+                </div>   
+            } @else {
+                <div class="col-span-2 lg:col-span-1">
+                    <label for="phoneType" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._phone_type' | translate }}</label>
+                    <select id="phoneType" formControlName="telephoneType"
+                    class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                        <option value="Mobile">Mobile</option>
+                        <option value="Landline">Landline</option>
+                        <option value="Office">Office</option>
+                        <option value="Home">Home</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="col-span-2 lg:col-span-1">
+                    <label for="phoneNumber" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._phone' | translate }}</label>
+                    <div class="w-full">
+                        <div class="relative flex items-center">
+                            <button (click)="prefixCheck=!prefixCheck"
+                            class="mb-2 flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white rounded-s-lg hover:bg-gray-200 dark:hover:bg-primary-200 focus:ring-4 focus:outline-none focus:ring-gray-100" type="button">
+                                {{phonePrefix.flag}} {{phonePrefix.code}}
+                                <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/></svg>
+                            </button>
+                            @if(prefixCheck==true){
+                                <div class="absolute bottom-12 right-0 z-20 max-h-48 w-full bg-white divide-y divide-gray-100 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white rounded-lg shadow overflow-y-auto">
+                                    <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdown-phone-button">
+                                        <li>
+                                            @for(pref of prefixes;track pref.code){
+                                                <button type="button" (click)="selectPrefix(pref)" class="inline-flex w-full px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-secondary-200" role="menuitem">
+                                                    <div class="inline-flex items-center">
+                                                        {{pref.text}}
+                                                    </div>
+                                                </button>
+                                            }
+                                        </li>
+                                    </ul>
+                                </div>
+                            }
+                            <input min="0" id="phoneNumber" formControlName="telephoneNumber" name="phoneNumber" type="number"
+                            [ngClass]="mediumForm.get('telephoneNumber')?.errors?.['invalidPhoneNumber'] == true ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"
+                            class="mb-2 bg-gray-50 border text-gray-900 text-sm rounded-r-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-secondary-300 dark:text-white">
+                        </div>
+                    </div>
+                </div>  
+            }
+        </form>
+        <div class="flex w-full justify-items-center justify-center m-2 p-2">
+            <button data-cy="saveOrgProfile" type="button" [disabled]="!mediumForm.valid" [ngClass]="!mediumForm.valid ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="saveMedium()" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                {{ 'PROFILE._save' | translate }}
+                <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M11 16h2m6.707-9.293-2.414-2.414A1 1 0 0 0 16.586 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.414a1 1 0 0 0-.293-.707ZM16 20v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v6h8ZM9 4h6v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4Z"/>
+                </svg>
+            </button>
+        </div>
+        <div class="flex w-full justify-end">
+            <button data-cy="orgUpdate" type="button" [disabled]="!profileForm.valid" [ngClass]="!profileForm.valid ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"  (click)="updateProfile()" class="m-2 flex w-fit justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-900">
+                {{ 'PROFILE._update' | translate }}
+            </button>
+        </div>
+        }
+    </div>
+}
+@if(showError){
+    <error-message class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50" [message]="errorMessage"></error-message>
+}
+@if(showEditMedium){
+<div id="edit-medium-modal" [ngClass]="showEditMedium ? 'backdrop-blur-sm': ''" tabindex="-1" aria-hidden="true" class="flex justify-center overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-40 justify-center items-center w-full md:inset-0 h-fit lg:h-[calc(100%)] max-h-full shadow-2xl">
+    <div class="w-4/5 lg:w-1/2 relative bg-secondary-50 dark:bg-secondary-100 border border-secondary-50 dark:border-gray-800 rounded-lg shadow bg-cover bg-right-bottom" (click)="$event.stopPropagation();">
+        <!-- Modal header -->
+        <div class="flex items-center justify-between pr-2 pt-2 rounded-t dark:border-gray-600">
+            <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'PROFILE._edit' | translate }}</h2>
+            <button (click)="showEditMedium=false;" type="button"
+            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+            data-modal-hide="edit-medium-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">{{ 'CARD._close' | translate }}</span>
+            </button>
+        </div>
+        <!-- Modal body -->
+        <div class="w-full h-full">
+            <!--<div class="mr-8">
+                <select id="type" value="{{selectedMediumType}}" (change)="onTypeChange($event)"
+                class="m-4 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full">
+                    <option value="email">Email</option>
+                    <option value="address">Postal Address</option>
+                    <option value="phone">Phone Number</option>
+                </select>
+            </div>-->
+
+            <form class="grid h-full grid-cols-2 gap-5 m-4" [formGroup]="mediumForm">
+                @if(selectedMedium.mediumType=='Email'){
+                    <div class="col-span-2">
+                        <label class="font-bold text-lg dark:text-white">Email</label>
+                        <input formControlName="email" type="text" id="prod-name"
+                        [ngClass]="mediumForm.get('email')?.invalid == true && mediumForm.value.email!='' ? 'border-red-600' : 'border-gray-300'"
+                        class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />                    
+                    </div>
+                } @else if(selectedMedium.mediumType=='PostalAddress'){
+                    <div>
+                        <label for="address.country" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._country' | translate }}</label>
+                        <input data-cy="orgCountry" id="address.country" formControlName="country" name="address.country" type="text"
+                        class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    </div>
+                    <div>
+                        <label for="address.city" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._city' | translate }}</label>
+                        <input id="address.city" formControlName="city" name="address.city" type="text"
+                        class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    </div>
+                    <div>
+                        <label for="address.state" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._state' | translate }}</label>
+                        <input id="address.state" formControlName="stateOrProvince" name="address.state" type="text"
+                        class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    </div>
+                    <div>
+                        <label for="address.zip" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._post_code' | translate }}</label>
+                        <input id="address.zip" formControlName="postCode" name="address.zip" type="text"
+                        class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    </div>
+                    <div class="col-span-2">
+                        <label for="address.street_address" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._street' | translate }}</label>
+                        <textarea id="address.street_address" formControlName="street" name="address.street_address"
+                        class="mb-2 min-h-fit bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" rows="4"></textarea>
+                    </div>   
+                } @else {
+                    <div class="col-span-2 lg:col-span-1">
+                        <label for="phoneType" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._phone_type' | translate }}</label>
+                        <select id="phoneType" formControlName="telephoneType"
+                        class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            <option value="Mobile">Mobile</option>
+                            <option value="Landline">Landline</option>
+                            <option value="Office">Office</option>
+                            <option value="Home">Home</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2 lg:col-span-1">
+                        <label for="phoneNumber" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._phone' | translate }}</label>
+                        <div class="w-full">
+                            <div class="relative flex items-center">
+                                <button (click)="prefixCheck=!prefixCheck"
+                                class="mb-2 flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white rounded-s-lg hover:bg-gray-200 dark:hover:bg-primary-200 focus:ring-4 focus:outline-none focus:ring-gray-100" type="button">
+                                    {{phonePrefix.flag}} {{phonePrefix.code}}
+                                    <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/></svg>
+                                </button>
+                                @if(prefixCheck==true){
+                                    <div class="absolute bottom-12 right-0 z-20 max-h-48 w-full bg-white divide-y divide-gray-100 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white rounded-lg shadow overflow-y-auto">
+                                        <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdown-phone-button">
+                                            <li>
+                                                @for(pref of prefixes;track pref.code){
+                                                    <button type="button" (click)="selectPrefix(pref)" class="inline-flex w-full px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-secondary-200" role="menuitem">
+                                                        <div class="inline-flex items-center">
+                                                            {{pref.text}}
+                                                        </div>
+                                                    </button>
+                                                }
+                                            </li>
+                                        </ul>
+                                    </div>
+                                }
+                                <input id="phoneNumber" formControlName="telephoneNumber" name="phoneNumber" type="number" [ngClass]="mediumForm.get('telephoneNumber')?.errors?.['invalidPhoneNumber'] == true ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"
+                                class="mb-2 bg-gray-50 border text-gray-900 text-sm rounded-r-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-secondary-300 dark:text-white">
+                            </div>
+                        </div>
+                    </div>  
+                }
+            </form>
+            <div class="flex w-full justify-items-center justify-center m-2 p-2">
+                <button type="button" (click)="editMedium()" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                    {{ 'PROFILE._save' | translate }}
+                    <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M11 16h2m6.707-9.293-2.414-2.414A1 1 0 0 0 16.586 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.414a1 1 0 0 0-.293-.707ZM16 20v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v6h8ZM9 4h6v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4Z"/>
+                    </svg>                         
+                </button> 
+            </div>
+        </div>
+    </div>
+</div>
+}
+
+<!-- INFO (CREATED/UPDATED/ERROR) TOAST -->
+@if (toastVisibility) {
+    <div id="toast-warning" class="flex m-2 items-center w-fit max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 fixed top-1/2 right-0 z-50 justify-center" role="alert">
+        <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 bg-red-700 text-red-200 rounded-lg">
+            <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z"/>
+            </svg>
+        </div>
+        <div>
+            @if(mediumForm.get('telephoneNumber')?.errors?.['invalidPhoneNumber'] == true){
+                <div class="block ms-3 text-sm font-normal">{{ 'PROFILE._invalid_phone' | translate }}</div>
+            }
+            @if(this.mediumForm.get('email')?.invalid == true){
+                <div class="block ms-3 text-sm font-normal">{{ 'PROFILE._invalid_email' | translate }}</div>
+            }
+        </div>
+        <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-warning" aria-label="Close">
+            <span class="sr-only">Close</span>
+            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+            </svg>
+        </button>
+    </div>
+}
+
+
+@if (successVisibility) {
+    <div class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50" >
+        <div id="alert-additional-content-2" class="p-4 mb-4 text-white rounded-lg bg-primary-100" role="alert">
+            <div class="flex items-center">
+              <svg class="flex-shrink-0 w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+              </svg>
+              <h3 class="text-lg font-medium">Update success</h3>
+            </div>
+            <div class="mt-2 mb-4 text-sm pr-8 pl-8">
+                {{ 'PROFILE._success' | translate }}.
+            </div>
+        </div>
+    </div>
+
+
+    <!--<div id="toast-success" class="flex grid grid-flow-row mr-2 items-center w-auto max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 fixed top-1/2 right-0 z-50 justify-center" role="alert">
+      <div class="flex items-center justify-center">         
+        <div class="text-sm font-normal">
+          {{ 'PROFILE._success' | translate }}.
+        </div>
+        <div class="flex items-center ms-auto space-x-2 rtl:space-x-reverse p-1.5">
+            <button type="button" (click)="successVisibility=false" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-success" aria-label="Close">
+            <span class="sr-only">{{ 'CARD._close_toast' | translate }}</span>
+            <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>-->
+}

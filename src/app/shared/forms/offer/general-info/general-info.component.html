@@ -1,0 +1,18 @@
+@if (nameControl) {
+  <label for="prod-name" class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._name' | translate }}</label>
+  <input data-cy="offerName" id="prod-name" type="text" [formControl]="nameControl" maxLength="100"
+         class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"/>
+}
+@if (versionControl) {
+  <label for="prod-version" class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._version' | translate }}</label>
+  <input data-cy="offerVersion" id="prod-version" type="text" [formControl]="versionControl"
+         class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"/>
+}
+@if (statusControl && formType === 'update') {
+  <label class="font-bold text-lg col-span-2 dark:text-white">{{ 'CREATE_OFFER._status' | translate }}</label>
+  <app-status-selector [formControl]="statusControl"></app-status-selector>
+}
+@if (descControl) {
+  <label class="font-bold text-lg col-span-2 dark:text-white">{{ 'CREATE_OFFER._description' | translate }}</label>
+  <app-markdown-textarea [formControl]="descControl"></app-markdown-textarea>
+}

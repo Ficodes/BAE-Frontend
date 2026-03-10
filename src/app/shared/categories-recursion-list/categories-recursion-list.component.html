@@ -1,0 +1,41 @@
+
+
+<tr class="flex border-b hover:bg-gray-200 dark:border-gray-700 dark:bg-secondary-300 dark:hover:bg-secondary-200 w-full justify-between">
+    <td class="flex px-6 py-4 w-2/4 text-wrap break-all">
+        {{path}} / <b>{{child.name}}</b>
+    </td>
+    <td class="hidden md:flex px-6 py-4 w-fit">
+        @if(child.lifecycleStatus == 'Active'){
+            <span class="h-fit bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{child.lifecycleStatus}}</span>
+        } @else if(child.lifecycleStatus == 'Launched') {
+            <span class="h-fit bg-blue-100 dark:bg-secondary-300 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500">{{child.lifecycleStatus}}</span>
+        } @else if(child.lifecycleStatus == 'Retired') {
+            <span class="h-fit bg-blue-100 dark:bg-secondary-300 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{child.lifecycleStatus}}</span>
+        } @else if(child.lifecycleStatus == 'Obsolete') {
+            <span class="h-fit bg-blue-100 dark:bg-secondary-300 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{child.lifecycleStatus}}</span>
+        }
+    </td>
+    <td class="hidden md:flex px-6 py-4 w-fit">
+        {{child.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}} 
+    </td> 
+    <td class="flex px-6 py-4 w-fit justify-end">
+        <button type="button" (click)="goToUpdate(child)" class="text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
+            <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                <path fill-rule="evenodd" d="M14 4.182A4.136 4.136 0 0 1 16.9 3c1.087 0 2.13.425 2.899 1.182A4.01 4.01 0 0 1 21 7.037c0 1.068-.43 2.092-1.194 2.849L18.5 11.214l-5.8-5.71 1.287-1.31.012-.012Zm-2.717 2.763L6.186 12.13l2.175 2.141 5.063-5.218-2.141-2.108Zm-6.25 6.886-1.98 5.849a.992.992 0 0 0 .245 1.026 1.03 1.03 0 0 0 1.043.242L10.282 19l-5.25-5.168Zm6.954 4.01 5.096-5.186-2.218-2.183-5.063 5.218 2.185 2.15Z" clip-rule="evenodd"/>
+            </svg>
+        </button>
+        <!--<button type="button" class="text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
+            <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-width="2" d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"/>
+                <path stroke="currentColor" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                </svg>                                  
+        </button>-->
+    </td>
+</tr>
+
+
+@if(child.children && child.children.length>0){
+    @for(innerchild of child.children; track innerchild){
+        <categories-recursion-list class="w-full text-wrap break-all" [child]="innerchild" [parent]="child" [path]="path+' / '+child.name"></categories-recursion-list>
+    }
+}

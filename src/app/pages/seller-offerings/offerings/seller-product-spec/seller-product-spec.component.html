@@ -1,0 +1,236 @@
+
+<div>
+    <div class="w-full h-fit mb-4 bg-secondary-50 rounded-lg dark:bg-secondary-100 dark:border-gray-800 border-gray-300 border-secondary-50 border flex flex-col shadow-lg">
+      <div class="flex w-full flex-cols items-center md:flex-row justify-between">
+        <div class="mb-4 lg:mb-0 lg:w-1/4 p-8">
+            <h2 class="text-2xl font-bold mb-4 dark:text-white">{{ 'OFFERINGS._prod_spec' | translate }}</h2>            
+        </div>
+
+        <div class="flex flex-row w-full justify-end">
+            <!--<form class="max-w-lg w-1/2 pr-4 z-10">
+                <div class="relative">
+                    <input type="search" id="search" [formControl]="searchField" class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-white shadow rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Filter product specifications..." />
+                    <button type="submit" (click)="filterInventoryByKeywords()" class="absolute shadow top-0 end-0 inline-flex items-center p-2.5 text-sm font-medium h-full text-white bg-primary-100 rounded-e-lg hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300">
+                        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+                        </svg>                  
+                        <span class="ml-2">{{ 'OFFERINGS._search' | translate }}</span>
+                    </button>
+                </div>
+              </form>-->
+            <button data-cy="createProdSpec" (click)="goToCreate()" type="button" class="ml-2 mr-8 mb-4 text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center align-middle me-2">
+                <p class="hidden lg:block pl-2 pr-2">{{ 'OFFERINGS._add_new_prod' | translate }}</p>
+                <p class="block lg:hidden pl-2 pr-2">{{ 'OFFERINGS._add_new_prod_short' | translate }}</p>
+                <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+                </svg>
+            </button>  
+        </div>
+
+      </div>
+      <div class="flex w-full flex-col items-center md:flex-row justify-between">
+
+        <div class="p-8 w-full">
+          <div class="flex flex-row mb-1">
+            <fa-icon [icon]="faSwatchbook" class="fa-base text-primary-100 align-middle mr-2"></fa-icon>
+            <h2 class="text-base font-bold dark:text-white">{{ 'OFFERINGS._filter_state' | translate }}</h2>
+            </div>
+            <button id="dropdownDefault" data-dropdown-toggle="dropdown"
+            class="text-black dark:text-white w-full justify-between shadow bg-white dark:bg-secondary-200 hover:bg-gray-100 dark:hover:bg-secondary-300 focus:ring-4 focus:outline-none focus:ring-primary-100 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center shadow-lg"
+            type="button">
+            {{ 'OFFERINGS._filter_state' | translate }}
+            <svg class="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+            </button>
+            
+            <div id="dropdown" class="z-20 hidden w-fit md:w-1/5 p-3 bg-white rounded-lg shadow dark:bg-secondary-200">
+            <h6 class="mb-3 text-sm font-medium text-gray-900 dark:text-white">
+                {{ 'OFFERINGS._status' | translate }}
+            </h6>
+            <ul class="space-y-2 text-sm" aria-labelledby="dropdownDefault">
+  
+                <li class="flex items-center">
+                <input id="active" type="checkbox" value="" checked (change)="onStateFilterChange('Active')"
+                    class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded text-primary-600 focus:ring-primary-100" />
+    
+                <label for="active" class="ml-2 text-sm font-medium text-gray-900 dark:text-white">
+                    {{ 'OFFERINGS._active' | translate }}
+                </label>
+                </li>
+    
+                <li class="flex items-center">
+                <input id="launched" type="checkbox" value="" checked (change)="onStateFilterChange('Launched')"
+                    class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded text-primary-600 focus:ring-primary-100" />
+    
+                <label for="launched" class="ml-2 text-sm font-medium text-gray-900 dark:text-white">
+                    {{ 'OFFERINGS._launched' | translate }}
+                </label>
+                </li>
+    
+                <li class="flex items-center">
+                <input id="retired" type="checkbox" value="" (change)="onStateFilterChange('Retired')"
+                    class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded text-primary-600 focus:ring-primary-100" />
+    
+                <label for="retired" class="ml-2 text-sm font-medium text-gray-900 dark:text-white">
+                    {{ 'OFFERINGS._retired' | translate }}
+                </label>
+                </li>
+
+                <li class="flex items-center">
+                  <input id="obsolete" type="checkbox" value="" (change)="onStateFilterChange('Obsolete')"
+                      class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded text-primary-600 focus:ring-primary-100" />
+      
+                  <label for="obsolete" class="ml-2 text-sm font-medium text-gray-900 dark:text-white">
+                    {{ 'OFFERINGS._obsolete' | translate }}
+                  </label>
+                </li>
+            </ul>
+          </div>
+      </div> 
+
+
+      <!--<div class="p-8 w-full">
+        <div class="flex flex-row mb-1">
+          <fa-icon [icon]="faSparkles" class="fa-base text-primary-100 align-middle mr-2"></fa-icon>
+          <h2 class="text-base font-bold">{{ 'OFFERINGS._filter_type' | translate }}</h2>
+        </div>
+        <select id="type" (change)="onTypeChange($event)" class="shadow bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+          <option selected>{{ 'OFFERINGS._filter_type' | translate }}</option>
+          <option value="all">{{ 'OFFERINGS._all' | translate }}</option>
+          <option value="simple">{{ 'OFFERINGS._simple' | translate }}</option>
+          <option value="bundle">{{ 'OFFERINGS._bundle' | translate }}</option>
+        </select>
+      </div>
+
+      <div class="p-8 w-full">
+        <div class="flex flex-row mb-1">
+          <fa-icon [icon]="faSort" class="fa-base text-primary-100 align-middle mr-2"></fa-icon>
+          <h2 class="text-base font-bold">{{ 'OFFERINGS._order_by' | translate }}</h2>
+        </div>
+        <select id="sort" (change)="onSortChange($event)" class="shadow bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+          <option selected>{{ 'OFFERINGS._order_by' | translate }}</option>
+          <option value="update">{{ 'OFFERINGS._last_update' | translate }}</option>
+          <option value="name">{{ 'OFFERINGS._name' | translate }}</option>
+        </select>
+      </div>-->
+
+
+    </div>
+  </div>
+
+@if(loading){
+    <div role="status" class="w-full h-full flex justify-center align-middle">
+        <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+        </svg>
+        <span class="sr-only">Loading...</span>
+      </div>
+} @else {
+    <div class="bg-secondary-50 dark:bg-secondary-100 border dark:border-gray-800 mt-8 p-4 rounded-lg">
+    <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white dark:bg-secondary-300">
+        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
+                <tr>
+                    <th scope="col" class="px-6 py-3">
+                        {{ 'OFFERINGS._name' | translate }}
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        {{ 'OFFERINGS._status' | translate }}
+                    </th>
+                    <th scope="col" class="px-6 py-3 hidden md:table-cell">
+                        {{ 'OFFERINGS._type' | translate }}
+                    </th>
+                    <th scope="col" class="px-6 py-3 hidden lg:table-cell">
+                        {{ 'OFFERINGS._last_update' | translate }}
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        {{ 'OFFERINGS._actions' | translate }}
+                    </th>
+                </tr>
+            </thead>
+            <tbody data-cy="prodSpecTable">
+                @for (prod of prodSpecs; track prod.id) {
+                    <tr data-cy="prodSpecRow" class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                        <td [ngClass]="{
+                            'break-all': hasLongWord(prod.name, 20),
+                            'break-words': !hasLongWord(prod.name, 20)
+                            }" class="px-6 py-4 text-wrap break-words">
+                            {{prod.name}}
+                        </td>
+                        <td class="px-6 py-4">
+                            @if(prod.lifecycleStatus == 'Active'){
+                                <span class="bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{prod.lifecycleStatus}}</span>
+                            } @else if(prod.lifecycleStatus == 'Launched') {
+                                <span class="bg-blue-100 dark:bg-secondary-300 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500">{{prod.lifecycleStatus}}</span>
+                            } @else if(prod.lifecycleStatus == 'Retired') {
+                                <span class="bg-blue-100 dark:bg-secondary-300 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{prod.lifecycleStatus}}</span>
+                            } @else if(prod.lifecycleStatus == 'Obsolete') {
+                                <span class="bg-blue-100 dark:bg-secondary-300 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{prod.lifecycleStatus}}</span>
+                            }
+                        </td>
+                        <td class="px-6 py-4  hidden md:table-cell">
+                            @if(prod.isBundle == false){
+                                <span class="bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{ 'OFFERINGS._simple' | translate }}</span>
+                            } @else {
+                                <span class="bg-blue-100 dark:bg-secondary-300 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500">{{ 'OFFERINGS._bundle' | translate }}</span>
+                            }
+                        </td>
+                        <td class="px-6 py-4 hidden lg:table-cell">
+                            {{prod.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}} 
+                        </td>
+                        <td class="px-6 py-4">
+                            <button data-cy="productSpecEdit" type="button" (click)="goToUpdate(prod)" class="text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
+                                <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd" d="M14 4.182A4.136 4.136 0 0 1 16.9 3c1.087 0 2.13.425 2.899 1.182A4.01 4.01 0 0 1 21 7.037c0 1.068-.43 2.092-1.194 2.849L18.5 11.214l-5.8-5.71 1.287-1.31.012-.012Zm-2.717 2.763L6.186 12.13l2.175 2.141 5.063-5.218-2.141-2.108Zm-6.25 6.886-1.98 5.849a.992.992 0 0 0 .245 1.026 1.03 1.03 0 0 0 1.043.242L10.282 19l-5.25-5.168Zm6.954 4.01 5.096-5.186-2.218-2.183-5.063 5.218 2.185 2.15Z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                            <!--<button type="button" class="text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
+                                <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-width="2" d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"/>
+                                    <path stroke="currentColor" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                                </svg>                                  
+                            </button>-->
+                        </td>
+                    </tr>
+                } @empty {
+                    <div class="flex justify-center w-full m-4">
+                        <div class="flex w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-gray-100 dark:bg-secondary-200 dark:text-primary-50" role="alert">
+                          <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                          </svg>
+                          <div>
+                            {{ 'OFFERINGS._no_prod' | translate }}
+                          </div>
+                        </div>
+                    </div>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (!loading_more) {
+        @if (page_check) {
+        <div class="flex pt-6 pb-2 justify-center align-middle">
+            <button (click)="next()" class="flex cursor-pointer shadow-lg items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 dark:text-white bg-white dark:bg-primary-100 dark:hover:bg-secondary-100 border border-gray-300 dark:border-secondary-200 rounded-lg hover:bg-gray-200">
+            {{ 'OFFERINGS._load_more' | translate }}
+            <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+            </svg>
+            </button>
+        </div>
+        }
+    } @else {
+        <div role="status" class="w-full h-full flex justify-center align-middle mt-2">
+        <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+        </svg>
+        <span class="sr-only">Loading...</span>
+        </div>
+    }
+  </div>
+}
+</div>

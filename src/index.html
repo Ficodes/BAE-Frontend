@@ -2,12 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>BaeFrontend</title>
+  <title>BAE Marketplace</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" type="image/x-icon" href="/assets/themes/bae/bae-logo.svg">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Blinker:wght@300;400;500;600;700&display=swap">
+  <link href="https://cdn.jsdelivr.net/npm/flowbite@2.4.1/dist/flowbite.min.css" rel="stylesheet" />
+  <script>
+    // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  </script>
 </head>
-<body>
+<body class="min-h-screen bg-white dark:bg-tertiary-50"> <!-- class="dark:bg-gray-900" style="background-image: url('assets/logos/dome-logo-element-colour.png');"-->
   <app-root></app-root>
+  <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.js"></script>-->
 </body>
 </html>

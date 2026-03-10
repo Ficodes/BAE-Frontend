@@ -1,0 +1,325 @@
+<div class="flex flex-col w-full h-full bg-secondary-50 dark:bg-secondary-100 rounded-lg dark:border-secondary-100 border-secondary-50 border">
+
+
+  <div (click)="goToProductDetails(productOff)" class="rounded-t overflow-hidden cursor-pointer">
+    <div class="relative h-48 flex justify-center items-center">
+      <!-- Imagen de fondo difuminada -->
+      <!--<div class="absolute inset-0 bg-cover bg-center opacity-75" style="background-color: {{bgColor}};"></div>-->
+      <div class="absolute inset-0 bg-cover bg-center opacity-75" style="background-image: url({{getProductImage()}});filter: blur(20px);"></div>
+      <!-- Imagen superior -->
+      <!-- <img crossorigin="anonymous" #myProdImage class="h-5/6 w-5/6 object-contain z-10" src="{{getProductImage()}}" alt="Descripción de la imagen">-->
+      <img class="h-5/6 w-5/6 object-contain z-10 dark:text-white" src="{{getProductImage()}}" alt="Product image">
+    </div>
+  </div>
+
+  <div class="flex-1 h-full bg-cover bg-right-bottom bg-opacity-25 bg-blend-multiply rounded-lg" [style.background-image]="'url(' + currentTheme?.assets?.cardDefaultBgUrl + ')'">
+    <div class="flex-1 h-full px-5 py-5 bg-secondary-50/95 dark:bg-tertiary-100/95 rounded-b-lg">
+      <div data-cy="searchOfferCategories" class="flex items-center flex-wrap overflow-y-hidden overflow-x-hidden align-middle">
+        <!--<a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2 mr-2"
+        [ngClass]="complianceLevel == 'NL' ? 'bg-red-200 text-red-700' : complianceLevel == 'BL' ? 'bg-orange-200 text-orange-700' : complianceLevel == 'P' ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
+        <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel == 'NL' ? 'text-red-700' : complianceLevel == 'BL' ? 'text-orange-700' : complianceLevel == 'P' ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
+        -->
+        @if(complianceLevel=='NL'){
+          <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2 mr-2"
+          [ngClass]="complianceLevel == 'NL' ? 'bg-red-200 text-red-700' : complianceLevel == 'BL' ? 'bg-orange-200 text-orange-700' : complianceLevel == 'P' ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
+          <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel == 'NL' ? 'text-red-700' : complianceLevel == 'BL' ? 'text-orange-700' : complianceLevel == 'P' ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
+              No level
+          </a>
+        }@else if(complianceLevel=='BL'){
+          <img class="z-10 dark:text-white rounded-md mb-2 mr-2 max-h-[1.2rem] align-middle" src="assets/logos/baseline.png">
+        } @else if(complianceLevel=='P') {
+          <img class="z-10 dark:text-white rounded-md mb-2 mr-2 max-h-[1.2rem] align-middle" src="assets/logos/prof.png">
+        } @else {
+          <img class="z-10 dark:text-white rounded-md mb-2 mr-2 max-h-[1.2rem] align-middle" src="assets/logos/profplus.png">
+        }
+        <!--</a>-->
+        @for (cat of categories; track cat.id) {
+          <bae-badge class="mr-2" [category]=cat></bae-badge>
+        }
+        @if(checkMoreCats){
+          <a data-cy="searchShowAllCategories" class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2 mr-2">
+            <fa-icon [icon]="faEllipsis" class="text-secondary-50 dark:text-primary-100"></fa-icon>
+          </a>
+        }
+        </div>
+      <a (click)="goToProductDetails(productOff)" class="cursor-pointer">
+        <h5 data-cy="searchOfferTitle" [ngClass]="{
+          'break-all': hasLongWord(productOff?.name, 20),
+          'break-words': !hasLongWord(productOff?.name, 20)
+        }"
+        class="text-xl font-semibold line-clamp-2 tracking-tight text-primary-100 dark:text-white text-wrap break-words">{{productOff?.name}}</h5>
+      </a>
+      <markdown data-cy="searchOfferDescription" class="min-h-19 h-19 line-clamp-2 text-gray-600 dark:text-gray-400" [data]="productOff?.description"></markdown>
+      <!--<div class="flex w-full justify-between mt-2.5 mb-5 text-gray-500 font-mono">
+        <div>V: {{productOff?.version || 'latest'}}</div>
+        <div class="flex items-center">
+          <svg class="w-4 h-4 text-yellow-300 mr-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">
+            <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
+          </svg>
+          <svg class="w-4 h-4 text-yellow-300 mr-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">
+            <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
+          </svg>
+          <svg class="w-4 h-4 text-yellow-300 mr-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">
+            <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
+          </svg>
+          <svg class="w-4 h-4 text-yellow-300 mr-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">
+            <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
+          </svg>
+          <svg class="w-4 h-4 text-gray-200 dark:text-gray-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">
+            <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
+          </svg>
+          <span class="bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800 ml-3">5.0</span>
+        </div>
+      </div>-->
+
+      <div class="flex sticky top-[100vh] items-center justify-center align-items-bottom rounded-lg mt-4">
+
+        <button data-cy="searchViewDetails" (click)="toggleDetailsModal();$event.stopPropagation();"  type="button" class="flex items-center align-items-bottom text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-100 dark:hover:bg-primary-50 dark:focus:ring-primary-100 mr-1">
+          <svg class="w-[18px] h-[18px] text-white mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
+            <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+              <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+              <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>
+            </g>
+          </svg>
+          {{ 'CARD._details' | translate }}
+        </button>
+        @if(check_logged) {
+          @if(!isCustom()) {
+            <button data-cy="addToCart" id="add-to-cart" type="button" [disabled]="!PURCHASE_ENABLED || productAlreadyInCart"
+                  (click)="openDrawer()"
+                  [ngClass]="!PURCHASE_ENABLED || productAlreadyInCart ? 'opacity-50' : 'hover:bg-primary-50'"
+                  class="flex align-items-bottom text-white cursor-pointer bg-green-700 hover:bg-green-900 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+              {{ 'CARD._add_cart' | translate }}
+            </button>
+          } @else if(quotesEnabled){
+            <button type="button" (click)="toggleQuoteModal();$event.stopPropagation();" class="m-4 w-fit flex items-center justify-start text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+              {{ 'CARD._quote' | translate }}
+              <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+              </svg>
+            </button>
+          }
+        }
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- Drawer Reutilizable -->
+<app-price-plan-drawer
+  data-cy="pricePlanDrawer"
+  [drawerId]="'drawer-product'"
+  [productOff]="productOff"
+  [prodSpec]="prodSpec"
+  [isOpen]="isDrawerOpen"
+  [width]="'w-2/3'"
+  (closeDrawer)="closeDrawer()"
+></app-price-plan-drawer>
+
+
+<!-- Main modal -->
+@if (showModal){
+  <div id="details-modal" [ngClass]="showModal ? 'backdrop-blur-sm': ''" tabindex="-1" aria-hidden="true" class="flex justify-center overflow-x-hidden fixed top-0 right-0 left-0 z-40 justify-center items-center w-full md:inset-0 h-full max-h-full rounded-lg shadow-2xl">
+    <div class="relative w-full max-w-7xl max-h-full rounded-t-lg" (click)="$event.stopPropagation();">
+        <!-- Modal content -->
+        <div class="relative sm:m-8 bg-white rounded-lg shadow dark:border-gray-600 dark:bg-tertiary-100 bg-cover bg-right-bottom rounded-lg overflow-y-auto max-h-[calc(100vh-10rem)]">
+          <button (click)="hideModal();" type="button" class="absolute top-4 right-4 z-50 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="details-modal">
+            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+            </svg>
+            <span class="sr-only">{{ 'CARD._close' | translate }}</span>
+          </button>
+            <!--<div class="flex items-center justify-between pr-2 pt-2 bg-secondary-50 rounded-t-lg dark:bg-white dark:border-gray-700 border-secondary-50">
+              <button (click)="hideModal()" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="details-modal">
+                  <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                  </svg>
+                  <span class="sr-only">{{ 'CARD._close' | translate }}</span>
+              </button>
+            </div>-->
+            <!-- Modal body -->
+
+            <!-- START HEADER CARD -->
+            <div class="w-full mb-4 rounded-t-lg grid grid-cols-80/20 lg:grid-cols-60/40">
+
+              <div class="flex flex-col p-4 overflow-x-hidden">
+                  <h5 [ngClass]="{
+                    'break-all': hasLongWord(productOff?.name, 20),
+                    'break-words': !hasLongWord(productOff?.name, 20)
+                  }" class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-primary-100 dark:text-primary-50 text-wrap break-words">{{productOff?.name}}</h5>
+                  <div class="grid grid-cols-2">
+                      <div class="min-h-19 pt-2 text-gray-500 dark:text-gray-400">V: {{productOff?.version || 'latest'}}</div>
+                  </div>
+
+                  <div class="h-fit overflow-x-hidden flex items-center flex-wrap">
+                    @if(complianceLevel=='NL'){
+                      <a class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md mb-2 mr-2"
+                      [ngClass]="complianceLevel == 'NL' ? 'bg-red-200 text-red-700' : complianceLevel == 'BL' ? 'bg-orange-200 text-orange-700' : complianceLevel == 'P' ? 'bg-yellow-200 text-yellow-700' : 'bg-green-200 text-green-700'">
+                      <fa-icon [icon]="faAtom" class="mr-2" [ngClass]="complianceLevel == 'NL' ? 'text-red-700' : complianceLevel == 'BL' ? 'text-orange-700' : complianceLevel == 'P' ? 'text-yellow-700' : 'text-green-700'"></fa-icon>
+                          No level
+                      </a>
+                    }@else if(complianceLevel=='BL'){
+                      <img class="z-10 dark:text-white rounded-md mb-2 mr-2 max-h-[1.2rem] align-middle" src="assets/logos/baseline.png">
+                    } @else if(complianceLevel=='P') {
+                      <img class="z-10 dark:text-white rounded-md mb-2 mr-2 max-h-[1.2rem] align-middle" src="assets/logos/prof.png">
+                    } @else {
+                      <img class="z-10 dark:text-white rounded-md mb-2 mr-2 max-h-[1.2rem] align-middle" src="assets/logos/profplus.png">
+                    }
+                      @for (cat of categories; track cat.id) {
+                          <bae-badge class="mr-2" [category]=cat></bae-badge>
+                      }
+                      @if(loadMoreCats){
+                        @for (cat of categoriesMore; track cat.id) {
+                          <bae-badge class="mr-2" [category]=cat></bae-badge>
+                        }
+                      }
+                      @if(checkMoreCats){
+                        <a (click)="loadMoreCategories()" class="cursor-pointer text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2">
+                          <fa-icon [icon]="faEllipsis" class="text-secondary-50 dark:text-primary-100"></fa-icon>
+                        </a>
+                      }
+                      @if(closeCats){
+                        <a (click)="closeCategories()" class="cursor-pointer text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2">
+                          <fa-icon [icon]="faClose" class="text-secondary-50 dark:text-primary-100"></fa-icon>
+                        </a>
+                      }
+                  </div>
+              </div>
+
+              <div class="relative h-[200px] overflow-hidden flex justify-center items-center border border-1 border-gray-200 dark:border-gray-700 rounded-tr-lg">
+                <div class="absolute inset-0 bg-cover bg-center opacity-75" style="background-image: url({{getProductImage()}});filter: blur(20px);"></div>
+                <img class="rounded-r-lg h-5/6 w-5/6 object-contain z-10 dark:text-white" src="{{getProductImage()}}" alt="Product image" />
+              </div>
+
+
+              <!--<div [ngClass]="closeCats ? 'object-contain' : 'h-[200px]'" class="relative min-h-[200px] overflow-hidden flex justify-center items-center border border-1 border-gray-200 dark:border-gray-700 rounded-tr-lg">
+                <div class="absolute inset-0 bg-cover bg-center opacity-75" style="background-image: url({{getProductImage()}});filter: blur(20px);"></div>
+                <img class="rounded-r-lg h-5/6 w-5/6 object-contain z-10" src="{{getProductImage()}}" alt="product image" />
+              </div>-->
+
+              <hr class="h-px border-gray-200 border-1 dark:border-gray-700">
+          </div>
+
+        <!-- END HEADER CARD -->
+
+
+            <div class="p-4 lg:p-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="justify-start">
+                  <h5 class="font-semibold tracking-tight text-lg text-primary-100 dark:text-primary-50">{{ 'CARD._prod_details' | translate }}:</h5>
+                  <markdown [ngClass]="{
+                    'break-all': hasLongWord(productOff?.description, 20),
+                    'break-words': !hasLongWord(productOff?.description, 20)
+                  }" class="min-h-19 h-19 dark:text-secondary-50 line-clamp-6 text-wrap break-words" [data]="productOff?.description"></markdown>
+              </div>
+              <!--<div class="justify-start">
+                <h5 class="font-semibold tracking-tight text-lg text-primary-100 dark:text-primary-50">{{ 'CARD._comp_profile' | translate }}:</h5>
+                <ul class="max-w-md space-y-1 list-disc list-inside dark:text-secondary-50">
+                  @for (char of complianceProf; track char.id) {
+                    @if (char.href == '#') {
+                        <li>{{char.name}}: {{char.value}}</li>
+                    } @else {
+                        <li>{{char.name}}: <a href="{{char.href}}">{{char.value}}</a></li>
+                    }
+                  }
+                </ul>
+              </div>-->
+              <div class="justify-start">
+                  <h5 class="font-semibold tracking-tight text-lg text-primary-100 dark:text-primary-50">{{ 'CARD._extra_info' | translate }}:</h5>
+                    <ul class="max-w-md space-y-1 list-disc list-inside dark:text-secondary-50 text-wrap break-all line-clamp-8">
+                      <li class="text-wrap break-all line-clamp-1">{{ 'CARD._offer_version' | translate }}: v{{productOff?.version}}</li>
+                      <li class="text-wrap break-all line-clamp-2">{{ 'CARD._product_name' | translate }}: {{prodSpec.name}}</li>
+                      <li class="text-wrap break-all line-clamp-1">{{ 'CARD._brand' | translate }}: {{prodSpec.brand}}</li>
+                      <li class="text-wrap break-all line-clamp-1">{{ 'CARD._last_update' | translate }}: {{productOff?.lastUpdate | date:'dd/MM/yy, HH:mm'}}</li>
+                      <li class="text-wrap break-all line-clamp-1">{{ 'CARD._product_version' | translate }}: v{{prodSpec.version}}</li>
+                      @if(prodSpec.productNumber != ''){
+                        <li class="text-wrap break-all line-clamp-1">{{ 'CARD._id_number' | translate }}: {{prodSpec.productNumber}}</li>
+                      }
+                      @if(orgInfo!=undefined){
+                        <li [ngClass]="{
+                          'break-all': hasLongWord(orgInfo.tradingName, 20),
+                          'break-words': !hasLongWord(orgInfo.tradingName, 20)
+                        }" class="text-wrap break-words line-clamp-1">{{ 'CARD._owner' | translate }}: <a (click)="goToOrgDetails(orgInfo.id)" target="_blank" class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline">{{orgInfo.tradingName}}</a></li>
+                      }
+                    </ul>
+              </div>
+            </div>
+            <hr class="h-px bg-gray-200 border-0 dark:bg-gray-700">
+            <div class="flex">
+              @if(check_logged){
+                @if(!isCustom()) {
+                  <button data-cy="addToCart" (click)="openDrawer()" [disabled]="!PURCHASE_ENABLED || productAlreadyInCart" [ngClass]="!PURCHASE_ENABLED || productAlreadyInCart ? 'opacity-50' : 'hover:bg-primary-50'" type="button" class="m-4 w-fit flex items-center justify-start text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2">
+                    <svg class="w-3.5 h-3.5 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 21">
+                      <path d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z"/>
+                    </svg>
+                    {{ 'CARD._add_cart' | translate }}
+                  </button>
+                } @else if(quotesEnabled){
+                  <button type="button" (click)="toggleQuoteModal();$event.stopPropagation();" class="m-4 w-fit flex items-center justify-start text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                    {{ 'CARD._quote' | translate }}
+                    <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+                    </svg>
+                  </button>
+                }
+              }
+
+              <button type="button" (click)="goToProductDetails(productOff)" class="m-4 w-fit flex items-center justify-start text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2">
+                {{ 'CARD._details' | translate }}
+                <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                </svg>
+              </button>
+            </div>
+        </div>
+    </div>
+  </div>
+}
+
+
+<!-- ADD TO CART TOAST -->
+@if (toastVisibility) {
+  <div id="toast-add-cart" class="flex grid grid-flow-row mr-2 items-center w-auto max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 fixed top-1/2 right-0 z-50 justify-center" role="alert">
+    <div class="flex items-center justify-center">
+      <svg class="w-[18px] h-[18px] text-gray-800 dark:text-white mr-2 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 20">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 15a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm0 0h8m-8 0-1-4m9 4a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-9-4h10l2-7H3m2 7L3 4m0 0-.792-3H1"/>
+      </svg>
+      <div class="text-sm font-normal">
+        {{ 'CARD._added_card' | translate }}.
+      </div>
+      <div class="flex items-center ms-auto space-x-2 rtl:space-x-reverse p-1.5">
+          <button type="button" (click)="deleteProduct(lastAddedProd)" class="px-3 py-2 text-xs font-medium text-center text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">{{ 'CARD._undo' | translate }}</button>
+          <button type="button" (click)="toastVisibility=false" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-add-cart" aria-label="Close">
+          <span class="sr-only">{{ 'CARD._close_toast' | translate }}</span>
+          <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="flex w-full mt-2 rounded-full h-2.5 dark:bg-gray-700">
+      <div id="progress-bar" class="z-10 flex bg-green-600 h-2.5 rounded-full dark:bg-green-500 transition-width delay-200 duration-3000 ease-out" style="width: 0px;"></div>
+    </div>
+  </div>
+}
+
+<!-- CART SELECTION modal -->
+@if (cartSelection){
+  <cart-card [productOff]="productOff" [prodSpec]="prodSpec" [images]="images" [cartSelection]="cartSelection"></cart-card>
+}
+@if(showError){
+  <error-message class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50" [message]="errorMessage"></error-message>
+}
+
+<!-- Main modal -->
+@if (showQuoteModal){
+  <app-quote-request-modal 
+  [ngClass]="showQuoteModal ? 'backdrop-blur-sm': ''" 
+  class="flex justify-center overflow-x-hidden fixed top-0 right-0 left-0 z-40 justify-center items-center w-full md:inset-0 h-full max-h-full rounded-lg shadow-2xl"
+  (click)="$event.stopPropagation();"
+  [productOff]="productOff"
+  [prodSpec]="prodSpec"
+  [orgInfo]="orgInfo"
+  [customerId]="customerId"
+  [isOpen]="showQuoteModal"
+  ></app-quote-request-modal>
+}

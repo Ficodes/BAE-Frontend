@@ -1,0 +1,47 @@
+<p class="mb-3 text-gray-500 dark:text-gray-400">Define in which marketplaces of the DOME Ecosystem your Product Offering might appear (marketplace operators might not publish your offering, depending on their business choices):</p>
+<div class="flex">
+    <div class="flex items-center me-4">
+        <input id="inline-radio" type="radio" value="" name="replication-buttons" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+        <label for="inline-radio" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">All marketplaces</label>
+    </div>
+    <div class="flex items-center me-4">
+        <input id="inline-2-radio" type="radio" value="" name="replication-buttons" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+        <label for="inline-2-radio" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Selected marketplaces</label>
+    </div>
+    <div class="flex items-center me-4">
+        <input checked id="inline-checked-radio" type="radio" value="" name="replication-buttons" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+        <label for="inline-checked-radio" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">This marketplace only</label>
+    </div>
+</div>
+<div class="grid grid-cols-2 gap-4 mt-4">
+    <multiple-select [options]="availableCountries"></multiple-select>
+    <multiple-select [options]="availableMarketplaces"></multiple-select>
+</div>
+<h3 class="font-bold text-black dark:text-white mt-4">Exceptions</h3>
+<p class="mb-3 text-gray-500 dark:text-gray-400">Within the above selection, never publish in the following marketplaces:</p>
+<div class="grid grid-cols-2 gap-4 mt-4">
+    <multiple-select [options]="availableCountries"></multiple-select>
+    <multiple-select [options]="availableMarketplaces"></multiple-select>
+</div>
+<div class="border border-gray-500 p-4 rounded-md w-full dark:text-gray-400 mt-4">
+    Publish only in this marketplace: DOME
+</div>
+<h2 class="text-3xl font-bold text-primary-100 dark:text-white mt-8">Visibility to customers</h2>
+<p class="mb-3 text-gray-500 dark:text-gray-400">Define which customers, in the the DOME Ecosystem, will see your Product Offerings:</p>
+<div class="flex flex-col">
+    <div class="flex items-center me-4">
+        <input checked id="inline-radio" type="radio" value="" name="visibility-buttons" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+        <label for="inline-radio" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Any customer (including guests)</label>
+    </div>
+    <div class="flex items-center me-4">
+        <input id="inline-2-radio" type="radio" value="" name="visibility-buttons" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+        <label for="inline-2-radio" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Authenticated customers from any country</label>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+        <div class="flex items-center me-4">
+            <input id="inline-checked-radio" type="radio" value="" name="visibility-buttons" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+            <label for="inline-checked-radio" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Authenticated customers from companies incorporated in specific countries:</label>
+        </div>
+        <multiple-select [options]="availableCountries"></multiple-select>
+    </div>
+</div>

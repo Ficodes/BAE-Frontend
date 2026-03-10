@@ -1,0 +1,75 @@
+<p class="mb-3 text-gray-500 dark:text-gray-400">Define which parts of the procurement/activation process will be performed automatically and which ones will be performed manually by the provider</p>
+
+<div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-2">
+    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+      {{ 'FORMS.PROCUREMENT_MODE._title' | translate }}
+    </label>
+    <div [formGroup]="formGroup">
+      <select data-cy="procurement" formControlName="mode" class="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+        @for (mode of procurementModes; track mode.id) {
+          <option [value]="mode.id">{{ mode.name }}</option>
+        }
+      </select>
+    </div>
+  </div>
+</div>
+
+@if(showProcurementError){
+  <div
+  class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"
+>
+    <div
+      id="alert-additional-content-2"
+      class="relative p-4 mb-4 text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-red-900 dark:border-red-900 dark:text-white"
+      role="alert"
+    >
+      <!-- Close button -->
+      <button
+        type="button"
+        class="absolute top-2 right-2 text-red-500 hover:text-red-700 dark:text-white dark:hover:text-gray-300"
+        (click)="showProcurementError = false"
+        aria-label="Close"
+      >
+        <svg
+          class="w-4 h-4"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+
+      <div class="flex items-center">
+        <svg
+          class="flex-shrink-0 w-4 h-4 me-2"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"
+          />
+        </svg>
+        <h3 class="text-lg font-medium">Warning!</h3>
+      </div>
+      <div class="mt-2 mb-4 text-sm">
+        {{ errorMessage }}
+        <!-- Link under error message -->
+        <p class="mt-2">
+          <a href="{{ gatewayUrl }}" target="_blank" class="text-sm font-medium text-red-600 hover:underline dark:text-red-300">
+            Check the payment gateway here.
+          </a>
+        </p>
+      </div>
+    </div>
+</div>
+}

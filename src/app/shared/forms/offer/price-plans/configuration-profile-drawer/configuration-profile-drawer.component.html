@@ -1,0 +1,72 @@
+<!-- Drawer -->
+<div class="fixed inset-0 bg-black bg-opacity-50 flex justify-end transition-opacity duration-500 z-50"
+     [ngClass]="{'opacity-100': isOpen, 'opacity-0 pointer-events-none': !isOpen}">
+
+  <div class="w-full md:w-5/6 bg-secondary-50 dark:bg-gray-800 h-full p-6 overflow-y-auto transform transition-transform duration-500"
+       [ngClass]="{'translate-x-0': isOpen, 'translate-x-full': !isOpen, '-translate-x-full': !initialized}">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+      <h2 class="text-2xl font-semibold text-primary-100 dark:text-white mb-4">
+        {{ 'FORMS.PRICE_PLANS._configure_profile_chars' | translate }}
+      </h2>
+      <button type="button" (click)="closeDrawer()"
+              class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+        <svg class="min-w-4 w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+          <path fill="currentColor"
+                d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47
+                47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9
+                0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"/>
+        </svg>
+      </button>
+    </div>
+
+    @if(characteristics.length>0){
+      <div class="p-4 grid grid-cols-2 gap-4">
+        @for(char of characteristics.controls; track $index){
+          <div class="min-h-19 pb-2">
+            <h5 class="text-xl font-semibold tracking-tight text-primary-100">{{char.value.name}}:</h5>
+            @if(hasKey(char?.value.options[0], 'valueFrom')){
+              <div class="relative mb-6">
+                <label for="default-range" class="sr-only">Labels range</label>
+                <input id="default-range" type="range" (change)="changeProfileValue($index,$event)"
+                       [min]="char.value.options[0].valueFrom"
+                       [max]="char.value.options[0].valueTo"
+                       [value]="char.value.selectedValue"
+                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 dark:text-gray-100">
+                <span class="text-sm text-gray-500 dark:text-gray-400 absolute start-0 -bottom-6">Min ({{char?.value.options[0].valueFrom}})</span>
+                @if(char?.value.options?.length > 0){
+                  <span class="text-sm text-gray-500 dark:text-gray-400 absolute start-1/2 -bottom-6">{{char?.value.selectedValue}} {{char?.value.options[0].unitOfMeasure}}</span>
+                }
+                <span class="text-sm text-gray-500 dark:text-gray-400 absolute end-0 -bottom-6">Max ({{char?.value.options[0].valueTo}})</span>
+              </div>
+            }@else{
+              <!-- Dropdown Selector -->
+              <select data-cy="offerProfileSelect" *ngIf="!char.value.options?.[0]?.valueFrom"
+                      class="mb-2 bg-gray-50 dark:bg-secondary-300 border text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:text-gray-100"
+                      (change)="changeProfileValue($index, $event)">
+                <option *ngFor="let opt of char.value.options" [value]="opt.value" [selected]="opt.isDefault">
+                  {{ opt.value }} <span *ngIf="opt.unitOfMeasure">({{ opt.unitOfMeasure }})</span>
+                </option>
+              </select>
+            }
+          </div>
+        }
+      </div>
+      <!-- Action Buttons -->
+      <div class="flex justify-end space-x-3 p-4">
+        <button data-cy="offerProfileCancel" type="button" (click)="closeDrawer()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded dark:text-white">{{ 'FORMS.PRICE_PLANS._cancel' | translate }}</button>
+        <button data-cy="offerProfileSave" type="button" (click)="saveProfile()"
+                class="px-4 py-2 rounded text-white transition"
+                [ngClass]="{'bg-primary-100 hover:bg-primary-50': form.valid, 'bg-gray-400 cursor-not-allowed': form.invalid}">
+          {{ 'FORMS.PRICE_PLANS._save' | translate }}
+        </button>
+      </div>
+    } @else {
+      <div class="p-4 my-2 text-sm text-center text-blue-800 rounded-lg bg-blue-50 dark:bg-secondary-100 dark:text-blue-400" role="alert">
+        <span class="font-medium">{{ 'FORMS.PRICE_PLANS._prod_spec_no_chars' | translate }}</span>
+      </div>
+    }
+
+  </div>
+</div>

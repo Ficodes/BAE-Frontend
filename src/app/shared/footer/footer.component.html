@@ -1,0 +1,83 @@
+<footer class="w-full bg-[#0A1930] text-white antialiased mt-5">
+  <div class="mx-auto max-w-[1240px] px-8 lg:px-12">
+    <div class="pt-[72px] pb-[56px]">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-y-12 md:gap-x-12">
+
+        <div class="md:col-span-5">
+          <div class="flex items-start">
+            <img src="assets/logos/DOME_Logo_White_Name.svg" alt="DOME logo" class="h-[60px]  " />
+          </div>
+
+          <p class="mt-10 max-w-[460px] text-[19px] leading-[1.58] text-white/80">
+            DOME — Europe's trusted marketplace for verified cloud, edge &amp; AI services.
+          </p>
+
+          @if (socialLinks.length) {
+          <div class="mt-8 flex items-center gap-6">
+            @for (social of socialLinks; track social.url) {
+            <fa-icon (click)="openNewTab(social.url!)" size="lg"
+              class="cursor-pointer opacity-90 hover:opacity-100 transition" [icon]="social.icon"></fa-icon>
+            }
+          </div>
+          }
+        </div>
+
+        <div class="md:col-span-7">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-x-[70px] gap-y-12">
+            @for (headerLink of footerLinks; track headerLink) {
+            <div>
+              <h3 class="text-[14px] leading-[1.25] font-semibold tracking-[0.08em] text-white/95">
+                {{ headerLink.label | translate }}
+              </h3>
+
+              <ul class="mt-5 space-y-[10px]">
+                @for (navLink of headerLink.navLinks; track navLink) {
+                <li>
+                  @if (!navLink.isRouterLink) {
+                  <a [href]="navLink.url" target="_blank" rel="noopener noreferrer"
+                    class="block text-[14px] leading-[1.6] text-white/65 hover:text-white transition cursor-pointer">
+                    {{ navLink.label | translate }}
+                  </a>
+                  } @else {
+                  <a (click)="goToRoute(navLink.url!)"
+                    class="block text-[14px] leading-[1.6] text-white/65 hover:text-white transition cursor-pointer">
+                    {{ navLink.label | translate }}
+                  </a>
+                  }
+                </li>
+                }
+              </ul>
+            </div>
+            }
+          </div>
+
+          <div class="mt-10 flex flex-col md:flex-row md:gap-3 text-[14px] leading-[1.5] text-white/55">
+
+            <a (click)="feedback = !feedback; $event.stopPropagation()" class="hover:underline cursor-pointer">
+              Feedback
+            </a>
+
+
+            <a href="https://www.linkedin.com/newsletters/newsletter-7142535480692133889/"
+              class="hover:underline cursor-pointer" target="_blank" rel="noopener noreferrer">
+              Newsletter
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-white/15 py-[22px]">
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-[14px] leading-[1.5] text-white/55">
+        <app-europe-trademark></app-europe-trademark>
+      </div>
+    </div>
+  </div>
+</footer>
+
+@if (feedback) {
+<feedback-modal [rateMessage]="'FEEDBACK._footer_title' | translate"
+  [writeMessage]="'FEEDBACK._footer_improve' | translate" type="experience"
+  class="fixed inset-0 z-40 flex items-center justify-center"></feedback-modal>
+}

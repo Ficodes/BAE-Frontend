@@ -1,0 +1,151 @@
+
+<div class="dark:bg-secondary-200">
+    <!-- Jumbo section -->
+    <section id="jumbo" class="w-full">
+        <div class="pt-8 pb-32 px-4 w-full text-left lg:pt-16 lg:px-12 bg-cover bg-right-bottom items-center justify-between" [style.background-image]="'url(' + currentTheme?.assets?.jumboBgUrl + ')'">
+            <div class="flex flex-row mx-auto max-w-screen-xl">
+                <div class="flex flex-col">
+                    <h1 class="mb-4 text-left text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl text-secondary-50">{{ 'CONTACTUS._title' | translate }}</h1>
+                    <p class="text-left text-lg font-normal lg:text-xl text-secondary-50">{{ 'CONTACTUS._subtitle' | translate }}</p>
+                
+                </div>
+                <div class="w-full">
+                </div>
+            </div>
+    
+        </div>
+    </section>
+    <form [formGroup]="contactForm" class="relative -top-20 items-center mx-auto max-w-screen-xl w-full items-center bg-secondary-50 dark:bg-secondary-100 rounded-lg shadow-lg p-8">
+        <h2 class="text-left text-2xl mb-2 font-bold dark:text-white">{{ 'CONTACTUS._fill' | translate }}</h2>
+        <div class="grid grid-cols-3 gap-4">
+            <div>
+                <label for="email" class="font-bold text-lg dark:text-white">{{ 'CONTACTUS._email' | translate }} (*)</label>
+                <input formControlName="email" type="text" id="email"
+                [ngClass]="contactForm.get('email')?.touched && contactForm.get('email')?.invalid
+                ? 'border-red-600'
+                : 'border-gray-300 dark:border-secondary-200'"  
+                class="mb-2 bg-gray-50 dark:bg-secondary-300 border dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                @if(contactForm.get('email')?.invalid && contactForm.get('email')?.errors?.['maxlength']){
+                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">{{ 'CONTACTUS._emaillong' | translate }}</span></p>
+                }
+                @if(contactForm.get('email')?.invalid && contactForm.get('email')?.errors?.['pattern']){
+                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">{{ 'CONTACTUS._emailpattern' | translate }}</span></p>
+                }
+                @if(contactForm.get('email')?.touched && contactForm.get('email')?.hasError('required')){
+                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">{{ 'CONTACTUS._mandatory' | translate }}</span></p>
+                }
+            </div>
+            <div>
+                <label for="name" class="font-bold text-lg dark:text-white">{{ 'CONTACTUS._firstname' | translate }} (*)</label>
+                <input formControlName="name" type="text" id="name"
+                [ngClass]="contactForm.get('name')?.touched && contactForm.get('name')?.invalid
+                ? 'border-red-600'
+                : 'border-gray-300 dark:border-secondary-200'"  
+                class="mb-2 bg-gray-50 dark:bg-secondary-300 border dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />        
+                @if(contactForm.get('name')?.invalid && contactForm.get('name')?.errors?.['maxlength']){
+                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">{{ 'CONTACTUS._fieldlong' | translate }}</span></p>
+                }
+                @if(contactForm.get('name')?.touched && contactForm.get('name')?.hasError('required')){
+                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">{{ 'CONTACTUS._mandatory' | translate }}</span></p>
+                }              
+            </div>
+            <div>
+                <label for="lastname" class="font-bold text-lg dark:text-white">{{ 'CONTACTUS._lastname' | translate }} (*)</label>
+                <input formControlName="lastname" type="text" id="lastname"
+                [ngClass]="contactForm.get('lastname')?.touched && contactForm.get('lastname')?.invalid
+                ? 'border-red-600'
+                : 'border-gray-300 dark:border-secondary-200'"              
+                class="mb-2 bg-gray-50 dark:bg-secondary-300 border dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />        
+                @if(contactForm.get('lastname')?.invalid && contactForm.get('lastname')?.errors?.['maxlength']){
+                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">{{ 'CONTACTUS._fieldlong' | translate }}</span></p>
+                }
+                @if(contactForm.get('lastname')?.touched && contactForm.get('lastname')?.hasError('required')){
+                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">{{ 'CONTACTUS._mandatory' | translate }}</span></p>
+                } 
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label for="organization" class="font-bold text-lg dark:text-white">{{ 'CONTACTUS._organization' | translate }} (*)</label>
+                <input formControlName="organization" type="text" id="organization"
+                [ngClass]="contactForm.get('organization')?.touched && contactForm.get('organization')?.invalid
+                ? 'border-red-600'
+                : 'border-gray-300 dark:border-secondary-200'"  
+                class="mb-2 bg-gray-50 dark:bg-secondary-300 border dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />        
+                @if(contactForm.get('organization')?.invalid && contactForm.get('organization')?.errors?.['maxlength']){
+                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">{{ 'CONTACTUS._mandatory' | translate }}</span></p>
+                }
+                @if(contactForm.get('organization')?.touched && contactForm.get('organization')?.hasError('required')){
+                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">{{ 'CONTACTUS._fieldlong' | translate }}</span></p>
+                } 
+            </div>
+            <div>
+                <label for="role" class="font-bold text-lg dark:text-white">{{ 'CONTACTUS._role' | translate }} (*)</label>
+                <input formControlName="role" type="text" id="role"
+                [ngClass]="contactForm.get('role')?.touched && contactForm.get('role')?.invalid
+                ? 'border-red-600'
+                : 'border-gray-300 dark:border-secondary-200'"  
+                class="mb-2 bg-gray-50 dark:bg-secondary-300 border dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />        
+                @if(contactForm.get('role')?.invalid && contactForm.get('role')?.errors?.['maxlength']){
+                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">{{ 'CONTACTUS._fieldlong' | translate }}</span></p>
+                }
+                @if(contactForm.get('role')?.touched && contactForm.get('role')?.hasError('required')){
+                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">{{ 'CONTACTUS._mandatory' | translate }}</span></p>
+                } 
+            </div>
+        </div>
+        <div>
+            <label for="organization" class="font-bold text-lg dark:text-white">{{ 'CONTACTUS._message' | translate }} (*)</label>
+            <textarea id="editor" formControlName="message" rows="8" 
+            [ngClass]="contactForm.get('message')?.touched && contactForm.get('message')?.invalid
+            ? 'border-red-600'
+            : 'border-gray-300 dark:border-secondary-200'"  
+            class="block w-full min-h-fit rounded-lg px-2 text-sm text-gray-800 dark:text-gray-200 border bg-white dark:bg-secondary-300" placeholder="Add product description..." ></textarea>
+            @if(contactForm.get('message')?.touched && contactForm.get('message')?.hasError('required')){
+                <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">{{ 'CONTACTUS._mandatory' | translate }}</span></p>
+            }
+        </div>
+        <p class="text-sm text-gray-500 dark:text-gray-200">
+            <span class="font-medium">
+                <b>{{ 'CONTACTUS._info' | translate }}</b>
+                <a href="{{dataControllerDome}}" target="_blank" 
+                   class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline whitespace-nowrap"> {{ 'CONTACTUS._controller' | translate }}</a>.
+                   {{ 'CONTACTUS._purpose' | translate }}
+                <a href="mailto:privacy.helpdesk@dome-project.eu" 
+                   class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline whitespace-nowrap">privacy.helpdesk&#64;dome-project.eu</a>,
+                   {{ 'CONTACTUS._indicating' | translate }}
+                <a href="{{DPA}}" target="_blank" 
+                   class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline whitespace-nowrap">{{ 'CONTACTUS._here' | translate }}</a>.
+            </span>
+        </p>
+        
+        <button type="submit" [disabled]="!contactForm.valid" [ngClass]="!contactForm.valid ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="sendMail()" class="mt-4 py-2 px-3 text-sm font-medium text-center text-white bg-primary-100 hover:bg-primary-50 rounded-lg focus:ring-4 focus:outline-none focus:ring-primary-50">
+            {{ 'CONTACTUS._submit' | translate }}
+        </button>       
+
+    </form>
+</div>
+@if(showThanksMessage){
+<div class="fixed inset-0 flex items-center justify-center z-40">
+    <div id="details-modal" tabindex="-1" aria-hidden="true" class="flex justify-center overflow-x-hidden justify-center items-center w-1/2 md:inset-0 h-full max-h-full rounded-lg  $event.stopPropagation();">
+        <div class="relative w-full max-w-7xl max-h-full rounded-t-lg" (click)="$event.stopPropagation();">
+            <!-- Modal content -->
+            <div class="relative sm:m-8 bg-white rounded-lg shadow dark:border-gray-600 dark:bg-secondary-100 bg-cover bg-right-bottom rounded-lg overflow-y-auto max-h-[calc(100vh-10rem)]">
+              <button type="button" (click)="hide();$event.stopPropagation();" class="absolute top-4 right-4 z-50 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="details-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">{{ 'CARD._close' | translate }}</span>
+              </button>
+
+                <div class="w-full mb-4 rounded-t-lg p-8">
+                    
+                    <fa-icon [icon]="faHandsHoldingHeart" class="text-5xl text-primary-50 align-middle mr-2"></fa-icon>
+                    <h5 class="md:text-3xl lg:text-4xl mt-2 font-semibold tracking-tight text-secondary-100 dark:text-white text-wrap break-words">{{ 'CONTACTUS._thanks' | translate }}</h5>
+    
+                </div>
+        </div>
+      </div>
+    </div>
+</div> 
+}

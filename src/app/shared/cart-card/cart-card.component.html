@@ -1,0 +1,248 @@
+<div id="cart-selection-modal" [ngClass]="cartSelection ? 'backdrop-blur-sm': ''" tabindex="-1" aria-hidden="true"
+class="flex justify-center overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%)] max-h-full shadow-2xl">
+    <div class="relative w-full max-w-7xl max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:border-gray-600 dark:bg-secondary-100 bg-cover bg-right-bottom" (click)="$event.stopPropagation();">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between pr-2 pt-2 rounded-t dark:border-gray-600">
+              <button (click)="hideCartSelection()" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="cart-selection-modal">
+                  <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                  </svg>
+                  <span class="sr-only">{{ 'CARD._close' | translate }}</span>
+              </button>
+            </div>
+            <!-- Modal body -->
+            <div class="w-full h-full p-8 justify-center">
+              <div class="flex flex-col w-full justify-center">
+                  <ol class="flex items-center w-full ">
+                      <li id="step-chars" (click)="clickShowChar(true)" class="flex w-full cursor-pointer items-center text-white after:content-[''] after:w-full after:h-1 after:border-b after:border-primary-100 after:border-4 after:inline-block">
+                          <span id="circle-chars" class="flex items-center justify-center w-12 h-12 bg-primary-100 rounded-full shrink-0">
+                              1
+                          </span>                       
+                      </li>
+                      <li id="step-price" (click)="clickShowPrice(true)" class="flex w-full cursor-pointer items-center text-gray-400 dark:text-white after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-400 after:border-4 after:inline-block">
+                          <span id="circle-price" class="flex items-center justify-center w-12 h-12 bg-white dark:bg-secondary-100 border-2 border-gray-400 rounded-full shrink-0">
+                              2
+                          </span>
+                      </li>
+                      <li id="step-terms" (click)="clickShowTerms(true)" class="flex items-center w-fit text-gray-400 dark:text-white cursor-pointer">
+                          <span id="circle-terms" class="flex items-center justify-center w-12 h-12 bg-white dark:bg-secondary-100 border-2 border-gray-400 rounded-full shrink-0">
+                                3
+                          </span>
+                      </li>
+                  </ol>
+                  <ol class="flex w-full mt-2 justify-between">
+                      <li class="flex items-center w-1/3 justify-start">
+                          <span id="text-chars" class="flex w-fit text-primary-100 justify-start"> {{ 'CARD._chars' | translate }} </span>
+                      </li>
+                      <li class="flex items-center w-1/3 justify-center">
+                          <span id="text-price" class="flex w-fit text-gray-400 justify-center"> {{ 'CARD._price_plan' | translate }} </span>
+                      </li>
+                      <li class="flex items-center w-1/3 justify-end">
+                          <span id="text-terms" class="flex w-fit text-gray-400 justify-end"> {{ 'CARD._terms' | translate }} </span>
+                      </li>
+                  </ol>
+              </div>
+              <div class="border border-gray-300 bg-secondary-50/95 rounded-lg mt-4">
+                  <div class="hidden pl-4 md:pl-8 pt-2 md:pt-4 pb-2 md:pb-4" id="price">
+                  @if(check_prices){                    
+                      <h5 class="text-3xl font-semibold tracking-tight text-primary-100 ">{{ 'CARD._select_price' | translate }}:</h5>
+                      <div class="grid grid-flow-row lg:grid-flow-col gap-8 p-4">
+                      @for (price of productOff?.productOfferingPrice; track price.id; let idx = $index) {
+                        @if (price.priceType == 'recurring') {
+                          <div class="flex items-center">
+                            <input checked [id]="'price-radio-'+idx" (change)="onPriceChange(price)" type="radio" value="" name="price-radio" class="hidden peer w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 ">
+                            <label [for]="'price-radio-'+idx" class="inline-flex items-center justify-center w-full p-5 peer-checked:border  rounded-lg cursor-pointer peer-checked:border-primary-100">
+                              <div class="max-w-sm bg-white border border-gray-200 rounded-lg shadow w-full">
+                                <div class="bg-green-500 rounded-t-lg w-full">
+                                    <h5 class="flex justify-center mb-2 p-6 text-2xl font-bold tracking-tight text-gray-900 w-full">{{price.name}}</h5>
+                                </div>
+                                <div class="pl-4 pr-4">
+                                    <markdown [ngClass]="{
+                                        'break-all': hasLongWord(price?.description, 20),
+                                        'break-words': !hasLongWord(price?.description, 20)
+                                        }" class="w-full p-4 text-wrap break-words" [data]="price?.description"></markdown>
+                                </div>
+                              </div>
+
+                            </label>
+                            </div>
+
+                        } @else if (price.priceType == 'usage') {
+                          <div class="flex items-center">
+                            <input checked [id]="'price-radio-'+idx" (change)="onPriceChange(price)" type="radio" value="" name="price-radio" class="hidden peer items-center w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500">
+                            <label [for]="'price-radio-'+idx" class="inline-flex items-center justify-center w-full p-5 peer-checked:border  rounded-lg cursor-pointer peer-checked:border-primary-100">
+
+                              <div class="max-w-sm bg-white border border-gray-200 rounded-lg shadow w-full">
+                                  <div class="bg-yellow-300 rounded-t-lg w-full">
+                                      <h5 [ngClass]="{
+                                        'break-all': hasLongWord(price.name, 20),
+                                        'break-words': !hasLongWord(price.name, 20)
+                                        }" class="flex justify-center mb-2 p-6 text-2xl font-bold tracking-tight text-gray-900 text-wrap break-words">{{price.name}}</h5>
+                                  </div>
+                                  <div class="pl-4 pr-4">
+                                    <markdown [ngClass]="{
+                                        'break-all': hasLongWord(price?.description, 20),
+                                        'break-words': !hasLongWord(price?.description, 20)
+                                        }" class="w-full p-4 text-wrap break-words" [data]="price?.description"></markdown>
+                                </div>
+                              </div>
+                            </label>
+                          </div>
+                        } @else if (price.priceType === 'custom') {
+                            <div class="flex items-center">
+                                <input checked [id]="'price-radio-'+idx" (change)="onPriceChange(price)" type="radio" value="" name="price-radio" class="hidden peer items-center w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500">
+                                <label [for]="'price-radio-'+idx" class="inline-flex items-center justify-center w-full p-5 peer-checked:border  rounded-lg cursor-pointer peer-checked:border-primary-100">
+    
+                                    <div class="mx-auto bg-white border border-gray-200 rounded-lg shadow w-full p-4">
+                                        <div class="flex justify-start mb-2">
+                                            <h2 class="text-gray-900 text-3xl font-extrabold mb-2">{{price.name}}</h2>
+                                        </div>
+                                        <markdown [ngClass]="{
+                                            'break-all': hasLongWord(price?.description, 20),
+                                            'break-words': !hasLongWord(price?.description, 20)
+                                            }" class="w-full text-wrap break-words p-4" [data]="price?.description"></markdown>
+                                    </div>
+                                </label>
+                            </div>
+                        } @else {
+                          <div class="flex items-center">
+                            <input checked [id]="'price-radio-'+idx" (change)="onPriceChange(price)" type="radio" value="" name="price-radio" class="hidden peer w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500">
+                            <label [for]="'price-radio-'+idx" class="inline-flex items-center justify-center w-full p-5 peer-checked:border rounded-lg cursor-pointer peer-checked:border-primary-100">
+
+                            <div class="max-w-sm bg-white border border-gray-200 rounded-lg shadow w-full justify-center">
+                                <div class="bg-blue-500 rounded-t-lg w-full">
+                                    <h5 class="flex justify-center mb-2 p-6 text-2xl font-bold tracking-tight text-gray-900">{{price.name}}</h5>
+                                </div>
+                                <div class="pl-4 pr-4">
+                                    <markdown [ngClass]="{
+                                        'break-all': hasLongWord(price?.description, 20),
+                                        'break-words': !hasLongWord(price?.description, 20)
+                                        }" class="w-full p-4 text-wrap break-words" [data]="price?.description"></markdown>
+                                </div>
+                            </div>
+                          </label>
+                        </div>
+                        }
+                      }
+                      </div>                    
+                  } @else {
+                    <div class="inline-flex items-center justify-center w-full">
+                        <div class="max-w-sm bg-white border border-gray-200  rounded-lg shadow w-full">
+                            <div class="bg-blue-500 rounded-t-lg w-full">
+                                <h5 class="flex justify-center mb-2 p-6 text-2xl font-bold tracking-tight text-gray-900">{{ 'SHOPPING_CART._free' | translate }}</h5>
+                            </div>
+                            <p class="flex justify-center mb-2 font-normal text-gray-700">{{ 'SHOPPING_CART._free_desc' | translate }}</p>
+                        </div>
+                    </div>
+                  }
+                    <div class="flex justify-end">
+                        <button (click)="clickShowTerms(false)" type="button" 
+                        class="flex w-1/3 md:w-1/4 mt-2 items-center justify-center text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2">
+                        {{ 'CARD._next' | translate }}
+                        <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                        </svg>
+                    </button>
+                    </div>
+                  </div>
+                  <div class="pl-4 md:pl-8 pt-2 md:pt-4 pb-2 md:pb-4" id="char">
+                  @if(check_char){                      
+                      <h5 class="text-3xl font-semibold tracking-tight text-primary-100">{{ 'CARD._select_char' | translate }}:</h5>
+                      @for(char of prodSpec.productSpecCharacteristic; track char.id; let charidx = $index){
+                        <div class="min-h-19 pb-2">
+                          <h5 class="text-xl font-semibold tracking-tight text-primary-100">{{char.name}}:</h5>
+                          @for (val of char?.productSpecCharacteristicValue; track val.value; let validx = $index) {
+                            <div class="flex">
+                            @if (val?.isDefault == true) {
+                            <div class="flex items-center mb-4">
+                              <input checked [id]="'char-radio-'+charidx+validx" (change)="onCharChange(charidx,validx,val)" type="radio" value="" [name]="'char-radio-'+charidx"
+                              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500">
+                              <label [for]="'char-radio-'+charidx+validx" class="ms-2 text-sm font-medium text-gray-900 text-wrap break-all">{{val.value}}</label>
+                            </div>
+                            } @else {
+                              <div class="flex items-center mb-4">
+                                <input [id]="'char-radio-'+charidx+validx" (change)="onCharChange(charidx,validx,val)" type="radio" value="" [name]="'char-radio-'+charidx"
+                                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500">
+                                <label [for]="'char-radio-'+charidx+validx" class="ms-2 text-sm font-medium text-gray-900 text-wrap break-all">{{val.value}}</label>
+                              </div>
+                            }
+                          </div>
+                        }
+                        </div>
+                      }                      
+                  } @else {
+                      <div class="flex justify-center w-full m-4">
+                          <div class="flex w-2/3 items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50" role="alert">
+                              <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                              </svg>
+                              <div>
+                                  {{ 'CARD._no_chars' | translate }}
+                              </div>
+                          </div>
+                      </div> 
+                  }
+                      <div class="flex justify-end">
+                          <button (click)="clickShowPrice(false)" type="button" 
+                          class="flex w-1/3 md:w-1/4 mt-2 items-center justify-center text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2">
+                          {{ 'CARD._next' | translate }}
+                          <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                          </svg>
+                      </button>
+                      </div>
+                  </div>
+                  <div class="hidden pl-4 md:pl-8 pt-2 md:pt-4 pb-2 md:pb-4" id="terms">
+                  @if(check_terms == true){                 
+                      <h5 class="text-3xl font-semibold tracking-tight text-primary-100">{{ 'CARD._terms' | translate }}:</h5>
+                      @for (term of productOff?.productOfferingTerm; track term.name){
+                      <p class="text-gray-900 text-bold"> <span class="font-bold">{{term.name}}:</span></p>
+                      <div class="max-h-[300px] overflow-y-auto mb-4">
+                        <markdown class="text-lg font-normal" [data]="term.description"></markdown>
+                      </div>                      
+                      }
+                      <div class="flex items-center mb-4">
+                          <input id="terms-checkbox" type="checkbox" (change)="selected_terms=!selected_terms" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                          <label for="terms-checkbox" class="ms-2 text-sm font-medium text-gray-900">{{ 'CARD._accept_terms' | translate }}</label>
+                      </div>
+                      <div class="flex justify-end">
+                          <button [disabled]="!selected_terms" [ngClass]="!selected_terms ? 'opacity-50' : 'hover:bg-primary-50'" (click)="addProductToCart(productOff,true)" type="button" 
+                          class="flex w-1/2 md:w-1/4 mt-2 items-center justify-center text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2">
+                          {{ 'CARD._checkout' | translate }}
+                          <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                          </svg>
+                      </button>
+                      </div>                    
+                  } @else {
+                      <div class="flex justify-center w-full m-4">
+                          <div class="flex w-2/3 items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50" role="alert">
+                              <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                              </svg>
+                              <div>
+                                  {{ 'CARD._no_terms' | translate }}
+                              </div>
+                          </div>
+                      </div>
+                      <div class="flex justify-end">
+                          <button (click)="addProductToCart(productOff,true)" type="button" 
+                          class="flex w-1/2 md:w-1/4 mt-2 items-center justify-center text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2">
+                          {{ 'CARD._checkout' | translate }}
+                          <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                          </svg>
+                      </button>
+                      </div>  
+                  }
+                  </div>
+              </div>
+            </div>
+        </div>
+    </div>
+  </div>
+@if(showError){
+    <error-message class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50" [message]="errorMessage"></error-message>
+}

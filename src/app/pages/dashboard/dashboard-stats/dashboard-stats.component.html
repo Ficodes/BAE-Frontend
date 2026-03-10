@@ -1,0 +1,46 @@
+<section class="w-full border-t-4 border-blue-700 bg-[#f3f4f6] blinker">
+  <div class="max-w-[1100px] mx-auto px-6 py-20 text-center">
+
+    <h1 class="text-[56px] font-bold text-[#111827] tracking-tight">
+      {{ 'DASHBOARD.stats.title' | translate }}
+    </h1>
+
+    <p class="mt-4 text-[24px] text-slate-600 max-w-[720px] mx-auto">
+      {{ 'DASHBOARD.stats.subtitle' | translate }}
+    </p>
+
+    <div class="mt-14 grid grid-cols-1 md:grid-cols-3 gap-8">
+
+      <div class="group rounded-xl p-8 text-left bg-[#F7F9FD] transition-all duration-300
+               hover:bg-gradient-to-br hover:from-blue-600 hover:to-blue-400
+               hover:scale-[1.02] cursor-default wrapper">
+
+        <div class="text-[34px] font-bold text-blue-700 transition-colors duration-300 num-custom
+                 group-hover:text-white">
+          {{stats().services}}
+        </div>
+
+        <p class="mt-3 text-slate-600 text-[14px] leading-relaxed transition-colors duration-300 text-custom
+                 group-hover:text-white/90">
+          {{ 'DASHBOARD.stats.services' | translate }}
+        </p>
+      </div>
+
+      <div class="group rounded-xl p-8 text-left bg-[#F7F9FD] transition-all duration-300
+               hover:bg-gradient-to-br hover:from-blue-600 hover:to-blue-400
+               hover:scale-[1.02] cursor-default wrapper">
+
+        <div class="text-[34px] font-bold text-blue-700 transition-colors duration-300 num-custom
+                 group-hover:text-white">
+          {{stats().providers}}
+        </div>
+
+        <p class="mt-3 text-slate-600 text-[14px] leading-relaxed transition-colors duration-300 text-custom
+                 group-hover:text-white/90">
+          {{ 'DASHBOARD.stats.providers' | translate }}
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>

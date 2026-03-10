@@ -1,0 +1,40 @@
+<div [ngClass]="{
+  'pb-8 lg:pb-16 px-4 mx-auto max-w-screen-xl': !currentTheme?.dashboard?.showPlatformBenefits
+}">
+<!-- Offerings Gallery section -->
+<h2 class="text-4xl mt-4 font-extrabold text-primary-100 text-center dark:text-primary-50">{{ 'GALLERY._title' | translate }}</h2>
+<div id="featuredOfferings" class="pt-8 pb-2 px-4 mx-auto max-w-screen-xl w-full grid gap-2 grid-cols-1 place-items-center sm:grid-cols-2 xl:grid-cols-4">
+  @for (prod of products; track prod.id; let index = $index) {
+    <bae-off-card data-cy="baeCard" id="featuredOfferCard" [productOff]=prod [cardId]="index" class="w-full h-full"></bae-off-card>
+  } @empty {
+  }
+</div>
+@if (products.length === 0){
+  <div class="flex justify-center w-full">
+    <div class="flex items-center p-4 mb-4 text-sm text-primary-100 rounded-lg bg-blue-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">
+      <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+      </svg>
+      <span class="sr-only">Info</span>
+      <div>
+        {{ 'GALLERY._no_products' | translate }}
+      </div>
+    </div>
+  </div>
+}
+<!--<div class="flex justify-center pb-8 lg:pb-16">
+  <button  type="button" class="m-4 p-2 w-fit flex items-center justify-start text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm py-2.5 text-center inline-flex items-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+    <svg class="rtl:rotate-180 w-3.5 h-3.5 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+    </svg>
+    {{ 'GALLERY._explore' | translate }}
+  </button>
+  <button type="button" class="m-4 p-2 w-fit flex items-center justify-start text-gray-900 rounded-lg border border-gray-300 hover:bg-secondary-50 font-medium rounded-lg text-sm py-2.5 focus:ring-4 focus:ring-gray-100 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700 dark:focus:ring-gray-800 text-center inline-flex items-center me-2">
+    <svg class="w-3.5 h-3.5 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7.8v8.4M7.8 12h8.4m4.8 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+    </svg>
+    {{ 'GALLERY._add_your_service' | translate }}
+  </button>
+</div>-->
+<!-- End Offerings Section -->  
+</div>

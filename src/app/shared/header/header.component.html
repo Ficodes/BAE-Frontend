@@ -1,0 +1,290 @@
+<nav class="sticky top-0 z-50 w-full text-white transition-all duration-300" [class.header-top]="!scrolled"
+  [class.header-glass]="scrolled">
+  <div class="mx-auto max-w-[1180px] px-6 sm:px-10">
+    <div class="flex h-[88px] items-center justify-between">
+      <a (click)="goTo('/dashboard')" class="flex items-center gap-4 cursor-pointer select-none">
+        @if (currentTheme?.assets?.logoUrl) {
+        <img [src]="currentTheme?.assets?.logoUrl" class="h-[51.7px] w-auto"
+          alt="{{ currentTheme?.displayName }} Logo" />
+        }
+      </a>
+
+      <div class="hidden lg:flex items-center justify-center flex-1">
+        <ul class="flex items-center gap-12">
+          @for (link of headerLinks; track link.id) {
+          <li class="relative">
+            @if (link.children?.length) {
+            <button type="button"
+              class="inline-flex items-center gap-2 text-[15px] font-semibold text-white/90 hover:text-white transition-colors"
+              [id]="link.id" [attr.data-dropdown-toggle]="link.id + 'Menu'">
+              {{ link.label | translate }}
+              <span class="inline-block opacity-80">▾</span>
+            </button>
+
+            <div class="dropdown-glass hidden absolute left-0 top-[calc(100%+14px)] z-50 w-[260px] rounded-[14px] p-2"
+              [id]="link.id + 'Menu'">
+              <ul class="flex flex-col" [attr.aria-labelledby]="link.id">
+                @for (childLink of link.children; track childLink.label) {
+                <li>
+                  @if (!childLink.isRouterLink) {
+                  <a class="dropdown-item" target="_blank" [href]="childLink.url">
+                    {{ childLink.label | translate }}
+                  </a>
+                  } @else {
+                  <button type="button" class="dropdown-item text-left" (click)="goTo(childLink.url!, link.url!)">
+                    {{ childLink.label | translate }}
+                  </button>
+                  }
+                </li>
+                }
+              </ul>
+            </div>
+            } @else {
+            @if (!link.isRouterLink) {
+            <a class="text-[15px] font-semibold text-white/90 hover:text-white transition-colors" target="_blank"
+              [href]="link.url">
+              {{ link.label | translate }}
+            </a>
+            } @else {
+            <a class="text-[15px] font-semibold text-white/90 hover:text-white transition-colors"
+              [routerLink]="link.url" [attr.data-cy]="link.url === '/about' ? 'about' : null">
+              {{ link.label | translate }}
+            </a>
+            }
+            }
+          </li>
+          }
+        </ul>
+      </div>
+
+      <div class="flex items-center gap-3">
+        @if (is_logged) {
+        <button data-cy="shoppingCart" id="shoppingCart" type="button" aria-label="Shopping cart"
+          class="inline-flex h-[44px] w-[44px] items-center justify-center rounded-[10px] text-white/90 hover:text-white hover:bg-white/10 transition"
+          (click)="toggleCartDrawer(); $event.stopPropagation()">
+          <fa-layers [fixedWidth]="true">
+            <fa-icon [icon]="faCartShopping"></fa-icon>
+            @if (cartCount > 0) {
+            <fa-layers-counter [content]="cartCount.toString()" style="background:Tomato"></fa-layers-counter>
+            }
+          </fa-layers>
+        </button>
+        }
+
+        @if (is_logged) {
+        <div data-cy="loggedAcc" id="loggedAcc" data-dropdown-toggle="userDropdown" data-dropdown-placement="bottom-end"
+          class="ml-1 inline-flex h-[44px] w-[44px] items-center justify-center rounded-full bg-white/15 text-white cursor-pointer select-none"
+          aria-label="User menu">
+          <span class="text-[14px] font-bold tracking-wide">{{ usercharacters }}</span>
+        </div>
+        } @else {
+        <button data-cy="contactUs" id="contactUs" type="button"
+          class="ml-1 inline-flex h-[44px] items-center justify-center rounded-[10px] bg-[transparent] border-color-c px-6 text-[15px] font-semibold text-white hover:bg-[#2F6FD6]/90 transition"
+          (click)="goTo('/contact-us')">
+          {{ 'HEADER.contactUs' | translate}}
+        </button>
+
+        <button data-cy="login" id="login" type="button"
+          class="ml-1 inline-flex h-[44px] items-center justify-center rounded-[10px] bg-[#2D58A7] px-6 text-[15px] font-semibold text-white hover:bg-[#2F6FD6]/90 transition"
+          (click)="onLoginClick()">
+          Login
+        </button>
+        }
+
+        <button #navbarbutton type="button"
+          class="inline-flex lg:hidden h-[44px] w-[44px] items-center justify-center rounded-[10px] text-white/90 hover:text-white hover:bg-white/10 transition"
+          aria-controls="navbar-dropdown" aria-expanded="false" (click)="toggleNavBar(); $event.stopPropagation()">
+          <span class="sr-only">{{ 'HEADER._open_menu' | translate }}</span>
+          <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M1 1h15M1 7h15M1 13h15" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    @if (isNavBarOpen) {
+    <div id="navbar-dropdown" class="lg:hidden pb-6">
+      <div class="mt-3 rounded-[14px] bg-white/10 backdrop-blur-md ring-1 ring-white/10 overflow-hidden">
+        <ul class="flex flex-col p-2">
+          <li>
+            <a (click)="goTo('/search')" class="mobile-nav-item">
+              {{ 'HEADER._services' | translate }}
+            </a>
+          </li>
+
+          <li>
+            <a (click)="goTo('/catalogues')" class="mobile-nav-item">
+              {{ 'HEADER._catalogs' | translate }}
+            </a>
+          </li>
+
+          @if (providerThemeName === 'DOME') {
+          <li>
+            <a (click)="goTo('/about')" class="mobile-nav-item">{{ 'HEADER._about' | translate }}</a>
+          </li>
+          <li>
+            <a (click)="goTo('/contact-us')" class="mobile-nav-item">{{ 'FOOTER._contact' | translate }}</a>
+          </li>
+          <li>
+            <a (click)="goTo('/blog')" class="mobile-nav-item">{{ 'HEADER._blog' | translate }}</a>
+          </li>
+          <li>
+            <a [href]="domePublish" target="_blank" class="mobile-nav-item">{{ 'HEADER._publish' | translate }}</a>
+          </li>
+          <li>
+            <a [href]="knowledge" target="_blank" class="mobile-nav-item">{{ 'HEADER._info' | translate }}</a>
+          </li>
+          }
+        </ul>
+      </div>
+    </div>
+    }
+
+    @if (is_logged) {
+    <div id="userDropdown"
+      class="dropdown-glass hidden absolute right-6 sm:right-10 top-[88px] z-50 w-[260px] rounded-[14px] p-2">
+      <div class="px-3 py-2">
+        <div class="text-[13px] font-semibold text-slate-900">{{ username }}</div>
+        <div class="mt-0.5 text-[12px] text-slate-600 break-all">{{ email }}</div>
+      </div>
+
+      <div class="h-px my-2 bg-slate-900/10"></div>
+
+      <ul class="flex flex-col">
+        <li>
+          <button id="userProfile" type="button" class="dropdown-item" (click)="goTo('/profile')">
+            <fa-icon [icon]="faAddressCard" class="mr-2"></fa-icon>{{ 'HEADER._profile' | translate }}
+          </button>
+        </li>
+
+        @if (roles.includes(sellerRole)) {
+        <li>
+          <button id="myOfferings" type="button" class="dropdown-item" (click)="goTo('/my-offerings')">
+            <fa-icon [icon]="faHandHoldingBox" class="mr-2"></fa-icon>{{ 'HEADER._offerings' | translate }}
+          </button>
+        </li>
+        }
+
+        @if ((isAdmin && loggedAsOrg === false) || roles.includes(certifierRole)) {
+        <li>
+          <button id="administration" type="button" class="dropdown-item" (click)="goTo('/admin')">
+            <fa-icon [icon]="faCogs" class="mr-2"></fa-icon>{{ 'HEADER._admin' | translate }}
+          </button>
+        </li>
+        }
+
+        <li>
+          <button id="productOrders" type="button" class="dropdown-item" (click)="goTo('/product-orders')">
+            <fa-icon [icon]="faReceipt" class="mr-2"></fa-icon>{{ 'HEADER._orders' | translate }}
+          </button>
+        </li>
+
+        @if (quotesEnabled) {
+        <li>
+          <button id="quotelist" type="button" class="dropdown-item" (click)="goTo('/quote-list')">
+            <fa-icon [icon]="faReceipt" class="mr-2"></fa-icon>Quotes
+          </button>
+        </li>
+        }
+
+        @if (tenderEnabled) {
+        <li>
+          <button id="tenderlist" type="button" class="dropdown-item" (click)="goTo('/tenders')">
+            <fa-icon [icon]="faReceipt" class="mr-2"></fa-icon>Tenders
+          </button>
+        </li>
+        }
+
+        <li>
+          <a id="analytics" class="dropdown-item" target="_blank" [href]="analytics">
+            <fa-icon [icon]="faPieChart" class="mr-2"></fa-icon>Analytics
+          </a>
+        </li>
+
+        @if (roles.includes(sellerRole)) {
+        <li>
+          <button id="usageSpecs" type="button" class="dropdown-item" (click)="goTo('/usage-spec')">
+            <fa-icon [icon]="faRuler" class="mr-2"></fa-icon>Usage Spec
+          </button>
+        </li>
+        }
+
+        <li>
+          <button id="myInventory" type="button" class="dropdown-item" (click)="goTo('/product-inventory')">
+            <fa-icon [icon]="faBoxesStacked" class="mr-2"></fa-icon>{{ 'HEADER._inventory' | translate }}
+          </button>
+        </li>
+
+        <li>
+          <button id="myShoppingCart" type="button" class="dropdown-item" (click)="goTo('/checkout')">
+            <fa-icon [icon]="faCartShopping" class="mr-2"></fa-icon>{{ 'HEADER._cart' | translate }}
+          </button>
+        </li>
+      </ul>
+
+      <div class="h-px my-2 bg-slate-900/10"></div>
+
+      <div class="flex flex-col">
+        @if (orgs.length > 0 && isAdmin) {
+        <button data-cy="changeSession" type="button" class="dropdown-item" data-dropdown-toggle="orgs-dropdown"
+          data-dropdown-placement="left-start">
+          <fa-icon [icon]="faAnglesLeft" class="mr-2"></fa-icon>{{ 'HEADER._change_session' | translate }}
+        </button>
+        }
+
+        <button id="signOut" type="button" class="dropdown-item" (click)="logout()">
+          <fa-icon [icon]="faArrowRightFromBracket" class="mr-2"></fa-icon>{{ 'HEADER._sign_out' | translate }}
+        </button>
+      </div>
+    </div>
+    }
+  </div>
+
+  <div id="support-dropdown"
+    class="dropdown-glass hidden absolute right-6 sm:right-10 top-[88px] z-50 w-[260px] rounded-[14px] p-2">
+    <ul class="flex flex-col">
+      <li>
+        <a class="dropdown-item" target="_blank" [href]="knowledge">
+          <fa-icon [icon]="faBrain" class="mr-2"></fa-icon>{{ 'HEADER._knowledge' | translate }}
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item" target="_blank" [href]="ticketing">
+          <fa-icon [icon]="faClipboardCheck" class="mr-2"></fa-icon>{{ 'HEADER._ticketing' | translate }}
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div data-cy="orgsDropdown" id="orgs-dropdown"
+    class="dropdown-glass hidden absolute right-[280px] top-[88px] z-50 w-[260px] rounded-[14px] p-2">
+    <ul class="flex flex-col">
+      @for (org of orgs; track org.id; let idx = $index) {
+      @if (org.id != loginInfo?.logged_as || loginInfo?.logged_as == loginInfo?.id) {
+      <li>
+        <button type="button" class="dropdown-item" (click)="changeSession(idx,false); hideDropdown('orgs-dropdown')">
+          <fa-icon [icon]="faUsers" class="mr-2"></fa-icon>{{ org.name }}
+        </button>
+      </li>
+      }
+      }
+
+      @if (loggedAsOrg) {
+      <li>
+        <button type="button" class="dropdown-item" (click)="changeSession(0,true); hideDropdown('orgs-dropdown')">
+          <fa-icon [icon]="faUser" class="mr-2"></fa-icon>{{ loginInfo?.user }}
+        </button>
+      </li>
+      }
+    </ul>
+  </div>
+</nav>
+
+@if (showCart) {
+<div class="fixed inset-0 z-40 backdrop-blur-sm bg-black/10">
+  <app-cart-drawer
+    class="absolute right-0 top-0 z-40 h-screen w-full max-w-[520px] p-4 overflow-y-auto bg-white dark:bg-gray-800"
+    (click)="$event.stopPropagation()" />
+</div>
+}

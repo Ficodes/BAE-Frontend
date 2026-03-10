@@ -1,0 +1,621 @@
+<div class="border-b border-gray-200 dark:border-gray-700 mb-2">
+    <ul class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
+        <li class="me-2">
+            <a data-cy="asCustomerTab" (click)="onRoleChange(buyerRole)"
+                [ngClass]="role !== buyerRole ? 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300' : 'text-primary-100 border-primary-100 active dark:text-primary-50 dark:border-primary-50'"
+               class="inline-flex cursor-pointer items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg group" aria-current="page">
+                <svg [ngClass]="role !== buyerRole ? 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300' : 'text-primary-100 dark:text-primary-50'"
+                    class="w-4 h-4 me-2" aria-hidden="true"
+                    fill="currentColor"
+                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M192 96a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm-8 352l0-96 16 0 0 96-16 0zm-64 0l-88 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l120 0 80 0 376 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-344 0 0-191.1 28.6 47.5c9.1 15.1 28.8 20 43.9 10.9s20-28.8 10.9-43.9l-58.3-97c-17.4-28.9-48.6-46.6-82.3-46.6l-29.7 0c-33.7 0-64.9 17.7-82.3 46.6l-58.3 97c-9.1 15.1-4.2 34.8 10.9 43.9s34.8 4.2 43.9-10.9L120 256.9 120 448zM464 64l0 242.7-25.4-25.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l80 80c12.5 12.5 32.8 12.5 45.3 0l80-80c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L528 306.7 528 64c0-17.7-14.3-32-32-32s-32 14.3-32 32z"/></svg>
+                  {{ 'PRODUCT_ORDERS._as_customer' | translate }}
+            </a>
+        </li>
+        @if(isSeller){
+            <li class="me-2">
+                <a data-cy="asProviderTab" (click)="onRoleChange(sellerRole)"
+                    [ngClass]="{'text-primary-100 border-primary-100 active dark:text-primary-50 dark:border-primary-50 group': role == sellerRole}"
+                    class="inline-flex cursor-pointer items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group">
+                    <svg
+                        [ngClass]="role !== sellerRole ? 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300' : 'text-primary-100 dark:text-primary-50'"
+                        class="w-4 h-4 me-2" fill="currentColor"
+                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M192 96a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm-8 352l0-96 16 0 0 96-16 0zm-64 0l-88 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l120 0 80 0 376 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-344 0 0-191.1 28.6 47.5c9.1 15.1 28.8 20 43.9 10.9s20-28.8 10.9-43.9l-58.3-97c-17.4-28.9-48.6-46.6-82.3-46.6l-29.7 0c-33.7 0-64.9 17.7-82.3 46.6l-58.3 97c-9.1 15.1-4.2 34.8 10.9 43.9s34.8 4.2 43.9-10.9L120 256.9 120 448zM598.6 121.4l-80-80c-12.5-12.5-32.8-12.5-45.3 0l-80 80c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L464 141.3 464 384c0 17.7 14.3 32 32 32s32-14.3 32-32l0-242.7 25.4 25.4c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3z"/></svg>
+                      {{ 'PRODUCT_ORDERS._as_provider' | translate }}
+                </a>
+            </li>
+        }
+    </ul>
+</div>
+
+<!-- FILTERS -->
+<div class="w-full h-fit mb-4 flex flex-col">
+    <div class="flex w-full flex-col items-center lg:flex-row justify-between">
+        <div class="p-8 w-full">
+            <div class="flex flex-row mb-1">
+                <fa-icon [icon]="faSwatchbook" class="fa-base text-primary-100 align-middle mr-2"></fa-icon>
+                <h2 class="text-base dark:text-white font-bold">{{ 'PRODUCT_ORDERS._filter_state' | translate }}</h2>
+            </div>
+            <button id="dropdownStateButton" data-dropdown-toggle="dropdown" (click)="$event.stopPropagation();"
+                    class="text-black border border-primary-100sa dark:text-white w-full justify-between bg-white dark:bg-secondary-200 hover:bg-gray-100 dark:hover:bg-secondary-300 focus:ring-2 focus:outline-none focus:ring-primary-100 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center"
+                    type="button">
+                {{ 'PRODUCT_ORDERS._filter_state' | translate }}
+                <svg class="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+
+            <div id="dropdown" class="z-20 hidden w-fit md:w-1/5 p-3 bg-white rounded-lg border dark:bg-secondary-200">
+                <h6 class="mb-3 text-sm font-bold text-gray-900 dark:text-white">
+                    {{ 'PRODUCT_ORDERS._status' | translate }}
+                </h6>
+                <ul class="space-y-2 text-sm" aria-labelledby="dropdownStateButton">
+                    <li class="flex items-center">
+                        <input id="acknowledged" type="checkbox" value="" (change)="onStateFilterChange('acknowledged')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+
+                        <label for="acknowledged" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {{ 'PRODUCT_ORDERS._acknowledged' | translate }}
+                        </label>
+                    </li>
+
+                    <li class="flex items-center">
+                        <input id="inProgress" type="checkbox" value="" (change)="onStateFilterChange('inProgress')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+
+                        <label for="inProgress" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {{ 'PRODUCT_ORDERS._in_progress' | translate }}
+                        </label>
+                    </li>
+
+                    <li class="flex items-center">
+                        <input id="partial" type="checkbox" value="" (change)="onStateFilterChange('partial')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+
+                        <label for="partial" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {{ 'PRODUCT_ORDERS._partial' | translate }}
+                        </label>
+                    </li>
+
+                    <li class="flex items-center">
+                        <input id="completed" type="checkbox" value="" (change)="onStateFilterChange('completed')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+
+                        <label for="completed" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {{ 'PRODUCT_ORDERS._completed' | translate }}
+                        </label>
+                    </li>
+
+                    <li class="flex items-center">
+                        <input id="failed" type="checkbox" value="" (change)="onStateFilterChange('failed')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+
+                        <label for="failed" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {{ 'PRODUCT_ORDERS._failed' | translate }}
+                        </label>
+                    </li>
+
+                    <li class="flex items-center">
+                        <input id="pending" type="checkbox" value="" (change)="onStateFilterChange('pending')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+
+                        <label for="pending" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {{ 'PRODUCT_ORDERS._pending' | translate }}
+                        </label>
+                    </li>
+
+                    <li class="flex items-center">
+                        <input id="cancelled" type="checkbox" value="" (change)="onStateFilterChange('cancelled')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+
+                        <label for="cancelled" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {{ 'PRODUCT_ORDERS._cancelled' | translate }}
+                        </label>
+                    </li>
+                    <!--<li class="flex items-center">
+                      <input id="unchecked" type="checkbox" value="" (change)="onStateFilterChange('unchecked')"
+                      class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+
+                      <label for="unchecked" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {{ 'PRODUCT_ORDERS._unchecked' | translate }}
+                      </label>
+                  </li>-->
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END FILTERS -->
+
+
+        @if (loading && !loading_more) {
+            <div role="status" class="w-3/4 md:w-4/5 h-full flex justify-center align-middle">
+              <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+                  <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+              </svg>
+              <span class="sr-only">Loading...</span>
+            </div>
+        } @else {
+                <div class="">
+                    <!-- <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'PROFILE._order_list' | translate }}</h2>
+                    <hr class="h-px mr-4 ml-4 bg-primary-100 dark:bg-white border-0">-->
+                        <div class="m-4 relative overflow-x-auto border border-primary-100 dark:border-secondary-50 sm:rounded-lg">
+                            <table data-cy="ordersTable" class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
+                                <thead class="text-xs text-gray-700 uppercase bg-secondary-50 dark:bg-primary-50 dark:text-secondary-100">
+                                    <tr>
+                                        <th scope="col" class="hidden md:table-cell px-6 py-3 text-center align-middle">
+                                            {{ 'PRODUCT_INVENTORY._order_id' | translate }}
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-center align-middle">
+                                            {{ 'PRODUCT_INVENTORY._status' | translate }}
+                                        </th>
+                                        <th scope="col" class="hidden md:table-cell px-6 py-3 text-center align-middle">
+                                            {{ 'PRODUCT_INVENTORY._bill' | translate }}
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-center align-middle">
+                                            {{ 'PRODUCT_ORDERS._date' | translate }}
+                                        </th>
+                                        <th scope="col" class="text-center align-middle">
+                                            {{ 'PRODUCT_ORDERS._actions' | translate }}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (order of orders; track order.id; let idx = $index) {
+                                        <tr class="border-b bg-gray-100 hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                                            <td class="hidden md:table-cell px-6 py-4 text-center align-middle">
+                                              <span title="{{order.id}}">...{{order.id.slice(-6)}}</span>
+                                            </td>
+                                            <td class="px-6 py-4 text-center align-middle">
+                                                @if(order.state == 'inProgress'){
+                                                    <span class="bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{order.state}}</span>
+                                                } @else if(order.state ===  'completed') {
+                                                    <span class="bg-blue-100 dark:bg-secondary-300 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500">{{order.state}}</span>
+                                                } @else if(order.state ===  'partial') {
+                                                    <span class="bg-blue-100 dark:bg-secondary-300 text-purple-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-purple-500">{{order.state}}</span>
+                                                } @else if(order.state === 'failed') {
+                                                    <span class="bg-blue-100 dark:bg-secondary-300 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{order.state}}</span>
+                                                } @else if(order.state === 'pending') {
+                                                    <span class="bg-blue-100 dark:bg-secondary-300 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{order.state}}</span>
+                                                }@else if(order.state === 'acknowledged'){
+                                                    <span class="bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{order.state}}</span>
+                                                }@else if(order.state === 'cancelled' || order.state === 'cancelled') {
+                                                    <span class="bg-blue-100 dark:bg-secondary-300 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{order.state}}</span>
+                                                } @else {
+                                                  <span class="bg-amber-500 dark:bg-amber-900 text-amber-900 dark:text-amber-100 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-amber-950">Unchecked</span>
+                                                }
+                                            </td>
+                                            <td class="hidden md:table-cell px-6 py-4 text-center align-middle">
+                                                {{order.billingAccount.name}}
+                                            </td>
+                                            <td class="px-6 py-4 text-center align-middle">
+                                                {{order?.orderDate | date:'EEEE, dd/MM/yy, HH:mm'}}
+                                            </td>
+                                            <td class="px-6 py-4 text-center align-middle">
+                                                <button data-cy="viewOrderDetails" (click)="toggleShowDetails(order);$event.stopPropagation();" type="button" class="text-white bg-primary-100 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
+                                                    <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
+                                                        <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                                                            <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+                                                            <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>
+                                                        </g>
+                                                        </svg>
+                                                </button>
+                                              <button data-cy="orderNotesButton" (click)="toggleDrawer(order);$event.stopPropagation();" type="button"
+                                                      class="text-white bg-primary-100 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
+                                                @if (hasNotes(order)) {
+                                                  <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
+                                                    <path fill="#ffffff" d="M64 0C28.7 0 0 28.7 0 64L0 256c0 35.3 28.7 64 64 64l32 0 0 48c0 6.1 3.4 11.6 8.8 14.3s11.9 2.1 16.8-1.5L202.7 320 352 320c35.3 0 64-28.7 64-64l0-192c0-35.3-28.7-64-64-64L64 0zM352 352l-96 0 0 32c0 35.3 28.7 64 64 64l117.3 0 81.1 60.8c4.8 3.6 11.3 4.2 16.8 1.5s8.8-8.2 8.8-14.3l0-48 32 0c35.3 0 64-28.7 64-64l0-192c0-35.3-28.7-64-64-64l-128 0 0 128c0 53-43 96-96 96z"/>
+                                                  </svg>
+                                                } @else {
+                                                  <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                                    <path fill="#ffffff" d="M0 64C0 28.7 28.7 0 64 0L448 0c35.3 0 64 28.7 64 64l0 288c0 35.3-28.7 64-64 64l-138.7 0L185.6 508.8c-4.8 3.6-11.3 4.2-16.8 1.5s-8.8-8.2-8.8-14.3l0-80-96 0c-35.3 0-64-28.7-64-64L0 64zM232 296c0 13.3 10.7 24 24 24s24-10.7 24-24l0-64 64 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-64 0 0-64c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 64-64 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l64 0 0 64z"/>
+                                                  </svg>
+                                                }
+
+                                              </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                            @if(orders.length == 0){
+                                <div class="text-center items-center w-full col-span-2">
+                                    <span class="text-gray-900 dark:text-primary-50 text-sm text-center w-full font-medium">{{ 'PROFILE._no_orders' | translate }}</span>
+                                </div>
+                            }
+                        </div>
+
+                    @if (!loading_more) {
+                        @if (page_check) {
+                        <div class="flex pb-6 justify-center align-middle">
+                            <button (click)="next()" class="flex cursor-pointer shadow-lg items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 dark:text-white bg-white dark:bg-primary-100 dark:hover:bg-secondary-100 border border-gray-300 dark:border-secondary-200 rounded-lg hover:bg-gray-200">
+                            Load more
+                            <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+                            </svg>
+                            </button>
+                        </div>
+                        }
+                    } @else {
+                        <div role="status" class="w-full h-full flex justify-center align-middle">
+                        <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+                            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+                        </svg>
+                        <span class="sr-only">Loading...</span>
+                        </div>
+                    }
+                </div>
+        }
+
+
+        <!-- ORDER DETAILS modal -->
+        @if (showOrderDetails){
+            <div id="order-details-modal" [ngClass]="showOrderDetails ? 'backdrop-blur-sm': ''" tabindex="-1" aria-hidden="true" class="flex justify-center overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%)] max-h-full shadow-2xl">
+                <div class="w-full md:w-3/4 lg:w-1/2 relative bg-secondary-50 dark:bg-secondary-100 border border-secondary-50 dark:border-gray-800 rounded-lg shadow bg-cover bg-right-bottom" (click)="$event.stopPropagation();">
+                    <!-- Modal header -->
+                    <div class="flex items-center justify-between p-2 rounded-t dark:border-gray-600 shadow-lg">
+                        <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'PRODUCT_ORDERS._order_details' | translate }}</h2>
+                        <button (click)="showOrderDetails=false;" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                            </svg>
+                            <span class="sr-only">{{ 'CARD._close' | translate }}</span>
+                        </button>
+                    </div>
+                    <!-- Modal body -->
+                    <div data-cy="orderDetailsModal" class="w-full h-full">
+                        <div class="p-4 relative overflow-x-auto rounded-lg">
+                            <div class="flex flex-row gap-2 pb-2 text-gray-600">
+                                <p class="w-fit text-base font-bold shrink-0 dark:text-white">
+                                    {{ 'PRODUCT_INVENTORY._order_id' | translate }}
+                                </p>
+                                <h3 class="text-base dark:text-gray-200">
+                                    {{orderToShow.id}}
+                                </h3>
+                            </div>
+                            <div data-cy="globalState" class="flex flex-row gap-2 pb-2 text-gray-600">
+                                <p class="w-fit text-base font-bold shrink-0 dark:text-white">
+                                    {{ 'PRODUCT_INVENTORY._state' | translate }}
+                                </p>
+                                @if(orderToShow.state === 'inProgress'){
+                                    <span class="bg-blue-100 dark:bg-secondary-100 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400 w-fit">{{orderToShow.state}}</span>
+                                } @else if(orderToShow.state ===  'partial') {
+                                    <span class="bg-blue-100 dark:bg-secondary-100 text-purple-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-purple-500 w-fit">{{orderToShow.state}}</span>
+                                } @else if(orderToShow.state ===  'completed') {
+                                    <span class="bg-blue-100 dark:bg-secondary-100 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500 w-fit">{{orderToShow.state}}</span>
+                                } @else if(orderToShow.state === 'failed') {
+                                    <span class="bg-blue-100 dark:bg-secondary-100 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{orderToShow.state}}</span>
+                                } @else if(orderToShow.state === 'pending') {
+                                    <span class="bg-blue-100 dark:bg-secondary-100 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{orderToShow.state}}</span>
+                                }@else if(orderToShow.state === 'acknowledged'){
+                                    <span class="bg-blue-100 dark:bg-secondary-100 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{orderToShow.state}}</span>
+                                }@else if(orderToShow.state === 'cancelled' || orderToShow.state === 'cancelled') {
+                                    <span class="bg-blue-100 dark:bg-secondary-100 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{orderToShow.state}}</span>
+                                } @else {
+                                  <span class="bg-amber-500 dark:bg-amber-900 text-amber-900 dark:text-amber-100 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-amber-950">Unchecked</span>
+                                }
+                            </div>
+                            <div class="flex flex-row gap-2 pb-2 text-gray-600">
+                              <p class="w-fit text-base font-bold shrink-0 dark:text-white">
+                                  Date
+                              </p>
+                              <h3 class="text-base dark:text-gray-200">
+                                  {{orderToShow?.orderDate | date:'EEEE, dd/MM/yy, HH:mm'}}
+                              </h3>
+                            </div>
+                            <div class="flex flex-row gap-2 text-gray-600">
+                              <p class="w-fit text-base font-bold shrink-0 dark:text-white">
+                                  {{ 'PRODUCT_ORDERS._customer_info' | translate }}
+                              </p>
+                            </div>
+                            <div class="flex flex-row gap-2 pb-2 pt-2 ml-2 text-gray-600">
+                              <p class="w-fit text-base font-bold shrink-0 dark:text-white">
+                                  {{ 'PRODUCT_ORDERS._name' | translate }}
+                              </p>
+                              <h3 class="text-base dark:text-gray-200">
+                                {{ customerName$ | async }}
+                              </h3>
+                          </div>
+                            <div class="flex flex-row gap-2 pb-2 ml-2 text-gray-600">
+                                <p class="w-fit text-base font-bold shrink-0 dark:text-white">
+                                    {{ 'PRODUCT_ORDERS._billing_address' | translate }}
+                                </p>
+                                <h3 class="text-base dark:text-gray-200">
+                                    {{orderToShow.billingAccount.contact[0].contactMedium[1].characteristic.city}}, {{orderToShow.billingAccount.contact[0].contactMedium[1].characteristic.street1}}, {{orderToShow.billingAccount.contact[0].contactMedium[1].characteristic.country}} ({{orderToShow.billingAccount.name}})
+                                </h3>
+                            </div>
+                            <div class="flex flex-row gap-2 pb-2 ml-2 text-gray-600">
+                                <p class="w-fit text-base font-bold shrink-0 dark:text-white">
+                                    {{ 'PRODUCT_ORDERS._email' | translate }}
+                                </p>
+                                <h3 class="text-base dark:text-gray-200">
+                                    {{orderToShow.billingAccount.contact[0].contactMedium[0].characteristic.emailAddress}}
+                                </h3>
+                            </div>
+                            <div class="flex flex-row gap-2 pb-2 text-gray-600">
+                              <a class="cursor-pointer text-blue-600" (click)="goToCustomerDeatils()">
+                                  {{ 'PRODUCT_ORDERS._show_customer_details' | translate }}
+                              </a>
+                            </div>
+                            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200 rounded-lg border border-1 border-secondary-50 dark:border-gray-800">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-center align-middle">
+                                            {{ 'PRODUCT_ORDERS._img' | translate }}
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-center align-middle">
+                                          {{ 'PRODUCT_ORDERS._name' | translate }}
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-center align-middle">
+                                          {{ 'PRODUCT_ORDERS._price_plan' | translate }}
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-center align-middle">
+                                          {{ 'PRODUCT_ORDERS._state' | translate }}
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-center align-middle">
+                                          {{ 'PRODUCT_ORDERS._actions' | translate }}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody data-cy="orderItems">
+                                    @for (item of orderToShow.productOrderItems; track item.id; let idx = $index) {
+                                        <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                                            <td class="px-6 py-4 text-center align-middle flex justify-center items-center">
+                                                <img class="w-16 object-contain z-10 dark:text-white" src="{{getProductImage(item)}}" alt="Product image">
+                                            </td>
+                                            <td class="px-6 py-4 text-center align-middle">
+                                                {{item.name}}
+                                            </td>
+                                            @if(item.productOfferingPrice){
+                                                @if(item.productOfferingPrice.priceType == 'custom'){
+                                                    <td class="px-6 py-4 text-center align-middle">
+                                                      {{item.productOfferingPrice.name ?? 'Custom'}}
+                                                    </td>
+                                                } @else {
+                                                    <td class="px-6 py-4 text-center align-middle">
+                                                        @if(item?.productOfferingPrice?.bundledPopRelationship?.length > 1){
+                                                            Bundled price plan: {{item?.productOfferingPrice?.name}}
+                                                        } @else {
+                                                          {{item?.productOfferingPrice?.price?.value}} {{item?.productOfferingPrice?.price?.unit}} 
+                                                          @if(item?.productOfferingPrice?.unitOfMeasure){
+                                                              / {{item?.productOfferingPrice?.unitOfMeasure?.units}}
+                                                          }
+                                                          @if(item?.productOfferingPrice?.recurringChargePeriodType){
+                                                            / {{item?.productOfferingPrice?.recurringChargePeriodType}}
+                                                          }
+                                                        }
+                                                    </td>
+                                                }
+                                            } @else {
+                                                <td class="px-6 py-4 text-center align-middle">
+                                                    {{ 'SHOPPING_CART._free' | translate }}
+                                                </td>
+                                            }
+                                          <td class="px-6 py-4 text-center align-middle">
+                                            @if(item.productOrderItem.state === 'inProgress'){
+                                              <span class="bg-blue-100 dark:bg-secondary-100 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400 w-fit">{{item.productOrderItem.state}}</span>
+                                            } @else if(item.productOrderItem.state ===  'completed') {
+                                              <span class="bg-blue-100 dark:bg-secondary-100 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500 w-fit">{{item.productOrderItem.state}}</span>
+                                            } @else if(item.productOrderItem.state === 'failed') {
+                                              <span class="bg-blue-100 dark:bg-secondary-100 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{item.productOrderItem.state}}</span>
+                                            } @else if(item.productOrderItem.state === 'pending') {
+                                              <span class="bg-blue-100 dark:bg-secondary-100 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{item.productOrderItem.state}}</span>
+                                            }@else if(item.productOrderItem.state === 'acknowledged'){
+                                              <span class="bg-blue-100 dark:bg-secondary-100 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{item.productOrderItem.state}}</span>
+                                            }@else if(item.productOrderItem.state === 'cancelled' || item.productOrderItem.state === 'cancelled') {
+                                              <span class="bg-blue-100 dark:bg-secondary-100 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{item.productOrderItem.state}}</span>
+                                            } @else {
+                                              <span class="bg-amber-500 dark:bg-amber-900 text-amber-900 dark:text-amber-100 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-amber-950">Unchecked</span>
+                                            }
+                                          </td>
+                                          <td class="px-6 py-4 text-center align-middle flex justify-center">
+                                            @if (!hasProcurementAutomaticTerm(item)) {
+                                              @if (!item.productOrderItem.state && role == sellerRole) {
+                                                <button data-cy="acknowledgeOrder" type="button" title="Acknowledge the order item"
+                                                        class="text-white bg-primary-100 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2"
+                                                        (click)="openModal('acknowledged', item)">
+                                                  <!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                                                  <svg class="w-[18px] h-[18px] text-white stroke-white fill-white stroke-2" stroke="currentColor"
+                                                       xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
+                                                    <path d="M319.1 0c14.8-.4 27.9 9.3 31.8 23.6l74 271.2 17.7-35.4c10.8-21.7 33-35.4 57.2-35.4L608 224c17.7 0 32 14.3 32 32s-14.3 32-32 32l-108.2 0L444.6 398.3c-5.9 11.9-18.6 18.8-31.8 17.5s-24.2-10.6-27.7-23.4L323.7 167.3 255.3 486.7c-3.1 14.4-15.5 24.8-30.2 25.3s-27.8-9.1-31.8-23.2L135.9 288 32 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l103.9 0c28.6 0 53.7 18.9 61.5 46.4L219.6 348 288.7 25.3C291.8 10.9 304.4 .4 319.1 0z"/>
+                                                  </svg>
+                                                </button>
+
+                                                <button data-cy="rejectOrder" type="button" title="Reject the order item"
+                                                        class="text-red-950 bg-red-500 hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2"
+                                                        (click)="openModal('cancelled', item)">
+                                                  <svg class="w-[18px] h-[18px] text-white stroke-white fill-white stroke-2" stroke="currentColor"
+                                                       xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+                                                    <path d="M96 80c0-26.5 21.5-48 48-48l288 0c26.5 0 48 21.5 48 48l0 304L96 384 96 80zm145 47c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47z"/>
+                                                  </svg>
+                                                </button>
+                                              } @else {
+                                                  @if(role == sellerRole){
+                                                    @if (item.productOrderItem.state === 'acknowledged') {
+                                                      <button data-cy="startOrderTreatment" type="button" title="Start Order Treatment"
+                                                              class="text-green-950 bg-green-500 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2"
+                                                              (click)="openModal('inProgress', item)">
+                                                        <svg class="w-[18px] h-[18px] text-white stroke-white fill-white stroke-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+                                                          <path class="fa-secondary" opacity=".4" d="M32 80l0 352c0 5.8 3.1 11.1 8.2 14s11.2 2.7 16.2-.3l288-176c4.8-2.9 7.7-8.1 7.7-13.7s-2.9-10.7-7.7-13.7l-288-176c-4.9-3-11.1-3.1-16.2-.3s-8.2 8.2-8.2 14z"/><path class="fa-primary" d="M56.3 66.3c-4.9-3-11.1-3.1-16.2-.3s-8.2 8.2-8.2 14l0 352c0 5.8 3.1 11.1 8.2 14s11.2 2.7 16.2-.3l288-176c4.8-2.9 7.7-8.1 7.7-13.7s-2.9-10.7-7.7-13.7l-288-176zM24.5 38.1C39.7 29.6 58.2 30 73 39L361 215c14.3 8.7 23 24.2 23 41s-8.7 32.2-23 41L73 473c-14.8 9.1-33.4 9.4-48.5 .9S0 449.4 0 432L0 80C0 62.6 9.4 46.6 24.5 38.1z"/></svg>
+                                                      </button>
+                                                    } @else if (item.productOrderItem.state === 'inProgress') {
+                                                      <button data-cy="completeOrder" type="button" title="Order Completely Treated"
+                                                              class="text-green-950 bg-green-500 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2"
+                                                              (click)="openModal('completed', item)">
+                                                        <svg class="w-[18px] h-[18px] text-white stroke-white fill-white stroke-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                                          <path d="M200.3 81.5C210.9 61.5 231.9 48 256 48s45.1 13.5 55.7 33.5L321 99.1l19-5.8c21.6-6.6 46.1-1.4 63.1 15.7s22.3 41.5 15.7 63.1l-5.8 19 17.5 9.3c20 10.6 33.5 31.6 33.5 55.7s-13.5 45.1-33.5 55.7L412.9 321l5.8 19c6.6 21.6 1.4 46.1-15.7 63.1s-41.5 22.3-63.1 15.7l-19-5.8-9.3 17.5c-10.6 20-31.6 33.5-55.7 33.5s-45.1-13.5-55.7-33.5L191 412.9l-19 5.8c-21.6 6.6-46.1 1.4-63.1-15.7S86.6 361.6 93.2 340l5.8-19-17.5-9.3C61.5 301.1 48 280.1 48 256s13.5-45.1 33.5-55.7L99.1 191l-5.8-19c-6.6-21.6-1.4-46.1 15.7-63.1S150.4 86.6 172 93.2l19 5.8 9.3-17.5zM256 0c-35.9 0-67.8 17-88.1 43.4c-33-4.3-67.6 6.2-93 31.6s-35.9 60-31.6 93C17 188.2 0 220.1 0 256s17 67.8 43.4 88.1c-4.3 33 6.2 67.6 31.6 93s60 35.9 93 31.6C188.2 495 220.1 512 256 512s67.8-17 88.1-43.4c33 4.3 67.6-6.2 93-31.6s35.9-60 31.6-93C495 323.8 512 291.9 512 256s-17-67.8-43.4-88.1c4.3-33-6.2-67.6-31.6-93s-60-35.9-93-31.6C323.8 17 291.9 0 256 0zM369 209l17-17L352 158.1l-17 17-111 111-47-47-17-17L126.1 256l17 17 64 64 17 17 17-17L369 209z"/>
+                                                        </svg>
+                                                      </button>
+                                                      <button data-cy="failOrder" type="button" title="Order Completely Failed"
+                                                              class="text-red-950 bg-red-500 hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2"
+                                                              (click)="openModal('failed', item)">
+                                                        <svg class="w-[18px] h-[18px] text-white stroke-white fill-white stroke-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                                          <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm24-384l0 24 0 112 0 24-48 0 0-24 0-112 0-24 48 0zM232 368l0-48 48 0 0 48-48 0z"/>
+                                                          </svg>
+                                                      </button>
+                                                    }
+                                                  } @else {
+                                                    <td class="px-6 py-4 text-center align-middle flex justify-center">
+                                                      n/a
+                                                    </td>
+                                                  }
+                                              }
+                                            }
+                                          </td>
+
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        }
+
+<!-- Confirm Modal -->
+<div #confirmModal id="confirmModal" tabindex="-1" aria-hidden="true"
+     class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full bg-black bg-opacity-50">
+  <div class="relative w-full max-w-md max-h-full">
+    <!-- Contenedor del modal -->
+    <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+      <!-- Encabezado -->
+      <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600 bg-primary-100">
+        <h3 class="text-xl font-semibold text-secondary-50 dark:text-white">
+          Confirm Action
+        </h3>
+        <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900
+          rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600
+          dark:hover:text-white" (click)="closeModal()">
+          ✖
+        </button>
+      </div>
+      <!-- Cuerpo del modal -->
+      <div class="p-6 text-center">
+        <p class="text-gray-500 dark:text-gray-300">
+          Are you sure you want to update this order item to <strong>{{ actionType }}</strong> status?
+        </p>
+      </div>
+      <!-- Botones de acción -->
+      <div class="flex items-center p-6 space-x-4 border-t border-gray-200 rounded-b dark:border-gray-600">
+        <button data-cy="confirmActionBtn" type="button" (click)="confirmAction()"
+                class="text-white bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium
+          rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-500 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+          Yes, Confirm
+        </button>
+        <button data-cy="cancelActionBtn" type="button" (click)="closeModal()"
+                class="text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100
+          focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-700
+          dark:text-gray-300 dark:border-gray-500 dark:hover:bg-gray-600 dark:focus:ring-gray-600">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Backdrop (se muestra cuando el menú está abierto) -->
+@if (isDrawerOpen) {
+  <div class="fixed inset-0 top-0 left-0 right-0 h-screen bg-black bg-opacity-50 z-40" (click)="closeDrawer()"></div>
+
+<!-- Drawer for Notes -->
+<div id="drawer-notes"
+     class="fixed top-0 right-0 z-50 h-screen p-4 overflow-y-auto transition-transform bg-secondary-50 w-5/12 dark:bg-primary-100 flex flex-col"
+     [ngClass]="{'translate-x-0': isDrawerOpen, 'translate-x-full': !isDrawerOpen}"
+     tabindex="-1"
+     aria-labelledby="drawer-notes-label">
+
+  <!-- Header -->
+  <div class="flex justify-between items-center border-b pb-3">
+    <h5 id="drawer-notes-label" class="flex items-center text-base font-semibold text-gray-500 dark:text-gray-400">
+      <svg class="w-4 h-4 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 448 512">
+        <path d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l224 0 0-112c0-26.5 21.5-48 48-48l112 0 0-224c0-35.3-28.7-64-64-64L64 32zM448 352l-45.3 0L336 352c-8.8 0-16 7.2-16 16l0 66.7 0 45.3 32-32 64-64 32-32z"/>
+      </svg>
+      Order Notes
+    </h5>
+
+    <button type="button" aria-controls="drawer-notes" (click)="closeDrawer()"
+            class="flex items-center justify-center text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8">
+      <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+      </svg>
+    </button>
+  </div>
+
+
+  <!-- Loading Spinner (visible for 1s) -->
+  <div *ngIf="isLoading" class="flex flex-col items-center justify-center flex-1">
+    <div class="animate-spin rounded-full h-8 w-8 border-t-4 border-blue-500"></div>
+    <p class="text-gray-500 mt-2">Loading notes...</p>
+  </div>
+
+  <!-- Notes Container -->
+  <div *ngIf="!isLoading" id="note-dialog" class="flex flex-col space-y-3 mt-4 overflow-y-auto flex-1 p-2" #noteContainer>
+
+    <!-- Message when there are no notes -->
+    <div *ngIf="selectedOrder?.note.length === 0" class="text-center text-gray-500">
+      <p>No notes in this order.</p>
+    </div>
+
+    <!-- Display notes when available -->
+    <div data-cy="orderNotesMessages" *ngFor="let note of selectedOrder?.note" class="flex"
+         [ngClass]="{'justify-end': note.author === partyId, 'justify-start': note.author !== partyId}">
+
+      <div class="max-w-xs p-3 rounded-lg shadow-md"
+           [ngClass]="{'bg-blue-200 text-blue-900': note.author === partyId, 'bg-gray-200 text-gray-800': note.author !== partyId}">
+
+        <p class="text-sm">{{ note.text }}</p>
+        <span class="text-xs block mt-1 text-gray-500">
+          <!-- Si el usuario está en caché, mostrarlo. Si no, mostrar "Loading..." mientras se obtiene el nombre -->
+              {{ note.author === partyId
+              ? currentUser
+              : (userCache.get(note.author) || 'Loading...' )
+              }} - {{note.date | date:'EEEE, dd/MM/yy, HH:mm'}}
+
+              <!-- Forzar la obtención del nombre de usuario si no está en caché -->
+          <ng-container *ngIf="!userCache.has(note.author)">
+            {{ getUsername(note.author) | async }}
+          </ng-container>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input for adding new notes (fixed at the bottom) -->
+  <div class="border-t pt-3">
+    <div class="flex flex-col">
+      <textarea data-cy="orderNotesTextField" [(ngModel)]="newNoteText"
+                class="w-full p-2 text-sm border rounded-lg resize-none h-20"
+                placeholder="Write a new note..."
+                (keyup.enter)="addNote()"></textarea>
+      <button data-cy="orderNotesSendButton" (click)="addNote()"
+              class="mt-2 px-4 py-2 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600">
+        {{ isUpdating ? 'Saving...' : 'Send' }}
+      </button>
+    </div>
+  </div>
+
+</div>
+}
+
+<!-- FIXME: We need an standalone error message component-->
+@if(showError){
+  <div class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+    <div id="alert-additional-content-2" class="p-4 mb-4 text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-red-900 dark:border-red-900 dark:text-white" role="alert">
+      <div class="flex items-center">
+        <svg class="flex-shrink-0 w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+        </svg>
+        <h3 class="text-lg font-medium">Error</h3>
+      </div>
+      <div class="mt-2 mb-4 text-sm">
+        {{errorMessage}}
+      </div>
+    </div>
+  </div>
+}

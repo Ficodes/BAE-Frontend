@@ -1,0 +1,152 @@
+<div class="container mx-auto pt-2 mb-8">
+
+    <h1 data-cy="cataloguesAllHeader" class="mb-2 text-center mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-4xl lg:text-5xl dark:text-white w-full"><span class="underline underline-offset-3 decoration-8 decoration-primary-100 dark:decoration-primary-100">{{'CATALOGS._all_catalogs' | translate}}</span></h1>
+    <p class="mb-8 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-secondary-50 text-center">{{'CATALOGS._choose' | translate}}</p>
+
+    <!-- HEADER SEARCH BAR -->
+    <!--<form class="max-w-lg mx-auto mb-8">
+      <div class="flex">
+          <div class="relative w-full">
+              <input type="search" id="search" [formControl]="searchField" class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-s-gray-700  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+                placeholder="Filter through our catalogs" />
+              <button (click)="filterCatalogs()" type="submit" class="absolute top-0 end-0 inline-flex items-center p-2.5 text-sm font-medium h-full text-white bg-primary-100 rounded-e-lg border border-blue-700 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300">
+                  <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+                  </svg>                  
+                  <span class="ml-2">Search</span>
+              </button>
+          </div>
+      </div>
+    </form>-->
+
+
+    @if (loading) {
+        <div role="status" class="w-full h-full flex justify-center align-middle">
+          <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+              <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+          </svg>
+          <span class="sr-only">Loading...</span>
+        </div>
+      } @else {
+        <div class="w-full p-4 md:grid md:grid-cols-2 gap-4 lg:grid-cols-4">
+
+            @for (cat of catalogs; track cat.id) {
+
+                <div data-cy="cataloguesList" (click)="goToCatalogSearch(cat.id)" class="block cursor-pointer rounded-lg bg-cover mb-4 md:mb-0" style="background-image: url(assets/logos/dome-logo-element-colour.png);" >
+                    <div class="block w-full h-full p-6 bg-opacity-100 bg-secondary-50 rounded-lg dark:bg-secondary-100 bg-secondary-50/90 dark:bg-secondary-100/90 bg-cover">
+                        <h5 data-cy="cataloguesTitle" [ngClass]="{
+                          'break-all': hasLongWord(cat.name, 20),
+                          'break-words': !hasLongWord(cat.name, 20)
+                        }"  class="text-2xl font-bold tracking-tight line-clamp-4 text-primary-100 dark:text-white text-wrap break-words">{{cat.name}}</h5>
+                        <markdown data-cy="cataloguesDescription" class="line-clamp-[8] text-wrap break-all dark:text-white text-gray-900" [data]="cat.description ? cat.description : 'CATALOGS._no_desc' | translate"></markdown>
+                        <!--<a (click)="showFullDesc(cat);$event.stopPropagation();" class="text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md text-secondary-50 bg-primary-100 dark:bg-secondary-50 dark:text-primary-100 mb-2">
+                          <fa-icon [icon]="faEye" class="text-primary-50 mr-2"></fa-icon>
+                          {{'CATALOGS._view_details' | translate}}
+                        </a>-->
+                        <hr class="h-px my-1 bg-primary-100 border-0 dark:bg-primary-100">
+                        <div data-cy="cataloguesCategories" class="">
+                          @for(category of cat.category; track category.id) {
+                            <span [ngClass]="{
+                              'break-all': hasLongWord(category.name, 20),
+                              'break-words': !hasLongWord(category.name, 20)
+                            }" class="inline-block bg-blue-300 text-primary-100 text-xs font-bold me-2 px-2.5 py-0.5 rounded-full w-fit text-wrap break-words">{{category.name}}</span>
+                          } @empty {
+                            <span class="inline-block bg-blue-300 text-primary-100 text-xs font-bold me-2 px-2.5 py-0.5 rounded-full w-fit text-wrap break-words">{{'CATALOGS._no_cat' | translate}}</span>
+                          }
+                        </div>
+                        <div class="flex sticky top-[100vh] justify-center align-items-bottom">
+                          <button data-cy="cataloguesViewDetails" (click)="showFullDesc(cat);$event.stopPropagation();" type="button" class="flex mt-2 items-center align-items-bottom text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-100 dark:hover:bg-primary-50 dark:focus:ring-primary-100 mr-1">
+                            <svg class="w-[18px] h-[18px] text-white mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
+                              <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                                <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+                                <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>
+                              </g>
+                            </svg>
+                            {{ 'CARD._details' | translate }}
+                          </button>
+                        </div>
+                    </div>
+                </div>
+
+            }
+
+        </div>
+    }
+    @if (!loading_more) {
+      @if (page_check) {
+        <div class="flex pt-8 justify-center align-middle">
+            <button data-cy="loadMore" (click)="next()" class="flex cursor-pointer items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+              Load more
+              <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+              </svg>
+            </button>
+        </div>
+      }
+    } @else {
+        <div role="status" class="w-full h-full pt-8 flex justify-center align-middle">
+          <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+              <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+          </svg>
+          <span class="sr-only">Loading...</span>
+        </div>
+      }
+</div>
+
+<!-- Main modal -->
+@if (showDesc){
+  <div id="details-modal"
+  [ngClass]="showDesc ? 'backdrop-blur-sm' : ''"
+  tabindex="-1"
+  aria-hidden="true"
+  class="fixed inset-0 z-40 flex flex-col lg:flex-row justify-center overflow-y-auto overflow-x-hidden px-4 pt-[80px] lg:pt-0 lg:items-center">
+
+  <div class="relative w-full max-w-4xl">
+    <div data-cy="cataloguesDetailsContents" class="relative bg-white dark:bg-secondary-100 rounded-lg shadow-lg bg-cover bg-right-bottom overflow-y-auto max-h-[calc(100vh-160px)]"
+         (click)="$event.stopPropagation();">
+
+   <!-- HEADER -->
+   <div class="w-full rounded-t-lg p-4">
+     <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-primary-100 dark:text-primary-50 ">
+       {{ showingCat?.name }}
+     </h5>
+   </div>
+
+   <hr class="h-px my-1 bg-primary-100 border-0 dark:bg-primary-100" />
+
+   <!-- DESCRIPTION -->
+   <div class="p-4">
+     <div class="max-h-[300px] overflow-y-auto mb-4 p-4 rounded border border-primary-100/10 bg-primary-100/5 dark:bg-white/5">
+       <markdown [ngClass]="{
+        'break-all': hasLongWord(showingCat.description, 20),
+        'break-words': !hasLongWord(showingCat.description, 20)
+        }" class="dark:text-secondary-50 text-wrap break-words"
+                 [data]="showingCat.description ? showingCat.description : ('CATALOGS._no_desc' | translate)">
+       </markdown>
+     </div>
+   </div>
+
+   <hr class="h-px my-1 bg-primary-100 border-0 dark:bg-primary-100" />
+
+   <!-- CATEGORIES -->
+   <div data-cy="cataloguesCategoriesList" class="p-4 flex flex-wrap gap-2">
+     @for(category of showingCat.category; track category.id) {
+       <span [ngClass]="{
+        'break-all': hasLongWord(category.name, 20),
+        'break-words': !hasLongWord(category.name, 20)
+        }" class="inline-block bg-blue-300 text-primary-100 text-xs font-bold px-2.5 py-0.5 rounded-full text-wrap break-words">
+         {{ category.name }}
+       </span>
+     } @empty {
+       <span class="inline-block bg-blue-300 text-primary-100 text-xs font-bold px-2.5 py-0.5 rounded-full text-wrap break-words">
+         {{ 'CATALOGS._no_cat' | translate }}
+       </span>
+     }
+   </div>
+ </div>
+</div>
+</div>
+
+}

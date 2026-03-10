@@ -1,0 +1,49 @@
+<div class="container chatbot-widget fixed z-20">
+  <div class="chatbox">
+    @if(state){
+      <div class="chatbox__support relative" [ngClass]="state ? 'chatbox--active' : ''">
+          <!-- Floating Close Button -->
+          <button class="absolute -top-3 -right-3 w-8 h-8 z-40 bg-secondary-100 text-white hover:bg-primary-50 
+            rounded-full flex items-center justify-center 
+            shadow-md transition" 
+            (click)="toggleState()">
+          &times;
+        </button>
+
+        <div class="chatbox__header">
+          <div class="chatbox__image--header">
+            <img src="assets/chatbot/images/dome_logo_white.svg" alt="image">
+          </div>
+          <div class="chatbox__content--header">
+            <h4 class="chatbox__heading--header">DOME support</h4>
+            <p class="chatbox__description--header">
+              Hi. My name is DomeGPT. How can I help you?
+            </p>
+          </div>
+        </div>
+
+        <div class="chatbox__messages"></div>
+
+        <div class="chatbox__footer">
+          <input type="text" placeholder="Write a message..." (keyup)="onKeyUp($event)">
+          <button class="chatbox__send--footer" (click)="onSendButton()">Send</button>
+        </div>
+      </div>
+    }
+
+    <!-- Wrapper -->
+    <div class="fixed bottom-9 md:bottom-[55px] left-5 z-[999]"  (click)="toggleState()">
+      <!-- Button -->
+      <button
+        class="w-[60px] h-[60px] bg-[var(--secondary-dark-blue)] border-none rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.3)] cursor-pointer transition-transform duration-300 flex items-center justify-center hover:scale-105 p-0"
+      >
+        <img
+          src="assets/chatbot/images/chatbox-icon.svg"
+          alt="Chat"
+          class="w-[30px] h-[30px] filter brightness-0 invert"
+        />
+      </button>
+    </div>
+
+  </div>
+</div>

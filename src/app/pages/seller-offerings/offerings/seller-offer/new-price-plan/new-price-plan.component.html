@@ -1,0 +1,606 @@
+@if(showProfile){
+    <div (click)="$event.stopPropagation();" [ngClass]="showProfile ? 'backdrop-blur-sm': ''" tabindex="-1"  class="fixed h-screen w-full md:w-2/3 top-0 right-0 z-50 p-4 overflow-y-auto bg-white dark:bg-gray-800" tabindex="-1" aria-labelledby="drawer-label">
+        <button type="button" (click)="showProfile=!showProfile" aria-controls="drawer-example" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 absolute top-2.5 end-2.5 flex items-center justify-center dark:hover:bg-gray-600 dark:hover:text-white" >
+           <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+           </svg>
+           <span class="sr-only">Close menu</span>
+        </button>
+        <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white">Configure profile's characteristics</h2>
+        <hr class="h-px m-4 bg-gray-300 dark:bg-gray-200 border-0">
+        <div class="p-4 grid grid-cols-2 gap-4">
+            @for(char of createdPriceProfile; track char.id; let charidx = $index){
+              <div class="min-h-19 pb-2">
+                <h5 class="text-xl font-semibold tracking-tight text-primary-100">{{char.name}}:</h5>
+                @if(hasKey(char?.productSpecCharacteristicValue[0], 'valueFrom')){                                                
+                    <div class="relative mb-6">
+                        <label for="labels-range-input" class="sr-only">Labels range</label>
+                        <input id="default-range" type="range" (change)="changeRangeProfileValue(char,$event)"
+                        min="{{char?.productSpecCharacteristicValue[0].valueFrom}}"
+                        max="{{char?.productSpecCharacteristicValue[0].valueTo}}"
+                        value="{{char?.productSpecCharacteristicValue[0].value}}"
+                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                        <span class="text-sm text-gray-500 dark:text-gray-400 absolute start-0 -bottom-6">Min ({{char?.productSpecCharacteristicValue[0].valueFrom}} {{char?.productSpecCharacteristicValue[0].unitOfMeasure}})</span>
+                        @if(char?.productSpecCharacteristicValue[0].value){
+                            <span class="text-sm text-gray-500 dark:text-gray-400 absolute start-1/2 -bottom-6">{{char?.productSpecCharacteristicValue[0].value}} {{char?.productSpecCharacteristicValue[0].unitOfMeasure}}</span>
+                        }                        
+                        <span class="text-sm text-gray-500 dark:text-gray-400 absolute end-0 -bottom-6">Max ({{char?.productSpecCharacteristicValue[0].valueTo}} {{char?.productSpecCharacteristicValue[0].unitOfMeasure}})</span>
+                    </div>
+                }@else{
+                    <select id="type" (change)="changePriceProfileCharValue(char,$event)"
+                    class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                        @for (val of char?.productSpecCharacteristicValue; track val.value; let validx = $index) {
+                            @if(hasKey(val, 'unitOfMeasure')){
+                                <option [selected]="val.isDefault==true" value="{{val.value}}">{{val.value}} ({{val.unitOfMeasure}})</option>
+                            } @else {
+                                <option [selected]="val.isDefault==true" value="{{val.value}}">{{val.value}}</option>
+                            }
+                        }
+                    </select>
+                }
+              </div>
+            }
+        </div>
+        <div class="p-4">
+            <div class="flex w-full justify-items-end justify-end ml-4 mt-4">
+                <button type="button" (click)="cancelPriceProfile()" class="flex mr-4 text-gray-900 justify-end bg-gray-400 hover:bg-primary-50 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                    Cancel
+                </button>                
+                <button type="button" (click)="createPriceProfile()" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                    @if(editProfile){
+                        Save
+                    }@else {
+                        Create
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+@if(showPriceComponents){
+    <div (click)="$event.stopPropagation();" [ngClass]="showPriceComponents ? 'backdrop-blur-sm': ''" tabindex="-1"  class="fixed h-screen w-full md:w-2/3 top-0 right-0 z-50 p-4 overflow-y-auto bg-white dark:bg-gray-800" tabindex="-1" aria-labelledby="drawer-label">
+        <button type="button" (click)="showPriceComponents=!showPriceComponents" aria-controls="drawer-example" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 absolute top-2.5 end-2.5 flex items-center justify-center dark:hover:bg-gray-600 dark:hover:text-white" >
+           <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+           </svg>
+           <span class="sr-only">Close menu</span>
+        </button>
+        <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white">New price component</h2>
+        <hr class="h-px m-4 bg-gray-300 dark:bg-gray-200 border-0">
+        <div class="p-4">
+            
+            <form [formGroup]="priceComponentForm">                
+            <label class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._name' | translate }}</label>
+            <input formControlName="name" type="text" id="name"  maxLength="100"
+            [ngClass]="priceComponentForm.controls.name.errors?.['invalidName'] ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200 mb-2'"
+                class="bg-gray-50 dark:bg-secondary-300 border dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+            @if(priceComponentForm.controls.name.errors?.['invalidName']){
+                <p class="mt-1 mb-2 text-sm text-red-600 dark:text-red-500">{{ 'UPDATE_OFFER._duplicated_price_name' | translate }}</p>
+            }
+            <label for="description" class="font-bold text-lg col-span-2 dark:text-white">{{ 'CREATE_OFFER._description' | translate }}</label>
+                <div class="w-full mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-secondary-200 dark:border-secondary-200 col-span-2">
+                    <div class="flex items-center justify-between px-3 py-2 border-b">
+                        <div class="flex flex-wrap items-center divide-gray-200 dark:divide-secondary-200 sm:divide-x sm:rtl:divide-x-reverse">
+                            <div class="flex items-center space-x-1 rtl:space-x-reverse sm:pe-4 text-gray-500 dark:text-gray-200">
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addBold()" type="button"
+                                    class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5h4.5a3.5 3.5 0 1 1 0 7H8m0-7v7m0-7H6m2 7h6.5a3.5 3.5 0 1 1 0 7H8m0-7v7m0 0H6"/>
+                                    </svg>                                          
+                                    <span class="sr-only">Bold</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addItalic()" type="button"
+                                    class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8.874 19 6.143-14M6 19h6.33m-.66-14H18"/>
+                                    </svg>                                                                                 
+                                    <span class="sr-only">Italic</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addList()" type="button"
+                                    class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M9 8h10M9 12h10M9 16h10M4.99 8H5m-.02 4h.01m0 4H5"/>
+                                    </svg>                                          
+                                    <span class="sr-only">Add list</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addOrderedList()" type="button"
+                                    class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6h8m-8 6h8m-8 6h8M4 16a2 2 0 1 1 3.321 1.5L4 20h5M4 5l2-1v6m-2 0h4"/>
+                                    </svg>                                          
+                                    <span class="sr-only">Add ordered list</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addBlockquote()" type="button"
+                                    class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd" d="M5 6a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Zm0 12a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Zm1.65-9.76A1 1 0 0 0 5 9v6a1 1 0 0 0 1.65.76l3.5-3a1 1 0 0 0 0-1.52l-3.5-3ZM12 10a1 1 0 0 1 1-1h5a1 1 0 1 1 0 2h-5a1 1 0 0 1-1-1Zm0 4a1 1 0 0 1 1-1h5a1 1 0 1 1 0 2h-5a1 1 0 0 1-1-1Z" clip-rule="evenodd"/>
+                                    </svg>                                         
+                                    <span class="sr-only">Add blockquote</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addTable()" type="button"
+                                    class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-width="2" d="M3 11h18m-9 0v8m-8 0h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Z"/>
+                                    </svg>                                         
+                                    <span class="sr-only">Add table</span>
+                                </button>                                 
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addCode()" type="button"
+                                    class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 8-4 4 4 4m8 0 4-4-4-4m-2-3-4 14"/>
+                                    </svg>                                        
+                                    <span class="sr-only">Add code</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addCodeBlock()" type="button"
+                                    class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 3v4a1 1 0 0 1-1 1H5m5 4-2 2 2 2m4-4 2 2-2 2m5-12v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7.914a1 1 0 0 1 .293-.707l3.914-3.914A1 1 0 0 1 9.914 3H18a1 1 0 0 1 1 1Z"/>
+                                      </svg>                                                                                  
+                                    <span class="sr-only">Add code block</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addLink()" type="button"
+                                    class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.213 9.787a3.391 3.391 0 0 0-4.795 0l-3.425 3.426a3.39 3.39 0 0 0 4.795 4.794l.321-.304m-.321-4.49a3.39 3.39 0 0 0 4.795 0l3.424-3.426a3.39 3.39 0 0 0-4.794-4.795l-1.028.961"/>
+                                    </svg>                                                                                
+                                    <span class="sr-only">Add link</span>
+                                </button>
+                                <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="showEmoji=!showEmoji;$event.stopPropagation();" type="button"
+                                    class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM13.5 6a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm-7 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm3.5 9.5A5.5 5.5 0 0 1 4.6 11h10.81A5.5 5.5 0 0 1 10 15.5Z"/>
+                                    </svg>
+                                    <span class="sr-only">Add emoji</span>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" (click)="showPreview=!showPreview;togglePreview()" data-tooltip-target="tooltip-fullscreen" class="rounded cursor-pointer text-gray-500 dark:text-gray-200 p-2 sm:ms-auto hover:text-gray-900 dark:hover:text-gray-900 hover:bg-gray-100">
+                            <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-width="2" d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"/>
+                                <path stroke="currentColor" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                              </svg>
+                              
+                            <span class="sr-only">{{ 'CREATE_CATALOG._preview' | translate }}</span>
+                        </button>
+                        <div id="tooltip-fullscreen" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip">
+                            {{ 'CREATE_CATALOG._show_preview' | translate }}
+                            <div class="tooltip-arrow" data-popper-arrow></div>
+                        </div>
+                    </div>
+                    <div class="px-4 py-2 bg-white dark:bg-secondary-300 rounded-b-lg min-h-fit">
+                        <label for="editor" class="sr-only">Publish post</label>
+                        @if(showPreview){
+                                <markdown [ngClass]="{
+                                    'break-all': hasLongWord(priceComponentDescription, 20),
+                                    'break-words': !hasLongWord(priceComponentDescription, 20)
+                                    }" class="bg-gray-50 text-wrap break-words dark:bg-secondary-300 dark:text-white text-gray-900" [data]="priceComponentDescription"></markdown>
+                            
+                        }@else{
+                            <textarea id="editor" formControlName="description" rows="8" class="block w-full min-h-fit px-0 text-sm text-gray-800 border-0 dark:text-gray-200 bg-white dark:bg-secondary-300" placeholder="Add product description..." ></textarea>
+                        }
+                        @if(showEmoji){
+                            <emoji-mart (click)="$event.stopPropagation();" [darkMode]="false" [style]="{ position: 'relative', left: '200px', top: '-500px' }" (emojiClick)="addEmoji($event)"></emoji-mart>
+                        }                    
+                        
+                    </div>
+                </div>
+
+                @if(!editProfile){
+                    <div class="flex">
+                        <label class="font-bold text-lg dark:text-white">Does this price component apply to a product characteristic?</label>
+                        <div class="flex inline-flex ml-2 align-middle">
+                            <svg data-popover-target="popover-component-char" class="flex self-center w-6 h-6 text-primary-100" clip-rule="evenodd" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex flex-row">
+                        <select id="type" (change)="changePriceComponentChar($event)"
+                        class="mb-2 mr-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            <option value="">Select a characteristic</option>
+                            @for(char of filteredCharacteristics; track char){                          
+                                <option value="{{char.id}}">{{char.name}}</option>
+                            }
+                        </select>
+                        @if(showValueSelect){
+                            <select id="type" (change)="changePriceComponentCharValue($event)"
+                            class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                @if(hideStringCharOption){
+                                    <option value="">Select a value</option>
+                                }  
+                                @for(val of selectedCharacteristic.productSpecCharacteristicValue; track val){
+                                    @if(hasKey(val, 'unitOfMeasure')){
+                                        <option value="{{val.value}}">{{val.value}} ({{val.unitOfMeasure}})</option>
+                                    } @else {
+                                        <option value="{{val.value}}">{{val.value}}</option>
+                                    }
+                                }
+                            </select>
+                        }
+                    </div>
+                }
+                <label class="font-bold text-lg col-span-2 dark:text-white">{{ 'CREATE_OFFER._choose_type' | translate }}</label>
+                <select id="type" (change)="onPriceTypeSelected($event)" class="mb-2 col-span-2 w-1/3 shadow bg-white dark:bg-secondary-300 border border-gray-300 text-gray-900 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    <option value="ONE TIME">ONE TIME</option>
+                    <option value="RECURRING">RECURRING</option>
+                    <option value="RECURRINGPREPAID">RECURRING-PREPAID</option>
+                    <option value="USAGE">USAGE</option>          
+                </select>
+                <div>
+                    <label class="font-bold text-lg dark:text-white">Base price</label>
+                    <input formControlName="price" type="number" pattern="[0-9]*.[0-9]*" step="0.1"                        
+                    class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 text-gray-900 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                </div>
+                @if(recurringSelected||recurringPrepaidSelected){
+                    <label class="font-bold text-lg dark:text-white">Recurring every</label>
+                    <div class="flex flex-row">                        
+                        <input formControlName="recurring" type="number" pattern="[0-9]"                      
+                        class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-l border-gray-300 text-gray-900 dark:border-secondary-200 dark:text-white text-sm rounded-l-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                        <select id="type" formControlName="recurringPeriod" class="bg-gray-50 dark:bg-secondary-300 text-gray-900 dark:text-white text-sm rounded-r-lg focus:ring-blue-500 focus:border-blue-500 block w-1/4 p-2.5">
+                            <option selected value="day">Day</option>
+                            <option value="week">Week</option>
+                            <option value="month">Month</option>                             
+                        </select>
+                    </div>
+                }
+                @if(usageSelected){
+                    <div>
+                        <label class="font-bold text-lg dark:text-white">Unit of measure</label>
+                        <input formControlName="unit" type="text"                       
+                        class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 text-gray-900 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                    </div>
+                }
+                <div data-popover id="popover-component-char" role="tooltip" class="absolute z-20 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                    <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                        <h3 class="font-semibold text-gray-900 dark:text-white">Product characteristic</h3>
+                    </div>
+                    <div class="px-3 py-2 inline-block">
+                        <p class="inline-block">If the price component applies to a product charateristic you should select it on the following list and select its value if needed.
+                        </p>
+                    </div>
+                    <div data-popper-arrow></div>
+                </div> 
+
+                <div class="flex items-center align-items-middle mb-4">
+                    <input id="default-checkbox" (change)="isDiscount=!isDiscount" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                    <label for="default-checkbox" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Add discount?</label>
+                </div>
+                </form>
+                <form [formGroup]="discountForm">                    
+                @if(isDiscount){
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="font-bold text-lg dark:text-white">Amount</label>
+                            <input formControlName="amount" class="bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                        </div>
+                        <div class="flex align-items-middle items-center mb-4">
+                            <input id="default-checkbox" formControlName="percentage" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                            <label for="default-checkbox" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Is this discount a percentage?</label>
+                        </div>                     
+                        <div>
+                            <label class="font-bold text-lg dark:text-white">Duration</label>
+                            <input formControlName="duration" class="bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                        </div>
+                        <div>
+                            <label class="font-bold text-lg dark:text-white">Period</label>
+                            <select formControlName="period" id="type" class="mb-2 shadow bg-white dark:bg-secondary-300 border border-gray-300 text-gray-900 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                <option selected value="day">Day</option>
+                                <option value="week">Week</option>
+                                <option value="month">Month</option>
+                                <option value="year">Year</option>                                          
+                            </select>
+                        </div>
+                    </div>
+                }
+                </form>                  
+                <div class="flex w-full justify-items-end justify-end ml-4 mt-4">
+                    <button type="button" (click)="cancelPriceComponent()" class="flex mr-4 text-gray-900 justify-end bg-gray-400 hover:bg-primary-50 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        Cancel
+                    </button>
+                    <button type="button" (click)="createPriceComponent()" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        Create
+                    </button>
+                </div>
+            </div>
+      </div>
+}
+
+@if(editPrice){
+    <label class="font-bold text-xl ml-4 dark:text-white">Edit price plan</label>
+}@else{
+    <label class="font-bold text-xl ml-4 dark:text-white">{{ 'CREATE_OFFER._new_price' | translate }}</label>
+}                    
+<hr class="h-px m-4 bg-gray-300 dark:bg-gray-200 border-0">
+    <form class="m-4" [formGroup]="priceForm" >
+        <label class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._name' | translate }}</label>
+        <input formControlName="name" type="text" id="name" maxLength="100"
+        [ngClass]="priceForm.controls.name.errors?.['invalidName'] ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200 mb-2'"
+            class="bg-gray-50 dark:bg-secondary-300 border dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+        @if(priceForm.controls.name.errors?.['invalidName']){
+            <p class="mt-1 mb-2 text-sm text-red-600 dark:text-red-500">{{ 'UPDATE_OFFER._duplicated_price_name' | translate }}</p>
+        }
+        <label for="description" class="font-bold text-lg col-span-2 dark:text-white">{{ 'CREATE_OFFER._description' | translate }}</label>
+            <div class="w-full mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-secondary-200 dark:border-secondary-200 col-span-2">
+                <div class="flex items-center justify-between px-3 py-2 border-b">
+                    <div class="flex flex-wrap items-center divide-gray-200 dark:divide-secondary-200 sm:divide-x sm:rtl:divide-x-reverse">
+                        <div class="flex items-center space-x-1 rtl:space-x-reverse sm:pe-4 text-gray-500 dark:text-gray-200">
+                            <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addBold()" type="button"
+                                class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5h4.5a3.5 3.5 0 1 1 0 7H8m0-7v7m0-7H6m2 7h6.5a3.5 3.5 0 1 1 0 7H8m0-7v7m0 0H6"/>
+                                </svg>                                          
+                                <span class="sr-only">Bold</span>
+                            </button>
+                            <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addItalic()" type="button"
+                                class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8.874 19 6.143-14M6 19h6.33m-.66-14H18"/>
+                                </svg>                                                                                 
+                                <span class="sr-only">Italic</span>
+                            </button>
+                            <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addList()" type="button"
+                                class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M9 8h10M9 12h10M9 16h10M4.99 8H5m-.02 4h.01m0 4H5"/>
+                                </svg>                                          
+                                <span class="sr-only">Add list</span>
+                            </button>
+                            <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addOrderedList()" type="button"
+                                class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6h8m-8 6h8m-8 6h8M4 16a2 2 0 1 1 3.321 1.5L4 20h5M4 5l2-1v6m-2 0h4"/>
+                                </svg>                                          
+                                <span class="sr-only">Add ordered list</span>
+                            </button>
+                            <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addBlockquote()" type="button"
+                                class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd" d="M5 6a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Zm0 12a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Zm1.65-9.76A1 1 0 0 0 5 9v6a1 1 0 0 0 1.65.76l3.5-3a1 1 0 0 0 0-1.52l-3.5-3ZM12 10a1 1 0 0 1 1-1h5a1 1 0 1 1 0 2h-5a1 1 0 0 1-1-1Zm0 4a1 1 0 0 1 1-1h5a1 1 0 1 1 0 2h-5a1 1 0 0 1-1-1Z" clip-rule="evenodd"/>
+                                </svg>                                         
+                                <span class="sr-only">Add blockquote</span>
+                            </button>
+                            <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addTable()" type="button"
+                                class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-width="2" d="M3 11h18m-9 0v8m-8 0h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Z"/>
+                                </svg>                                         
+                                <span class="sr-only">Add table</span>
+                            </button>                                 
+                            <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addCode()" type="button"
+                                class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 8-4 4 4 4m8 0 4-4-4-4m-2-3-4 14"/>
+                                </svg>                                        
+                                <span class="sr-only">Add code</span>
+                            </button>
+                            <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addCodeBlock()" type="button"
+                                class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 3v4a1 1 0 0 1-1 1H5m5 4-2 2 2 2m4-4 2 2-2 2m5-12v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7.914a1 1 0 0 1 .293-.707l3.914-3.914A1 1 0 0 1 9.914 3H18a1 1 0 0 1 1 1Z"/>
+                                  </svg>                                                                                  
+                                <span class="sr-only">Add code block</span>
+                            </button>
+                            <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addLink()" type="button"
+                                class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.213 9.787a3.391 3.391 0 0 0-4.795 0l-3.425 3.426a3.39 3.39 0 0 0 4.795 4.794l.321-.304m-.321-4.49a3.39 3.39 0 0 0 4.795 0l3.424-3.426a3.39 3.39 0 0 0-4.794-4.795l-1.028.961"/>
+                                </svg>                                                                                
+                                <span class="sr-only">Add link</span>
+                            </button>
+                            <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="showEmoji=!showEmoji;$event.stopPropagation();" type="button"
+                                class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
+                                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM13.5 6a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm-7 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm3.5 9.5A5.5 5.5 0 0 1 4.6 11h10.81A5.5 5.5 0 0 1 10 15.5Z"/>
+                                </svg>
+                                <span class="sr-only">Add emoji</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" (click)="showPreview=!showPreview;togglePreview()" data-tooltip-target="tooltip-fullscreen" class="rounded cursor-pointer text-gray-500 dark:text-gray-200 p-2 sm:ms-auto hover:text-gray-900 dark:hover:text-gray-900 hover:bg-gray-100">
+                        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-width="2" d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"/>
+                            <path stroke="currentColor" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                          </svg>
+                          
+                        <span class="sr-only">{{ 'CREATE_CATALOG._preview' | translate }}</span>
+                    </button>
+                    <div id="tooltip-fullscreen" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip">
+                        {{ 'CREATE_CATALOG._show_preview' | translate }}
+                        <div class="tooltip-arrow" data-popper-arrow></div>
+                    </div>
+                </div>
+                <div class="px-4 py-2 bg-white dark:bg-secondary-300 rounded-b-lg">
+                    <label for="editor" class="sr-only">Publish post</label>
+                    @if(showPreview){
+                            <markdown [ngClass]="{
+                                'break-all': hasLongWord(priceDescription, 20),
+                                'break-words': !hasLongWord(priceDescription, 20)
+                                }" class="bg-gray-50 text-wrap break-words dark:bg-secondary-300 dark:text-white text-gray-900" [data]="priceDescription"></markdown>
+                        
+                    }@else{
+                        <textarea id="editor" formControlName="description" rows="8" class="block w-full min-h-fit px-0 text-sm text-gray-800 border-0 dark:text-gray-200 bg-white dark:bg-secondary-300" placeholder="Add product description..." ></textarea>
+                    }
+                    @if(showEmoji){
+                        <emoji-mart (click)="$event.stopPropagation();" [darkMode]="false" [style]="{ position: 'relative', left: '200px', top: '-500px' }" (emojiClick)="addEmoji($event)"></emoji-mart>
+                    }                    
+                    
+                </div>
+            </div>
+            <div class="flex items-center mb-4">
+                <input id="default-checkbox" (change)="changeDomeManaged()" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                <label for="default-checkbox" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Is this product to be paid online?</label>
+            </div>
+            @if(isDomeManaged){
+                <label class="font-bold text-lg dark:text-white">Currency</label>
+                <select id="type" (change)="onPriceUnitChange($event)" class="mb-2 shadow bg-white dark:bg-secondary-300 border border-gray-300 text-gray-900 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    @for(curr of currencies; track curr.code){
+                        <option value="{{curr.code}}" [selected]="curr.code === selectedPriceUnit">({{curr.code}}) {{curr.name}}</option>
+                    }                     
+                </select>
+                @if(selectedProdSpec.productSpecCharacteristic.length>0){
+                    @if(!touchedCharCheck){
+                        @if(!editProfile){
+                            <div class="flex justify-between">
+                                <div class="flex">
+                                    <label class="font-bold text-lg dark:text-white">Configuring profile</label> 
+                                    <div class="flex inline-flex ml-2 align-middle">
+                                        <svg data-popover-target="popover-profile" class="flex self-center w-6 h-6 text-primary-100" clip-rule="evenodd" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <button type="button" (click)="showDrawerProfile();$event.stopPropagation();" class="text-white w-fit h-full bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
+                                    <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+                                    </svg>                                                                              
+                                </button>
+                            </div>
+        
+                        } @else {
+                            <div class="flex justify-between">
+                                <div class="flex">
+                                    <label class="font-bold text-lg dark:text-white">Configured price profile</label> 
+                                    <div class="flex inline-flex ml-2 align-middle">
+                                        <svg data-popover-target="popover-profile" class="flex self-center w-6 h-6 text-primary-100" clip-rule="evenodd" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <button type="button" (click)="showDrawerProfile();$event.stopPropagation();" class="text-white w-fit h-full bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
+                                    <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.779 17.779 4.36 19.918 6.5 13.5m4.279 4.279 8.364-8.643a3.027 3.027 0 0 0-2.14-5.165 3.03 3.03 0 0 0-2.14.886L6.5 13.5m4.279 4.279L6.499 13.5m2.14 2.14 6.213-6.504M12.75 7.04 17 11.28"/>
+                                        </svg>                                                                                                                              
+                                </button>
+                            </div>
+                        }
+    
+                        <div data-popover id="popover-profile" role="tooltip" class="absolute z-20 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                            <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                                <h3 class="font-semibold text-gray-900 dark:text-white">Price profile</h3>
+                            </div>
+                            <div class="px-3 py-2 inline-block">
+                                <p class="inline-block">You can select and configure your product's characteristics in order to define a price profile.
+                                </p>
+                            </div>
+                            <div data-popper-arrow></div>
+                        </div> 
+                    }
+                }
+
+                <div class="flex justify-between">
+                    <div class="flex">
+                        <label class="font-bold text-lg dark:text-white">Price components</label>
+                        <div class="flex inline-flex ml-2 align-middle">
+                            <svg data-popover-target="popover-price-components" class="flex self-center w-6 h-6 text-primary-100" clip-rule="evenodd" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <button type="button" (click)="showDrawerPriceComp();$event.stopPropagation();" class="text-white w-fit h-full bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center">
+                        <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+                        </svg>                                                                      
+                    </button> 
+                </div>
+
+                @if (createdPriceComponents.length === 0){
+                    <div class="flex justify-center w-full m-4">
+                        <div class="flex w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">
+                        <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                        </svg>
+                        <span class="sr-only">Info</span>
+                        <div>
+                            No price components included.
+                        </div>
+                        </div>
+                    </div>
+                } @else {
+                    <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white m-4">                        
+                        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">
+                                        Name
+                                    </th>
+                                    <th scope="col" class="hidden lg:table-cell px-6 py-3">
+                                        Description
+                                    </th>
+                                    <th scope="col" class="px-6 py-3">
+                                        Price
+                                    </th>
+                                    <th scope="col" class="px-6 py-3">
+                                        Price Type
+                                    </th>
+                                    <th scope="col" class="px-6 py-3">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (price of createdPriceComponents; track price;) {
+                                    <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                                        <td [ngClass]="{
+                                            'break-all': hasLongWord(price.name, 20),
+                                            'break-words': !hasLongWord(price.name, 20)
+                                            }" class="px-6 py-4 text-wrap break-words">
+                                            {{price.name}}
+                                        </td>
+                                        <td [ngClass]="{
+                                            'break-all': hasLongWord(price.description, 20),
+                                            'break-words': !hasLongWord(price.description, 20)
+                                            }" class="hidden lg:table-cell px-6 py-4 text-wrap break-words">
+                                            {{price.description}} 
+                                        </td>
+                                        <td class="px-6 py-4 text-wrap break-all">
+                                            {{price.price.value}} {{price.price.unit}}
+                                        </td>
+                                        <td [ngClass]="{
+                                            'break-all': hasLongWord(price.priceType, 20),
+                                            'break-words': !hasLongWord(price.priceType, 20)
+                                            }" class="px-6 py-4 text-wrap break-words">
+                                            {{price.priceType}} 
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <button (click)="deletePriceComp(price)" class="font-bold text-white bg-red-500 mr-2 rounded-3xl">
+                                                <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+                                                </svg>                                  
+                                            </button>
+                                            <!--<button (click)="editPriceComp(price);$event.stopPropagation();" class="font-bold text-white bg-primary-100 rounded-3xl">
+                                                <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path fill-rule="evenodd" d="M14 4.182A4.136 4.136 0 0 1 16.9 3c1.087 0 2.13.425 2.899 1.182A4.01 4.01 0 0 1 21 7.037c0 1.068-.43 2.092-1.194 2.849L18.5 11.214l-5.8-5.71 1.287-1.31.012-.012Zm-2.717 2.763L6.186 12.13l2.175 2.141 5.063-5.218-2.141-2.108Zm-6.25 6.886-1.98 5.849a.992.992 0 0 0 .245 1.026 1.03 1.03 0 0 0 1.043.242L10.282 19l-5.25-5.168Zm6.954 4.01 5.096-5.186-2.218-2.183-5.063 5.218 2.185 2.15Z" clip-rule="evenodd"/>
+                                                </svg>                                 
+                                            </button>-->
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div> 
+    
+                }
+
+                <div data-popover id="popover-price-components" role="tooltip" class="absolute z-20 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                    <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                        <h3 class="font-semibold text-gray-900 dark:text-white">Price components</h3>
+                    </div>
+                    <div class="px-3 py-2 inline-block">
+                        <p class="inline-block">Configure different price components for your price plan.
+                        </p>
+                    </div>
+                    <div data-popper-arrow></div>
+                </div>
+
+            }
+            
+    </form>
+    
+    <div class="flex w-full justify-items-center justify-center ml-4">
+        <button type="button" [disabled]="this.priceForm.invalid" [ngClass]="this.priceForm.invalid ? 'opacity-50' : 'hover:bg-primary-50'" (click)="savePrice()" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+            {{ 'CREATE_OFFER._save_price' | translate }}
+            <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M11 16h2m6.707-9.293-2.414-2.414A1 1 0 0 0 16.586 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.414a1 1 0 0 0-.293-.707ZM16 20v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v6h8ZM9 4h6v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4Z"/>
+            </svg>                         
+        </button> 
+    </div>

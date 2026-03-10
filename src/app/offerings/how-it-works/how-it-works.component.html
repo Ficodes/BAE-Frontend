@@ -1,0 +1,50 @@
+<div class="mx-auto max-w-screen-xl">
+    <h2 class="pb-2 text-4xl font-extrabold text-primary-100 mb-4 text-center dark:text-primary-50">{{ 'HOWITWORKS._title' | translate }}</h2>
+    <p class="mb-8 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-secondary-50 text-center">{{ 'HOWITWORKS._subtitle' | translate }}</p>
+
+    <div class="grid lg:grid-cols-2 gap-8 sm:grid-cols-1">
+        <!-- CUSTOMERS -->
+        <div class="border border-primary-100 dark:border-primary-50 rounded-lg p-4 md:p-8">
+            <div class="grid grid-cols-80/20">
+                <div class="flex justify-start grid grid-rows-20/80">
+                    <h2 class="text-gray-900 dark:text-white text-xl font-normal mb-2">{{ 'HOWITWORKS.CUSTOMERS._title' | translate }}</h2>
+                    <h2 class="text-gray-900 dark:text-white text-3xl font-extrabold">{{ 'HOWITWORKS.CUSTOMERS._subtitle' | translate }}</h2>
+                </div>
+                <div class="flex justify-end">
+                    <fa-icon [icon]="faCloudArrowDown" class="fa-2xl text-primary-100 dark:text-primary-50 align-middle"></fa-icon>
+                </div>
+            </div>
+            
+            <div class="text-lg font-normal text-gray-500 dark:text-gray-400">
+                <p>
+                    {{ 'HOWITWORKS.CUSTOMERS._description' | translate }}
+                </p>
+            </div>
+
+        </div>
+        <!-- PROVIDERS -->
+        <div class="border border-primary-100 dark:border-primary-50 rounded-lg p-4 md:p-8">
+            <div class="grid grid-cols-80/20">
+                <div class="flex justify-start grid grid-rows-20/80">
+                    <h2 class="text-gray-900 dark:text-white text-xl font-normal mb-2">{{ 'HOWITWORKS.PROVIDERS._title' | translate }}</h2>
+                    <h2 class="text-gray-900 dark:text-white text-3xl font-extrabold">{{ 'HOWITWORKS.PROVIDERS._subtitle' | translate }}</h2>
+                </div>
+                <div class="flex justify-end">
+                    <fa-icon [icon]="faCircleNodes" class="fa-2xl text-primary-100 dark:text-primary-50 align-middle"></fa-icon>
+                </div>
+            </div>
+            
+            <div class="text-lg font-normal text-gray-500 dark:text-gray-400">
+                <p>
+                    {{ 'HOWITWORKS.PROVIDERS._description_start' | translate }}
+                    <a href="https://knowledgebase.dome-marketplace.org/shelves/company-onboarding-process" target="_blank"
+                    class="font-medium mr-1 text-blue-600 dark:text-blue-500 hover:underline">
+                        {{ 'HOWITWORKS.PROVIDERS._link' | translate }}
+                    </a>
+                    {{ 'HOWITWORKS.PROVIDERS._description_end' | translate }}
+                </p>
+            </div>
+        </div>
+    </div>
+  </div>
+  

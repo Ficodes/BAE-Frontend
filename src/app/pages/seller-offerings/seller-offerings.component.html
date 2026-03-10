@@ -1,0 +1,120 @@
+<div class="container mx-auto pt-2 pb-8">
+  <h1 class="hidden lg:block mb-8 mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 lg:text-4xl lg:text-5xl dark:text-white w-full"><span class="underline underline-offset-3 decoration-8 decoration-primary-100 dark:decoration-primary-100">{{ 'OFFERINGS._my_offerings' | translate }}</span></h1>
+  <div class="flex flex-cols mr-2 ml-2 lg:hidden">
+    <h1 class="mb-8 mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 lg:text-4xl lg:text-5xl dark:text-white w-full"><span class="underline underline-offset-3 decoration-8 decoration-primary-100 dark:decoration-primary-100">{{ 'OFFERINGS._my_offerings' | translate }}</span></h1>
+    <div class="flex align-middle content-center items-center">
+      <button id="dropdown-nav" data-dropdown-toggle="dropdown-nav-content" 
+      class="text-black dark:text-white h-fit w-fit justify-between shadow bg-white dark:bg-secondary-200 hover:bg-gray-100 dark:hover:bg-secondary-300 focus:ring-4 focus:outline-none focus:ring-primary-100 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center shadow-lg"
+      type="button">
+      <svg class="w-4 h-4 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
+      </svg>
+      {{ 'OFFERINGS._offerings' | translate }}
+    </button>
+    </div>
+
+  </div>
+      
+  <!-- Dropdown menu -->
+  <div id="dropdown-nav-content" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+      <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdown-nav">
+        <li>
+          <a (click)="goToCatalogs()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'OFFERINGS._catalogs' | translate }}</a>
+        </li>
+        <li>
+          <a (click)="goToOffers()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'OFFERINGS._offers' | translate }}</a>
+        </li>
+        <li>
+          <a (click)="goToProdSpec()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'OFFERINGS._prod_spec' | translate }}</a>
+        </li>
+        <li>
+          <a (click)="goToServiceSpec()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'OFFERINGS._serv_spec' | translate }}</a>
+        </li>
+        <li>
+          <a (click)="goToResourceSpec()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'OFFERINGS._res_spec' | translate }}</a>
+        </li>
+      </ul>
+  </div>
+      
+    <div class="w-full grid lg:grid-cols-20/80">
+
+        <div class="hidden lg:block">
+          <div class="w-48 h-fit text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white mb-8">
+            <button data-cy="catalogSection" (click)="goToCatalogs()" id="catalogs-button" aria-current="true" class="block w-full px-4 py-2 text-white bg-primary-100 border-b border-gray-200 rounded-t-lg cursor-pointer dark:border-gray-600 hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+              {{ 'OFFERINGS._catalogs' | translate }}
+            </button>
+            <button data-cy="offerSection" (click)="goToOffers()" id="offers-button" class="block w-full px-4 py-2 border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+              {{ 'OFFERINGS._offers' | translate }}
+            </button>
+          </div>
+
+          <div class="w-48 h-fit text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            <button data-cy="prdSpecSection" (click)="goToProdSpec()" id="prod-spec-button" class="block w-full rounded-t-lg px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+              {{ 'OFFERINGS._prod_spec' | translate }}
+            </button>
+            <button data-cy="servSpecSection" (click)="goToServiceSpec()" id="sev-spec-button" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+                {{ 'OFFERINGS._serv_spec' | translate }}
+            </button>
+            <button data-cy="resSpecSection" (click)="goToResourceSpec()" id="res-spec-button" class="block w-full px-4 py-2 border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+                {{ 'OFFERINGS._res_spec' | translate }}
+            </button>
+          </div>
+        </div>
+
+        @if(show_catalogs){
+          <seller-catalogs></seller-catalogs>
+        }
+        @if(show_prod_specs){
+          <seller-product-spec></seller-product-spec>
+        }
+        @if(show_service_specs){
+          <seller-service-spec></seller-service-spec>
+        }
+        @if(show_resource_specs){
+          <seller-resource-spec></seller-resource-spec>
+        }
+        @if(show_offers){
+          <seller-offer></seller-offer>
+        }
+        @if(show_create_prod_spec){
+          <create-product-spec></create-product-spec>
+        }
+        @if(show_create_serv_spec){
+          <create-service-spec></create-service-spec>
+        }
+        @if(show_create_res_spec){
+          <create-resource-spec></create-resource-spec>
+        }
+        @if(show_create_offer){
+          <create-offer></create-offer>
+        }
+        @if(show_create_catalog){
+          <create-catalog></create-catalog>
+        }
+        @if(show_update_prod_spec){
+          <update-product-spec [prod]="prod_to_update"></update-product-spec>
+        }
+        @if(show_update_serv_spec){
+          <update-service-spec [serv]="serv_to_update"></update-service-spec>
+        }
+        @if(show_update_res_spec){
+          <update-resource-spec [res]="res_to_update"></update-resource-spec>
+        }
+        @if(show_update_offer){
+          <update-offer [offer]="offer_to_update"></update-offer>
+        }
+        @if(show_update_catalog){
+          <update-catalog [cat]="catalog_to_update"></update-catalog>
+        }
+        @if(show_create_custom_offer){
+          <app-custom-offer [offer]="offer_to_update" [partyId]="custom_offer_partyId"></app-custom-offer>
+        }
+    </div>
+</div>
+@if(feedback){
+  <feedback-modal 
+  rateMessage="Based on your recent experience, how likely are you to recommend DOME to a colleague or a partner?"
+  writeMessage="How can we improve DOME?"
+  type="recommendation"
+  class="fixed inset-0 flex items-center justify-center z-40"></feedback-modal>
+}

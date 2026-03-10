@@ -1,0 +1,110 @@
+<div class="container mx-auto pt-2 pb-8">
+    <!-- Breadcrumb -->
+    <div class="pb-4">
+        <nav class="flex px-5 py-3 text-gray-700 border border-secondary-50 rounded-lg bg-secondary-50 dark:bg-secondary-100 dark:border-gray-800" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
+            <li class="inline-flex items-center">
+                <button (click)="back()" class="inline-flex items-center text-sm font-medium text-gray-500 dark:text-white hover:text-primary-100 dark:hover:text-primary-50">
+                <svg class="w-3 h-3 mr-2 text-gray-400 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 10">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 1 1 5l4 4m6-8L7 5l4 4"/>
+                </svg>
+                {{ 'PRODUCT_DETAILS._back' | translate }}
+                </button>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                <svg class="rtl:rotate-180  w-3 h-3 mx-1 text-gray-400 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+                </svg>
+                <span class="ms-1 text-sm font-medium text-gray-500 dark:text-white md:ms-2 ">{{ 'ORGANIZATION._details' | translate }}</span>
+                </div>
+            </li>
+            </ol>
+        </nav>
+    </div>
+    <!-- End Breadcrumb -->
+    <!-- START HEADER CARD -->
+    <div class="w-full lg:h-fit mb-4 bg-secondary-50 rounded-lg dark:bg-secondary-100 dark:border-gray-800 border-secondary-50 border lg:grid lg:grid-cols-60/40">
+        <div class="flex lg:hidden overflow-hidden justify-center items-center bg-white rounded-t-lg w-full">
+            <img class="rounded-t-lg object-contain dark:text-white" src="{{logo}}" alt="Organization profile image" />
+        </div>
+        <div class="grid grid-rows-auto p-4 md:p-8 h-fit">
+            <div class="mt-2 h-fit">
+                <!--<a href="#">-->
+                <h5 [ngClass]="{
+                    'break-all': hasLongWord(orgInfo?.tradingName, 20),
+                    'break-words': !hasLongWord(orgInfo?.tradingName, 20)
+                    }" class="text-3xl lg:text-4xl font-semibold tracking-tight text-primary-100 dark:text-white line-clamp-3 text-wrap break-words">{{orgInfo?.tradingName}}</h5>
+                <!--</a>-->
+            </div>
+            <div class="pt-2 line-clamp-5 h-fit">
+                <a href="{{website}}" target="_blank" [ngClass]="{
+                    'break-all': hasLongWord(website, 20),
+                    'break-words': !hasLongWord(website, 20)
+                    }" class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline line-clamp-2 text-wrap break-words">{{website}}</a>
+            </div>
+        </div>
+        <div class="hidden lg:block overflow-hidden rounded-r-lg">
+            <div class="hidden lg:flex relative justify-center items-center w-full h-full">
+                <!-- Imagen de fondo difuminada -->
+                <div class="object-contain overflow-hidden absolute inset-0 bg-cover bg-center opacity-75" style="background-image: url({{logo}});filter: blur(20px);"></div>
+                <!-- Imagen superior -->
+                <img class="object-contain max-h-[300px] z-10 p-8 dark:text-white" src="{{logo}}" alt="Organization profile image">
+            </div>
+        </div>
+    </div>
+    <div class="w-full h-full bg-secondary-50 rounded-lg p-4 dark:bg-secondary-100 dark:border-gray-800 border-secondary-50 border-b">
+        <div id="desc-container" class="w-full bg-secondary-50/95 dark:bg-secondary-100/95 rounded-lg p-4 lg:p-12">
+            <h2 class="text-2xl lg:text-4xl font-extrabold text-primary-100 dark:text-primary-50 text-center pb-4">{{ 'ORGANIZATION._details' | translate }}</h2>
+            <markdown [ngClass]="{
+                'break-all': hasLongWord(description, 20),
+                'break-words': !hasLongWord(description, 20)
+                }" class="dark:text-gray-200 text-wrap break-words" [data]="description"></markdown>
+            <h2 class="text-2xl lg:text-4xl font-extrabold text-primary-100 dark:text-primary-50 text-center pb-4">{{ 'PROFILE._contact_info' | translate }}</h2>
+            <div class="m-4 relative overflow-x-auto shadow-md sm:rounded-lg bg-gray-200 dark:bg-secondary-300">
+                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200 border dark:border-gray-700 border-gray-300">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white border-b border-gray-300 dark:border-gray-700">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">
+                                {{ 'PROFILE._medium_type' | translate }}
+                            </th>
+                            <th scope="col" class="px-6 py-3 hidden md:table-cell">
+                                {{ 'PROFILE._info' | translate }}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for(medium of orgInfo?.contactMedium; track medium) {
+                            <tr class="border-b border-gray-300 dark:border-gray-700">
+                                <td class="px-6 py-4">
+                                    {{medium.mediumType}}
+                                </td>
+                                <td class="px-6 py-4 hidden md:table-cell">
+                                    @if(medium.mediumType == 'Email'){
+                                        <a class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline" href= "mailto: {{medium.characteristic.emailAddress}}"> {{medium.characteristic.emailAddress}} </a>
+                                        
+                                    } @else if(medium.mediumType == 'PostalAddress') {
+                                        {{medium.characteristic.street1}}, {{medium.characteristic.postCode}} ({{medium.characteristic.city}}) {{medium.characteristic.stateOrProvince}}
+                                    } @else {
+                                        {{medium.characteristic.phoneNumber}}
+                                    }                                
+                                </td>
+                            </tr>
+                        } @empty {
+                            <div class="flex justify-center w-full m-4">
+                                <div class="flex w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">
+                                  <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                                  </svg>
+                                  <div>
+                                      {{ 'PROFILE._no_mediums' | translate }}
+                                  </div>
+                                </div>
+                            </div>                          
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
