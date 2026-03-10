@@ -5,12 +5,12 @@ const domeHeaderLinks: NavLink[] = [
 
   {
     label: 'HEADER._forCustomers',
-    url: 'https://onboarding.dome-marketplace.eu/?page=buyer'
+    url: 'https://onboard.sbx.evidenceledger.eu/register-customer'
 
   },
   {
     label: 'HEADER._forProviders',
-    url: 'https://onboarding.dome-marketplace.eu/?page=seller'
+    url: 'https://onboard.sbx.evidenceledger.eu/register-provider'
   },
   {
     id: 'dropdown-marketplace',

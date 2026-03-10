@@ -39,8 +39,8 @@ export interface IDashboardStats {
   imports: [TranslateModule, ReactiveFormsModule, FeaturedComponent, NgClass, DashboardWhatsDome, DashboardHeroComponent, DashboardStatsComponent, DashboardServicesComponent, DashboardCustomersComponent, DashboardProvidersComponent, DashboardEcosystemComponent],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  customersLink = 'https://onboarding.dome-marketplace.eu/?page=buyer';
-  providersLink = "https://onboarding.dome-marketplace.eu/?page=seller";
+  customersLink = 'https://onboard.sbx.evidenceledger.eu/register-customer';
+  providersLink = "https://onboard.sbx.evidenceledger.eu/register-provider";
 
 
   private unSub = new Subject<void>();
