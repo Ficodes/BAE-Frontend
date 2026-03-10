@@ -16,7 +16,6 @@ import { LoginServiceService } from 'src/app/services/login-service.service';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { StatsServiceService } from 'src/app/services/stats-service.service';
 import { ThemeService } from 'src/app/services/theme.service';
-import { EuropeTrademarkComponent } from 'src/app/shared/europe-trademark/europe-trademark.component';
 import { ThemeConfig } from 'src/app/themes';
 import { environment } from 'src/environments/environment';
 
@@ -30,7 +29,7 @@ interface Stats {
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
   standalone: true,
-  imports: [TranslateModule, SlicePipe, EuropeTrademarkComponent, ReactiveFormsModule, FeaturedComponent, NgClass],
+  imports: [TranslateModule, SlicePipe, SlicePipe, ReactiveFormsModule, FeaturedComponent, NgClass],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   private unSub = new Subject<void>();
