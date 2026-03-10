@@ -1,248 +1,290 @@
-<div class="relative">
-  <nav class="text-white border-gray-200 h-[75px] bg-primary-100 dark:bg-secondary-100 dark:border-gray-700">
-    <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-      <a (click)="goTo('/dashboard')" class="flex items-center align-items-middle cursor-pointer">
-        <img *ngIf="currentTheme?.assets?.logoUrl"
-             [src]="currentTheme?.assets?.logoUrl"
-             class="h-10 lg:h-12" alt="{{ currentTheme?.displayName }} Logo"
-        />
+<nav class="sticky top-0 z-50 w-full text-white transition-all duration-300" [class.header-top]="!scrolled"
+  [class.header-glass]="scrolled">
+  <div class="mx-auto max-w-[1180px] px-6 sm:px-10">
+    <div class="flex h-[88px] items-center justify-between">
+      <a (click)="goTo('/dashboard')" class="flex items-center gap-4 cursor-pointer select-none">
+        @if (currentTheme?.assets?.logoUrl) {
+        <img [src]="currentTheme?.assets?.logoUrl" class="h-[51.7px] w-auto"
+          alt="{{ currentTheme?.displayName }} Logo" />
+        }
       </a>
 
-      <div class="hidden w-full lg:block lg:w-auto bg-primary-100 dark:bg-secondary-100 rounded-lg align-items-middle">
-        <ul class="flex flex-col font-medium p-4 lg:p-0 rounded-lg lg:text-white lg:flex-row lg:space-x-8 lg:mt-0 lg:border-0">
+      <div class="hidden lg:flex items-center justify-center flex-1">
+        <ul class="flex items-center gap-12">
+          @for (link of headerLinks; track link.id) {
+          <li class="relative">
+            @if (link.children?.length) {
+            <button type="button"
+              class="inline-flex items-center gap-2 text-[15px] font-semibold text-white/90 hover:text-white transition-colors"
+              [id]="link.id" [attr.data-dropdown-toggle]="link.id + 'Menu'">
+              {{ link.label | translate }}
+              <span class="inline-block opacity-80">▾</span>
+            </button>
 
-          <!-- Bucle dinámico para generar la navegación -->
-          <ng-container *ngFor="let link of headerLinks">
-            <li>
-              <!-- CASO 1: El enlace es un MENÚ DESPLEGABLE (tiene 'children') -->
-              <ng-container *ngIf="link.children && link.children.length > 0; else simpleLink">
-                <button [id]="link.id" [attr.data-cy]="link.id === 'verifyDropdown' ? 'publishOffering' : link.id === 'searchDropdown' ? 'browse' : null" [attr.data-dropdown-toggle]="link.id + 'Menu'" class="block cursor-pointer py-2 pl-3 pr-4 text-white rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-primary-100 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">
-                  {{ link.label | translate }}
-                </button>
-                <!-- Menú desplegable -->
-                <div [id]="link.id + 'Menu'" class="z-10 hidden bg-secondary-50 divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                  <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" [attr.aria-labelledby]="link.id!">
-                    <li *ngFor="let childLink of link.children">
-                      <!-- Enlace externo -->
-                      <a *ngIf="!childLink.isRouterLink" [attr.data-cy]="childLink.label === 'HEADER._guidelines' ? 'guidelinesRegister' : childLink.label === 'HEADER._registration' ? 'registrationForm' : childLink.label === 'HEADER._guideline_publish' ? 'guidelinePublish' : null" [href]="childLink.url" target="_blank" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
-                        {{ childLink.label | translate }}
-                      </a>
-                      <!-- Enlace interno (botón que navega) -->
-                      <button *ngIf="childLink.isRouterLink" [attr.data-cy]="childLink.label === 'HEADER._services' ? 'browseServices' : childLink.label === 'HEADER._catalogs' ? 'browseCatalogs' : null" (click)="goTo(childLink.url!)" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
-                        {{ childLink.label | translate }}
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-              </ng-container>
-
-              <!-- CASO 2: El enlace es SIMPLE (no tiene 'children') -->
-              <ng-template #simpleLink>
-                <!-- Enlace externo -->
-                <a *ngIf="!link.isRouterLink" [href]="link.url" target="_blank" class="block py-2 pl-3 pr-4 text-white rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-primary-100 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent">
-                  {{ link.label | translate }}
-                </a>
-                <!-- Enlace interno -->
-                <a *ngIf="link.isRouterLink" [attr.data-cy]="link.url == '/about' ? 'about' : null" [routerLink]="link.url" class="block py-2 pl-3 pr-4 text-white rounded hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-primary-100 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent">
-                  {{ link.label | translate }}
-                </a>
-              </ng-template>
-            </li>
-          </ng-container>
+            <div class="dropdown-glass hidden absolute left-0 top-[calc(100%+14px)] z-50 w-[260px] rounded-[14px] p-2"
+              [id]="link.id + 'Menu'">
+              <ul class="flex flex-col" [attr.aria-labelledby]="link.id">
+                @for (childLink of link.children; track childLink.label) {
+                <li>
+                  @if (!childLink.isRouterLink) {
+                  <a class="dropdown-item" target="_blank" [href]="childLink.url">
+                    {{ childLink.label | translate }}
+                  </a>
+                  } @else {
+                  <button type="button" class="dropdown-item text-left" (click)="goTo(childLink.url!, link.url!)">
+                    {{ childLink.label | translate }}
+                  </button>
+                  }
+                </li>
+                }
+              </ul>
+            </div>
+            } @else {
+            @if (!link.isRouterLink) {
+            <a class="text-[15px] font-semibold text-white/90 hover:text-white transition-colors" target="_blank"
+              [href]="link.url">
+              {{ link.label | translate }}
+            </a>
+            } @else {
+            <a class="text-[15px] font-semibold text-white/90 hover:text-white transition-colors"
+              [routerLink]="link.url" [attr.data-cy]="link.url === '/about' ? 'about' : null">
+              {{ link.label | translate }}
+            </a>
+            }
+            }
+          </li>
+          }
         </ul>
       </div>
 
-      <div class="flex flex-cols">
-        <div class="flex flex-cols">
-          <a data-cy="knowledge" id="knowledgeBase" href="{{ knowledge }}" target="_blank" class="w-10 mr-2 hidden lg:block text-white dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-xl p-2.5">
-  
-            <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.529 9.988a2.502 2.502 0 1 1 5 .191A2.441 2.441 0 0 1 12 12.582V14m-.01 3.008H12M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
-            </svg>
-
-          </a>
-          <button data-cy="darkMode" id="theme-toggle" (click)="toggleDarkMode()" type="button" class="w-10 mr-2 text-white dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-xl p-2.5">
-            <svg data-cy="sunSVG" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" #theme_toggle_dark_icon><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-            <svg data-cy="moonSVG" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" #theme_toggle_light_icon><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-          </button>
-          @if(is_logged){
-            <button data-cy="shoppingCart" id="shoppingCart" (click)="toggleCartDrawer();$event.stopPropagation();"  class=" mr-2 text-white dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-xl p-2.5">
-              <fa-layers [fixedWidth]="true">
-                <fa-icon [icon]="faCartShopping"></fa-icon>
-                @if (cartCount > 0) {
-                  <fa-layers-counter [content]="cartCount.toString()" style="background:Tomato"></fa-layers-counter>
-                }
-              </fa-layers>
-            </button>
-          }
-        </div>
-        <!-- LANG SWITCHER
-        <div class="flex mr-2 min-w-10 min-h-10">
-          <div class="flex inline-flex items-center align-middle cursor-pointer" data-dropdown-toggle="flagDropdown" data-dropdown-placement="bottom-end">
-              <img class="w-10 h-10" src="assets/flags/{{ defaultLang }}.svg" alt="{{ defaultLang }}"/>
-          </div>
-
-          <div id="flagDropdown" class="hidden z-50 bg-secondary-50 divide-y divide-primary-100/50 rounded-lg shadow w-fit dark:bg-gray-700 dark:divide-gray-600 " >
-            @for(country of langs; track country){
-              <ul class="p-2 cursor-pointer text-sm text-gray-700 dark:text-gray-200">
-                <li (click)="switchLanguage(country)" class="flex flex-row">
-                  <img class="w-8 h-8" src="assets/flags/{{ country }}.svg" alt="{{ country }}"/>
-                  <span class="ml-2 inline-flex align-middle">{{ country }}</span>
-                </li>
-              </ul>
-            }
-          </div>
-        </div>-->
+      <div class="flex items-center gap-3">
         @if (is_logged) {
-        <!-- User menu section -->
-        <div data-cy="loggedAcc" id="loggedAcc" data-dropdown-toggle="userDropdown" data-dropdown-placement="bottom-end" class="relative mr-2 inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 cursor-pointer">
-          <span class="font-medium text-gray-600 dark:text-gray-300">{{usercharacters}}</span>
+        <button data-cy="shoppingCart" id="shoppingCart" type="button" aria-label="Shopping cart"
+          class="inline-flex h-[44px] w-[44px] items-center justify-center rounded-[10px] text-white/90 hover:text-white hover:bg-white/10 transition"
+          (click)="toggleCartDrawer(); $event.stopPropagation()">
+          <fa-layers [fixedWidth]="true">
+            <fa-icon [icon]="faCartShopping"></fa-icon>
+            @if (cartCount > 0) {
+            <fa-layers-counter [content]="cartCount.toString()" style="background:Tomato"></fa-layers-counter>
+            }
+          </fa-layers>
+        </button>
+        }
+
+        @if (is_logged) {
+        <div data-cy="loggedAcc" id="loggedAcc" data-dropdown-toggle="userDropdown" data-dropdown-placement="bottom-end"
+          class="ml-1 inline-flex h-[44px] w-[44px] items-center justify-center rounded-full bg-white/15 text-white cursor-pointer select-none"
+          aria-label="User menu">
+          <span class="text-[14px] font-bold tracking-wide">{{ usercharacters }}</span>
         </div>
         } @else {
-          <button data-cy="login" id="login" (click)="onLoginClick()" type="button" class="w-full mr-2 text-white dark:text-gray-400 hover:bg-secondary-50 hover:text-primary-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5">
-            Login
-          </button>
+        <button data-cy="contactUs" id="contactUs" type="button"
+          class="ml-1 inline-flex h-[44px] items-center justify-center rounded-[10px] bg-[transparent] border-color-c px-6 text-[15px] font-semibold text-white hover:bg-[#2F6FD6]/90 transition"
+          (click)="goTo('/contact-us')">
+          {{ 'HEADER.contactUs' | translate}}
+        </button>
+
+        <button data-cy="login" id="login" type="button"
+          class="ml-1 inline-flex h-[44px] items-center justify-center rounded-[10px] bg-[#2D58A7] px-6 text-[15px] font-semibold text-white hover:bg-[#2F6FD6]/90 transition"
+          (click)="onLoginClick()">
+          Login
+        </button>
         }
-        <button #navbarbutton type="button" (click)="toggleNavBar();$event.stopPropagation();"
-        class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
+
+        <button #navbarbutton type="button"
+          class="inline-flex lg:hidden h-[44px] w-[44px] items-center justify-center rounded-[10px] text-white/90 hover:text-white hover:bg-white/10 transition"
+          aria-controls="navbar-dropdown" aria-expanded="false" (click)="toggleNavBar(); $event.stopPropagation()">
           <span class="sr-only">{{ 'HEADER._open_menu' | translate }}</span>
-          <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
+          <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M1 1h15M1 7h15M1 13h15" />
           </svg>
         </button>
       </div>
+    </div>
 
-      @if(isNavBarOpen){
-      <div class="w-full bg-primary-100 dark:bg-secondary-100 rounded-lg" id="navbar-dropdown">
-        <ul class="flex flex-col font-medium p-4 lg:p-0 rounded-lg lg:text-white lg:flex-row lg:space-x-8 lg:mt-0 lg:border-0">
+    @if (isNavBarOpen) {
+    <div id="navbar-dropdown" class="lg:hidden pb-6">
+      <div class="mt-3 rounded-[14px] bg-white/10 backdrop-blur-md ring-1 ring-white/10 overflow-hidden">
+        <ul class="flex flex-col p-2">
           <li>
-            <a (click)="goTo('/search')" class="block cursor-pointer py-2 pl-3 pr-4 text-white rounded hover:bg-secondary-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-primary-100 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">{{ 'HEADER._services' | translate }}</a>
+            <a (click)="goTo('/search')" class="mobile-nav-item">
+              {{ 'HEADER._services' | translate }}
+            </a>
+          </li>
+
+          <li>
+            <a (click)="goTo('/catalogues')" class="mobile-nav-item">
+              {{ 'HEADER._catalogs' | translate }}
+            </a>
+          </li>
+
+          @if (providerThemeName === 'DOME') {
+          <li>
+            <a (click)="goTo('/about')" class="mobile-nav-item">{{ 'HEADER._about' | translate }}</a>
           </li>
           <li>
-            <a (click)="goTo('/catalogues')" class="block cursor-pointer py-2 pl-3 pr-4 text-white rounded hover:bg-secondary-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-primary-100 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">{{ 'HEADER._catalogs' | translate }}</a>
+            <a (click)="goTo('/contact-us')" class="mobile-nav-item">{{ 'FOOTER._contact' | translate }}</a>
           </li>
-          @if(providerThemeName=='DOME'){
-            <li>
-              <a (click)="goTo('/about')" class="block cursor-pointer py-2 pl-3 pr-4 text-white rounded hover:bg-secondary-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-primary-100 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">{{ 'HEADER._about' | translate }}</a>
-            </li>
-            <li>
-              <a (click)="goTo('/contact-us')" class="block cursor-pointer py-2 pl-3 pr-4 text-white rounded hover:bg-secondary-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-primary-100 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">{{ 'FOOTER._contact' | translate }}</a>
-            </li>
-            <li>
-              <a (click)="goTo('/blog')" class="block cursor-pointer py-2 pl-3 pr-4 text-white rounded hover:bg-secondary-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-primary-100 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">{{ 'HEADER._blog' | translate }}</a>
-            </li>
-            <li>
-              <a href="{{domePublish}}" target="_blank" class="block py-2 pl-3 pr-4 text-white rounded hover:bg-secondary-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-primary-100 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent">{{ 'HEADER._publish' | translate }}</a>
-            </li>
-            <li>
-              <a href="{{ knowledge }}" target="_blank" class="block py-2 pl-3 pr-4 text-white rounded hover:bg-secondary-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-primary-100 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent">{{ 'HEADER._info' | translate }}</a>
-            </li>
+          <li>
+            <a (click)="goTo('/blog')" class="mobile-nav-item">{{ 'HEADER._blog' | translate }}</a>
+          </li>
+          <li>
+            <a [href]="domePublish" target="_blank" class="mobile-nav-item">{{ 'HEADER._publish' | translate }}</a>
+          </li>
+          <li>
+            <a [href]="knowledge" target="_blank" class="mobile-nav-item">{{ 'HEADER._info' | translate }}</a>
+          </li>
           }
-           
-          <!--<li>
-            <button data-dropdown-toggle="support-dropdown" data-dropdown-placement="bottom-end" class="block py-2 pl-3 pr-4 text-white rounded hover:bg-secondary-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-secondary-50 lg:p-0 dark:text-white lg:dark:hover:text-primary-100 dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent" aria-current="page">{{ 'HEADER._support' | translate }}</button>
-          </li>-->
         </ul>
       </div>
-      }
-      @if (is_logged) {
-        <!-- User menu Dropdown menu -->
-        <div id="userDropdown" class="z-50 hidden bg-secondary-50 divide-y divide-primary-100/50 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600 ">
-          <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
-            <div>{{username}}</div>
-            <div class="font-medium truncate line-clamp-2">{{email}}</div>
-          </div>
-          <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="avatarButton">
-            <li>
-              <button id="userProfile" (click)="goTo('/profile')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faAddressCard" class="mr-2"></fa-icon>{{ 'HEADER._profile' | translate }}</button>
-            </li>
-            @if(roles.includes(sellerRole)){
-              <li>
-                <button id="myOfferings" (click)="goTo('/my-offerings')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faHandHoldingBox" class="mr-2"></fa-icon>{{ 'HEADER._offerings' | translate }}</button>
-              </li>
-            }
-            @if((isAdmin && loggedAsOrg == false) || roles.includes(certifierRole)) {
-              <li>
-                <button id="administration" (click)="goTo('/admin')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faCogs" class="mr-2"></fa-icon>{{ 'HEADER._admin' | translate }}</button>
-              </li>
-            }
-            <li>
-              <button id="productOrders" (click)="goTo('/product-orders')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faReceipt" class="mr-2"></fa-icon>{{ 'HEADER._orders' | translate }}</button>
-            </li>
-            @if(quotesEnabled){
-              <li>
-                <button id="quotelist" (click)="goTo('/quote-list')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faReceipt" class="mr-2"></fa-icon>Quotes</button>
-              </li>
-            }
-            @if(tenderEnabled){
-              <li>
-                <button id="tenderlist" (click)="goTo('/tenders')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faReceipt" class="mr-2"></fa-icon>Tenders</button>
-              </li>
-            }
-            <li>
-              <a
-                id="analytics"
-                [href]="analytics"
-                target="_blank"
-                class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 
-                       dark:hover:bg-gray-600 dark:hover:text-white rounded text-left"
-                role="button"
-              >
-                <fa-icon [icon]="faPieChart" class="mr-2"></fa-icon>
-                Analytics
-              </a>
-            </li>            
-            @if(roles.includes(sellerRole)){
-              <li>
-                <button data-cy="usageSpecs" id="usageSpecs" (click)="goTo('/usage-spec')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faRuler" class="mr-2"></fa-icon>Usage Spec</button>
-              </li>
-            }
-            <li>
-              <button id="myInventory" (click)="goTo('/product-inventory')"class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faBoxesStacked" class="mr-2"></fa-icon>{{ 'HEADER._inventory' | translate }}</button>
-            </li>
-            <li>
-              <button id="myShoppingCart" (click)="goTo('/checkout')" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faCartShopping" class="mr-2"></fa-icon>{{ 'HEADER._cart' | translate }}</button>
-            </li>
-          </ul>
-          <div class="py-1">
-            @if(orgs.length > 0 && isAdmin) {
-              <button data-cy="changeSession" data-dropdown-toggle="orgs-dropdown" data-dropdown-placement="left-start" class="flex w-full justify-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"><fa-icon [icon]="faAnglesLeft" class="mr-2"></fa-icon>{{ 'HEADER._change_session' | translate }}</button>
-            }
-            <button id="signOut" (click)="logout();" class="flex w-full justify-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"><fa-icon [icon]="faArrowRightFromBracket" class="mr-2"></fa-icon>{{ 'HEADER._sign_out' | translate }}</button>
-          </div>
-        </div>
-      }
     </div>
-    <div id="support-dropdown" class="z-50 hidden bg-secondary-50 divide-y divide-primary-100/50 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600 ">
-      <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="avatarButton">
+    }
+
+    @if (is_logged) {
+    <div id="userDropdown"
+      class="dropdown-glass hidden absolute right-6 sm:right-10 top-[88px] z-50 w-[260px] rounded-[14px] p-2">
+      <div class="px-3 py-2">
+        <div class="text-[13px] font-semibold text-slate-900">{{ username }}</div>
+        <div class="mt-0.5 text-[12px] text-slate-600 break-all">{{ email }}</div>
+      </div>
+
+      <div class="h-px my-2 bg-slate-900/10"></div>
+
+      <ul class="flex flex-col">
         <li>
-          <a href="{{ knowledge }}" target="_blank" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faBrain" class="mr-2"></fa-icon>{{ 'HEADER._knowledge' | translate }}</a>
+          <button id="userProfile" type="button" class="dropdown-item" (click)="goTo('/profile')">
+            <fa-icon [icon]="faAddressCard" class="mr-2"></fa-icon>{{ 'HEADER._profile' | translate }}
+          </button>
         </li>
+
+        @if (roles.includes(sellerRole)) {
         <li>
-          <a href="{{ ticketing }}" target="_blank" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faClipboardCheck" class="mr-2"></fa-icon>{{ 'HEADER._ticketing' | translate }}</a>
+          <button id="myOfferings" type="button" class="dropdown-item" (click)="goTo('/my-offerings')">
+            <fa-icon [icon]="faHandHoldingBox" class="mr-2"></fa-icon>{{ 'HEADER._offerings' | translate }}
+          </button>
+        </li>
+        }
+
+        @if ((isAdmin && loggedAsOrg === false) || roles.includes(certifierRole)) {
+        <li>
+          <button id="administration" type="button" class="dropdown-item" (click)="goTo('/admin')">
+            <fa-icon [icon]="faCogs" class="mr-2"></fa-icon>{{ 'HEADER._admin' | translate }}
+          </button>
+        </li>
+        }
+
+        <li>
+          <button id="productOrders" type="button" class="dropdown-item" (click)="goTo('/product-orders')">
+            <fa-icon [icon]="faReceipt" class="mr-2"></fa-icon>{{ 'HEADER._orders' | translate }}
+          </button>
+        </li>
+
+        @if (quotesEnabled) {
+        <li>
+          <button id="quotelist" type="button" class="dropdown-item" (click)="goTo('/quote-list')">
+            <fa-icon [icon]="faReceipt" class="mr-2"></fa-icon>Quotes
+          </button>
+        </li>
+        }
+
+        @if (tenderEnabled) {
+        <li>
+          <button id="tenderlist" type="button" class="dropdown-item" (click)="goTo('/tenders')">
+            <fa-icon [icon]="faReceipt" class="mr-2"></fa-icon>Tenders
+          </button>
+        </li>
+        }
+
+        <li>
+          <a id="analytics" class="dropdown-item" target="_blank" [href]="analytics">
+            <fa-icon [icon]="faPieChart" class="mr-2"></fa-icon>Analytics
+          </a>
+        </li>
+
+        @if (roles.includes(sellerRole)) {
+        <li>
+          <button id="usageSpecs" type="button" class="dropdown-item" (click)="goTo('/usage-spec')">
+            <fa-icon [icon]="faRuler" class="mr-2"></fa-icon>Usage Spec
+          </button>
+        </li>
+        }
+
+        <li>
+          <button id="myInventory" type="button" class="dropdown-item" (click)="goTo('/product-inventory')">
+            <fa-icon [icon]="faBoxesStacked" class="mr-2"></fa-icon>{{ 'HEADER._inventory' | translate }}
+          </button>
+        </li>
+
+        <li>
+          <button id="myShoppingCart" type="button" class="dropdown-item" (click)="goTo('/checkout')">
+            <fa-icon [icon]="faCartShopping" class="mr-2"></fa-icon>{{ 'HEADER._cart' | translate }}
+          </button>
         </li>
       </ul>
+
+      <div class="h-px my-2 bg-slate-900/10"></div>
+
+      <div class="flex flex-col">
+        @if (orgs.length > 0 && isAdmin) {
+        <button data-cy="changeSession" type="button" class="dropdown-item" data-dropdown-toggle="orgs-dropdown"
+          data-dropdown-placement="left-start">
+          <fa-icon [icon]="faAnglesLeft" class="mr-2"></fa-icon>{{ 'HEADER._change_session' | translate }}
+        </button>
+        }
+
+        <button id="signOut" type="button" class="dropdown-item" (click)="logout()">
+          <fa-icon [icon]="faArrowRightFromBracket" class="mr-2"></fa-icon>{{ 'HEADER._sign_out' | translate }}
+        </button>
+      </div>
     </div>
-    <div data-cy="orgsDropdown" id="orgs-dropdown" class="z-50 hidden bg-secondary-50 divide-y divide-primary-100/50 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600 ">
-      <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="avatarButton">
-          @for (org of orgs; track org.id; let idx = $index) {
-            @if(org.id != loginInfo.logged_as || loginInfo.logged_as == loginInfo.id){
-              <li>
-                <button (click)="changeSession(idx,false);hideDropdown('orgs-dropdown');" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faUsers" class="mr-2"></fa-icon>{{ org.name }}</button>
-              </li>
-            }
-          }
-          @if(loggedAsOrg){
-            <li>
-              <button (click)="changeSession(0,true);hideDropdown('orgs-dropdown');" class="flex w-full justify-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><fa-icon [icon]="faUser" class="mr-2"></fa-icon>{{ loginInfo.user }}</button>
-            </li>
-          }
-      </ul>
-    </div>
-  </nav>
-  @if (showCart) {
-    <div class="flex h-screen w-full backdrop-blur-sm absolute top-0 right-0 z-40">
-      <app-cart-drawer (click)="$event.stopPropagation();" class="absolute top-0 right-0 z-40 h-screen p-4 overflow-y-auto transition-transform bg-white w-1/3 dark:bg-gray-800"></app-cart-drawer>
-    </div>
-  }
+    }
+  </div>
+
+  <div id="support-dropdown"
+    class="dropdown-glass hidden absolute right-6 sm:right-10 top-[88px] z-50 w-[260px] rounded-[14px] p-2">
+    <ul class="flex flex-col">
+      <li>
+        <a class="dropdown-item" target="_blank" [href]="knowledge">
+          <fa-icon [icon]="faBrain" class="mr-2"></fa-icon>{{ 'HEADER._knowledge' | translate }}
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item" target="_blank" [href]="ticketing">
+          <fa-icon [icon]="faClipboardCheck" class="mr-2"></fa-icon>{{ 'HEADER._ticketing' | translate }}
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div data-cy="orgsDropdown" id="orgs-dropdown"
+    class="dropdown-glass hidden absolute right-[280px] top-[88px] z-50 w-[260px] rounded-[14px] p-2">
+    <ul class="flex flex-col">
+      @for (org of orgs; track org.id; let idx = $index) {
+      @if (org.id != loginInfo?.logged_as || loginInfo?.logged_as == loginInfo?.id) {
+      <li>
+        <button type="button" class="dropdown-item" (click)="changeSession(idx,false); hideDropdown('orgs-dropdown')">
+          <fa-icon [icon]="faUsers" class="mr-2"></fa-icon>{{ org.name }}
+        </button>
+      </li>
+      }
+      }
+
+      @if (loggedAsOrg) {
+      <li>
+        <button type="button" class="dropdown-item" (click)="changeSession(0,true); hideDropdown('orgs-dropdown')">
+          <fa-icon [icon]="faUser" class="mr-2"></fa-icon>{{ loginInfo?.user }}
+        </button>
+      </li>
+      }
+    </ul>
+  </div>
+</nav>
+
+@if (showCart) {
+<div class="fixed inset-0 z-40 backdrop-blur-sm bg-black/10">
+  <app-cart-drawer
+    class="absolute right-0 top-0 z-40 h-screen w-full max-w-[520px] p-4 overflow-y-auto bg-white dark:bg-gray-800"
+    (click)="$event.stopPropagation()" />
 </div>
+}

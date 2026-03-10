@@ -1,309 +1,23 @@
 @if (providerThemeName === 'DOME') {
 <div class="page">
 
-  <section class="hero">
-    <div class="hero-inner">
-      <div>
-        <div class="hero-eyebrow">{{ "dashboard.hero.eyebrow" | translate }}</div>
+  <app-dashboard-hero [providersLink]="providersLink" [customersLink]="customersLink"></app-dashboard-hero>
 
-        <h1 class="hero-title">
-          {{ "dashboard.hero.title" | translate }}
-        </h1>
+  @if(stats) {
+  <app-dashboard-stats [stats]="stats"></app-dashboard-stats>
+  }
 
-        <p class="hero-subtitle">
-          {{ "dashboard.hero.subtitle" | translate }}
-        </p>
+  <app-dashboard-whatsdome></app-dashboard-whatsdome>
 
-        <div class="hero-ctas">
-          <a class="btn btn-primary" target="_blank" href=" https://onboarding.dome-marketplace.eu/?page=buyer">
-            {{ "dashboard.hero.ctaCustomers" | translate }}
-          </a>
+  @if(productOfferings) {
+  <app-dashboard-services [productOfferings]="productOfferings"></app-dashboard-services>
+  }
 
-           <a class="btn btn-outline btn-outline-inverse" target="_blank" href="https://onboarding.dome-marketplace.eu/?page=seller">
-            {{ "dashboard.hero.ctaProviders" | translate }}
-          </a> -->
-        </div>
+  <app-dashboard-customers [customerLink]="customersLink"></app-dashboard-customers>
 
-        <p class="dd-mt-1r">
-          <a class="dd-hero-browse-link" href="/search">
-            {{ "dashboard.hero.browseAll" | translate }}
-          </a>
-        </p>
-      </div>
+  <app-dashboard-providers [providersLink]="providersLink"></app-dashboard-providers>
 
-      <aside class="hero-aside">
-        <h3>{{ "dashboard.hero.asideTitle" | translate }}</h3>
-
-        <ul class="mt-3 disc">
-          <li>
-            <strong>{{stats?.services}}</strong>
-            {{ "dashboard.hero.stats.servicesLabel" | translate }}
-          </li>
-          <li>
-            <strong>{{stats?.providers}}</strong>
-            {{ "dashboard.hero.stats.providersLabel" | translate }}
-          </li>
-          <li>
-            {{ "dashboard.hero.stats.euHosted" | translate }}
-          </li>
-          <li>
-            {{ "dashboard.hero.stats.transparency" | translate }}
-          </li>
-        </ul>
-
-        <a class="btn btn-outline btn-outline-inverse" href="/about">
-          {{ "dashboard.hero.moreAbout" | translate }}
-        </a>
-      </aside>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-inner">
-      <div class="section-header">
-        <h2>{{ "dashboard.whatIs.title" | translate }}</h2>
-        <p>{{ "dashboard.whatIs.subtitle" | translate }}</p>
-      </div>
-
-      <div class="card-grid-4">
-        <div class="card">
-          <h3>{{ "dashboard.whatIs.cards.c1.title" | translate }}</h3>
-          <p>{{ "dashboard.whatIs.cards.c1.text" | translate }}</p>
-        </div>
-        <div class="card">
-          <h3>{{ "dashboard.whatIs.cards.c2.title" | translate }}</h3>
-          <p>{{ "dashboard.whatIs.cards.c2.text" | translate }}</p>
-        </div>
-        <div class="card">
-          <h3>{{ "dashboard.whatIs.cards.c3.title" | translate }}</h3>
-          <p>{{ "dashboard.whatIs.cards.c3.text" | translate }}</p>
-        </div>
-        <div class="card">
-          <h3>{{ "dashboard.whatIs.cards.c4.title" | translate }}</h3>
-          <p>{{ "dashboard.whatIs.cards.c4.text" | translate }}</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="dd-bg-white">
-    <div class="section-inner">
-      <div class="section-header">
-        <h2>{{ "dashboard.marketplace.title" | translate }}</h2>
-        <p>{{ "dashboard.marketplace.subtitle" | translate }}</p>
-      </div>
-
-      <form role="search">
-        <input type="search" class="dd-marketplace-search"
-          [placeholder]="'dashboard.marketplace.searchPlaceholder' | translate" (keypress)="goToSearch()"
-          (click)="goToSearch()" />
-      </form>
-
-      <div class="service-grid">
-        @for (productOffering of productOfferings; track productOffering.id) {
-        <div class="service-card">
-          <h3>{{ productOffering.name }}</h3>
-          <div class="description-wrapper">
-            <p class="text-truncate" [innerHTML]="productOffering.description"></p>
-          </div>
-
-          <div class="tag-list">
-            @for (
-            category of productOffering.category
-            | slice: 0 : MAX_CATEGORIES_PER_PRODUCT_OFFERING;
-            track category.id
-            ) {
-            <span class="tag">{{ category.name }}</span>
-            }
-          </div>
-
-          <a class="btn btn-outline dd-mt-auto" [href]="'/search;keywords=' + productOffering.name">
-            {{ "dashboard.marketplace.viewService" | translate }}
-          </a>
-        </div>
-        }
-      </div>
-
-      <p class="dd-mt-15r">
-        <a class="dd-marketplace-catalog-link" href="/search">
-          {{ "dashboard.marketplace.browseFullCatalog" | translate }}
-        </a>
-      </p>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-inner">
-      <div class="split-container">
-        <div>
-          <h2 class="column-title">{{ "dashboard.customers.title" | translate }}</h2>
-
-          <div class="why-use">
-            <h3 class="sub-section-title">
-              {{ "dashboard.customers.whyTitle" | translate }}
-            </h3>
-
-            <div class="card-grid-2">
-              <div class="card">
-                <h3>{{ "dashboard.customers.cards.c1.title" | translate }}</h3>
-                <p>{{ "dashboard.customers.cards.c1.text" | translate }}</p>
-              </div>
-
-              <div class="card">
-                <h3>{{ "dashboard.customers.cards.c2.title" | translate }}</h3>
-                <p>{{ "dashboard.customers.cards.c2.text" | translate }}</p>
-              </div>
-
-              <div class="card">
-                <h3>{{ "dashboard.customers.cards.c3.title" | translate }}</h3>
-                <p>{{ "dashboard.customers.cards.c3.text" | translate }}</p>
-              </div>
-
-              <div class="card">
-                <h3>{{ "dashboard.customers.cards.c4.title" | translate }}</h3>
-                <p>{{ "dashboard.customers.cards.c4.text" | translate }}</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="how-works">
-            <h3 class="sub-section-title">
-              {{ "dashboard.customers.howTitle" | translate }}
-            </h3>
-            <ul class="disc ml-4">
-              <li>
-                <strong>{{ "dashboard.customers.how.s1Title" | translate }}</strong><br />
-                {{ "dashboard.customers.how.s1Text" | translate }}
-              </li>
-              <li>
-                <strong>{{ "dashboard.customers.how.s2Title" | translate }}</strong><br />
-                {{ "dashboard.customers.how.s2Text" | translate }}
-              </li>
-              <li>
-                <strong>{{ "dashboard.customers.how.s3Title" | translate }}</strong><br />
-                {{ "dashboard.customers.how.s3Text" | translate }}
-              </li>
-            </ul>
-             <p class="dd-mt-auto">
-              <a class="btn btn-outline" target="_blank" href="https://onboarding.dome-marketplace.eu/?page=buyer">
-                {{ "dashboard.customers.startJourney" | translate }}
-              </a>
-            </p>
-          </div>
-        </div>
-
-        <div>
-          <h2 class="column-title">{{ "dashboard.providers.title" | translate }}</h2>
-
-          <div class="why-use">
-            <h3 class="sub-section-title">
-              {{ "dashboard.providers.whyTitle" | translate }}
-            </h3>
-
-            <div class="card-grid-2">
-              <div class="card">
-                <h3>{{ "dashboard.providers.cards.c1.title" | translate }}</h3>
-                <p>{{ "dashboard.providers.cards.c1.text" | translate }}</p>
-              </div>
-
-              <div class="card">
-                <h3>{{ "dashboard.providers.cards.c2.title" | translate }}</h3>
-                <p>{{ "dashboard.providers.cards.c2.text" | translate }}</p>
-              </div>
-
-              <div class="card">
-                <h3>{{ "dashboard.providers.cards.c3.title" | translate }}</h3>
-                <p>{{ "dashboard.providers.cards.c3.text" | translate }}</p>
-              </div>
-
-              <div class="card">
-                <h3>{{ "dashboard.providers.cards.c4.title" | translate }}</h3>
-                <p>{{ "dashboard.providers.cards.c4.text" | translate }}</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="how-works">
-            <h3 class="sub-section-title">
-              {{ "dashboard.providers.howTitle" | translate }}
-            </h3>
-
-            <ul class="disc ml-4">
-              <li>
-                <strong>{{ "dashboard.providers.how.s1Title" | translate }}</strong><br />
-                {{ "dashboard.providers.how.s1Text" | translate }}
-              </li>
-              <li>
-                <strong>{{ "dashboard.providers.how.s2Title" | translate }}</strong><br />
-                {{ "dashboard.providers.how.s2Text" | translate }}
-              </li>
-              <li>
-                <strong>{{ "dashboard.providers.how.s3Title" | translate }}</strong><br />
-                {{ "dashboard.providers.how.s3Text" | translate }}
-              </li>
-            </ul>
-
-             <p class="dd-mt-auto">
-              <a class="btn btn-outline" target="_blank" href=" https://onboarding.dome-marketplace.eu/?page=seller">
-                {{ "dashboard.providers.startJourney" | translate }}
-              </a>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="dd-bg-white">
-    <div class="section-inner">
-      <div class="section-header">
-        <h2>{{ "dashboard.roadmap.title" | translate }}</h2>
-        <p>{{ "dashboard.roadmap.subtitle" | translate }}</p>
-      </div>
-
-      <div class="roadmap">
-        <div class="roadmap-item">
-          <div class="roadmap-label">
-            {{ "dashboard.roadmap.now.label" | translate }}
-          </div>
-          <h3>{{ "dashboard.roadmap.now.title" | translate }}</h3>
-          <p>{{ "dashboard.roadmap.now.text" | translate }}</p>
-        </div>
-
-        <div class="roadmap-item">
-          <div class="roadmap-label">
-            {{ "dashboard.roadmap.next.label" | translate }}
-          </div>
-          <h3>{{ "dashboard.roadmap.next.title" | translate }}</h3>
-          <p>{{ "dashboard.roadmap.next.text" | translate }}</p>
-        </div>
-
-        <div class="roadmap-item">
-          <div class="roadmap-label">
-            {{ "dashboard.roadmap.beyond.label" | translate }}
-          </div>
-          <h3>{{ "dashboard.roadmap.beyond.title" | translate }}</h3>
-          <p>{{ "dashboard.roadmap.beyond.text" | translate }}</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="final-cta">
-    <h2>{{ "dashboard.finalCta.title" | translate }}</h2>
-
-    <div class="final-cta-actions">
-      <a class="btn btn-primary" target="_blank" href="https://onboarding.dome-marketplace.eu/?page=buyer">
-        {{ "dashboard.finalCta.discover" | translate }}
-      </a>
-
-      <a class="btn btn-outline-inverse" target="_blank" href="https://onboarding.dome-marketplace.eu/?page=seller">
-        {{ "dashboard.finalCta.publish" | translate }}
-      </a> -->
-    </div>
-  </section>
-
-  <app-europe-trademark></app-europe-trademark>
+  <app-dashboard-ecosystem [providersLink]="providersLink" [customersLink]="customersLink"></app-dashboard-ecosystem>
 </div>
 } @else {
 <div class="dark:bg-tertiary-50">
@@ -314,7 +28,8 @@
         <div data-cy="mainText">
           <h1 class="mb-4 text-left text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl text-secondary-50">{{
             'DASHBOARD._header' | translate }}</h1>
-          <p class="text-left mb-8 text-lg font-normal lg:text-xl text-secondary-50">{{ 'DASHBOARD._subheader' | translate }}</p>
+          <p class="text-left mb-8 text-lg font-normal lg:text-xl text-secondary-50">{{ 'DASHBOARD._subheader' |
+            translate }}</p>
           <button data-cy="browseServicesDashboard" id="browseServices" (click)="goToSearch()"
             class="inline-flex justify-left items-center border border-1 border-white py-3 px-5 text-base font-medium text-center text-white rounded-lg hover:bg-primary-50 ">
             <svg class=" mr-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -328,32 +43,34 @@
         <div class="mt-4 md:mt-0 bg-secondary-300 bg-opacity-50 rounded-lg w-full md:w-1/4 h-[300px]">
           <div class="w-full p-8 rounded-lg shadow-lg h-[300px] flex flex-col justify-between">
             <div class="flex flex-col">
-              <p data-cy="vServices" class="mb-2 text-left text-lg font-normal lg:text-xl text-secondary-50 h-fit">{{services.length}}
+              <p data-cy="vServices" class="mb-2 text-left text-lg font-normal lg:text-xl text-secondary-50 h-fit">
+                {{services.length}}
                 verified services</p>
               @for (serv of services; track serv; let pos = $index) {
-                @if (currentIndexServ === pos) {
-                <a data-cy="nameServices" [style.display]="'-webkit-box'" [style.webkitBoxOrient]="'vertical'"
-                  [style.webkitLineClamp]="'2'" [class.break-all]="hasLongWord(serv, 20)"
-                  [class.break-words]="!hasLongWord(serv, 20)"
-                  class="text-md text-wrap line-clamp-2 mb-2 font-medium block items-center px-2.5 py-0.5 rounded-md text-primary-100 bg-secondary-50 w-fit animate-in">
-                  {{ serv }}
-                </a>
-                }
+              @if (currentIndexServ === pos) {
+              <a data-cy="nameServices" [style.display]="'-webkit-box'" [style.webkitBoxOrient]="'vertical'"
+                [style.webkitLineClamp]="'2'" [class.break-all]="hasLongWord(serv, 20)"
+                [class.break-words]="!hasLongWord(serv, 20)"
+                class="text-md text-wrap line-clamp-2 mb-2 font-medium block items-center px-2.5 py-0.5 rounded-md text-primary-100 bg-secondary-50 w-fit animate-in">
+                {{ serv }}
+              </a>
+              }
               }
             </div>
 
             <div class="flex flex-col">
-              <p data-cy="rPublishers" class="mb-2 text-left text-lg font-normal lg:text-xl text-secondary-50">{{publishers.length}}
+              <p data-cy="rPublishers" class="mb-2 text-left text-lg font-normal lg:text-xl text-secondary-50">
+                {{publishers.length}}
                 registered providers</p>
               @for (pub of publishers; track pub; let pos = $index) {
-                @if (currentIndexPub === pos) {
-                <a data-cy="nameOrgs" [style.display]="'-webkit-box'" [style.webkitBoxOrient]="'vertical'"
-                  [style.webkitLineClamp]="'2'" [class.break-all]="hasLongWord(pub, 20)"
-                  [class.break-words]="!hasLongWord(pub, 20)"
-                  class="text-md text-wrap line-clamp-2 font-medium block items-center px-2.5 py-0.5 rounded-md text-primary-100 bg-secondary-50 w-fit animate-in">
-                  {{ pub }}
-                </a>
-                }
+              @if (currentIndexPub === pos) {
+              <a data-cy="nameOrgs" [style.display]="'-webkit-box'" [style.webkitBoxOrient]="'vertical'"
+                [style.webkitLineClamp]="'2'" [class.break-all]="hasLongWord(pub, 20)"
+                [class.break-words]="!hasLongWord(pub, 20)"
+                class="text-md text-wrap line-clamp-2 font-medium block items-center px-2.5 py-0.5 rounded-md text-primary-100 bg-secondary-50 w-fit animate-in">
+                {{ pub }}
+              </a>
+              }
               }
             </div>
 
@@ -372,21 +89,27 @@
     </div>
   </section>
   @if(searchEnabled){
-    <section class="content mx-auto pt-8 pb-5 px-4 mx-auto max-w-screen-xl lg:pb-5 lg:pt-16 w-full flex items-center" [ngClass]="isFilterPanelShown ? 'sticky top-[118px] backdrop-blur-sm z-20': 'sticky top-[72px] backdrop-blur-sm z-20'">
-      <form class="mx-5 w-full">
-        <div class="flex">
-          <div class="relative w-full">
-            <input type="search" id="dashboardSearchBar" [formControl]="searchField" (keydown.enter)="filterSearch($event)" class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-secondary-500 dark:border-s-gray-700  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500" placeholder="{{ 'DASHBOARD._search_ph' | translate }}" required>
-            <button type="submit" id="dashboardSearchButton" (click)="filterSearch($event)" class="absolute top-0 end-0 p-2.5 text-sm font-medium h-full text-white bg-primary-100 rounded-e-lg border border-secondary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:border-secondary-400">
-              <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-              </svg>
-              <span class="sr-only">{{ 'DASHBOARD._search' | translate }}</span>
-            </button>
-          </div>
+  <section class="content mx-auto pt-8 pb-5 px-4 mx-auto max-w-screen-xl lg:pb-5 lg:pt-16 w-full flex items-center"
+    [ngClass]="isFilterPanelShown ? 'sticky top-[118px] backdrop-blur-sm z-20': 'sticky top-[72px] backdrop-blur-sm z-20'">
+    <form class="mx-5 w-full">
+      <div class="flex">
+        <div class="relative w-full">
+          <input type="search" id="dashboardSearchBar" [formControl]="searchField"
+            (keydown.enter)="filterSearch($event)"
+            class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-secondary-500 dark:border-s-gray-700  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+            placeholder="{{ 'DASHBOARD._search_ph' | translate }}" required>
+          <button type="submit" id="dashboardSearchButton" (click)="filterSearch($event)"
+            class="absolute top-0 end-0 p-2.5 text-sm font-medium h-full text-white bg-primary-100 rounded-e-lg border border-secondary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:border-secondary-400">
+            <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+            </svg>
+            <span class="sr-only">{{ 'DASHBOARD._search' | translate }}</span>
+          </button>
         </div>
-      </form>
-    </section>
+      </div>
+    </form>
+  </section>
   }
   <bae-off-featured data-cy="offFeatured"></bae-off-featured>
 </div>

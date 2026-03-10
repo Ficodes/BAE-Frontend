@@ -1,131 +1,122 @@
-import {AfterViewInit, Component, ElementRef, OnInit, ViewChild, ChangeDetectorRef, HostListener, DoCheck, OnDestroy} from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, DoCheck, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
-  faCartShopping,
-  faHandHoldingBox,
   faAddressCard,
+  faAnglesLeft,
   faArrowRightFromBracket,
   faBoxesStacked,
-  faClipboardCheck,
   faBrain,
-  faAnglesLeft,
-  faUser,
-  faUsers,
+  faCartShopping,
+  faClipboardCheck,
   faCogs,
+  faHandHoldingBox,
+  faPieChart,
   faReceipt,
   faRuler,
-  faPieChart
-} from "@fortawesome/sharp-solid-svg-icons";
-import {LocalStorageService} from "../../services/local-storage.service";
-import { ApiServiceService } from 'src/app/services/product-service.service';
-import { LoginServiceService } from 'src/app/services/login-service.service';
-import { Router } from '@angular/router';
-import {EventMessageService} from "../../services/event-message.service";
-import { environment } from 'src/environments/environment';
-import { LoginInfo } from 'src/app/models/interfaces';
-import { Subscription, timer} from 'rxjs';
-import * as moment from 'moment';
-import { ActivatedRoute } from '@angular/router';
-import { initFlowbite, Dropdown } from 'flowbite';
-import { QrVerifierService } from 'src/app/services/qr-verifier.service';
-import * as uuid from 'uuid';
+  faUser,
+  faUsers
+} from '@fortawesome/sharp-solid-svg-icons';
 import { TranslateService } from '@ngx-translate/core';
-import {ShoppingCartServiceService} from "../../services/shopping-cart-service.service";
-import {ThemeService} from "../../services/theme.service";
-import {NavLink, ThemeAuthUrlsConfig, ThemeConfig, ThemeLinkConfig} from "../../themes";
-import {Subject} from "rxjs";
+import { initFlowbite } from 'flowbite';
+import * as moment from 'moment';
+import { Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
+import * as uuid from 'uuid';
+
+import { LoginInfo } from 'src/app/models/interfaces';
+import { LoginServiceService } from 'src/app/services/login-service.service';
+import { ApiServiceService } from 'src/app/services/product-service.service';
+import { QrVerifierService } from 'src/app/services/qr-verifier.service';
+import { EventMessageService } from '../../services/event-message.service';
+import { LocalStorageService } from '../../services/local-storage.service';
+import { ShoppingCartServiceService } from '../../services/shopping-cart-service.service';
+import { ThemeService } from '../../services/theme.service';
+import { NavLink, ThemeAuthUrlsConfig, ThemeConfig } from '../../themes';
 
 @Component({
   selector: 'bae-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
 })
-export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestroy{
+export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestroy {
+  @ViewChild('navbarbutton') navbarbutton?: ElementRef<HTMLElement>;
 
-  @ViewChild('theme_toggle_dark_icon') themeToggleDarkIcon: ElementRef;
-  @ViewChild('theme_toggle_light_icon') themeToggleLightIcon: ElementRef;
-  @ViewChild('navbarbutton') navbarbutton: ElementRef;
+  constructor(
+    private translate: TranslateService,
+    private localStorage: LocalStorageService,
+    private api: ApiServiceService,
+    private loginService: LoginServiceService,
+    private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute,
+    private eventMessage: EventMessageService,
+    private router: Router,
+    private qrVerifier: QrVerifierService,
+    private themeService: ThemeService,
+    private sc: ShoppingCartServiceService
+  ) { }
 
-  constructor(themeToggleDarkIcon: ElementRef,
-              themeToggleLightIcon: ElementRef,
-              private translate: TranslateService,
-              private localStorage: LocalStorageService,
-              private api: ApiServiceService,
-              private loginService: LoginServiceService,
-              private cdr: ChangeDetectorRef,
-              private route: ActivatedRoute,
-              private eventMessage: EventMessageService,
-              private router: Router,
-              private qrVerifier: QrVerifierService,
-              private themeService: ThemeService,
-              private sc: ShoppingCartServiceService) {
-
-    this.themeToggleDarkIcon = themeToggleDarkIcon;
-    this.themeToggleLightIcon = themeToggleLightIcon;
-  }
   providerThemeName = environment.providerThemeName;
   quotesEnabled = environment.QUOTES_ENABLED;
   tenderEnabled = environment.TENDER_ENABLED;
-  qrWindow: Window | null = null;
-  statePair:string
-  catalogs: any[] | undefined  = [];
+
+  knowledge = environment.KNOWLEDGE_BASE_URL;
+  knowledge_onboarding = environment.KB_ONBOARDING_GUIDELINES_URL;
+  knowledge_guidelines = environment.KB_GUIDELNES_URL;
+  registration = environment.REGISTRATION_FORM_URL;
+  ticketing = environment.TICKETING_SYSTEM_URL;
+  analytics = environment.analytics;
+  domeAbout = environment.DOME_ABOUT_LINK;
+  domePublish = environment.DOME_PUBLISH_LINK;
+
+  sellerRole = environment.SELLER_ROLE;
+  orgAdminRole = environment.ORG_ADMIN_ROLE;
+  certifierRole = environment.CERTIFIER_ROLE;
+
   langs: any[] = [];
-  defaultLang:any;
-  showCart:boolean=false;
-  is_logged:boolean=false;
-  showLogin:boolean=false;
-  loggedAsOrg:boolean=false;
-  isAdmin:boolean;
-  loginInfo:any;
-  orgs:any[]=[];
-  username:string='';
-  email:string='';
-  usercharacters:string='';
-  loginSubscription: Subscription = new Subscription();
-  roles:string[]=[];
-  knowledge: string = environment.KNOWLEDGE_BASE_URL
-  knowledge_onboarding: string = environment.KB_ONBOARDING_GUIDELINES_URL
-  knowledge_guidelines: string = environment.KB_GUIDELNES_URL
-  registration: string = environment.REGISTRATION_FORM_URL
-  ticketing: string = environment.TICKETING_SYSTEM_URL
-  analytics: string = environment.analytics
-  domeAbout: string = environment.DOME_ABOUT_LINK
-  domePublish: string = environment.DOME_PUBLISH_LINK
-  public static BASE_URL: String = environment.BASE_URL;
-  isNavBarOpen:boolean = false;
-  flagDropdownOpen:boolean=false;
-  cartCount: number = 0;
+  defaultLang: any;
+
+  showCart = false;
+  is_logged = false;
+  showLogin = false;
+
+  loggedAsOrg = false;
+  isAdmin = false;
+
+  loginInfo: any;
+  orgs: any[] = [];
+
+  username = '';
+  email = '';
+  usercharacters = '';
+
+  roles: string[] = [];
+
+  isNavBarOpen = false;
+  flagDropdownOpen = false;
+
+  cartCount = 0;
+  scrolled = false;
+
+  qrWindow: Window | null = null;
+  statePair = '';
 
   currentTheme: ThemeConfig | null = null;
+  headerLinks: NavLink[] = [];
+  themeAuthUrls?: ThemeAuthUrlsConfig;
+
   private themeSubscription: Subscription = new Subscription();
-  public headerLinks: NavLink[] = [];
-  public themeAuthUrls: ThemeAuthUrlsConfig | undefined;
   private destroy$ = new Subject<void>();
 
-  sellerRole: string = environment.SELLER_ROLE;
-  orgAdminRole: string = environment.ORG_ADMIN_ROLE;
-  certifierRole: string = environment.CERTIFIER_ROLE;
-
-  ngOnDestroy(): void {
-      this.qrWindow?.close()
-      this.qrWindow=null
-      if (this.themeSubscription) {
-        this.themeSubscription.unsubscribe();
-      }
-      this.destroy$.next();
-      this.destroy$.complete();
+  @HostListener('window:scroll')
+  onScroll() {
+    this.scrolled = window.scrollY > 10;
   }
 
-  ngDoCheck(): void {
-    if(this.qrWindow!=null && this.qrWindow.closed){
-      this.qrVerifier.stopChecking(this.qrWindow)
-      this.qrWindow=null
-    }
-  }
   @HostListener('document:click')
   onClick() {
-    if(this.showCart==true){
-      this.showCart=false;
+    if (this.showCart) {
+      this.showCart = false;
       this.cdr.detectChanges();
     }
     if (this.isNavBarOpen) {
@@ -133,312 +124,157 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
     }
   }
 
-  @HostListener('window:resize', ['$event'])
-  onResize(event: Event) {
+  @HostListener('window:resize')
+  onResize() {
     if (this.isNavBarOpen) {
-      this.navbarbutton.nativeElement.blur();
+      this.navbarbutton?.nativeElement.blur();
       this.isNavBarOpen = false;
     }
   }
 
-  async ngOnInit(){
-    this.langs = this.translate.getLangs();
-
-    let currLang = this.localStorage.getItem('current_language')
-    if(!currLang || currLang == null) {
-      this.defaultLang = this.translate.getDefaultLang();
-    } else {
-      this.defaultLang = currLang;
+  ngDoCheck(): void {
+    if (this.qrWindow && this.qrWindow.closed) {
+      this.qrVerifier.stopChecking(this.qrWindow);
+      this.qrWindow = null;
     }
+  }
+
+  ngOnInit(): void {
+    this.langs = this.translate.getLangs();
+    const currLang = this.localStorage.getItem('current_language');
+    this.defaultLang = currLang ?? this.translate.getDefaultLang();
 
     this.themeSubscription = this.themeService.currentTheme$.subscribe(theme => {
       this.currentTheme = theme;
-      this.headerLinks = theme?.links?.headerLinks || [];
       this.themeAuthUrls = theme?.authUrls;
 
-      if(theme?.links?.headerLinks){
-            // Recorremos recursivamente todos los links y actualizamos URL si tiene environmentName
-        const updateLinks = (links: NavLink[]) => {
-          return links.map(link => {
-            const updatedLink = { ...link };
+      const links = theme?.links?.headerLinks || [];
+      this.headerLinks = this.resolveLinksEnv(links);
 
-            // Actualizamos url dinámicamente
-            if (link.environmentName) {
-              updatedLink.url = (environment as any)[link.environmentName] || '';
-            }
-
-            // Si tiene children, hacemos la misma operación recursivamente
-            if (link.children?.length) {
-              updatedLink.children = updateLinks(link.children);
-            }
-
-            return updatedLink;
-          });
-        };
-
-        this.headerLinks = updateLinks(theme.links.headerLinks);
-
+      if (theme?.links) {
         theme.links.headerLinks = this.headerLinks;
       }
     });
 
-
-    let aux = this.localStorage.getObject('login_items') as LoginInfo;
-    if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
-      this.loginInfo=aux;
-      this.is_logged=true;
-      this.orgs=aux.organizations;
-      for(let i=0; i < aux.roles.length; i++){
-        if(aux.roles[i].name == environment.ADMIN_ROLE){
-          this.isAdmin=true;
-          this.cdr.detectChanges();
-        }
-      }
-      if(aux.logged_as == aux.id){
-        this.username=aux.user;
-        this.usercharacters=(aux.user.slice(0, 2)).toUpperCase();
-        this.email=aux.email;
-        for(let i=0;i<aux.roles.length;i++){
-          this.roles.push(aux.roles[i].name)
-        }
-      } else {
-        let loggedOrg = this.orgs.find((element: { id: any; }) => element.id == aux.logged_as)
-        this.loggedAsOrg=true;
-        this.username=loggedOrg.name;
-        this.usercharacters=(loggedOrg.name.slice(0, 2)).toUpperCase();
-        this.email=loggedOrg.description;
-        for(let i=0;i<loggedOrg.roles.length;i++){
-          this.roles.push(loggedOrg.roles[i].name)
-        }
-      }
-      this.cdr.detectChanges();
-    }
+    this.hydrateLoginFromStorage();
 
     this.sc.cart$.pipe(takeUntil(this.destroy$)).subscribe(cart => {
-      this.cartCount = cart.length; // Updates counter on icon
+      this.cartCount = cart.length;
+      this.cdr.detectChanges();
     });
 
-    this.eventMessage.messages$.subscribe(ev => {
-      if(ev.type === 'ToggleCartDrawer') {
-        this.showCart=false;
+    this.eventMessage.messages$.pipe(takeUntil(this.destroy$)).subscribe(ev => {
+      if (ev.type === 'ToggleCartDrawer') {
+        this.showCart = false;
         this.cdr.detectChanges();
       }
-    })
 
-    this.eventMessage.messages$.pipe(takeUntil(this.destroy$)).subscribe(ev => {
-      if(ev.type === 'LoginProcess') {
-        let aux = this.localStorage.getObject('login_items') as LoginInfo;
-        if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
-          this.loginInfo=aux;
-          this.is_logged=true;
-          this.cdr.detectChanges();
-          this.orgs=aux.organizations;
-          for(let i=0; i < aux.roles.length; i++){
-            if(aux.roles[i].name == environment.ADMIN_ROLE){
-              this.isAdmin=true;
-              this.cdr.detectChanges();
-            }
-          }
-          if(aux.logged_as == aux.id){
-            this.username=aux.user;
-            this.usercharacters=(aux.user.slice(0, 2)).toUpperCase();
-            this.email=aux.email;
-            for(let i=0;i<aux.roles.length;i++){
-              this.roles.push(aux.roles[i].name)
-            }
-          } else {
-            let loggedOrg = this.orgs.find((element: { id: any; }) => element.id == aux.logged_as)
-            this.loggedAsOrg=true;
-            this.username=loggedOrg.name;
-            this.usercharacters=(loggedOrg.name.slice(0, 2)).toUpperCase();
-            this.email=loggedOrg.description;
-            for(let i=0;i<loggedOrg.roles.length;i++){
-              this.roles.push(loggedOrg.roles[i].name)
-            }
-          }
-          this.cdr.detectChanges();
+      if (ev.type === 'LoginProcess') {
+        this.hydrateLoginFromStorage();
+      }
+    });
+
+    initFlowbite();
+  }
+
+  ngAfterViewInit(): void {
+    initFlowbite();
+  }
+
+  ngOnDestroy(): void {
+    this.qrWindow?.close();
+    this.qrWindow = null;
+
+    this.themeSubscription.unsubscribe();
+
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+
+  private resolveLinksEnv(links: NavLink[]): NavLink[] {
+    const walk = (arr: NavLink[]): NavLink[] =>
+      arr.map(link => {
+        const out: NavLink = { ...link };
+        if ((link as any).environmentName) {
+          out.url = (environment as any)[(link as any).environmentName] || '';
         }
-      }
-    })
-    initFlowbite();
+        if (link.children?.length) {
+          out.children = walk(link.children);
+        }
+        return out;
+      });
+
+    return walk(links);
   }
 
-  ngAfterViewInit() {
-    initFlowbite();
-    // Change the icons inside the button based on previous settings
-    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      this.themeToggleLightIcon.nativeElement.classList.remove('hidden');
-    } else {
-      this.themeToggleDarkIcon.nativeElement.classList.remove('hidden');
+  private hydrateLoginFromStorage() {
+    const aux = this.localStorage.getObject('login_items') as LoginInfo;
+
+    if (JSON.stringify(aux) === '{}') {
+      this.resetLoginState();
+      return;
     }
-  }
-  toggleDarkMode() {
-    // toggle icons inside button
-    this.themeToggleDarkIcon.nativeElement.classList.toggle('hidden');
-    this.themeToggleLightIcon.nativeElement.classList.toggle('hidden');
 
-    // if set via local storage previously
-    if (localStorage.getItem('color-theme')) {
-      if (localStorage.getItem('color-theme') === 'light') {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('color-theme', 'dark');
-        document.body.setAttribute('data-theme', 'dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('color-theme', 'light');
-        document.body.removeAttribute('data-theme');
-      }
-
-      // if NOT set via local storage previously
-    } else {
-      if (document.documentElement.classList.contains('dark')) {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('color-theme', 'light');
-        document.body.removeAttribute('data-theme');
-      } else {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('color-theme', 'dark');
-        document.body.setAttribute('data-theme', 'dark');
-      }
+    if (((aux.expire - moment().unix()) - 4) <= 0) {
+      this.resetLoginState();
+      return;
     }
+
+    this.loginInfo = aux;
+    this.is_logged = true;
+    this.orgs = aux.organizations ?? [];
+
+    this.isAdmin = (aux.roles ?? []).some(r => r.name === environment.ADMIN_ROLE);
+
+    if (aux.logged_as === aux.id) {
+      this.loggedAsOrg = false;
+      this.username = aux.user;
+      this.usercharacters = (aux.user?.slice(0, 2) || '').toUpperCase();
+      this.email = aux.email;
+      this.roles = (aux.roles ?? []).map(r => r.name);
+    } else {
+      const loggedOrg = this.orgs.find((o: any) => o.id === aux.logged_as);
+      this.loggedAsOrg = true;
+      this.username = loggedOrg?.name ?? '';
+      this.usercharacters = (this.username.slice(0, 2) || '').toUpperCase();
+      this.email = loggedOrg?.description ?? '';
+      this.roles = (loggedOrg?.roles ?? []).map((r: any) => r.name);
+    }
+
+    this.cdr.detectChanges();
   }
 
-  goToCatalogSearch(id:any) {
+  private resetLoginState() {
+    this.is_logged = false;
+    this.isAdmin = false;
+    this.loggedAsOrg = false;
+    this.loginInfo = null;
+    this.orgs = [];
+    this.roles = [];
+    this.username = '';
+    this.email = '';
+    this.usercharacters = '';
+    this.cdr.detectChanges();
+  }
+
+  goToCatalogSearch(id: any) {
     this.router.navigate(['/search/catalogue', id]);
   }
 
-  goTo(path:string) {
+  goTo(path: string, id?: string) {
     this.closeUserDropdown();
+
+    if (id) {
+      this.closeDropdown('dropdown-marketplaceMenu');
+    }
+
     this.router.navigate([path]);
   }
 
-  toggleCartDrawer(){
-    this.showCart=!this.showCart;
+  toggleCartDrawer() {
+    this.showCart = !this.showCart;
     this.cdr.detectChanges();
-  }
-
-  async toggleLogin(){
-    this.showLogin=true;
-    //this.api.getLogin()
-    //await (window.location.href='http://localhost:8004/login');
-
-    this.loginService.doLogin();
-    this.cdr.detectChanges();
-  }
-
-  async logout(){
-    this.closeUserDropdown();
-    this.localStorage.setObject('login_items',{});
-    this.is_logged=false;
-    this.username='';
-    this.email='';
-    this.usercharacters='';
-    if(this.router.url === '/dashboard'){
-      window.location.reload();
-    } else {
-      this.router.navigate(['/dashboard']);
-    }
-    await this.loginService.logout();
-    this.cdr.detectChanges();
-  }
-
-  changeSession(idx:number,exitOrgLogin:boolean){
-    this.closeUserDropdown();
-    let aux = this.localStorage.getObject('login_items') as LoginInfo;
-    if(exitOrgLogin){
-      this.loginInfo = {"id": aux.id,
-      "user": aux.user,
-      "email": aux.email,
-      "token": aux.token,
-      "expire": aux.expire,
-      "partyId": aux.partyId,
-      "roles": aux.roles,
-      "organizations": aux.organizations,
-      "logged_as": aux.id};
-      this.localStorage.setObject('login_items',this.loginInfo);
-      this.loggedAsOrg=false;
-      this.username=aux.user;
-      this.usercharacters=(this.loginInfo.user.slice(0, 2)).toUpperCase();
-      this.email=aux.email;
-      this.roles=[];
-      for(let i=0;i<this.loginInfo.roles.length;i++){
-        this.roles.push(this.loginInfo.roles[i].name)
-      }
-      this.eventMessage.emitChangedSession(this.loginInfo)
-      this.cdr.detectChanges();
-    } else {
-      this.loginInfo = {"id": aux.id,
-      "user": aux.user,
-      "email": aux.email,
-      "token": aux.token,
-      "expire": aux.expire,
-      "partyId": aux.partyId,
-      "roles": aux.roles,
-      "organizations": aux.organizations,
-      "logged_as": this.orgs[idx].id };
-      this.localStorage.setObject('login_items',this.loginInfo);
-      this.loggedAsOrg=true;
-      this.username=this.orgs[idx].name;
-      this.usercharacters=(this.orgs[idx].name.slice(0, 2)).toUpperCase();
-      this.email=this.orgs[idx].description;
-      this.roles=[];
-      for(let i=0;i<this.orgs[idx].roles.length;i++){
-        this.roles.push(this.orgs[idx].roles[i].name)
-      }
-      this.eventMessage.emitChangedSession(this.loginInfo)
-      this.cdr.detectChanges();
-    }
-    initFlowbite();
-  }
-
-  hideDropdown(dropdownId:any){
-    this.closeUserDropdown();
-    const dropdown = document.getElementById(dropdownId);
-    if (dropdown) {
-      dropdown.classList.add('hidden');
-    }
-  }
-
-  onLoginClick(){
-    if (environment.SIOP_INFO.enabled === true && this.qrVerifier.intervalId === undefined){
-      this.statePair = uuid.v4()
-
-      let verifierUrl = `${environment.SIOP_INFO.verifierHost}${environment.SIOP_INFO.verifierQRCodePath}?state=${this.statePair}&client_id=${environment.SIOP_INFO.clientID}`
-
-      if (environment.SIOP_INFO.isRedirection) {
-        // New verifier format
-        let oldUrl = new URL(window.location.href)
-        let newUrl = new URL(oldUrl.origin)
-        newUrl.pathname = environment.SIOP_INFO.requestUri
-
-        let finalUrl = newUrl.toString()
-        let nonce = uuid.v4()
-
-        verifierUrl = `${verifierUrl}&response_type=code&request_uri=${finalUrl}&scope=openid%20learcredential&nonce=${nonce}`
-        window.location.href = verifierUrl
-      } else {
-        // Old verifier format
-        let originalUrl = new URL(environment.SIOP_INFO.callbackURL);
-        let newUrl = new URL(window.location.href);
-
-        newUrl.pathname = originalUrl.pathname;
-        newUrl.search = originalUrl.search
-
-        // Get the final URL string
-        let finalUrl = newUrl.toString();
-
-        verifierUrl = `${verifierUrl}&client_callback=${finalUrl}`
-        this.qrWindow = this.qrVerifier.launchPopup(verifierUrl,  'Scan QR code',  500, 500);
-        this.initChecking()
-      }
-    }
-    else if (environment.SIOP_INFO.enabled === false){
-      window.location.replace(`${environment.BASE_URL}` +  '/login')
-    }
-  }
-
-  private initChecking():void {
-    this.qrVerifier.pollServer(this.qrWindow, this.statePair);
   }
 
   toggleNavBar() {
@@ -448,30 +284,132 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   switchLanguage(language: string) {
     this.translate.use(language);
     this.localStorage.setItem('current_language', language);
-    this.defaultLang=language;
+    this.defaultLang = language;
+  }
+
+  async logout() {
+    this.closeUserDropdown();
+    this.localStorage.setObject('login_items', {});
+    this.resetLoginState();
+
+    if (this.router.url === '/dashboard') {
+      window.location.reload();
+    } else {
+      this.router.navigate(['/dashboard']);
+    }
+
+    await this.loginService.logout();
+    this.cdr.detectChanges();
+  }
+
+  changeSession(idx: number, exitOrgLogin: boolean) {
+    this.closeUserDropdown();
+
+    const aux = this.localStorage.getObject('login_items') as LoginInfo;
+    if (JSON.stringify(aux) === '{}') return;
+
+    if (exitOrgLogin) {
+      this.loginInfo = {
+        id: aux.id,
+        user: aux.user,
+        email: aux.email,
+        token: aux.token,
+        expire: aux.expire,
+        partyId: aux.partyId,
+        roles: aux.roles,
+        organizations: aux.organizations,
+        logged_as: aux.id
+      };
+
+      this.localStorage.setObject('login_items', this.loginInfo);
+      this.eventMessage.emitChangedSession(this.loginInfo);
+      this.hydrateLoginFromStorage();
+      initFlowbite();
+      return;
+    }
+
+    const org = this.orgs[idx];
+    if (!org) return;
+
+    this.loginInfo = {
+      id: aux.id,
+      user: aux.user,
+      email: aux.email,
+      token: aux.token,
+      expire: aux.expire,
+      partyId: aux.partyId,
+      roles: aux.roles,
+      organizations: aux.organizations,
+      logged_as: org.id
+    };
+
+    this.localStorage.setObject('login_items', this.loginInfo);
+    this.eventMessage.emitChangedSession(this.loginInfo);
+    this.hydrateLoginFromStorage();
+    initFlowbite();
+  }
+
+  hideDropdown(dropdownId: string) {
+    this.closeUserDropdown();
+    const dropdown = document.getElementById(dropdownId);
+    dropdown?.classList.add('hidden');
   }
 
   closeUserDropdown() {
     const dropdown = document.getElementById('userDropdown');
-    if (dropdown) {
-      dropdown.classList.add('hidden');
-    }
+    dropdown?.classList.add('hidden');
   }
 
-  closeDropdown(id:string) {
-    const dropdown = document.getElementById(id);
-    if (dropdown) {
-      dropdown.classList.add('hidden');
-    }
+  closeDropdown(id: string) {
+    document.getElementById(id)?.classList.add('hidden');
   }
 
-  openDropdown(id:string){
-    const dropdown = document.getElementById(id);
-    if (dropdown) {
-      dropdown.classList.remove('hidden');
+  openDropdown(id: string) {
+    document.getElementById(id)?.classList.remove('hidden');
+  }
+
+  onLoginClick() {
+    if (environment.SIOP_INFO.enabled === true && this.qrVerifier.intervalId === undefined) {
+      this.statePair = uuid.v4();
+
+      let verifierUrl =
+        `${environment.SIOP_INFO.verifierHost}${environment.SIOP_INFO.verifierQRCodePath}` +
+        `?state=${this.statePair}&client_id=${environment.SIOP_INFO.clientID}`;
+
+      if (environment.SIOP_INFO.isRedirection) {
+        const oldUrl = new URL(window.location.href);
+        const newUrl = new URL(oldUrl.origin);
+        newUrl.pathname = environment.SIOP_INFO.requestUri;
+
+        const finalUrl = newUrl.toString();
+        const nonce = uuid.v4();
+
+        verifierUrl =
+          `${verifierUrl}&response_type=code&request_uri=${finalUrl}` +
+          `&scope=openid%20learcredential&nonce=${nonce}`;
+
+        window.location.href = verifierUrl;
+        return;
+      }
+
+      const originalUrl = new URL(environment.SIOP_INFO.callbackURL);
+      const newUrl = new URL(window.location.href);
+
+      newUrl.pathname = originalUrl.pathname;
+      newUrl.search = originalUrl.search;
+
+      const finalUrl = newUrl.toString();
+      verifierUrl = `${verifierUrl}&client_callback=${finalUrl}`;
+
+      this.qrWindow = this.qrVerifier.launchPopup(verifierUrl, 'Scan QR code', 500, 500);
+      this.qrVerifier.pollServer(this.qrWindow, this.statePair);
+      return;
+    }
+
+    if (environment.SIOP_INFO.enabled === false) {
+      window.location.replace(`${environment.BASE_URL}/login`);
     }
   }
-  
 
   protected readonly faCartShopping = faCartShopping;
   protected readonly faHandHoldingBox = faHandHoldingBox;
@@ -482,7 +420,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   protected readonly faBrain = faBrain;
   protected readonly faAnglesLeft = faAnglesLeft;
   protected readonly faUser = faUser;
-  protected  readonly faUsers = faUsers;
+  protected readonly faUsers = faUsers;
   protected readonly faCogs = faCogs;
   protected readonly faReceipt = faReceipt;
   protected readonly faRuler = faRuler;
