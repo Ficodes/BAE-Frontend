@@ -16,7 +16,6 @@ import { LoginServiceService } from 'src/app/services/login-service.service';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { StatsServiceService } from 'src/app/services/stats-service.service';
 import { ThemeService } from 'src/app/services/theme.service';
-import { EuropeTrademarkComponent } from 'src/app/shared/europe-trademark/europe-trademark.component';
 import { ThemeConfig } from 'src/app/themes';
 import { environment } from 'src/environments/environment';
 import { DashboardCustomersComponent } from './dashboard-customers/dashboard-customers.component';
@@ -37,9 +36,13 @@ export interface IDashboardStats {
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
   standalone: true,
-  imports: [TranslateModule, EuropeTrademarkComponent, ReactiveFormsModule, FeaturedComponent, NgClass, DashboardWhatsDome, DashboardHeroComponent, DashboardStatsComponent, DashboardServicesComponent, DashboardCustomersComponent, DashboardProvidersComponent, DashboardEcosystemComponent],
+  imports: [TranslateModule, ReactiveFormsModule, FeaturedComponent, NgClass, DashboardWhatsDome, DashboardHeroComponent, DashboardStatsComponent, DashboardServicesComponent, DashboardCustomersComponent, DashboardProvidersComponent, DashboardEcosystemComponent],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+  customersLink = 'https://onboarding.dome-marketplace.eu/?page=buyer';
+  providersLink = "https://onboarding.dome-marketplace.eu/?page=seller";
+
+
   private unSub = new Subject<void>();
   productOfferings?: ProductOffering[];
   protected MAX_CATEGORIES_PER_PRODUCT_OFFERING = 3;

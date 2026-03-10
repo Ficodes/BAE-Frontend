@@ -1,40 +1,59 @@
-import { Component } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 import { faEarthEurope, faHandshake, faLayerGroup, faScrewdriverWrench } from "@fortawesome/free-solid-svg-icons";
+import { TranslateModule } from "@ngx-translate/core";
 
-type FeatureCard = { html: string; icon: any };
+type FeatureCard = { html: string; hoverText: string; icon: any };
 type Step = { num: string; title: string; desc: string };
 
 @Component({
   selector: "app-dashboard-providers",
   standalone: true,
-  imports: [FontAwesomeModule],
+  imports: [FontAwesomeModule, TranslateModule],
   templateUrl: "./dashboard-providers.component.html",
   styleUrl: "./dashboard-providers.component.css",
 })
 export class DashboardProvidersComponent {
+  providersLink = input.required<string>();
+
   featureCards: FeatureCard[] = [
-    { html: "Reach a pan-<br/>European<br/>market", icon: faEarthEurope },
-    { html: "Strengthen trust<br/>with customers", icon: faHandshake },
-    { html: "Leverage DOME's<br/>provider tools", icon: faScrewdriverWrench },
-    { html: "Complement and<br/>extend portfolio", icon: faLayerGroup },
+    {
+      html: "DASHBOARD.providers.features.market.title",
+      hoverText: "DASHBOARD.providers.features.market.desc",
+      icon: faEarthEurope
+    },
+    {
+      html: "DASHBOARD.providers.features.trust.title",
+      hoverText: "DASHBOARD.providers.features.trust.desc",
+      icon: faHandshake
+    },
+    {
+      html: "DASHBOARD.providers.features.tools.title",
+      hoverText: "DASHBOARD.providers.features.tools.desc",
+      icon: faScrewdriverWrench
+    },
+    {
+      html: "DASHBOARD.providers.features.portfolio.title",
+      hoverText: "DASHBOARD.providers.features.portfolio.desc",
+      icon: faLayerGroup
+    }
   ];
 
   steps: Step[] = [
     {
       num: "01",
-      title: "Onboard your organisation",
-      desc: "Complete the onboarding and receive your credentials.",
+      title: "DASHBOARD.providers.steps.onboard.title",
+      desc: "DASHBOARD.providers.steps.onboard.desc"
     },
     {
       num: "02",
-      title: "Describe & verify your services",
-      desc: "Use DOME Marketplace templates to detail features, data handling and compliance",
+      title: "DASHBOARD.providers.steps.verify.title",
+      desc: "DASHBOARD.providers.steps.verify.desc"
     },
     {
       num: "03",
-      title: "Publish & reach customers",
-      desc: "Ready to go – Your services are available in the DOME catalogues",
-    },
+      title: "DASHBOARD.providers.steps.publish.title",
+      desc: "DASHBOARD.providers.steps.publish.desc"
+    }
   ];
 }

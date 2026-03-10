@@ -1,7 +1,7 @@
 @if (providerThemeName === 'DOME') {
 <div class="page">
 
-  <app-dashboard-hero></app-dashboard-hero>
+  <app-dashboard-hero [providersLink]="providersLink" [customersLink]="customersLink"></app-dashboard-hero>
 
   @if(stats) {
   <app-dashboard-stats [stats]="stats"></app-dashboard-stats>
@@ -13,11 +13,11 @@
   <app-dashboard-services [productOfferings]="productOfferings"></app-dashboard-services>
   }
 
-  <app-dashboard-customers></app-dashboard-customers>
+  <app-dashboard-customers [customerLink]="customersLink"></app-dashboard-customers>
 
-  <app-dashboard-providers></app-dashboard-providers>
+  <app-dashboard-providers [providersLink]="providersLink"></app-dashboard-providers>
 
-  <app-dashboard-ecosystem></app-dashboard-ecosystem>
+  <app-dashboard-ecosystem [providersLink]="providersLink" [customersLink]="customersLink"></app-dashboard-ecosystem>
 </div>
 } @else {
 <div class="dark:bg-tertiary-50">

@@ -1,4 +1,5 @@
-import { Component } from "@angular/core";
+import { Component, input } from "@angular/core";
+import { TranslateModule } from '@ngx-translate/core';
 
 type Milestone = {
   title: string;
@@ -10,22 +11,27 @@ type Milestone = {
   selector: "app-dashboard-ecosystem",
   standalone: true,
   templateUrl: "./dashboard-ecosystem.component.html",
+  imports: [TranslateModule]
 })
 export class DashboardEcosystemComponent {
+
+  providersLink = input.required<string>();
+  customersLink = input.required<string>();
+
   milestones: Milestone[] = [
     {
-      title: "DOME IS LIVE",
-      desc: "Initial catalogue of verified providers and services, built-in procurement tools",
+      title: "DASHBOARD.ecosystem._milestones._live._title",
+      desc: "DASHBOARD.ecosystem._milestones._live._desc",
       active: true,
     },
     {
-      title: "MORE SERVICES, BETTER TOOLS",
-      desc: "Expanded catalogue, better tools, improved verification workflows",
+      title: "DASHBOARD.ecosystem._milestones._tools._title",
+      desc: "DASHBOARD.ecosystem._milestones._tools._desc",
       active: false,
     },
     {
-      title: "FEDERATION AT SCALE",
-      desc: "A connected network of marketplaces, providers and customers, driving cross-border transactions through trust, sovereignty and fair access",
+      title: "DASHBOARD.ecosystem._milestones._federation._title",
+      desc: "DASHBOARD.ecosystem._milestones._federation._desc",
       active: false,
     },
   ];

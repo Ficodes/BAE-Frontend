@@ -44,9 +44,8 @@ const domeFooterLinks: NavHeaderLink[] = [
   {
     label: 'FOOTER.aboutTitle',
     navLinks: [
-      { label: 'FOOTER._about', url: '/about', isRouterLink: true },
-      { label: 'FOOTER.governance', url: '/governance', isRouterLink: true },
-      { label: 'FOOTER.partners', url: 'https://dome-project.eu/about/#partners', isRouterLink: false },
+      { label: 'FOOTER.domeProject', url: 'https://dome-project.eu/', isRouterLink: false },
+      { label: 'FOOTER.contactUs', url: '/contact-us', isRouterLink: true }
     ]
   },
   {
@@ -70,27 +69,7 @@ const domeFooterLinks: NavHeaderLink[] = [
     ],
 
   },
-  {
-    label: 'FOOTER.resourcesTitle',
-    navLinks: [
-      {
-        label: 'FOOTER._licensing',
-        url: '/assets/documents/terms.pdf',
-        isRouterLink: false
-      },
-      {
-        label: 'FOOTER._privacy',
-        url: '/assets/documents/privacy.pdf',
-        isRouterLink: false
-      },
-      {
-        label: 'FOOTER._cookies',
-        url: '/assets/documents/cookies.pdf',
-        isRouterLink: false
-      },
-    ],
 
-  },
   {
     label: 'FOOTER.resourcesTitle',
     navLinks: [
@@ -110,6 +89,28 @@ const domeFooterLinks: NavHeaderLink[] = [
         isRouterLink: true
       }
     ]
+  },
+
+  {
+    label: 'FOOTER.legalTitle',
+    navLinks: [
+      {
+        label: 'FOOTER._licensing',
+        url: '/assets/documents/terms.pdf',
+        isRouterLink: false
+      },
+      {
+        label: 'FOOTER._privacy',
+        url: '/assets/documents/privacy.pdf',
+        isRouterLink: false
+      },
+      {
+        label: 'FOOTER._cookies',
+        url: '/assets/documents/cookies.pdf',
+        isRouterLink: false
+      },
+    ],
+
   }
 
 ];

@@ -5,26 +5,27 @@
     class="relative z-10 mx-auto flex min-h-screen max-w-[1200px] flex-col items-center justify-center px-6 py-14 text-center">
     <h1 class="hero-title text-white">
       <span class="block">
-        The Trusted <span class="hero-accent">European</span>
+        {{ 'DASHBOARD.hero._titleLine1Part1' | translate }}
+        <span class="hero-accent">{{ 'DASHBOARD.hero._titleLine1Accent' | translate }}</span>
       </span>
-      <span class="block">Ecosystem for Cloud,</span>
-      <span class="block">Edge &amp; AI Services.</span>
+      <span class="block">{{ 'DASHBOARD.hero._titleLine2' | translate }}</span>
+      <span class="block">{{ 'DASHBOARD.hero._titleLine3' | translate }}</span>
     </h1>
 
     <p class="hero-sub mt-6 max-w-[820px]">
-      Connecting providers and customers to discover, deliver and scale sovereign digital
+      {{ 'DASHBOARD.hero._subtitleLine1' | translate }}
       <br class="hidden sm:block" />
-      services across Europe.
+      {{ 'DASHBOARD.hero._subtitleLine2' | translate }}
     </p>
 
     <div class="mt-10 flex flex-col items-center gap-4 sm:flex-row">
-      <button class="hero-btn hero-btn--primary">
-        Start your customer journey
-      </button>
+      <a [href]="customersLink()" target="_blank" class="hero-btn hero-btn--primary">
+        {{ 'DASHBOARD.hero._customerCta' | translate }}
+      </a>
 
-      <button class="hero-btn hero-btn--ghost">
-        Start your provider journey
-      </button>
+      <a [href]="providersLink()" target="_blank" class="hero-btn hero-btn--ghost">
+        {{ 'DASHBOARD.hero._providerCta' | translate }}
+      </a>
     </div>
 
     <!-- <div class="mt-14 flex flex-wrap items-center justify-center gap-x-10 gap-y-6 opacity-60">
