@@ -535,3 +535,7 @@
 .description-wrapper {
   height: 10rem;
 }
+
+.c-color {
+  color: #324153 !important;
+}

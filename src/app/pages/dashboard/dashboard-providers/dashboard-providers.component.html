@@ -1,0 +1,88 @@
+<section class="dp-wrap font-[Blinker]">
+  <div class="dp-bg" aria-hidden="true">
+    <span class="dp-ellipse dp-e1"></span>
+    <span class="dp-ellipse dp-e2"></span>
+    <span class="dp-ellipse dp-e3"></span>
+    <span class="dp-ellipse dp-e4"></span>
+    <span class="dp-blur"></span>
+  </div>
+
+  <div class="mx-auto w-full max-w-[1180px] px-5 sm:px-8 lg:px-10 py-[44px] sm:py-[56px] lg:py-[64px]">
+    <h2 class="text-[clamp(34px,4.4vw,56px)] leading-[1.05] tracking-[-0.02em] font-extrabold text-white">
+      {{ 'DASHBOARD.providers._title' | translate }}
+    </h2>
+
+    <div class="mt-8 sm:mt-10 grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
+      <div class="lg:col-span-5 h-full">
+        @if (featureCards.length) {
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 h-full auto-rows-fr">
+          @for (card of featureCards; track $index) {
+          <div
+            class="dp-card dp-swap-card relative h-full min-h-[200px] sm:min-h-[220px] rounded-[14px] overflow-hidden cursor-pointer">
+            <div class="dp-swap-card__base">
+              <div class="h-full flex items-end p-7 sm:p-8">
+                <div class="text-[clamp(22px,2.1vw,30px)] leading-[1.12] font-extrabold text-white"
+                  [innerHTML]="card.html | translate">
+                </div>
+              </div>
+
+              <fa-icon [icon]="card.icon"
+                class="dp-icon dp-swap-card__base-icon absolute right-6 -bottom-10 text-[98px] sm:text-[112px]">
+              </fa-icon>
+            </div>
+
+            <div class="dp-swap-card__hover">
+              <div class="dp-swap-card__hover-text">
+                {{ card.hoverText | translate }}
+              </div>
+
+              <fa-icon [icon]="card.icon"
+                class="dp-icon dp-swap-card__hover-icon absolute right-6 -bottom-10 text-[98px] sm:text-[112px]">
+              </fa-icon>
+            </div>
+          </div>
+          }
+        </div>
+        }
+      </div>
+
+      <div class="lg:col-span-7 h-full">
+        <div class="dp-big h-full min-h-[320px] lg:min-h-[464px] rounded-[16px] overflow-hidden">
+          <div class="p-7 sm:p-9 lg:p-10 h-full flex flex-col">
+            <h3 class="text-[clamp(28px,3.2vw,42px)] leading-[1.15] tracking-[-0.02em] font-extrabold text-white">
+              {{ 'DASHBOARD.providers._howDomeWorks' | translate }}
+            </h3>
+
+            @if (steps.length) {
+            <div class="mt-7 sm:mt-9 space-y-7 sm:space-y-8">
+              @for (step of steps; track $index) {
+              <div class="grid grid-cols-[54px_1fr] sm:grid-cols-[64px_1fr] gap-4 sm:gap-5 items-start">
+                <div class="pt-[2px] text-[18px] sm:text-[20px] font-extrabold text-[#19c6de]">
+                  {{ step.num }}
+                </div>
+
+                <div>
+                  <div class="text-[18px] sm:text-[19px] font-extrabold text-white">
+                    {{ step.title | translate }}
+                  </div>
+                  <div class="mt-2 text-[16px] sm:text-[17px] leading-[1.65] text-white/65">
+                    {{ step.desc | translate }}
+                  </div>
+                </div>
+              </div>
+              }
+            </div>
+            }
+
+            <div class="mt-auto pt-8 flex justify-center sm:justify-end">
+              <a [href]="providersLink()" target="_blank"
+                class="inline-flex items-center justify-center h-[44px] w-full sm:w-auto px-7 rounded-[10px] bg-[#2b5bb8] text-white text-[14px] font-semibold shadow-[0_18px_28px_rgba(0,0,0,0.35)] hover:brightness-110 active:brightness-95 transition">
+                {{ 'DASHBOARD.providers._cta' | translate }}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

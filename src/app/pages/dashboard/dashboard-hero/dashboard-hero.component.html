@@ -1,0 +1,44 @@
+<section class="hero-shell relative h-[890px] overflow-hidden">
+  <div class="hero-bg absolute inset-0"></div>
+
+  <div
+    class="relative z-10 mx-auto flex min-h-screen max-w-[1200px] flex-col items-center justify-center px-6 py-14 text-center">
+    <h1 class="hero-title text-white">
+      <span class="block">
+        {{ 'DASHBOARD.hero._titleLine1Part1' | translate }}
+        <span class="hero-accent">{{ 'DASHBOARD.hero._titleLine1Accent' | translate }}</span>
+      </span>
+      <span class="block">{{ 'DASHBOARD.hero._titleLine2' | translate }}</span>
+      <span class="block">{{ 'DASHBOARD.hero._titleLine3' | translate }}</span>
+    </h1>
+
+    <p class="hero-sub mt-6 max-w-[820px]">
+      {{ 'DASHBOARD.hero._subtitleLine1' | translate }}
+      <br class="hidden sm:block" />
+      {{ 'DASHBOARD.hero._subtitleLine2' | translate }}
+    </p>
+
+    <div class="mt-10 flex flex-col items-center gap-4 sm:flex-row">
+      <a [href]="customersLink()" target="_blank" class="hero-btn hero-btn--primary">
+        {{ 'DASHBOARD.hero._customerCta' | translate }}
+      </a>
+
+      <a [href]="providersLink()" target="_blank" class="hero-btn hero-btn--ghost">
+        {{ 'DASHBOARD.hero._providerCta' | translate }}
+      </a>
+    </div>
+
+    <!-- <div class="mt-14 flex flex-wrap items-center justify-center gap-x-10 gap-y-6 opacity-60">
+      <div class="logo-ph w-[92px] sm:w-[110px]">LOGO</div>
+      <div class="logo-ph w-[92px] sm:w-[110px]">LOGO</div>
+      <div class="logo-ph w-[120px] sm:w-[140px]">LOGO</div>
+      <div class="logo-ph w-[132px] sm:w-[150px]">LOGO</div>
+      <div class="logo-ph w-[118px] sm:w-[140px]">LOGO</div>
+      <div class="logo-ph w-[132px] sm:w-[150px]">LOGO</div>
+    </div> -->
+  </div>
+
+  <div class="earth-wrapper">
+    <img src="assets/images/dashboard/hero.png" alt="" aria-hidden="true" />
+  </div>
+</section>

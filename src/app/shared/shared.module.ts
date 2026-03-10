@@ -1,23 +1,24 @@
 /* Copyright (c) 2022 Future Internet Consulting and Development Solutions S.L. */
 
-import {NgModule} from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { HttpClientModule } from "@angular/common/http";
+import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { HeaderComponent } from './header/header.component';
-import { FooterComponent } from './footer/footer.component';
+import { RouterLink } from "@angular/router";
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import {CategoriesPanelComponent} from "./categories-panel/categories-panel.component";
 import { CartDrawerComponent } from "./cart-drawer/cart-drawer.component";
+import { CategoriesPanelComponent } from "./categories-panel/categories-panel.component";
+import { EuropeTrademarkComponent } from './europe-trademark/europe-trademark.component';
 import { FeedbackModalComponent } from './feedback-modal/feedback-modal.component';
-import {RouterLink} from "@angular/router";
-import { QuoteRequestModalComponent } from './quote-request-modal/quote-request-modal.component'
+import { FooterComponent } from './footer/footer.component';
+import { HeaderComponent } from './header/header.component';
+import { QuoteRequestModalComponent } from './quote-request-modal/quote-request-modal.component';
 
 // Lista de componentes que pertenecen a este módulo.
 const SHARED_COMPONENTS = [
   HeaderComponent,
-  FooterComponent,
+  FooterComponent, EuropeTrademarkComponent,
   FeedbackModalComponent,
   CartDrawerComponent
 ];
@@ -53,7 +54,7 @@ const STANDALONE_IMPORTS = [
     ...SHARED_COMPONENTS,
     ...STANDALONE_IMPORTS
   ],
-  providers:[
+  providers: [
     DatePipe,
     TranslateService
   ]
