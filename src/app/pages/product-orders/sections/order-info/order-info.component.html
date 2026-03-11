@@ -33,12 +33,61 @@
         <div class="p-8 w-full">
             <div class="flex flex-row mb-1">
                 <fa-icon [icon]="faSwatchbook" class="fa-base text-primary-100 align-middle mr-2"></fa-icon>
+                <h2 class="text-base dark:text-white font-bold">{{ 'PRODUCT_ORDERS._filter_action' | translate }}</h2>
+            </div>
+            <button id="dropdownActionButton" data-dropdown-toggle="dropdownAction" (click)="$event.stopPropagation();"
+                    class="text-black border border-primary-100sa dark:text-white w-full justify-between bg-white dark:bg-secondary-200 hover:bg-gray-100 dark:hover:bg-secondary-300 focus:ring-2 focus:outline-none focus:ring-primary-100 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center"
+                    type="button">
+                @if(actionFilters.length > 0){
+                    {{actionFilters.join(', ')}}
+                } @else {
+                    {{ 'PRODUCT_ORDERS._filter_action' | translate }}
+                }
+                <svg class="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+
+            <div id="dropdownAction" class="z-20 hidden w-fit md:w-1/5 p-3 bg-white rounded-lg border dark:bg-secondary-200">
+                <ul class="space-y-2 text-sm" aria-labelledby="dropdownActionButton">
+                    <li class="flex items-center">
+                        <input id="actionAdd" type="checkbox" [checked]="actionFilters.includes('add')" (change)="onActionFilterChange('add')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+                        <label for="actionAdd" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {{ 'PRODUCT_ORDERS._action_add' | translate }}
+                        </label>
+                    </li>
+                    <li class="flex items-center">
+                        <input id="actionModify" type="checkbox" [checked]="actionFilters.includes('modify')" (change)="onActionFilterChange('modify')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+                        <label for="actionModify" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {{ 'PRODUCT_ORDERS._action_modify' | translate }}
+                        </label>
+                    </li>
+                    <li class="flex items-center">
+                        <input id="actionDelete" type="checkbox" [checked]="actionFilters.includes('delete')" (change)="onActionFilterChange('delete')"
+                        class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+                        <label for="actionDelete" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {{ 'PRODUCT_ORDERS._action_delete' | translate }}
+                        </label>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="p-8 w-full">
+            <div class="flex flex-row mb-1">
+                <fa-icon [icon]="faSwatchbook" class="fa-base text-primary-100 align-middle mr-2"></fa-icon>
                 <h2 class="text-base dark:text-white font-bold">{{ 'PRODUCT_ORDERS._filter_state' | translate }}</h2>
             </div>
             <button id="dropdownStateButton" data-dropdown-toggle="dropdown" (click)="$event.stopPropagation();"
                     class="text-black border border-primary-100sa dark:text-white w-full justify-between bg-white dark:bg-secondary-200 hover:bg-gray-100 dark:hover:bg-secondary-300 focus:ring-2 focus:outline-none focus:ring-primary-100 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center"
                     type="button">
-                {{ 'PRODUCT_ORDERS._filter_state' | translate }}
+                @if(filters.length > 0){
+                    {{filters.join(', ')}}
+                } @else {
+                    {{ 'PRODUCT_ORDERS._filter_state' | translate }}
+                }
                 <svg class="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -355,6 +404,9 @@
                                           {{ 'PRODUCT_ORDERS._state' | translate }}
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-center align-middle">
+                                          {{ 'PRODUCT_ORDERS._items_action' | translate }}
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-center align-middle">
                                           {{ 'PRODUCT_ORDERS._actions' | translate }}
                                         </th>
                                     </tr>
@@ -408,6 +460,15 @@
                                               <span class="bg-blue-100 dark:bg-secondary-100 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{item.productOrderItem.state}}</span>
                                             } @else {
                                               <span class="bg-amber-500 dark:bg-amber-900 text-amber-900 dark:text-amber-100 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-amber-950">Unchecked</span>
+                                            }
+                                          </td>
+                                          <td class="px-6 py-4 text-center align-middle">
+                                            @if(item.productOrderItem.action === 'add'){
+                                              <span class="bg-blue-100 dark:bg-secondary-100 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400 w-fit">{{item.productOrderItem.action}}</span>
+                                            } @else if(item.productOrderItem.action ===  'delete') {
+                                              <span class="bg-blue-100 dark:bg-secondary-100 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500 w-fit">{{item.productOrderItem.action}}</span>
+                                            } @else if(item.productOrderItem.action === 'modify') {
+                                              <span class="bg-blue-100 dark:bg-secondary-100 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{item.productOrderItem.action}}</span>
                                             }
                                           </td>
                                           <td class="px-6 py-4 text-center align-middle flex justify-center">

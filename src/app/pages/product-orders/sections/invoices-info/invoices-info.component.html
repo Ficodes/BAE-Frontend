@@ -84,7 +84,7 @@
               </td>
               <td class="px-6 py-4 text-center align-middle">
                 <div class="flex flex-row justify-center items-center">
-                <button (click)="toggleShowDetails(invoice);$event.stopPropagation();" type="button" class="text-white bg-primary-100 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
+                <button data-cy="invoiceDetails" (click)="toggleShowDetails(invoice);$event.stopPropagation();" type="button" class="text-white bg-primary-100 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
                   <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
                     <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                       <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
@@ -206,7 +206,7 @@
                         <p class="text-sm font-bold text-gray-700 dark:text-white">
                           {{ 'INVOICES._type' | translate }}:
                         </p>
-                        <p class="text-sm text-gray-600 dark:text-gray-200">
+                        <p data-cy="acbrType" class="text-sm text-gray-600 dark:text-gray-200">
                           {{acbr.type}}
                         </p>
                       </div>
@@ -215,7 +215,7 @@
                         <p class="text-sm font-bold text-gray-700 dark:text-white">
                           {{ 'INVOICES._tax_included_amount' | translate }}:
                         </p>
-                        <p class="text-sm text-gray-600 dark:text-gray-200">
+                        <p data-cy="acbrPrice" class="text-sm text-gray-600 dark:text-gray-200">
                           {{acbr.taxIncludedAmount?.value}}{{acbr.taxIncludedAmount?.unit}}
                         </p>
                       </div>

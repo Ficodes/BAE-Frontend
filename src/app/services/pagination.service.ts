@@ -61,6 +61,9 @@ export class PaginationService {
       if("role" in options){
         params.push(options.role)
       }
+      if("actionFilters" in options){
+        params.push(options.actionFilters)
+      }
 
       if(next == false){
         items=[];
@@ -546,10 +549,10 @@ export class PaginationService {
     }
   }*/
 
-  async getOrders(page: number, filters: Category[], partyId: any, orders: any[], role: any): Promise<any[]> {
+  async getOrders(page: number, filters: Category[], partyId: any, orders: any[], role: any, actionFilters: string[] = []): Promise<any[]> {
     try {
       // Get Orders
-      orders = await this.orderService.getProductOrders(partyId, page, filters, role);
+      orders = await this.orderService.getProductOrders(partyId, page, filters, role, actionFilters);
       console.log('getOrders', orders);
       // Obtener todas las cuentas de facturación en paralelo
       const billingAccounts = await Promise.all(orders.map(order => this.accountService.getBillingAccountById(order.billingAccount.id)));

@@ -423,4 +423,9 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     });
   }
 
+  hasProfilePricePlan(): boolean {
+    const profileData = this.formGroup?.get('prodSpecCharValueUse')?.value;
+    return profileData && profileData.length > 0;
+  }
+
 }

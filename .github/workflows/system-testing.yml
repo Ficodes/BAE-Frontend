@@ -44,6 +44,10 @@ jobs:
           TM_VERSION=$(echo "$PR_BODY" | grep '^TM_VERSION:' | sed 's/TM_VERSION: *//' | xargs)
           echo "TMForum API version: $TM_VERSION"
 
+          # Parse E2E_BRANCH (optional - branch of E2E-DOME-BAE to use)
+          E2E_BRANCH=$(echo "$PR_BODY" | grep '^E2E_BRANCH:' | sed 's/E2E_BRANCH: *//' | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
+          echo "E2E branch: $E2E_BRANCH"
+
           # Default values (using upstream FIWARE-TMForum repos)
           PROXY_REPO="FIWARE-TMForum/business-ecosystem-logic-proxy"
           PROXY_BRANCH="master"
@@ -89,6 +93,7 @@ jobs:
           echo "  Charging:  $CHARGING_REPO @ $CHARGING_BRANCH"
           echo "  Frontend:  ${{ github.event.pull_request.head.repo.full_name }} @ ${{ github.event.pull_request.head.ref }}"
           echo "  TM Version: $TM_VERSION"
+          echo "  E2E Branch: $E2E_BRANCH"
           echo "  PR URL:    ${{ github.event.pull_request.html_url }}"
           echo ""
 
@@ -111,6 +116,7 @@ jobs:
                 \"repository_frontend\": \"${{ github.event.pull_request.head.repo.full_name }}\",
                 \"branch_frontend\": \"${{ github.event.pull_request.head.ref }}\",
                 \"tm_version\": \"$TM_VERSION\",
+                \"cypress_branch\": \"$E2E_BRANCH\",
                 \"pull_request_url\": \"${{ github.event.pull_request.html_url }}\"
               }
             }" \

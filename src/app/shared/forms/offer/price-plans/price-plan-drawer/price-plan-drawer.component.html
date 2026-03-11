@@ -216,10 +216,10 @@
                   data-cy="newTierPricing"
                   type="button"
                   (click)="openTierPricingDrawer()"
-                  [disabled]="!hasRangeCharacteristics()"
-                  [ngClass]="hasRangeCharacteristics() ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-gray-400 cursor-not-allowed opacity-50'"
+                  [disabled]="!hasRangeCharacteristics() || hasProfilePricePlan()"
+                  [ngClass]="hasRangeCharacteristics() && !hasProfilePricePlan() ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-gray-400 cursor-not-allowed opacity-50'"
                   class="mt-2 px-4 py-2 text-white rounded flex items-center"
-                  [title]="!hasRangeCharacteristics() ? 'No range characteristics available in product specification' : 'Create tier pricing based on range characteristics'"
+                  [title]="hasProfilePricePlan() ? 'Tier pricing is not available when a configuration profile is set' : (!hasRangeCharacteristics() ? 'No range characteristics available in product specification' : 'Create tier pricing based on range characteristics')"
                 >
                   <svg class="min-w-4 w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                     <path fill="currentColor"

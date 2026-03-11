@@ -52,6 +52,7 @@ export class OrderInfoComponent implements OnInit, AfterViewInit, OnDestroy {
   page: number=0;
   ORDER_LIMIT: number = environment.ORDER_LIMIT;
   filters: any[]=[];
+  actionFilters: string[] = [];
   check_custom:boolean=false;
 
   buyerRole: string = environment.BUYER_ROLE;
@@ -316,7 +317,8 @@ export class OrderInfoComponent implements OnInit, AfterViewInit, OnDestroy {
       "filters": this.filters,
       "partyId": this.partyId,
       "orders": this.orders,
-      "role": this.role
+      "role": this.role,
+      "actionFilters": this.actionFilters
     }
 
     this.paginationService.getItemsPaginated(this.page, this.ORDER_LIMIT, next, this.orders,this.nextOrders, options,
@@ -359,6 +361,16 @@ export class OrderInfoComponent implements OnInit, AfterViewInit, OnDestroy {
       this.filters.splice(index, 1);
     } else {
       this.filters.push(filter)
+    }
+    this.getOrders(false);
+  }
+
+  onActionFilterChange(action:string){
+    const index = this.actionFilters.findIndex(item => item === action);
+    if (index !== -1) {
+      this.actionFilters.splice(index, 1);
+    } else {
+      this.actionFilters.push(action)
     }
     this.getOrders(false);
   }
