@@ -1,13 +1,16 @@
-<bae-header></bae-header>
+<div class="min-h-screen flex flex-col">
+  <bae-header></bae-header>
 
-<main class="bg-no-repeat bg-right ">
-  <router-outlet></router-outlet>
-</main>
+  <main class="flex-1 bg-no-repeat bg-right">
+    <router-outlet></router-outlet>
+  </main>
+
+  <bae-footer class="w-full z-30 bottom-0 start-0"></bae-footer>
+</div>
+
 @if (providerThemeName === "DOME") {
 <app-chatbot-widget class="relative z-50"></app-chatbot-widget>
 }
-
-<bae-footer class="w-full z-30 bottom-0 start-0"></bae-footer>
 
 @if(isProduction){
 <script

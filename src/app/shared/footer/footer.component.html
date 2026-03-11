@@ -1,3 +1,4 @@
+@if (isDomeTheme) {
 <footer class="w-full bg-[#0A1930] text-white antialiased mt-5">
   <div class="mx-auto max-w-[1240px] px-8 lg:px-12">
     <div class="pt-[72px] pb-[56px]">
@@ -5,7 +6,7 @@
 
         <div class="md:col-span-5">
           <div class="flex items-start">
-            <img src="assets/logos/DOME_Logo_White_Name.svg" alt="DOME logo" class="h-[60px]  " />
+            <img src="assets/logos/DOME_Logo_White_Name.svg" alt="DOME logo" class="h-[60px]" />
           </div>
 
           <p class="mt-10 max-w-[460px] text-[19px] leading-[1.58] text-white/80">
@@ -24,14 +25,14 @@
 
         <div class="md:col-span-7">
           <div class="grid grid-cols-2 md:grid-cols-4 gap-x-[70px] gap-y-12">
-            @for (headerLink of footerLinks; track headerLink) {
+            @for (headerLink of footerLinks; track headerLink.label) {
             <div>
               <h3 class="text-[14px] leading-[1.25] font-semibold tracking-[0.08em] text-white/95">
                 {{ headerLink.label | translate }}
               </h3>
 
               <ul class="mt-5 space-y-[10px]">
-                @for (navLink of headerLink.navLinks; track navLink) {
+                @for (navLink of headerLink.navLinks; track navLink.label) {
                 <li>
                   @if (!navLink.isRouterLink) {
                   <a [href]="navLink.url" target="_blank" rel="noopener noreferrer"
@@ -52,11 +53,9 @@
           </div>
 
           <div class="mt-10 flex flex-col md:flex-row md:gap-3 text-[14px] leading-[1.5] text-white/55">
-
             <a (click)="feedback = !feedback; $event.stopPropagation()" class="hover:underline cursor-pointer">
               Feedback
             </a>
-
 
             <a href="https://www.linkedin.com/newsletters/newsletter-7142535480692133889/"
               class="hover:underline cursor-pointer" target="_blank" rel="noopener noreferrer">
@@ -75,6 +74,42 @@
     </div>
   </div>
 </footer>
+} @else {
+<div>
+  <div
+    class="flex h-[25px] justify-center md:justify-between items-center bg-white border-t border-gray-200 shadow dark:bg-tertiary-50 dark:border-gray-600 p-4">
+    <div class="hidden md:flex justify-start text-gray-500 dark:text-gray-400">
+      @for (social of socialLinks; track social.url) {
+      <fa-icon (click)="openNewTab(social.url!)" [ngClass]="{ 'mr-4': !$last }" class="cursor-pointer"
+        [icon]="social.icon"></fa-icon>
+      }
+    </div>
+
+    <ul class="flex flex-wrap items-center text-sm font-medium text-gray-500 dark:text-gray-400">
+      @if (checkLogged) {
+      <li>
+        <button (click)="feedback = !feedback; $event.stopPropagation()" class="mr-4 hover:underline md:mr-6">
+          Feedback
+        </button>
+      </li>
+      }
+      @for (link of defaultFooterLinks; track link.label + (link.url || '')) {
+      <li>
+        @if (!link.isRouterLink) {
+        <a [href]="link.url" target="_blank" rel="noopener noreferrer" class="mr-4 hover:underline md:mr-6">
+          {{ link.label | translate }}
+        </a>
+        } @else {
+        <a (click)="goToRoute(link.url!)" class="mr-4 hover:underline md:mr-6 cursor-pointer">
+          {{ link.label | translate }}
+        </a>
+        }
+      </li>
+      }
+    </ul>
+  </div>
+</div>
+}
 
 @if (feedback) {
 <feedback-modal [rateMessage]="'FEEDBACK._footer_title' | translate"

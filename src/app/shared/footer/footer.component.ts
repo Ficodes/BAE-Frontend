@@ -11,7 +11,7 @@ import { LoginInfo } from 'src/app/models/interfaces';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
 import { ThemeService } from 'src/app/services/theme.service';
 import { EventMessageService } from '../../services/event-message.service';
-import { NavHeaderLink } from '../../themes';
+import { NavHeaderLink, NavLink } from '../../themes';
 
 
 @Component({
@@ -27,9 +27,11 @@ export class FooterComponent implements OnInit, OnDestroy {
 
   checkLogged: boolean = false;
   feedback: boolean = false;
+  isDomeTheme: boolean = false;
 
   socialLinks: { icon: any; url: string }[] = [];
   footerLinks: NavHeaderLink[] = [];
+  defaultFooterLinks: NavLink[] = [];
   columns: number;
 
   constructor(
@@ -67,7 +69,9 @@ export class FooterComponent implements OnInit, OnDestroy {
     this.themeService.currentTheme$
       .pipe(takeUntil(this.unSub))
       .subscribe((theme) => {
+        this.isDomeTheme = (theme?.name || '').toUpperCase() === 'DOME';
         this.footerLinks = theme?.links?.footerLinks || [];
+        this.defaultFooterLinks = this.footerLinks.flatMap((linkGroup) => linkGroup.navLinks || []);
         this.columns = theme?.links?.footerLinksColsNumber || 0;
 
         this.socialLinks = [];
