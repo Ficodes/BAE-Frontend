@@ -21,5 +21,13 @@ body.theme-dome {
   --theme-tertiary-50: 17 24 39;
   /* CARD/MODAL BG COLOR */
   --theme-tertiary-100: 20 39 74;
-}
 
+  /* Header v2 tokens (scoped to avoid collisions with shared theme tokens) */
+  --theme-header-v2-top-bg: #070f24;
+  --theme-header-v2-glass-bg: rgba(7, 18, 40, 0.55);
+  --theme-header-v2-outline-border: #2D58A7;
+  --theme-header-v2-outline-hover-bg: rgba(47, 111, 214, 0.9);
+  --theme-header-v2-outline-hover-text: #ffffff;
+  --theme-header-v2-solid-bg: #2D58A7;
+  --theme-header-v2-solid-hover-bg: rgba(47, 111, 214, 0.9);
+}

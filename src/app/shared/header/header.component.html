@@ -78,14 +78,16 @@
           <span class="text-[14px] font-bold tracking-wide">{{ usercharacters }}</span>
         </div>
         } @else {
+        @if (providerThemeName === 'DOME') {
         <button data-cy="contactUs" id="contactUs" type="button"
-          class="ml-1 inline-flex h-[44px] items-center justify-center rounded-[10px] bg-[transparent] border-color-c px-6 text-[15px] font-semibold text-white hover:bg-[#2F6FD6]/90 transition"
+          class="ml-1 inline-flex h-[44px] items-center justify-center rounded-[10px] bg-transparent border-color-c px-6 text-[15px] font-semibold text-white transition"
           (click)="goTo('/contact-us')">
           {{ 'HEADER.contactUs' | translate}}
         </button>
+        }
 
         <button data-cy="login" id="login" type="button"
-          class="ml-1 inline-flex h-[44px] items-center justify-center rounded-[10px] bg-[#2D58A7] px-6 text-[15px] font-semibold text-white hover:bg-[#2F6FD6]/90 transition"
+          class="ml-1 inline-flex h-[44px] items-center justify-center rounded-[10px] header-solid-btn px-6 text-[15px] font-semibold text-white transition"
           (click)="onLoginClick()">
           Login
         </button>

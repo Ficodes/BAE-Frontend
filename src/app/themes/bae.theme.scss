@@ -21,4 +21,13 @@ body.theme-bae {
   --theme-tertiary-50: 31 39 37;
   /* CARD/MODAL BG COLOR */
   --theme-tertiary-100: 27 45 39;
+
+  /* Header v2 tokens (scoped to avoid collisions with shared theme tokens) */
+  --theme-header-v2-top-bg: #0f3f2e;
+  --theme-header-v2-glass-bg: rgba(15, 63, 46, 0.55);
+  --theme-header-v2-outline-border: #00724d;
+  --theme-header-v2-outline-hover-bg: rgba(0, 196, 140, 0.9);
+  --theme-header-v2-outline-hover-text: #ffffff;
+  --theme-header-v2-solid-bg: #00724d;
+  --theme-header-v2-solid-hover-bg: rgba(0, 196, 140, 0.9);
 }
