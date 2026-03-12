@@ -13,18 +13,21 @@ describe('/dashboard',{
 
     it('should have all required elements in dashboard', ()=>{
         checkHeaderPreLogin()
-        cy.getBySel('browseServices').should('not.be.disabled')
+        cy.getBySel('browseServicesDashboard').should('not.be.disabled')
         cy.getBySel('mainText').should('exist')
         cy.getBySel('publishOff').should('exist')
         cy.getBySel('publishOff').should('have.attr', 'href', init_config.domeRegister)
         cy.getBySel('vServices').should('exist')
-        cy.getBySel('vServices').should('have.text', '1 verified services')
+        cy.getBySel('vServices').invoke('text').then((text) => {
+            expect(text.trim()).to.eq('1 verified services')
+        })
         cy.getBySel('rPublishers').should('exist')
-        cy.getBySel('rPublishers').should('have.text', '1 registered providers')
+        cy.getBySel('rPublishers').invoke('text').then((text) => {
+            expect(text.trim()).to.eq('1 registered providers')
+        })
         cy.getBySel('nameServices').should('have.length', init_stat.services.length)
         cy.getBySel('nameOrgs').should('have.length', init_stat.organizations.length)
 
     })
 
 })
-

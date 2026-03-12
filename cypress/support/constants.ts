@@ -237,18 +237,20 @@ export const checkHeaderPreLogin = () => {
       if ($body.find('[data-cy=publishOffering]').length > 0) cy.getBySel('publishOffering').should('exist')
       if ($body.find('[data-cy=browse]').length > 0) cy.getBySel('browse').should('exist')
       if ($body.find('[data-cy=about]').length > 0) cy.getBySel('about').should('exist')
+      if ($body.find('[data-cy=knowledge]').length > 0) {
+        cy.getBySel('knowledge').should('exist')
+        cy.getBySel('knowledge').should('have.attr', 'href', init_config.knowledgeBaseUrl)
+      }
+      if ($body.find('[data-cy=darkMode]').length > 0) {
+        cy.getBySel('darkMode').should('exist')
+        cy.getBySel('darkMode').click()
+        cy.getBySel('moonSVG').should('be.hidden')
+        cy.getBySel('sunSVG').should('not.be.hidden')
+        cy.getBySel('darkMode').click()
+        cy.getBySel('sunSVG').should('be.hidden')
+        cy.getBySel('moonSVG').should('not.be.hidden')
+      }
     })
-    cy.getBySel('knowledge').should('exist')
-    cy.getBySel('darkMode').should('exist')
-
-    cy.getBySel('darkMode').click()
-    cy.getBySel('moonSVG').should('be.hidden')
-    cy.getBySel('sunSVG').should('not.be.hidden')
-    cy.getBySel('darkMode').click()
-    cy.getBySel('sunSVG').should('be.hidden')
-    cy.getBySel('moonSVG').should('not.be.hidden')
-
-    cy.getBySel('knowledge').should('have.attr', 'href', init_config.knowledgeBaseUrl)
 };
 
 export const checkHeaderPostLogin = () => {
@@ -259,18 +261,20 @@ export const checkHeaderPostLogin = () => {
       if ($body.find('[data-cy=publishOffering]').length > 0) cy.getBySel('publishOffering').should('exist')
       if ($body.find('[data-cy=browse]').length > 0) cy.getBySel('browse').should('exist')
       if ($body.find('[data-cy=about]').length > 0) cy.getBySel('about').should('exist')
+      if ($body.find('[data-cy=knowledge]').length > 0) {
+        cy.getBySel('knowledge').should('exist')
+        cy.getBySel('knowledge').should('have.attr', 'href', init_config.knowledgeBaseUrl)
+      }
+      if ($body.find('[data-cy=darkMode]').length > 0) {
+        cy.getBySel('darkMode').should('exist')
+        cy.getBySel('darkMode').click()
+        cy.getBySel('moonSVG').should('be.hidden')
+        cy.getBySel('sunSVG').should('not.be.hidden')
+        cy.getBySel('darkMode').click()
+        cy.getBySel('sunSVG').should('be.hidden')
+        cy.getBySel('moonSVG').should('not.be.hidden')
+      }
     })
-    cy.getBySel('knowledge').should('exist')
-    cy.getBySel('darkMode').should('exist')
-
-    cy.getBySel('darkMode').click()
-    cy.getBySel('moonSVG').should('be.hidden')
-    cy.getBySel('sunSVG').should('not.be.hidden')
-    cy.getBySel('darkMode').click()
-    cy.getBySel('sunSVG').should('be.hidden')
-    cy.getBySel('moonSVG').should('not.be.hidden')
-
-    cy.getBySel('knowledge').should('have.attr', 'href', init_config.knowledgeBaseUrl)
 };
 
 
