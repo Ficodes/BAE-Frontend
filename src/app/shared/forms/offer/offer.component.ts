@@ -458,6 +458,7 @@ export class OfferComponent implements OnInit, OnDestroy{
     console.log(component)
     let priceComp: ProductOfferingPrice = {
       name: component.name,
+      isBundle: false,
       description: component.description ?? component?.newValue.description,
       lifecycleStatus: component?.lifecycleStatus ?? component?.newValue?.lifecycleStatus ?? 'Active',
       priceType: component.priceType ?? component?.newValue?.priceType,
@@ -515,6 +516,7 @@ export class OfferComponent implements OnInit, OnDestroy{
     console.log('------')
     let priceComp: ProductOfferingPrice = {
       name: component.newValue.name,
+      isBundle: false,
       description: component.newValue.description,
       lifecycleStatus: component.newValue.lifecycleStatus,
       priceType: component.newValue.priceType,
