@@ -16,7 +16,8 @@
             @if (link.children?.length) {
             <button type="button"
               class="inline-flex items-center gap-2 text-[15px] font-semibold text-white/90 hover:text-white transition-colors"
-              [id]="link.id" [attr.data-dropdown-toggle]="link.id + 'Menu'">
+              [id]="link.id" [attr.data-dropdown-toggle]="link.id + 'Menu'"
+              [attr.data-cy]="(link.id === 'searchDropdown' || link.id === 'dropdown-marketplace') ? 'browse' : null">
               {{ link.label | translate }}
               <span class="inline-block opacity-80">▾</span>
             </button>
