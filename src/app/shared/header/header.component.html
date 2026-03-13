@@ -32,7 +32,9 @@
                     {{ childLink.label | translate }}
                   </a>
                   } @else {
-                  <button type="button" class="dropdown-item text-left" (click)="goTo(childLink.url!, link.url!)">
+                  <button type="button" class="dropdown-item text-left"
+                    [attr.data-cy]="childLink.url === '/search' ? 'browseServices' : childLink.url === '/catalogues' ? 'browseCatalogs' : null"
+                    (click)="goTo(childLink.url!, link.url!)">
                     {{ childLink.label | translate }}
                   </button>
                   }
