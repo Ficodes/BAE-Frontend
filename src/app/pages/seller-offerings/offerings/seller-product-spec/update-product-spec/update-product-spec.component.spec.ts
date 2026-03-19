@@ -486,6 +486,51 @@ describe('UpdateProductSpecComponent', () => {
     expect(component.prodChars[0].id).toBe('urn:ngsi-ld:characteristic:platinum-id');
   });
 
+  it('hasUnsavedComplianceProfileChanges should return false when compliance profile matches persisted data', () => {
+    component.prod = {
+      ...component.prod,
+      productSpecCharacteristic: [
+        {
+          id: 'urn:ngsi-ld:characteristic:self-att',
+          name: 'Compliance:SelfAtt',
+          productSpecCharacteristicValue: [{ isDefault: true, value: 'https://self-attestation.pdf' }]
+        },
+        {
+          id: 'urn:ngsi-ld:characteristic:custom-cert',
+          name: 'Compliance:CustomCert',
+          productSpecCharacteristicValue: [{ isDefault: true, value: 'https://custom-cert.pdf' }]
+        }
+      ]
+    } as any;
+
+    component.populateProductInfo();
+
+    expect(component.hasUnsavedComplianceProfileChanges()).toBeFalse();
+  });
+
+  it('hasUnsavedComplianceProfileChanges should return true when compliance profile changes without update', () => {
+    component.prod = {
+      ...component.prod,
+      productSpecCharacteristic: [
+        {
+          id: 'urn:ngsi-ld:characteristic:self-att',
+          name: 'Compliance:SelfAtt',
+          productSpecCharacteristicValue: [{ isDefault: true, value: 'https://self-attestation.pdf' }]
+        },
+        {
+          id: 'urn:ngsi-ld:characteristic:custom-cert',
+          name: 'Compliance:CustomCert',
+          productSpecCharacteristicValue: [{ isDefault: true, value: 'https://custom-cert.pdf' }]
+        }
+      ]
+    } as any;
+
+    component.populateProductInfo();
+    component.additionalISOS[0].url = 'https://custom-cert-updated.pdf';
+
+    expect(component.hasUnsavedComplianceProfileChanges()).toBeTrue();
+  });
+
   it('setProductData should preserve selected ISO ids', () => {
     component.finishChars = [];
     component.prodChars = [];
@@ -527,6 +572,64 @@ describe('UpdateProductSpecComponent', () => {
       (item: any) => item.name === 'Compliance:VC'
     );
     expect(vcChar?.id).toBe('urn:ngsi-ld:characteristic:vc-id');
+  });
+
+  it('setProductData should include self attestation when it is only present in selfAtt state', () => {
+    component.finishChars = [];
+    component.prodChars = [];
+    component.selfAtt = {
+      id: 'urn:ngsi-ld:characteristic:self-att-id',
+      name: 'Compliance:SelfAtt',
+      productSpecCharacteristicValue: [{ isDefault: true, value: 'https://self-attestation.pdf' }]
+    };
+    component.generalForm.patchValue({
+      name: 'My Product',
+      version: '1.0',
+      brand: 'Brand',
+      description: '',
+      number: ''
+    });
+
+    component.setProductData();
+
+    const selfAttChar = component.productSpecToUpdate?.productSpecCharacteristic?.find(
+      (item: any) => item.name === 'Compliance:SelfAtt'
+    );
+    expect(selfAttChar).toBeDefined();
+    expect(selfAttChar?.id).toBe('urn:ngsi-ld:characteristic:self-att-id');
+    expect((selfAttChar as any)?.productSpecCharacteristicValue?.[0]?.value).toBe('https://self-attestation.pdf');
+  });
+
+  it('setProductData should overwrite stale self attestation value from prodChars with latest selfAtt state', () => {
+    component.finishChars = [];
+    component.prodChars = [
+      {
+        id: 'urn:ngsi-ld:characteristic:self-att-old',
+        name: 'Compliance:SelfAtt',
+        productSpecCharacteristicValue: [{ isDefault: true, value: 'https://old-self-attestation.pdf' }]
+      } as any
+    ];
+    component.selfAtt = {
+      id: 'urn:ngsi-ld:characteristic:self-att-new',
+      name: 'Compliance:SelfAtt',
+      productSpecCharacteristicValue: [{ isDefault: true, value: 'https://new-self-attestation.pdf' }]
+    };
+    component.generalForm.patchValue({
+      name: 'My Product',
+      version: '1.0',
+      brand: 'Brand',
+      description: '',
+      number: ''
+    });
+
+    component.setProductData();
+
+    const selfAttChars = component.productSpecToUpdate?.productSpecCharacteristic?.filter(
+      (item: any) => item.name === 'Compliance:SelfAtt'
+    ) ?? [];
+    expect(selfAttChars.length).toBe(1);
+    expect(selfAttChars[0].id).toBe('urn:ngsi-ld:characteristic:self-att-new');
+    expect((selfAttChars[0] as any)?.productSpecCharacteristicValue?.[0]?.value).toBe('https://new-self-attestation.pdf');
   });
 
   it('toggleResource should reset resource pagination and request first page', () => {

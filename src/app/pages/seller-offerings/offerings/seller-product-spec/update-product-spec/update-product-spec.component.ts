@@ -117,11 +117,13 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   complianceVC:any = null;
   complianceVCId:string = '';
   showUploadFile:boolean=false;
+  showRequestValidationModal:boolean=false;
   selfAtt:any;
   checkExistingSelfAtt:boolean=false;
   showUploadAtt:boolean=false;
   isoToCreate:string='';
   showCert:boolean=false;
+  initialComplianceEvidenceSignature:string='';
 
   //SERVICE INFO:
   serviceSpecPage=0;
@@ -360,7 +362,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
           });
           this.availableISOS.splice(index, 1);
         } else if (this.prod.productSpecCharacteristic[i].name == 'Compliance:SelfAtt') {
-          this.selfAtt=this.prod.productSpecCharacteristic[i]
+          this.selfAtt = JSON.parse(JSON.stringify(this.prod.productSpecCharacteristic[i]));
           this.checkExistingSelfAtt=true;
         } else if(this.prod.productSpecCharacteristic[i].name.startsWith('Compliance:')){
           console.log('--- additional isos')
@@ -379,6 +381,8 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       console.log('API PROD ISOS')
       console.log(this.prod.productSpecCharacteristic)
     }
+    // Baseline must reflect the loaded form representation to avoid false positives.
+    this.initialComplianceEvidenceSignature = this.getCurrentComplianceEvidenceSignature();
 
     //CHARS
     if(this.prod.productSpecCharacteristic){
@@ -662,6 +666,26 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       //this.verifiedISO[sel.name] = data.vc
       console.log(`We got the vc: ${data['vc']}`)
     })
+  }
+
+  openRequestValidationModal() {
+    this.showRequestValidationModal = true;
+  }
+
+  closeRequestValidationModal() {
+    this.showRequestValidationModal = false;
+  }
+
+  hasSelfAttestation(): boolean {
+    const selfAttestationValue = this.selfAtt?.productSpecCharacteristicValue?.[0]?.value;
+    if (typeof selfAttestationValue === 'string') {
+      return selfAttestationValue.trim() !== '';
+    }
+    return !!selfAttestationValue;
+  }
+
+  hasUnsavedComplianceProfileChanges(): boolean {
+    return this.getCurrentComplianceEvidenceSignature() !== this.initialComplianceEvidenceSignature;
   }
 
   isVerified(sel: any) {
@@ -1609,6 +1633,33 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
       console.log(this.finishChars)
     }
 
+    // Always merge latest self attestation from compliance step state.
+    if (this.hasSelfAttestation()) {
+      const selfAttName = 'Compliance:SelfAtt';
+      const selfAttValue = this.selfAtt?.productSpecCharacteristicValue?.[0]?.value;
+      const selfAttIndex = this.finishChars.findIndex(item => item.name === selfAttName);
+      const selfAttId = this.selfAtt?.id
+        ? this.selfAtt.id
+        : (selfAttIndex !== -1 && this.finishChars[selfAttIndex]?.id
+          ? this.finishChars[selfAttIndex].id
+          : `urn:ngsi-ld:characteristic:${uuidv4()}`);
+
+      const selfAttestationCharacteristic = {
+        id: selfAttId,
+        name: selfAttName,
+        productSpecCharacteristicValue: [{
+          isDefault: true,
+          value: selfAttValue
+        }]
+      } as ProductSpecificationCharacteristic;
+
+      if (selfAttIndex === -1) {
+        this.finishChars.push(selfAttestationCharacteristic);
+      } else {
+        this.finishChars[selfAttIndex] = selfAttestationCharacteristic;
+      }
+    }
+
     // Load compliance VCs
     if(this.complianceVC != null) {
       this.finishChars.push({
@@ -1869,6 +1920,57 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
 
   normalizeName(name?: string): string {
     return name?.replace(/compliance:/i, '').trim() ?? '';
-  }  
+  }
+
+  private getCurrentComplianceEvidenceSignature(): string {
+    const entries: string[] = [];
+
+    const selfAttValue = this.normalizeComplianceValue(this.selfAtt?.productSpecCharacteristicValue?.[0]?.value);
+    if (selfAttValue) {
+      entries.push(this.toComplianceEntrySignature('Compliance:SelfAtt', selfAttValue));
+    }
+
+    for (const certification of this.selectedISOS) {
+      const name = this.normalizeComplianceName(certification?.name);
+      if (!name) {
+        continue;
+      }
+      const value = this.normalizeComplianceValue(certification?.url);
+      entries.push(this.toComplianceEntrySignature(name, value));
+    }
+
+    for (const certification of this.additionalISOS) {
+      const name = this.normalizeComplianceName(certification?.name);
+      if (!name) {
+        continue;
+      }
+      const value = this.normalizeComplianceValue(certification?.url);
+      entries.push(this.toComplianceEntrySignature(name, value));
+    }
+
+    return entries.sort().join('|');
+  }
+
+  private normalizeComplianceName(name: any): string {
+    const normalizedName = this.normalizeComplianceValue(name);
+    if (!normalizedName) {
+      return '';
+    }
+    if (normalizedName.toLowerCase().startsWith('compliance:')) {
+      return normalizedName;
+    }
+    return `Compliance:${normalizedName}`;
+  }
+
+  private normalizeComplianceValue(value: any): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+    return String(value).trim();
+  }
+
+  private toComplianceEntrySignature(name: string, value: string): string {
+    return `${name.toLowerCase()}::${value}`;
+  }
 
 }
