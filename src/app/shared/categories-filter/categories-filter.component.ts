@@ -39,9 +39,8 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
   // AI Search facets
   aiSearchEnabled = environment.AI_SEARCH_ENABLED;
   aiFacets: Record<string, Record<string | number, number>> = {};
-  aiFacetCategories: Category[] = [];
-  originalCategories: Category[] = []; // Store original categories from API
-  aiSearchPerformed: boolean = false; // Track if AI search has been performed
+  dynamicAiCategories: Category[] = [];
+  configuredAiCategories: Category[] = [];
 
   protected readonly faCircleCheck = faCircleCheck;
   protected readonly faCircle = faCircle;
@@ -70,14 +69,16 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
           }
         } else if(ev.type === 'AiSearchFacets' && this.aiSearchEnabled){
           const facets = ev.value as Record<string, Record<string | number, number>>;
-          if (facets && Object.keys(facets).length > 0 && !this.aiSearchPerformed) {
-            this.aiSearchPerformed = true;
-            this.aiFacets = facets;
-            this.updateAiFacetCategories();
-            this.cdr.detectChanges();
-          }
+          this.aiFacets = facets || {};
+          this.updateAiFacetCategories();
+          this.cdr.detectChanges();
         } else if(ev.type === 'AiSearchCleared' && this.aiSearchEnabled){
-          this.restoreOriginalCategories();
+          this.aiFacets = {};
+          this.categories = [
+            ...this.cloneCategories(this.dynamicAiCategories),
+            ...this.cloneCategories(this.configuredAiCategories)
+          ];
+          initFlowbite();
           this.cdr.detectChanges();
         }
       })
@@ -90,40 +91,21 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
     }
 
     if (this.aiSearchEnabled) {
-      this.categories = this.convertFiltersToCategories(availableFilters);
-      this.originalCategories = [...this.categories];
+      await this.loadCatalogCategories();
+      this.dynamicAiCategories = this.convertDynamicCategoriesToAiFilterCategories(this.categories);
+      this.configuredAiCategories = this.convertFiltersToCategories(availableFilters);
+      this.categories = [
+        ...this.cloneCategories(this.dynamicAiCategories),
+        ...this.cloneCategories(this.configuredAiCategories)
+      ];
       this.cdr.detectChanges();
       initFlowbite();
       return;
     }
 
-    if(this.catalogId!=undefined){
-      let data = await this.api.getCatalog(this.catalogId);
-      if(data.category){
-        for (let i=0; i<data.category.length; i++){
-          let categoryInfo = await this.api.getCategoryById(data.category[i].id)
-          await this.findChildrenByParent(categoryInfo);
-        }
-        this.originalCategories = [...this.categories];
-        initFlowbite();
-      } else {
-        let launched = await this.api.getLaunchedCategories()
-          for(let i=0; i < launched.length; i++){
-            this.findChildren(launched[i],launched)
-          }
-          this.originalCategories = [...this.categories];
-          this.cdr.detectChanges();
-          initFlowbite();
-      }
-    } else {
-      let data = await this.api.getLaunchedCategories()
-      for(let i=0; i < data.length; i++){
-        this.findChildren(data[i],data)
-      }
-      this.originalCategories = [...this.categories];
-      this.cdr.detectChanges();
-      initFlowbite();
-    }
+    await this.loadCatalogCategories();
+    this.cdr.detectChanges();
+    initFlowbite();
   }
 
   ngAfterViewInit() {
@@ -300,40 +282,207 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
   }
 
   private updateAiFacetCategories(): void {
-    if (this.originalCategories.length === 0) {
-      return;
-    }
-
-    this.categories = this.originalCategories.map(rootCat => {
-      const facetKey = rootCat.id; // e.g. 'technical_approach'
-      const facetData = this.aiFacets[facetKey || ''] || {};
-
-      return {
-        ...rootCat,
-        children: this.applyFacetCounts(rootCat.children || [], facetData, facetKey || '')
-      };
-    });
+    const dynamicWithCounts = this.applyFacetCountsToDynamicCategories(this.dynamicAiCategories, this.aiFacets);
+    const configuredWithCounts = this.applyFacetCountsToConfiguredCategories(this.configuredAiCategories, this.aiFacets);
+    this.categories = [...dynamicWithCounts, ...configuredWithCounts];
 
     initFlowbite();
   }
 
-  private applyFacetCounts(children: Category[], facetData: Record<string | number, number>, rootFilterKey: string): Category[] {
-    const result: Category[] = [];
-    for (const child of children) {
-      const count = facetData[child.name] ?? 0;
-      const updatedChildren = child.children && child.children.length > 0
-        ? this.applyFacetCounts(child.children, facetData, rootFilterKey)
-        : [];
+  private applyFacetCountsToDynamicCategories(
+    dynamicRoots: Category[],
+    facets: Record<string, Record<string | number, number>>
+  ): Category[] {
+    return (dynamicRoots || []).map(root => {
+      const rootFacetData = this.getFacetDataForDynamicRoot(root, facets);
+      return this.applyDynamicCategoryCounts(root, rootFacetData, facets);
+    });
+  }
 
-      if (count > 0 || updatedChildren.length > 0) {
-        result.push({
-          ...child,
-          count: count > 0 ? count : child.count,
-          children: updatedChildren
-        });
+  private getFacetDataForDynamicRoot(
+    root: Category,
+    facets: Record<string, Record<string | number, number>>
+  ): Record<string | number, number> {
+    const candidates = [
+      String(root.id || ''),
+      this.toAiFacetKey(root.name || ''),
+      String(root.name || '')
+    ].filter(Boolean);
+
+    for (const key of candidates) {
+      if (facets?.[key]) {
+        return facets[key];
       }
     }
-    return result;
+
+    return {};
+  }
+
+  private applyDynamicCategoryCounts(
+    category: Category,
+    rootFacetData: Record<string | number, number>,
+    facets: Record<string, Record<string | number, number>>
+  ): Category {
+    const children = (category.children || []).map(child => this.applyDynamicCategoryCounts(child, rootFacetData, facets));
+    const count = this.resolveDynamicCategoryCount(category, rootFacetData, facets);
+
+    return {
+      ...category,
+      count: typeof count === 'number' && Number.isFinite(count) && count > 0 ? count : undefined,
+      children
+    };
+  }
+
+  private resolveDynamicCategoryCount(
+    category: Category,
+    rootFacetData: Record<string | number, number>,
+    facets: Record<string, Record<string | number, number>>
+  ): number | undefined {
+    const localCount = this.readCountFromFacetMap(rootFacetData, category.name, category.id);
+    if (Number.isFinite(localCount) && (localCount as number) > 0) {
+      return localCount;
+    }
+
+    const selfFacetMap = facets?.[String(category.id || '')] || facets?.[String(category.name || '')];
+    if (selfFacetMap && typeof selfFacetMap === 'object') {
+      const selfFacetTotal = this.sumFacetCounts(selfFacetMap);
+      if (selfFacetTotal > 0) {
+        return selfFacetTotal;
+      }
+    }
+
+    const globalCount = this.findGlobalFacetCount(category, facets);
+    if (globalCount > 0) {
+      return globalCount;
+    }
+
+    return undefined;
+  }
+
+  private readCountFromFacetMap(
+    facetMap: Record<string | number, number> | undefined,
+    categoryName?: string,
+    categoryId?: string
+  ): number | undefined {
+    if (!facetMap) {
+      return undefined;
+    }
+
+    const byName = categoryName !== undefined ? Number(facetMap[categoryName]) : NaN;
+    if (Number.isFinite(byName) && byName > 0) {
+      return byName;
+    }
+
+    const byId = categoryId !== undefined ? Number(facetMap[categoryId]) : NaN;
+    if (Number.isFinite(byId) && byId > 0) {
+      return byId;
+    }
+
+    return undefined;
+  }
+
+  private findGlobalFacetCount(
+    category: Category,
+    facets: Record<string, Record<string | number, number>>
+  ): number {
+    let total = 0;
+    for (const facetMap of Object.values(facets || {})) {
+      const count = this.readCountFromFacetMap(facetMap, category.name, category.id);
+      if (count && count > 0) {
+        total += count;
+      }
+    }
+    return total;
+  }
+
+  private sumFacetCounts(facetMap: Record<string | number, number>): number {
+    return Object.values(facetMap || {}).reduce((sum, value) => {
+      const numericValue = Number(value);
+      return Number.isFinite(numericValue) && numericValue > 0 ? sum + numericValue : sum;
+    }, 0);
+  }
+
+  private applyFacetCountsToConfiguredCategories(
+    configuredRoots: Category[],
+    facets: Record<string, Record<string | number, number>>
+  ): Category[] {
+    return (configuredRoots || []).map(root => {
+      const facetKey = String(root.id || '');
+      const facetData = facets?.[facetKey] || {};
+
+      return {
+        ...root,
+        children: this.applyFacetCountsRecursively(root.children || [], facetData)
+      };
+    });
+  }
+
+  private applyFacetCountsRecursively(
+    categories: Category[],
+    facetData: Record<string | number, number>
+  ): Category[] {
+    return (categories || []).map(category => {
+      const children = this.applyFacetCountsRecursively(category.children || [], facetData);
+      const rawCount = facetData[category.name];
+      const count = Number(rawCount);
+
+      return {
+        ...category,
+        count: Number.isFinite(count) && count > 0 ? count : undefined,
+        children
+      };
+    });
+  }
+
+  private cloneCategories(categories: Category[]): Category[] {
+    return (categories || []).map(category => ({
+      ...category,
+      children: this.cloneCategories(category.children || [])
+    }));
+  }
+
+  private convertDynamicCategoriesToAiFilterCategories(categories: Category[]): Category[] {
+    return (categories || []).map(rootCategory => {
+      const rootKey = this.toAiFacetKey(rootCategory.name || '');
+      return this.convertDynamicCategoryNode(rootCategory, rootKey, true);
+    });
+  }
+
+  private convertDynamicCategoryNode(category: Category, rootKey: string, isRoot: boolean): Category {
+    const nodeId = isRoot ? rootKey : `${rootKey}::${category.name}`;
+
+    return {
+      ...category,
+      id: nodeId,
+      sanitizedId: isRoot
+        ? this.sanitizeIdForCss(rootKey)
+        : `${this.sanitizeIdForCss(rootKey)}-${this.sanitizeIdForCss(category.name || '')}`,
+      children: (category.children || []).map(child => this.convertDynamicCategoryNode(child, rootKey, false))
+    };
+  }
+
+  private async loadCatalogCategories(): Promise<void> {
+    this.categories = [];
+
+    if(this.catalogId!=undefined){
+      let data = await this.api.getCatalog(this.catalogId);
+      if(data.category){
+        for (let i=0; i<data.category.length; i++){
+          let categoryInfo = await this.api.getCategoryById(data.category[i].id)
+          await this.findChildrenByParent(categoryInfo);
+        }
+      } else {
+        let launched = await this.api.getLaunchedCategories()
+        for(let i=0; i < launched.length; i++){
+          this.findChildren(launched[i],launched)
+        }
+      }
+    } else {
+      let data = await this.api.getLaunchedCategories()
+      for(let i=0; i < data.length; i++){
+        this.findChildren(data[i],data)
+      }
+    }
   }
 
   private formatFacetName(key: string): string {
@@ -343,16 +492,6 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
       .join(' ');
   }
 
-  private restoreOriginalCategories(): void {
-    if (this.originalCategories.length > 0) {
-      this.categories = [...this.originalCategories];
-      this.aiSearchPerformed = false;
-      this.aiFacetCategories = [];
-      this.aiFacets = {};
-      initFlowbite();
-    }
-  }
-
   private convertFiltersToCategories(filters: Filter[]): Category[] {
     return filters.map(filter => this.convertFilterToCategory(filter, true, filter.name));
   }
@@ -360,14 +499,14 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
   private convertFilterToCategory(filter: Filter, isRoot: boolean = false, rootFilterName?: string): Category {
     const filterKey = rootFilterName || filter.name;
     const sanitizedId = this.sanitizeIdForCss(filter.name);
-    const category: Category = {
+
+    return {
       id: isRoot ? filter.name : `${filterKey}::${filter.name}`,
       name: isRoot ? this.formatFacetName(filter.name) : filter.name,
-      isRoot: isRoot,
-      children: filter.children ? filter.children.map(child => this.convertFilterToCategory(child, false, filterKey)) : [],
+      isRoot,
+      children: (filter.children || []).map(child => this.convertFilterToCategory(child, false, filterKey)),
       sanitizedId: isRoot ? sanitizedId : `${this.sanitizeIdForCss(filterKey)}-${sanitizedId}`
     };
-    return category;
   }
 
   private sanitizeIdForCss(str: string): string {
@@ -376,6 +515,16 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
       .replace(/[()]/g, '')
       .replace(/[^a-zA-Z0-9_-]/g, '')
       .toLowerCase();
+  }
+
+  private toAiFacetKey(value: string): string {
+    return (value || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '_')
+      .replace(/[^a-z0-9_]/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_+|_+$/g, '');
   }
 
 }
