@@ -101,74 +101,44 @@ export class CreateCategoryComponent implements OnInit, OnDestroy {
         this.partyId = loggedOrg.partyId
       }
     }
-    this.getCategories();
+    void this.getCategories();
   }
 
   goBack() {
     this.eventMessage.emitAdminCategories(true);
   }
 
-  getCategories(){
+  async getCategories(){
     console.log('Getting categories...')
-    this.api.getLaunchedCategories().then(data => {      
-      for(let i=0; i < data.length; i++){
-        this.findChildren(data[i],data);
-        this.unformattedCategories.push(data[i]);
-      }
-      this.loading=false;
-      this.cdr.detectChanges();
-      initFlowbite();
-    }) 
+    this.loading = true;
+    this.categories = [];
+    this.unformattedCategories = [];
+
+    const rootCategories = await this.api.getDefaultCategories().catch(() => []);
+    const roots = Array.isArray(rootCategories) ? rootCategories : [];
+
+    this.unformattedCategories = [...roots];
+    const categoryTrees = await Promise.all(
+      roots.map((root: any) => this.loadCategorySubtree(root))
+    );
+
+    this.categories = categoryTrees.filter(Boolean);
+    this.loading=false;
+    this.cdr.detectChanges();
+    initFlowbite();
   }
 
-  findChildren(parent:any,data:any[]){
-    let childs = data.filter((p => p.parentId === parent.id));
-    parent["children"] = childs;
-    if(parent.isRoot == true){
-      this.categories.push(parent)
-    } else {
-      this.saveChildren(this.categories,parent)
-    }
-    if(childs.length != 0){
-      for(let i=0; i < childs.length; i++){
-        this.findChildren(childs[i],data)
-      }
-    }
-  }
+  private async loadCategorySubtree(parent:any): Promise<any> {
+    const children = await this.api.getCategoriesByParentId(parent.id).catch(() => []);
+    const childList = Array.isArray(children) ? children : [];
+    const resolvedChildren = await Promise.all(
+      childList.map((child: any) => this.loadCategorySubtree(child))
+    );
 
-  findChildrenByParent(parent:any){
-    let childs: any[] = []
-    this.api.getCategoriesByParentId(parent.id).then(c => {
-      childs=c;
-      parent["children"] = childs;
-      if(parent.isRoot == true){
-        this.categories.push(parent)
-      } else {
-        this.saveChildren(this.categories,parent)
-      }
-      if(childs.length != 0){
-        for(let i=0; i < childs.length; i++){
-          this.findChildrenByParent(childs[i])
-        }
-      }
-      initFlowbite();
-    })
-
-  }
-
-  saveChildren(superCategories:any[],parent:any){
-    for(let i=0; i < superCategories.length; i++){
-      let children = superCategories[i].children;
-      if (children != undefined){
-        let check = children.find((element: { id: any; }) => element.id == parent.id) 
-        if (check != undefined) {
-          let idx = children.findIndex((element: { id: any; }) => element.id == parent.id)
-          children[idx] = parent
-          superCategories[i].children = children         
-        }
-        this.saveChildren(children,parent)
-      }          
-    }
+    return {
+      ...parent,
+      children: resolvedChildren
+    };
   }
 
   toggleGeneral(){

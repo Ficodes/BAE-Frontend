@@ -106,7 +106,7 @@ export class UpdateCategoryComponent implements OnInit, OnDestroy {
         this.partyId = loggedOrg.partyId
       }
     }
-    this.getCategories();
+    void this.getCategories();
     this.populateCatInfo();
   }
 
@@ -130,75 +130,74 @@ export class UpdateCategoryComponent implements OnInit, OnDestroy {
     this.eventMessage.emitAdminCategories(true);
   }
 
-  getCategories(){
+  async getCategories(){
     console.log('Getting categories...')
-    this.api.getLaunchedCategories().then(data => {      
-      for(let i=0; i < data.length; i++){
-        this.findChildren(data[i],data);
-        this.unformattedCategories.push(data[i]);
-      }
-      this.loading=false;
-      if(this.category.isRoot==false){
-        const index = this.categories.findIndex(item => item.id === this.category.parentId);
-        if (index !== -1) {
-          this.selectedCategory=this.categories[index]
-          this.selected=[]
-          this.selected.push(this.selectedCategory)
-        }
-      }
-      this.cdr.detectChanges();
-      initFlowbite();
-    }) 
-  }
+    this.loading = true;
+    this.categories = [];
+    this.unformattedCategories = [];
 
-  findChildren(parent:any,data:any[]){
-    let childs = data.filter((p => p.parentId === parent.id));
-    parent["children"] = childs;
-    if(parent.isRoot == true){
-      this.categories.push(parent)
-    } else {
-      this.saveChildren(this.categories,parent)
-    }
-    if(childs.length != 0){
-      for(let i=0; i < childs.length; i++){
-        this.findChildren(childs[i],data)
+    const rootCategories = await this.api.getDefaultCategories().catch(() => []);
+    const roots = Array.isArray(rootCategories) ? rootCategories : [];
+
+    this.unformattedCategories = [...roots];
+    const categoryTrees = await Promise.all(
+      roots.map((root: any) => this.loadCategorySubtree(root))
+    );
+
+    this.categories = this.removeCategoryFromTree(
+      categoryTrees.filter(Boolean),
+      this.category?.id
+    );
+    this.loading=false;
+
+    if(this.category.isRoot==false){
+      const parentCategory = this.findCategoryById(this.categories, this.category.parentId);
+      if (parentCategory) {
+        this.selectedCategory = parentCategory;
+        this.selected = [parentCategory];
       }
     }
+    this.cdr.detectChanges();
+    initFlowbite();
   }
 
-  findChildrenByParent(parent:any){
-    let childs: any[] = []
-    this.api.getCategoriesByParentId(parent.id).then(c => {
-      childs=c;
-      parent["children"] = childs;
-      if(parent.isRoot == true){
-        this.categories.push(parent)
-      } else {
-        this.saveChildren(this.categories,parent)
-      }
-      if(childs.length != 0){
-        for(let i=0; i < childs.length; i++){
-          this.findChildrenByParent(childs[i])
-        }
-      }
-      initFlowbite();
-    })
+  private async loadCategorySubtree(parent:any): Promise<any> {
+    const children = await this.api.getCategoriesByParentId(parent.id).catch(() => []);
+    const childList = Array.isArray(children) ? children : [];
+    const resolvedChildren = await Promise.all(
+      childList.map((child: any) => this.loadCategorySubtree(child))
+    );
 
+    return {
+      ...parent,
+      children: resolvedChildren
+    };
   }
 
-  saveChildren(superCategories:any[],parent:any) {
-    for(let i=0; i < superCategories.length; i++){
-      let children = superCategories[i].children;
-      if (children != undefined){
-        let check = children.find((element: { id: any; }) => element.id == parent.id) 
-        if (check != undefined) {
-          let idx = children.findIndex((element: { id: any; }) => element.id == parent.id)
-          children[idx] = parent
-          superCategories[i].children = children         
-        }
-        this.saveChildren(children,parent)
+  private findCategoryById(categories: any[], categoryId: string): any | undefined {
+    for (const category of categories || []) {
+      if (category?.id === categoryId) {
+        return category;
+      }
+      const foundInChildren = this.findCategoryById(category?.children || [], categoryId);
+      if (foundInChildren) {
+        return foundInChildren;
       }
     }
+    return undefined;
+  }
+
+  private removeCategoryFromTree(categories: any[], categoryId: string): any[] {
+    if (!categoryId) {
+      return categories || [];
+    }
+
+    return (categories || [])
+      .filter((category) => category?.id !== categoryId)
+      .map((category) => ({
+        ...category,
+        children: this.removeCategoryFromTree(category?.children || [], categoryId)
+      }));
   }
 
   toggleGeneral() {
