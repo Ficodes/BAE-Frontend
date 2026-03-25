@@ -132,25 +132,6 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
     }
   }
 
-  async findChildrenByParent(parent:any){
-    let childs: any[] = []
-    let c = await this.api.getCategoriesByParentId(parent.id)
-      childs=c;
-      parent["children"] = childs;
-      if(parent.isRoot == true){
-        this.categories.push(parent)
-      } else {
-        this.saveChildren(this.categories,parent)
-      }
-      if(childs.length != 0){
-        for(let i=0; i < childs.length; i++){
-          await this.findChildrenByParent(childs[i])
-        }
-      }
-      initFlowbite();
-
-  }
-
   saveChildren(superCategories:any[],parent:any){
     for(let i=0; i < superCategories.length; i++){
       let children = superCategories[i].children;
@@ -463,26 +444,49 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
 
   private async loadCatalogCategories(): Promise<void> {
     this.categories = [];
+    const hasCatalogId = this.catalogId !== undefined && this.catalogId !== null && String(this.catalogId).trim() !== '';
 
-    if(this.catalogId!=undefined){
-      let data = await this.api.getCatalog(this.catalogId);
-      if(data.category){
-        for (let i=0; i<data.category.length; i++){
-          let categoryInfo = await this.api.getCategoryById(data.category[i].id)
-          await this.findChildrenByParent(categoryInfo);
-        }
-      } else {
-        let launched = await this.api.getLaunchedCategories()
-        for(let i=0; i < launched.length; i++){
-          this.findChildren(launched[i],launched)
-        }
-      }
-    } else {
-      let data = await this.api.getLaunchedCategories()
-      for(let i=0; i < data.length; i++){
-        this.findChildren(data[i],data)
+    if (hasCatalogId) {
+      const data = await this.api.getCatalog(this.catalogId).catch(() => null);
+      const catalogCategoryRefs: any[] = Array.isArray(data?.category) ? data.category : [];
+      if (catalogCategoryRefs.length > 0) {
+        const rootTrees = await Promise.all(
+          catalogCategoryRefs.map(async (categoryRef: any) => {
+            if (!categoryRef?.id) {
+              return null;
+            }
+            const rootCategory = await this.api.getCategoryById(categoryRef.id).catch(() => null);
+            const parentId = rootCategory?.parentId ? String(rootCategory.parentId) : '';
+            const isStrictRoot = !!rootCategory?.id && rootCategory.isRoot === true && !parentId;
+            if (!isStrictRoot) {
+              return null;
+            }
+            return this.loadCategorySubtree(rootCategory);
+          })
+        );
+        this.categories = rootTrees.filter((root): root is Category => root !== null);
+        return;
       }
     }
+
+    const launched = await this.api.getLaunchedCategories();
+    const launchedList = Array.isArray(launched) ? launched : [];
+    for (const category of launchedList) {
+      this.findChildren(category, launchedList);
+    }
+  }
+
+  private async loadCategorySubtree(parent: any): Promise<Category> {
+    const children = await this.api.getCategoriesByParentId(parent.id).catch(() => []);
+    const childList = Array.isArray(children) ? children : [];
+    const resolvedChildren = await Promise.all(
+      childList.map((child: any) => this.loadCategorySubtree(child))
+    );
+
+    return {
+      ...parent,
+      children: resolvedChildren
+    };
   }
 
   private formatFacetName(key: string): string {
