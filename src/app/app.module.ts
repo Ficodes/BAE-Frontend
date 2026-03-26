@@ -100,6 +100,7 @@ import { QuotesModule } from "src/app/features/quotes/quotes.module"
 import { MarkdownTextareaComponent } from "src/app/shared/forms/markdown-textarea/markdown-textarea.component"
 import { ProviderRevenueSharingComponent } from "src/app/pages/user-profile/profile-sections/provider-revenue-sharing/provider-revenue-sharing.component"
 import { OperatorRevenueSharingComponent } from "src/app/pages/admin/operator-revenue-sharing/operator-revenue-sharing.component"
+import { RequestValidationModalComponent } from './pages/seller-offerings/offerings/seller-product-spec/update-product-spec/request-validation-modal/request-validation-modal.component';
 
 @NgModule({
   declarations: [
@@ -162,7 +163,8 @@ import { OperatorRevenueSharingComponent } from "src/app/pages/admin/operator-re
     OrganizationDetailsComponent,
     FaqComponent,
     NewPricePlanComponent,
-    UpdatePricePlanComponent
+    UpdatePricePlanComponent,
+    RequestValidationModalComponent
   ],
     imports: [
         BrowserModule,
