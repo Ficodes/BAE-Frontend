@@ -26,6 +26,8 @@ type OrganizationUpdate = components["schemas"]["Organization_Update"];
   styleUrl: './org-info.component.css'
 })
 export class OrgInfoComponent implements OnInit, OnDestroy {
+  readonly isDataspaceEnabled: boolean = environment.DATA_SPACE_ENABLED;
+
   loading: boolean = false;
   orders:any[]=[];
   profile:any;
@@ -39,7 +41,9 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
     website: new FormControl(''),
     description: new FormControl(''),
     country: new FormControl('', [Validators.required]),
-    did: new FormControl(''),
+    contractManagementAddress: new FormControl(''),
+    contractManagementClientId: new FormControl(''),
+    contractManagementScopes: new FormControl(''),
   });
   mediumForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email, Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$'), Validators.maxLength(320)]),
@@ -215,10 +219,18 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
         value: this.profileForm.value.country
       })
     }
-    if(this.profileForm.value.did != ''){
+    const contractManagementAddress = this.profileForm.value.contractManagementAddress?.trim() ?? '';
+    const contractManagementClientId = this.profileForm.value.contractManagementClientId?.trim() ?? '';
+    const contractManagementScopes = this.parseContractManagementScopes(this.profileForm.value.contractManagementScopes);
+
+    if (this.isDataspaceEnabled && (contractManagementAddress !== '' || contractManagementClientId !== '' || contractManagementScopes.length > 0)) {
       chars.push({
-        name: 'did',
-        value: this.profileForm.value.did
+        name: 'contractManagement',
+        value: {
+          address: contractManagementAddress,
+          clientId: contractManagementClientId,
+          scope: contractManagementScopes
+        }
       })
     }
     for(let i=0; i<this.contactmediums.length; i++){
@@ -339,11 +351,39 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
           this.profileForm.controls['website'].setValue(profile.partyCharacteristic[i].value);
         } else if(profile.partyCharacteristic[i].name=='country') {
           this.profileForm.controls['country'].setValue(profile.partyCharacteristic[i].value);
-        } else if(profile.partyCharacteristic[i].name=='did') {
-          this.profileForm.controls['did'].setValue(profile.partyCharacteristic[i].value);
+        } else if(profile.partyCharacteristic[i].name=='contractManagement') {
+          const contractManagement = profile.partyCharacteristic[i].value ?? {};
+          this.profileForm.controls['contractManagementAddress'].setValue(contractManagement.address ?? '');
+          this.profileForm.controls['contractManagementClientId'].setValue(contractManagement.clientId ?? '');
+          this.profileForm.controls['contractManagementScopes'].setValue(this.formatContractManagementScopes(contractManagement.scope));
         }
       }
     }
+  }
+
+  private parseContractManagementScopes(scopes: string | null | undefined): string[] {
+    if (!scopes) {
+      return [];
+    }
+
+    return scopes
+      .split(',')
+      .map(scope => scope.trim())
+      .filter(scope => scope.length > 0);
+  }
+
+  private formatContractManagementScopes(scopes: unknown): string {
+    if (Array.isArray(scopes)) {
+      return scopes
+        .filter(scope => typeof scope === 'string')
+        .join(', ');
+    }
+
+    if (typeof scopes === 'string') {
+      return scopes;
+    }
+
+    return '';
   }
 
   saveMedium(){

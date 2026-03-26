@@ -3,7 +3,7 @@
     <div class="w-full h-fit mb-4 bg-secondary-50 rounded-lg dark:bg-secondary-100 dark:border-gray-800 border-gray-300 border-secondary-50 border flex flex-col shadow-lg">
       <div class="flex w-full flex-cols items-center md:flex-row justify-between">
         <div class="mb-4 lg:mb-0 lg:w-1/4 p-8">
-            <h2 class="text-2xl font-bold mb-4 dark:text-white">{{ 'OFFERINGS._prod_spec' | translate }}</h2>            
+            <h2 class="text-2xl font-bold mb-4 dark:text-white">{{ 'OFFERINGS._prod_spec' | translate }}</h2>
         </div>
 
         <div class="flex flex-row w-full justify-end">
@@ -14,7 +14,7 @@
                     <button type="submit" (click)="filterInventoryByKeywords()" class="absolute shadow top-0 end-0 inline-flex items-center p-2.5 text-sm font-medium h-full text-white bg-primary-100 rounded-e-lg hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300">
                         <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-                        </svg>                  
+                        </svg>
                         <span class="ml-2">{{ 'OFFERINGS._search' | translate }}</span>
                     </button>
                 </div>
@@ -25,7 +25,7 @@
                 <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                   <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
                 </svg>
-            </button>  
+            </button>
         </div>
 
       </div>
@@ -45,35 +45,35 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
             </svg>
             </button>
-            
+
             <div id="dropdown" class="z-20 hidden w-fit md:w-1/5 p-3 bg-white rounded-lg shadow dark:bg-secondary-200">
             <h6 class="mb-3 text-sm font-medium text-gray-900 dark:text-white">
                 {{ 'OFFERINGS._status' | translate }}
             </h6>
             <ul class="space-y-2 text-sm" aria-labelledby="dropdownDefault">
-  
+
                 <li class="flex items-center">
                 <input id="active" type="checkbox" value="" checked (change)="onStateFilterChange('Active')"
                     class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded text-primary-600 focus:ring-primary-100" />
-    
+
                 <label for="active" class="ml-2 text-sm font-medium text-gray-900 dark:text-white">
                     {{ 'OFFERINGS._active' | translate }}
                 </label>
                 </li>
-    
+
                 <li class="flex items-center">
                 <input id="launched" type="checkbox" value="" checked (change)="onStateFilterChange('Launched')"
                     class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded text-primary-600 focus:ring-primary-100" />
-    
+
                 <label for="launched" class="ml-2 text-sm font-medium text-gray-900 dark:text-white">
                     {{ 'OFFERINGS._launched' | translate }}
                 </label>
                 </li>
-    
+
                 <li class="flex items-center">
                 <input id="retired" type="checkbox" value="" (change)="onStateFilterChange('Retired')"
                     class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded text-primary-600 focus:ring-primary-100" />
-    
+
                 <label for="retired" class="ml-2 text-sm font-medium text-gray-900 dark:text-white">
                     {{ 'OFFERINGS._retired' | translate }}
                 </label>
@@ -82,14 +82,14 @@
                 <li class="flex items-center">
                   <input id="obsolete" type="checkbox" value="" (change)="onStateFilterChange('Obsolete')"
                       class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded text-primary-600 focus:ring-primary-100" />
-      
+
                   <label for="obsolete" class="ml-2 text-sm font-medium text-gray-900 dark:text-white">
                     {{ 'OFFERINGS._obsolete' | translate }}
                   </label>
                 </li>
             </ul>
           </div>
-      </div> 
+      </div>
 
 
       <!--<div class="p-8 w-full">
@@ -173,14 +173,14 @@
                             }
                         </td>
                         <td class="px-6 py-4  hidden md:table-cell">
-                            @if(prod.isBundle == false){
-                                <span class="bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{ 'OFFERINGS._simple' | translate }}</span>
+                            @if(prod.isBundle == true){
+                              <span class="bg-blue-100 dark:bg-secondary-300 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500">{{ 'OFFERINGS._bundle' | translate }}</span>
                             } @else {
-                                <span class="bg-blue-100 dark:bg-secondary-300 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500">{{ 'OFFERINGS._bundle' | translate }}</span>
+                              <span class="bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{ 'OFFERINGS._simple' | translate }}</span>
                             }
                         </td>
                         <td class="px-6 py-4 hidden lg:table-cell">
-                            {{prod.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}} 
+                            {{prod.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}}
                         </td>
                         <td class="px-6 py-4">
                             <button data-cy="productSpecEdit" type="button" (click)="goToUpdate(prod)" class="text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
@@ -192,7 +192,7 @@
                                 <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                     <path stroke="currentColor" stroke-width="2" d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"/>
                                     <path stroke="currentColor" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
-                                </svg>                                  
+                                </svg>
                             </button>-->
                         </td>
                     </tr>
