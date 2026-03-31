@@ -14,26 +14,10 @@ export interface ISendEmail {
 })
 export class ContactUsService {
   protected BASE_URL = environment.BASE_URL;
-  private debug = true;
 
   constructor(private http: HttpClient) { }
 
   sendEmail(form: IContactUs): Observable<ISendEmail> {
-    if (this.debug) {
-      return of({
-        form: {
-          firstName: "",
-          lastName: "",
-          email: "",
-          organization: "",
-          roleInOrganization: "",
-          message: "",
-          privacyAccepted: false,
-          marketingAccepted: false
-        }
-      }).pipe(delay(3000));
-    }
-
-    return this.http.post<ISendEmail>(`${this.BASE_URL}/to-do`, form);
+    return this.http.post<ISendEmail>(`${this.BASE_URL}/contact-us`, form);
   }
 }
