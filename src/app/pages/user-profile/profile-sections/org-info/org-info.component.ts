@@ -27,6 +27,7 @@ type OrganizationUpdate = components["schemas"]["Organization_Update"];
 })
 export class OrgInfoComponent implements OnInit, OnDestroy {
   readonly isDataspaceEnabled: boolean = environment.DATA_SPACE_ENABLED;
+  readonly isFederationEnabled: boolean = environment.FEDERATION_ENABLED;
 
   loading: boolean = false;
   orders:any[]=[];
@@ -42,6 +43,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
     description: new FormControl(''),
     country: new FormControl('', [Validators.required]),
     contractManagementAddress: new FormControl(''),
+    tmForumEndpoint: new FormControl(''),
     contractManagementClientId: new FormControl(''),
     contractManagementScopes: new FormControl(''),
   });
@@ -233,6 +235,13 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
         }
       })
     }
+    const tmForumEndpoint = this.profileForm.value.tmForumEndpoint?.trim() ?? '';
+    if (this.isFederationEnabled && tmForumEndpoint !== '') {
+      chars.push({
+        name: 'tmForumEndpoint',
+        value: tmForumEndpoint
+      });
+    }
     for(let i=0; i<this.contactmediums.length; i++){
       if(this.contactmediums[i].mediumType == 'Email'){
         mediums.push({
@@ -356,6 +365,8 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
           this.profileForm.controls['contractManagementAddress'].setValue(contractManagement.address ?? '');
           this.profileForm.controls['contractManagementClientId'].setValue(contractManagement.clientId ?? '');
           this.profileForm.controls['contractManagementScopes'].setValue(this.formatContractManagementScopes(contractManagement.scope));
+        } else if(profile.partyCharacteristic[i].name=='tmForumEndpoint') {
+          this.profileForm.controls['tmForumEndpoint'].setValue(profile.partyCharacteristic[i].value ?? '');
         }
       }
     }

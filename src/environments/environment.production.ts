@@ -69,6 +69,7 @@ export const environment = {
     DOME_X: 'https://x.com/DomeMarketplace',
     BUNDLE_ENABLED: false,
     DATA_SPACE_ENABLED: false,
+    FEDERATION_ENABLED: false,
     DFT_CATALOG_ID: '',
     MAX_FILE_SIZE:3145728,
     providerThemeName: 'default',
