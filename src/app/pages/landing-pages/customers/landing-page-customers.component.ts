@@ -1,4 +1,5 @@
 import { Component } from "@angular/core";
+import { environment } from "src/environments/environment";
 import { LandingCustomersBuyOptionsComponent } from './landing-customers-buy-options/landing-customers-buy-options.component';
 import { LandingCustomersFaqsComponent } from './landing-customers-faqs/landing-customers-faqs.component';
 import { LandingCustomersFinalCtaComponent } from './landing-customers-finalCta/landing-customers-finalCta.component';
@@ -16,5 +17,5 @@ import { LandingpageCustomersWhyJoinComponent } from "./landing-customers-whyJoi
   styleUrl: "./landing-page-customers.component.css"
 })
 export class LandingPageCustomersComponent {
-  ONBOARDING_CUSTOMERS_LINK = "https://onboard.sbx.evidenceledger.eu/register-customer";
+  ONBOARDING_CUSTOMERS_LINK = environment.DOME_CUSTOMER_REGISTER_LINK;
 }

@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { environment } from 'src/environments/environment';
 import { LandingPageProvidersFaqsComponent } from './landing-providers-faqs/landing-providers-faqs.component';
 import { LandingPageProvidersFitComponent } from './landing-providers-fit/landing-providers-fit.component';
 import { LandingPageProvidersGrowComponent } from './landing-providers-grow/landing-providers-grow.component';
@@ -16,7 +17,7 @@ import { LandingPageProvidersWhyComponent } from './landing-providers-why/landin
   styleUrl: "./landing-page-providers.component.css"
 })
 export class LandingPageProvidersComponent {
-  ONBOARDING_PROVIDERS_LINK = "https://onboard.sbx.evidenceledger.eu/register-provider";
+  ONBOARDING_PROVIDERS_LINK = environment.DOME_REGISTER_LINK;
 
   constructor() { }
 }
