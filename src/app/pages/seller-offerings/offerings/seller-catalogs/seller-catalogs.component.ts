@@ -30,6 +30,8 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
   nextCatalogs:Catalog[]=[];
   page:number=0;
   CATALOG_LIMIT: number = environment.CATALOG_LIMIT;
+  searchEnabled: boolean = environment.SEARCH_ENABLED;
+  federationEnabled: boolean = environment.FEDERATION_ENABLED;
   loading: boolean = false;
   loading_more: boolean = false;
   page_check:boolean = true;
@@ -85,17 +87,6 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
     }
 
     this.getCatalogs(false);
-    let input = document.querySelector('[type=search]')
-    if(input!=undefined){
-      input.addEventListener('input', e => {
-        // Easy way to get the value of the element who trigger the current `e` event
-        console.log(`Input updated`)
-        if(this.searchField.value==''){
-          this.filter=undefined;
-          this.getCatalogs(false);
-        }
-      });
-    }
     initFlowbite();
   }
 
@@ -130,8 +121,27 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
     await this.getCatalogs(true);
   }
 
-  filterInventoryByKeywords(){
+  filterInventoryByKeywords(event?: Event){
+    event?.preventDefault();
+    this.filter = this.searchField.value || undefined;
+    this.page = 0;
+    this.catalogs = [];
+    this.nextCatalogs = [];
+    this.getCatalogs(false);
+  }
 
+  onSearchInput() {
+    if(this.searchField.value == ''){
+      this.filter = undefined;
+      this.page = 0;
+      this.catalogs = [];
+      this.nextCatalogs = [];
+      this.getCatalogs(false);
+    }
+  }
+
+  onSearchEnter(event: Event){
+    this.filterInventoryByKeywords(event);
   }
 
   onStateFilterChange(filter:string){

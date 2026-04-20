@@ -26,6 +26,11 @@ export class ApiServiceService {
     return `${ApiServiceService.BASE_URL}${federationPrefix}${ApiServiceService.API_PRODUCT}`;
   }
 
+  private getCatalogListBasePath(): string {
+    const federationPrefix = environment.FEDERATION_ENABLED ? '/federation' : '';
+    return `${ApiServiceService.BASE_URL}${federationPrefix}${ApiServiceService.API_PRODUCT}`;
+  }
+
   getAllProducts(): Observable<ProductOfferingModel[]> {
     const productsLimit = 100;
     let url = `${this.getProductCatalogBasePath()}/productOffering?lifecycleStatus=Launched&limit=${productsLimit}`;
@@ -268,9 +273,9 @@ export class ApiServiceService {
   }
 
   getCatalogs(page: any, filter: any): Promise<any> {
-    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog?limit=${ApiServiceService.CATALOG_LIMIT}&offset=${page}&lifecycleStatus=Launched`;
+    let url = `${this.getCatalogListBasePath()}/catalog?limit=${ApiServiceService.CATALOG_LIMIT}&offset=${page}&lifecycleStatus=Launched`;
     if (filter != undefined) {
-      url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog?limit=${ApiServiceService.CATALOG_LIMIT}&offset=${page}&lifecycleStatus=Launched&body=${filter}`;
+      url = `${this.getCatalogListBasePath()}/catalog?limit=${ApiServiceService.CATALOG_LIMIT}&offset=${page}&lifecycleStatus=Launched&keyword=${filter}`;
     }
     console.log('getcatalogs')
     console.log(this)

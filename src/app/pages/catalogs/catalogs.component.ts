@@ -18,6 +18,8 @@ export class CatalogsComponent implements OnInit{
   nextCatalogs:Catalog[]=[];
   page:number=0;
   CATALOG_LIMIT: number = environment.CATALOG_LIMIT;
+  searchEnabled: boolean = environment.SEARCH_ENABLED;
+  federationEnabled: boolean = environment.FEDERATION_ENABLED;
   loading: boolean = false;
   loading_more: boolean = false;
   page_check:boolean = true;
@@ -46,18 +48,6 @@ export class CatalogsComponent implements OnInit{
   ngOnInit() {
     this.loading=true;
     this.getCatalogs(false);
-    let input = document.querySelector('[type=search]')
-    if(input!=undefined){
-      input.addEventListener('input', e => {
-        // Easy way to get the value of the element who trigger the current `e` event
-        console.log(`Input updated`)
-        if(this.searchField.value==''){
-          this.filter=undefined;
-          this.getCatalogs(false);
-        }
-      });
-    }
-
   }
 
   async getCatalogs(next:boolean){
@@ -80,10 +70,23 @@ export class CatalogsComponent implements OnInit{
     })
   }
 
-  filterCatalogs(){
-    this.filter=this.searchField.value;
+  filterCatalogs(event?: Event){
+    event?.preventDefault();
+    this.filter=this.searchField.value || undefined;
     this.page=0;
     this.getCatalogs(false);
+  }
+
+  onSearchInput() {
+    if(this.searchField.value==''){
+      this.filter=undefined;
+      this.page=0;
+      this.getCatalogs(false);
+    }
+  }
+
+  onSearchEnter(event: Event){
+    this.filterCatalogs(event);
   }
 
   goToCatalogSearch(id:any) {

@@ -54,7 +54,6 @@ describe('CatalogsComponent', () => {
 
   it('ngOnInit should set loading and request catalogs', () => {
     spyOn(component, 'getCatalogs');
-    spyOn(document, 'querySelector').and.returnValue(null);
 
     component.ngOnInit();
 
@@ -62,25 +61,17 @@ describe('CatalogsComponent', () => {
     expect(component.getCatalogs).toHaveBeenCalledWith(false);
   });
 
-  it('ngOnInit should register input listener and reset filter when search field is empty', () => {
-    let inputListener: ((event: Event) => void) | undefined;
-    const inputMock = {
-      addEventListener: (_name: string, callback: (event: Event) => void) => {
-        inputListener = callback;
-      },
-    };
-    spyOn(document, 'querySelector').and.returnValue(inputMock as any);
+  it('onSearchInput should reset filter and reload catalogs when search field is empty', () => {
     spyOn(component, 'getCatalogs');
-    component.searchField.setValue('seed');
-
-    component.ngOnInit();
-    expect(component.getCatalogs).toHaveBeenCalledWith(false);
+    component.filter = 'seed';
+    component.page = 8;
 
     component.searchField.setValue('');
-    inputListener!(new Event('input'));
+    component.onSearchInput();
 
     expect(component.filter).toBeUndefined();
-    expect(component.getCatalogs).toHaveBeenCalledTimes(2);
+    expect(component.page).toBe(0);
+    expect(component.getCatalogs).toHaveBeenCalledTimes(1);
     expect(component.getCatalogs).toHaveBeenCalledWith(false);
   });
 
@@ -127,6 +118,16 @@ describe('CatalogsComponent', () => {
 
     expect(component.filter).toBe('my-catalog');
     expect(component.page).toBe(0);
+    expect(component.getCatalogs).toHaveBeenCalledWith(false);
+  });
+
+  it('filterCatalogs should set undefined filter for empty input', () => {
+    spyOn(component, 'getCatalogs');
+    component.searchField.setValue('');
+
+    component.filterCatalogs();
+
+    expect(component.filter).toBeUndefined();
     expect(component.getCatalogs).toHaveBeenCalledWith(false);
   });
 

@@ -3,21 +3,26 @@
     <h1 data-cy="cataloguesAllHeader" class="mb-2 text-center mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-4xl lg:text-5xl dark:text-white w-full"><span class="underline underline-offset-3 decoration-8 decoration-primary-100 dark:decoration-primary-100">{{'CATALOGS._all_catalogs' | translate}}</span></h1>
     <p class="mb-8 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-secondary-50 text-center">{{'CATALOGS._choose' | translate}}</p>
 
-    <!-- HEADER SEARCH BAR -->
-    <!--<form class="max-w-lg mx-auto mb-8">
-      <div class="flex">
+    @if(searchEnabled && federationEnabled){
+      <form class="max-w-3xl mx-auto mb-8 w-full px-4 md:px-0" (ngSubmit)="filterCatalogs($event)">
+        <div class="flex">
           <div class="relative w-full">
-              <input type="search" id="search" [formControl]="searchField" class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-s-gray-700  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-                placeholder="Filter through our catalogs" />
-              <button (click)="filterCatalogs()" type="submit" class="absolute top-0 end-0 inline-flex items-center p-2.5 text-sm font-medium h-full text-white bg-primary-100 rounded-e-lg border border-blue-700 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300">
-                  <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-                  </svg>                  
-                  <span class="ml-2">Search</span>
-              </button>
+            <input type="search" id="search" [formControl]="searchField"
+              (input)="onSearchInput()"
+              (keydown.enter)="onSearchEnter($event)"
+              class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-secondary-500 dark:placeholder-gray-400 dark:text-white"
+              placeholder="{{ 'DASHBOARD._search_ph' | translate }}">
+            <button type="submit"
+              class="absolute top-0 end-0 p-2.5 text-sm font-medium h-full text-white bg-primary-100 border-secondary-100 hover:bg-primary-50 focus:ring-blue-300 dark:border-secondary-400 rounded-e-lg border focus:ring-4 focus:outline-none">
+              <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+              </svg>
+              <span class="sr-only">{{ 'DASHBOARD._search' | translate }}</span>
+            </button>
           </div>
-      </div>
-    </form>-->
+        </div>
+      </form>
+    }
 
 
     @if (loading) {
