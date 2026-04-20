@@ -21,14 +21,19 @@ export class ApiServiceService {
 
   constructor(private http: HttpClient, private localStorage: LocalStorageService) { }
 
+  private getProductCatalogBasePath(): string {
+    const federationPrefix = environment.FEDERATION_ENABLED ? '/federation' : '';
+    return `${ApiServiceService.BASE_URL}${federationPrefix}${ApiServiceService.API_PRODUCT}`;
+  }
+
   getAllProducts(): Observable<ProductOfferingModel[]> {
     const productsLimit = 100;
-    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering?lifecycleStatus=Launched&limit=${productsLimit}`;
+    let url = `${this.getProductCatalogBasePath()}/productOffering?lifecycleStatus=Launched&limit=${productsLimit}`;
     return this.http.get<ProductOfferingModel[]>(url);
   }
 
   getProducts(page: any, keywords: any) {
-    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering?limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}&lifecycleStatus=Launched`;
+    let url = `${this.getProductCatalogBasePath()}/productOffering?limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}&lifecycleStatus=Launched`;
     if (keywords != undefined) {
       url = url + '&keyword=' + keywords;
     }
@@ -105,7 +110,7 @@ export class ApiServiceService {
       }
     }
 
-    const baseUrl = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering`;
+    const baseUrl = `${this.getProductCatalogBasePath()}/productOffering`;
     const query = `limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}&lifecycleStatus=Launched`;
 
     // Add the ID string only when some categories are selected
@@ -122,7 +127,7 @@ export class ApiServiceService {
   }
 
   getProductsByCatalog(catalogId: any, page: any) {
-    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog/${catalogId}/productOffering?lifecycleStatus=Launched&limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}`
+    let url = `${this.getProductCatalogBasePath()}/catalog/${catalogId}/productOffering?lifecycleStatus=Launched&limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}`
 
     return lastValueFrom(this.http.get<any[]>(url));
   }
@@ -136,7 +141,7 @@ export class ApiServiceService {
         id_str = id_str + ',' + ids[i].id
       }
     }
-    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog/${catalogId}/productOffering?lifecycleStatus=Launched&${id_str}&limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}`;
+    let url = `${this.getProductCatalogBasePath()}/catalog/${catalogId}/productOffering?lifecycleStatus=Launched&${id_str}&limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}`;
 
     return lastValueFrom(this.http.get<any[]>(url));
   }
