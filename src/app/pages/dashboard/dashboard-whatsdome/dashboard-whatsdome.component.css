@@ -49,9 +49,11 @@
 }
 
 .icon-badge {
-  width: 2rem;
-  height: clamp(40px, 3vw, 45px);
-  min-width: 2rem;
+  width: clamp(52px, 4vw, 60px);
+  height: clamp(52px, 4vw, 60px);
+  min-width: clamp(52px, 4vw, 60px);
+  flex-shrink: 0;
+  aspect-ratio: 1 / 1;
   border-radius: 9999px;
   background: white;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
@@ -62,7 +64,7 @@
 }
 
 .icon-badge fa-icon {
-  font-size: clamp(18px, 1.4vw, 22px);
+  font-size: clamp(22px, 1.8vw, 28px);
   color: #1f5bb5;
 }
 
