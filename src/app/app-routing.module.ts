@@ -139,6 +139,11 @@ const routes: Routes = [
   },
 
   {
+    path: 'browse',
+    loadComponent: () => import('./pages/browse/browse.component').then(c => c.BrowseComponent),
+  },
+
+  {
     path: 'landing-page',
     children: [{
       path: 'customers',

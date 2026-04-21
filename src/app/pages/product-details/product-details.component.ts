@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild,ChangeDetectorRef, HostListener, OnDestroy } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild,ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import {components} from "../../models/product-catalog";
@@ -48,6 +48,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   agreementsContent: ElementRef | undefined;  
   @ViewChild('textDiv') textDiv!: ElementRef;
   @ViewChild('termsText') termsTextRef!: ElementRef;
+  @ViewChild('descriptionText') descriptionTextRef!: ElementRef;
   @ViewChild('agreementsScrollAnchor') agreementsScrollAnchor!: ElementRef;
   @ViewChild('relScrollAnchor') relScrollAnchor!: ElementRef;
   @ViewChild('attachScrollAnchor') attachScrollAnchor!: ElementRef;
@@ -71,6 +72,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   serviceSpecs:any[] = [];
   resourceSpecs:any[]=[];
   check_logged:boolean=false;
+  customersLink: string = environment.DOME_CUSTOMER_REGISTER_LINK;
   cartSelection:boolean=false;
   check_prices:boolean=false;
   selected_price:any;
@@ -91,11 +93,14 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   showTermsMore:boolean=false;
   PURCHASE_ENABLED: boolean = environment.PURCHASE_ENABLED;
   showReadMoreButton:boolean=false;
+  showDescriptionReadMore:boolean=false;
+  showDescriptionModal:boolean=false;
   customerId:string='';
 
   orgInfo:any=undefined;
   showQuoteModal:boolean = false;
   productAlreadyInCart:boolean=false;
+  activeTab: string = 'overview';
 
   protected readonly faScaleBalanced = faScaleBalanced;
   protected readonly faArrowProgress = faArrowProgress;
@@ -185,46 +190,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   ngOnDestroy(){
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  @HostListener('window:scroll', ['$event'])
-  updateTabs(event:any) {
-    // Skip if user manually clicked a tab and scroll is in progress
-    if (this.isManualScroll) {
-      return;
-    }
-
-    const sections = [
-      { id: 'details-container', tab: 'details-button', handler: () => this.goToDetails(false) },
-      { id: 'chars-container', tab: 'chars-button', handler: () => this.goToChars(false) },
-      { id: 'attach-container', tab: 'attach-button', handler: () => this.goToAttach(false) },
-      { id: 'agreements-container', tab: 'agreements-button', handler: () => this.goToAgreements(false) },
-      { id: 'relationships-container', tab: 'relationships-button', handler: () => this.goToRelationships(false) }
-    ];
-
-    const TARGET_TOP = 150; // Sticky header offset + some buffer
-    let activeSection = null;
-
-    // Iterate through sections in reverse order (bottom to top) to prioritize later sections when scrolling down
-    for (let i = sections.length - 1; i >= 0; i--) {
-      const section = sections[i];
-      const element = document.getElementById(section.id);
-      if (!element) continue;
-
-      const rect = element.getBoundingClientRect();
-
-      // Check if the section contains or is past the target line
-      if (rect.top <= TARGET_TOP && rect.bottom > TARGET_TOP) {
-        activeSection = section;
-        break;
-      } else if (rect.top > TARGET_TOP) {
-        activeSection = section;
-      }
-    }
-
-    if (activeSection) {
-      activeSection.handler();
-    }
+    document.body.style.overflow = '';
   }
 
   async ngOnInit() {
@@ -513,16 +479,40 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     if (this.termsTextRef && !this.showReadMoreButton) {
       setTimeout(() => this.checkOverflow(), 0); // Schedule after render
     }
+    if (this.descriptionTextRef && !this.showDescriptionReadMore) {
+      setTimeout(() => this.checkDescriptionOverflow(), 0);
+    }
     // Trigger change detection after the view has been initialized
     //this.setImageHeight();
   }
-  
+
   checkOverflow() {
     const el = this.termsTextRef?.nativeElement;
     if (el) {
       const hasOverflow = el.scrollHeight > el.clientHeight;
       this.showReadMoreButton = hasOverflow;
     }
+  }
+
+  checkDescriptionOverflow() {
+    const el = this.descriptionTextRef?.nativeElement;
+    if (el) {
+      const hasOverflow = el.scrollHeight > el.clientHeight + 1;
+      if (hasOverflow !== this.showDescriptionReadMore) {
+        this.showDescriptionReadMore = hasOverflow;
+        this.cdr.detectChanges();
+      }
+    }
+  }
+
+  openDescriptionModal() {
+    this.showDescriptionModal = true;
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeDescriptionModal() {
+    this.showDescriptionModal = false;
+    document.body.style.overflow = '';
   }
 
   setImageHeight() {
@@ -813,160 +803,30 @@ async deleteProduct(product: Product | undefined){
       elem.className += (" " + cls);
   }
 
-  goToDetails(scroll:boolean){
-    if (scroll) {
-      // Set flag to prevent scroll listener from interfering
-      this.isManualScroll = true;
-      clearTimeout(this.scrollTimeout);
-
-      const anchor = this.detailsScrollAnchor?.nativeElement;
-      if (!anchor) return;
-    
-      // Scroll the outer container if needed
-      const scrollContainer = document.scrollingElement || document.documentElement;
-      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    
-      // Or: explicitly scroll the document
-      const y = anchor.getBoundingClientRect().top + window.scrollY - 88; // adjust for sticky header
-      window.scrollTo({ top: y, behavior: 'smooth' });
-
-      // Re-enable scroll listener after animation completes
-      this.scrollTimeout = setTimeout(() => {
-        this.isManualScroll = false;
-      }, 1000);
-    }
-
-    let details_button = document.getElementById('details-button')
-    let chars_button = document.getElementById('chars-button')
-    let attach_button = document.getElementById('attach-button')
-    let agreements_button = document.getElementById('agreements-button')
-    let relationships_button = document.getElementById('relationships-button')
-
-    this.selectTag(details_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.unselectTag(chars_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.unselectTag(attach_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.unselectTag(agreements_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.unselectTag(relationships_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
+  goToDetails(){
+    this.activeTab = 'overview';
   }
 
-  goToChars(scroll:boolean){
-    if (scroll) {
-      this.isManualScroll = true;
-      clearTimeout(this.scrollTimeout);
-
-      this.charsScrollAnchor.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-      this.scrollTimeout = setTimeout(() => {
-        this.isManualScroll = false;
-      }, 1000);
-    }
-
-    let details_button = document.getElementById('details-button')
-    let chars_button = document.getElementById('chars-button')
-    let attach_button = document.getElementById('attach-button')
-    let agreements_button = document.getElementById('agreements-button')
-    let relationships_button = document.getElementById('relationships-button')
-
-    this.unselectTag(details_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.selectTag(chars_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.unselectTag(attach_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.unselectTag(agreements_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.unselectTag(relationships_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
+  goToChars(){
+    this.activeTab = 'features';
   }
 
-  goToAttach(scroll:boolean){
-    if (scroll) {
-      this.isManualScroll = true;
-      clearTimeout(this.scrollTimeout);
-
-      this.attachScrollAnchor.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-      this.scrollTimeout = setTimeout(() => {
-        this.isManualScroll = false;
-      }, 1000);
-    }
-
-    let details_button = document.getElementById('details-button')
-    let chars_button = document.getElementById('chars-button')
-    let attach_button = document.getElementById('attach-button')
-    let agreements_button = document.getElementById('agreements-button')
-    let relationships_button = document.getElementById('relationships-button')
-
-    this.unselectTag(details_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.unselectTag(chars_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.selectTag(attach_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.unselectTag(agreements_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.unselectTag(relationships_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
+  goToAttach(){
+    this.activeTab = 'overview';
   }
 
-  goToAgreements(scroll:boolean){
-    if (scroll) {
-      this.isManualScroll = true;
-      clearTimeout(this.scrollTimeout);
-
-      this.agreementsScrollAnchor.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-      this.scrollTimeout = setTimeout(() => {
-        this.isManualScroll = false;
-      }, 1000);
-    }
-
-    let details_button = document.getElementById('details-button')
-    let chars_button = document.getElementById('chars-button')
-    let attach_button = document.getElementById('attach-button')
-    let agreements_button = document.getElementById('agreements-button')
-    let relationships_button = document.getElementById('relationships-button')
-
-    this.unselectTag(details_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.unselectTag(chars_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.unselectTag(attach_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.selectTag(agreements_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.unselectTag(relationships_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
+  goToAgreements(){
+    this.activeTab = 'compliance';
   }
 
-  goToRelationships(scroll:boolean){
-    if (scroll) {
-      this.isManualScroll = true;
-      clearTimeout(this.scrollTimeout);
-
-      this.relScrollAnchor.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-      this.scrollTimeout = setTimeout(() => {
-        this.isManualScroll = false;
-      }, 1000);
-    }
-
-    let details_button = document.getElementById('details-button')
-    let chars_button = document.getElementById('chars-button')
-    let attach_button = document.getElementById('attach-button')
-    let agreements_button = document.getElementById('agreements-button')
-    let relationships_button = document.getElementById('relationships-button')
-
-    this.unselectTag(details_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.unselectTag(chars_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.unselectTag(attach_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.unselectTag(agreements_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
-    this.selectTag(relationships_button,'text-primary-100 dark:text-primary-50 dark:border-primary-50 border-b-2 border-primary-100');
+  goToRelationships(){
+    this.activeTab = 'overview';
   }
 
-  unselectTag(elem:HTMLElement | null,cls:string){
-    if(elem != null){
-      if(elem.className.match(cls)){
-        this.removeClass(elem,cls)
-      } else {
-        console.log('already unselected')
-      }
-    }
-  }
-
-  selectTag(elem:HTMLElement| null,cls:string){
-    if(elem != null){
-      if(elem.className.match(cls)){
-        console.log('already selected')
-      } else {
-        this.addClass(elem,cls)
-      }
-    }
+  tabClass(name: string): string {
+    return this.activeTab === name
+      ? 'bg-white text-[#14274A] font-semibold'
+      : 'text-[#526179] font-medium hover:text-[#14274A] hover:bg-white/50';
   }
 
   toggleTermsReadMore() {
