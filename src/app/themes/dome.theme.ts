@@ -5,12 +5,13 @@ const domeHeaderLinks: NavLink[] = [
 
   {
     label: 'HEADER._forCustomers',
-    url: 'landing-page/customers'
-
+    url: '/landing-page/customers',
+    isRouterLink: true
   },
   {
     label: 'HEADER._forProviders',
-    url: 'landing-page/providers'
+    url: '/landing-page/providers',
+    isRouterLink: true
   },
   {
     label: 'HEADER._marketplaceH',
