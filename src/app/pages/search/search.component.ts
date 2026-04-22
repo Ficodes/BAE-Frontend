@@ -270,10 +270,10 @@ export class SearchComponent implements OnInit, OnDestroy {
       "filters": filters
     }
 
-    this.paginationService.getItemsPaginated(this.page, this.PRODUCT_LIMIT, next, this.products,this.nextProducts, options,
+      this.paginationService.getItemsPaginated(this.page, this.PRODUCT_LIMIT, next, this.products,this.nextProducts, options,
       this.paginationService.getProducts.bind(this.paginationService)).then(async data => {
-        this.products = await this.api.getProductsDetails(data.items);
-        this.nextProducts = await this.api.getProductsDetails(data.nextItems);
+        this.products = await this.api.getSearchProductsDetails(data.items);
+        this.nextProducts = await this.api.getSearchProductsDetails(data.nextItems);
       
         this.page = data.page;
         this.page_check = data.page_check;

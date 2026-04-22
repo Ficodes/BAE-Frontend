@@ -37,7 +37,7 @@ describe('SearchComponent', () => {
   const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
 
   beforeEach(async () => {
-    apiSpy = jasmine.createSpyObj<ApiServiceService>('ApiServiceService', ['getProductsDetails']);
+    apiSpy = jasmine.createSpyObj<ApiServiceService>('ApiServiceService', ['getProductsDetails', 'getSearchProductsDetails']);
     paginationSpy = jasmine.createSpyObj<PaginationService>('PaginationService', ['getItemsPaginated', 'getProducts']);
     localStorageSpy = jasmine.createSpyObj<LocalStorageService>('LocalStorageService', [
       'getObject',
@@ -77,7 +77,7 @@ describe('SearchComponent', () => {
       page: 0,
       page_check: false,
     });
-    apiSpy.getProductsDetails.and.callFake(async (items: any[]) => items as any);
+    apiSpy.getSearchProductsDetails.and.callFake(async (items: any[]) => items as any);
     localStorageSpy.getObject.and.callFake((key: string) => {
       if (key === 'selected_categories') return [];
       if (key === 'login_items') return {};
@@ -227,7 +227,7 @@ describe('SearchComponent', () => {
       { keywords: 'gpu', filters: [{ id: 'cat-1' }] },
       jasmine.any(Function),
     );
-    expect(apiSpy.getProductsDetails).toHaveBeenCalledTimes(2);
+    expect(apiSpy.getSearchProductsDetails).toHaveBeenCalledTimes(2);
     expect(component.products).toEqual([{ id: 'p1' }] as any);
     expect(component.nextProducts).toEqual([{ id: 'p2' }] as any);
     expect(component.page).toBe(40);

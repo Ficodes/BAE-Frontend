@@ -250,15 +250,15 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     this.id = this.route.snapshot.paramMap.get('id');
     console.log('--- Details ID:')
     console.log(this.id)
-    let prod = await this.api.getProductById(this.id);
-    let spec = await this.api.getProductSpecification(prod.productSpecification.id);
+    let prod = await this.api.getSearchProductById(this.id);
+    let spec = await this.api.getSearchProductSpecification(prod.productSpecification.id);
     this.prodSpec=spec;
     this.getOwner();
     let prodPrices: any[] | undefined= prod.productOfferingPrice;
     let prices: any[]=[];
     if(prodPrices!== undefined){
       for(let j=0; j < prodPrices.length; j++){
-        let price = await this.api.getProductPrice(prodPrices[j].id);
+        let price = await this.api.getSearchProductPrice(prodPrices[j].id);
         prices.push(price);
         console.log(price)
         if(price.priceType == 'custom'){
@@ -318,13 +318,13 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
     if(this.prodSpec.serviceSpecification != undefined){
       for(let j=0; j < this.prodSpec.serviceSpecification.length; j++){
-        let serv = await this.api.getServiceSpec(this.prodSpec.serviceSpecification[j].id);
+        let serv = await this.api.getSearchServiceSpec(this.prodSpec.serviceSpecification[j].id);
         this.serviceSpecs.push(serv);
       }
     }
     if(this.prodSpec.resourceSpecification != undefined){
       for(let j=0; j < this.prodSpec.resourceSpecification.length; j++){
-        let res = await this.api.getResourceSpec(this.prodSpec.resourceSpecification[j].id);
+        let res = await this.api.getSearchResourceSpec(this.prodSpec.resourceSpecification[j].id);
         this.resourceSpecs.push(res);
       }
     }

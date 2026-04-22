@@ -209,9 +209,9 @@ export class SearchCatalogComponent implements OnInit, OnDestroy{
         console.log('---- pagination -----')
         console.log(data.items)
         console.log(data.nextItems)
-        this.products=await this.api.getProductsDetails(data.items);
+        this.products=await this.api.getSearchProductsDetails(data.items);
         this.page_check=data.page_check;
-        this.nextProducts=await this.api.getProductsDetails(data.nextItems);
+        this.nextProducts=await this.api.getSearchProductsDetails(data.nextItems);
         this.page=data.page;
         this.loading=false;
         this.loading_more=false;

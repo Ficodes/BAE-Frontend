@@ -22,6 +22,10 @@ export class ApiServiceService {
   constructor(private http: HttpClient, private localStorage: LocalStorageService) { }
 
   private getProductCatalogBasePath(): string {
+    return `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}`;
+  }
+
+  private getSearchFederationBasePath(): string {
     const federationPrefix = environment.FEDERATION_ENABLED ? '/federation' : '';
     return `${ApiServiceService.BASE_URL}${federationPrefix}${ApiServiceService.API_PRODUCT}`;
   }
@@ -39,6 +43,15 @@ export class ApiServiceService {
 
   getProducts(page: any, keywords: any) {
     let url = `${this.getProductCatalogBasePath()}/productOffering?limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}&lifecycleStatus=Launched`;
+    if (keywords != undefined) {
+      url = url + '&keyword=' + keywords;
+    }
+
+    return lastValueFrom(this.http.get<any[]>(url));
+  }
+
+  getSearchProducts(page: any, keywords: any) {
+    let url = `${this.getSearchFederationBasePath()}/productOffering?limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}&lifecycleStatus=Launched`;
     if (keywords != undefined) {
       url = url + '&keyword=' + keywords;
     }
@@ -105,6 +118,63 @@ export class ApiServiceService {
     }));
   }
 
+  async getSearchProductsDetails(offers: any[]) {
+    let normalized: any[] = [];
+
+    if (Array.isArray(offers)) {
+      normalized = offers;
+    } else if (offers && typeof offers === 'object') {
+      normalized = [offers];
+    }
+    return await Promise.all(normalized.map(async (offer: any): Promise<ProductOffering> => {
+      try {
+        const [spec, prodPrices] = await Promise.all([
+          offer.productSpecification?.id
+            ? this.getSearchProductSpecification(offer.productSpecification.id)
+            : Promise.resolve(undefined),
+          offer.productOfferingPrice
+            ? Promise.all(offer.productOfferingPrice.map((p: { id: any; }) => this.getSearchProductPrice(p.id)))
+            : Promise.resolve([])
+        ]);
+
+        return {
+          id: offer.id,
+          href: offer.href,
+          name: offer.name,
+          description: offer.description,
+          isBundle: offer.isBundle,
+          isSellable: offer.isSellable,
+          lastUpdate: offer.lastUpdate,
+          lifecycleStatus: offer.lifecycleStatus,
+          statusReason: offer.statusReason,
+          version: offer.version,
+          agreement: offer.agreement ?? [],
+          attachment: spec?.attachment ?? [],
+          bundledProductOffering: offer.bundledProductOffering ?? [],
+          category: offer.category ?? [],
+          channel: offer.channel ?? [],
+          marketSegment: offer.marketSegment ?? [],
+          place: offer.place ?? [],
+          prodSpecCharValueUse: offer.prodSpecCharValueUse ?? [],
+          productOfferingPrice: prodPrices ?? [],
+          productOfferingRelationship: offer.productOfferingRelationship ?? [],
+          productOfferingTerm: offer.productOfferingTerm ?? [],
+          productSpecification: spec ?? offer.productSpecification,
+          resourceCandidate: offer.resourceCandidate,
+          serviceCandidate: offer.serviceCandidate,
+          serviceLevelAgreement: offer.serviceLevelAgreement,
+          validFor: offer.validFor,
+          "@baseType": offer["@baseType"],
+          "@schemaLocation": offer["@schemaLocation"],
+          "@type": offer["@type"]
+        };
+      } catch (error) {
+        console.error(`Error processing product ${offer.id}:`, error);
+        return offer;
+      }
+    }));
+  }
+
   getProductsByCategory(ids: Category[], page: any, keywords: any) {
     let id_str = '';
     for (let i = 0; i < ids.length; i++) {
@@ -131,8 +201,39 @@ export class ApiServiceService {
     return lastValueFrom(this.http.get<any[]>(url));
   }
 
+  getSearchProductsByCategory(ids: Category[], page: any, keywords: any) {
+    let id_str = '';
+    for (let i = 0; i < ids.length; i++) {
+      if (i == 0) {
+        id_str = 'category.id=' + ids[i].id
+      } else {
+        id_str = id_str + ',' + ids[i].id
+      }
+    }
+
+    const baseUrl = `${this.getSearchFederationBasePath()}/productOffering`;
+    const query = `limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}&lifecycleStatus=Launched`;
+
+    let url;
+    if (id_str !== '') {
+      url = `${baseUrl}?${id_str}&${query}`;
+    } else {
+      url = `${baseUrl}?${query}`
+    }
+    if (keywords != undefined) {
+      url = url + '&keyword=' + keywords;
+    }
+    return lastValueFrom(this.http.get<any[]>(url));
+  }
+
   getProductsByCatalog(catalogId: any, page: any) {
     let url = `${this.getProductCatalogBasePath()}/catalog/${catalogId}/productOffering?lifecycleStatus=Launched&limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}`
+
+    return lastValueFrom(this.http.get<any[]>(url));
+  }
+
+  getSearchProductsByCatalog(catalogId: any, page: any) {
+    let url = `${this.getSearchFederationBasePath()}/catalog/${catalogId}/productOffering?lifecycleStatus=Launched&limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}`
 
     return lastValueFrom(this.http.get<any[]>(url));
   }
@@ -151,8 +252,28 @@ export class ApiServiceService {
     return lastValueFrom(this.http.get<any[]>(url));
   }
 
+  getSearchProductsByCategoryAndCatalog(ids: Category[], catalogId: any, page: any) {
+    let id_str = '';
+    for (let i = 0; i < ids.length; i++) {
+      if (i == 0) {
+        id_str = 'category.id=' + ids[i].id
+      } else {
+        id_str = id_str + ',' + ids[i].id
+      }
+    }
+    let url = `${this.getSearchFederationBasePath()}/catalog/${catalogId}/productOffering?lifecycleStatus=Launched&${id_str}&limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}`;
+
+    return lastValueFrom(this.http.get<any[]>(url));
+  }
+
   getProductById(id: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering/${id}`;
+
+    return lastValueFrom(this.http.get<any>(url));
+  }
+
+  getSearchProductById(id: any) {
+    let url = `${this.getSearchFederationBasePath()}/productOffering/${id}`;
 
     return lastValueFrom(this.http.get<any>(url));
   }
@@ -187,8 +308,20 @@ export class ApiServiceService {
     return lastValueFrom(this.http.get<any>(url));
   }
 
+  getSearchProductSpecification(id: any) {
+    let url = `${this.getSearchFederationBasePath()}/productSpecification/${id}`;
+
+    return lastValueFrom(this.http.get<any>(url));
+  }
+
   getProductPrice(id: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOfferingPrice/${id}`
+
+    return lastValueFrom(this.http.get<any>(url));
+  }
+
+  getSearchProductPrice(id: any) {
+    let url = `${this.getSearchFederationBasePath()}/productOfferingPrice/${id}`
 
     return lastValueFrom(this.http.get<any>(url));
   }
@@ -329,8 +462,22 @@ export class ApiServiceService {
     return lastValueFrom(this.http.get<any>(url));
   }
 
+  getSearchServiceSpec(id: any) {
+    const federationPrefix = environment.FEDERATION_ENABLED ? '/federation' : '';
+    let url = `${ApiServiceService.BASE_URL}${federationPrefix}/service/serviceSpecification/${id}`;
+
+    return lastValueFrom(this.http.get<any>(url));
+  }
+
   getResourceSpec(id: any) {
     let url = `${ApiServiceService.BASE_URL}/resource/resourceSpecification/${id}`;
+
+    return lastValueFrom(this.http.get<any>(url));
+  }
+
+  getSearchResourceSpec(id: any) {
+    const federationPrefix = environment.FEDERATION_ENABLED ? '/federation' : '';
+    let url = `${ApiServiceService.BASE_URL}${federationPrefix}/resource/resourceSpecification/${id}`;
 
     return lastValueFrom(this.http.get<any>(url));
   }

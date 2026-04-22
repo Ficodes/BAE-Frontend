@@ -247,8 +247,8 @@ export class PaginationService {
       console.log('-------------------------- getProducts ----------------------------');
       // Get data from API
       const productOfferings: ProductOffering[] = filters && filters.length > 0
-        ? await this.api.getProductsByCategory(filters, page, keywords)
-        : await this.api.getProducts(page, keywords);
+        ? await this.api.getSearchProductsByCategory(filters, page, keywords)
+        : await this.api.getSearchProducts(page, keywords);
         return productOfferings
 
       // Get Product Details in parallel
@@ -316,8 +316,8 @@ export class PaginationService {
       console.log(page)
       // Get data from API
       const productOfferings: ProductOffering[] = filters && filters.length > 0
-        ? await this.api.getProductsByCategoryAndCatalog(filters, id, page)
-        : await this.api.getProductsByCatalog(id, page);
+        ? await this.api.getSearchProductsByCategoryAndCatalog(filters, id, page)
+        : await this.api.getSearchProductsByCatalog(id, page);
         return productOfferings
 
       // Process product offerings in parallel
