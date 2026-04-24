@@ -29,12 +29,21 @@
             <div class="mb-8 flex w-full flex-col border border-gray-300 bg-white p-8 shadow-lg rounded-lg dark:border-secondary-300 dark:bg-secondary-100">
                 <div class="flex inline-flex justify-between">
                     <h2 class="text-2xl font-bold mb-4 dark:text-white break-words">{{ entry.title }}</h2>
-                    @if(entry.partyId == partyId){
-                        <button type="button" (click)="goToUpdate(entry._id)" class="m-2 text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 lg:p-2.5 text-center inline-flex items-center me-2">
-                            <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                <path fill-rule="evenodd" d="M14 4.182A4.136 4.136 0 0 1 16.9 3c1.087 0 2.13.425 2.899 1.182A4.01 4.01 0 0 1 21 7.037c0 1.068-.43 2.092-1.194 2.849L18.5 11.214l-5.8-5.71 1.287-1.31.012-.012Zm-2.717 2.763L6.186 12.13l2.175 2.141 5.063-5.218-2.141-2.108Zm-6.25 6.886-1.98 5.849a.992.992 0 0 0 .245 1.026 1.03 1.03 0 0 0 1.043.242L10.282 19l-5.25-5.168Zm6.954 4.01 5.096-5.186-2.218-2.183-5.063 5.218 2.185 2.15Z" clip-rule="evenodd"/>
-                            </svg>
-                        </button>
+                    @if(canManageEntry(entry)){
+                        <div class="flex items-center gap-2">
+                            <button type="button" (click)="goToUpdate(entry._id)" class="text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center" title="Edit entry">
+                                <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd" d="M14 4.182A4.136 4.136 0 0 1 16.9 3c1.087 0 2.13.425 2.899 1.182A4.01 4.01 0 0 1 21 7.037c0 1.068-.43 2.092-1.194 2.849L18.5 11.214l-5.8-5.71 1.287-1.31.012-.012Zm-2.717 2.763L6.186 12.13l2.175 2.141 5.063-5.218-2.141-2.108Zm-6.25 6.886-1.98 5.849a.992.992 0 0 0 .245 1.026 1.03 1.03 0 0 0 1.043.242L10.282 19l-5.25-5.168Zm6.954 4.01 5.096-5.186-2.218-2.183-5.063 5.218 2.185 2.15Z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                            <button type="button" (click)="openDeleteDialog(entry)" [disabled]="isDeletingEntry(entry)"
+                                    class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center disabled:opacity-60"
+                                    title="Delete entry">
+                                <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12m-1 0-.9 12.1A2 2 0 0 1 14.11 21H9.89a2 2 0 0 1-1.99-1.9L7 7m3 0V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/>
+                                </svg>
+                            </button>
+                        </div>
                     }
                 </div>                
                 <h4 class="mb-4 text-lg italic text-secondary-200 dark:text-secondary-50">
@@ -42,18 +51,43 @@
                     <b class="text-secondary-100 dark:text-primary-50">{{entry.author}}</b> 
                     on {{entry.date | date:'EEEE, dd/MM/yy, HH:mm'}}.
                 </h4>
-                <markdown                     
-                [ngClass]="{
-                    'break-all': hasLongWord(entry.content, 20),
-                    'break-words': !hasLongWord(entry.content, 20)
-                    }" class="dark:text-secondary-50 line-clamp-4 text-wrap break-words"
-                [data]="entry.content">
-                </markdown>
-                <button type="button" (click)="goToDetails(entry._id)" 
-                        class="mt-4 w-fit text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center">
-                    <p class="pl-2 pr-2">View details</p>
-                </button> 
+                @if(getEntryTags(entry); as tags){
+                    @if(tags.length > 0){
+                        <div class="mb-4 flex flex-wrap gap-2">
+                            @for(tag of tags; track tag){
+                                <span class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 dark:border-blue-500/40 dark:bg-blue-900/30 dark:text-blue-200">
+                                    {{ tag }}
+                                </span>
+                            }
+                        </div>
+                    }
+                }
+                <div class="mt-2 flex flex-col gap-5 md:flex-row md:items-start">
+                    @if(getFeaturedImage(entry); as featuredImage){
+                      <img [src]="featuredImage" [alt]="entry.title + ' featured image'"
+                           class="h-52 w-full rounded-lg border border-gray-300 object-contain p-2 md:h-44 md:w-72 md:min-w-72 dark:border-gray-700">
+                    }
+                    <div class="flex min-w-0 flex-1 flex-col">
+                        <p class="dark:text-secondary-50 line-clamp-5 text-wrap break-words">
+                            {{ getEntryExcerpt(entry) }}
+                        </p>
+                        <button type="button" (click)="goToDetails(entry)" 
+                                class="mt-4 w-fit text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center">
+                            <p class="pl-2 pr-2">View details</p>
+                        </button>
+                    </div>
+                </div>
             </div>
         }
     </div>
 </div>
+
+<app-confirm-dialog
+  [isOpen]="showDeleteConfirm"
+  [title]="deleteConfirmTitle"
+  [message]="deleteConfirmMessage"
+  [confirmText]="deleteConfirmButtonText"
+  [confirmButtonClass]="deleteConfirmButtonClass"
+  (confirm)="confirmDeleteEntry()"
+  (cancel)="closeDeleteDialog()"
+></app-confirm-dialog>

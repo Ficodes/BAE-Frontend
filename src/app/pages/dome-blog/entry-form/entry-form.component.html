@@ -1,17 +1,6 @@
 <!-- Full height app wrapper -->
 <div class="bg-secondary-50 dark:bg-secondary-200 flex min-h-full flex-col">
     <section class="w-full bg-[#DDE6F6]">
-        <div
-            class="mx-auto w-full max-w-[1440px] px-6 py-10 sm:px-8 md:px-10 md:py-12 lg:px-16 xl:px-[160px]">
-            <div class="flex flex-row mx-auto max-w-screen-xl justify-between">
-                <div class="flex flex-col">
-                    <h1
-                        class="text-[clamp(2.75rem,2.1rem+2.1vw,3.75rem)] font-extrabold leading-[0.95] tracking-[0.02em] text-[#0B1528]">
-                        Create a new entry
-                    </h1>
-                </div>
-            </div>    
-        </div>
         <div class="pb-4">
             <nav class="flex px-5 py-3 shadow-lg text-gray-700 border border-gray-200 bg-secondary-50 dark:bg-secondary-100 dark:border-gray-800 dark:text-white"
                 aria-label="Breadcrumb">
@@ -40,6 +29,9 @@
   
     <div class="flex-1 mx-auto w-full max-w-[1440px] p-4 pb-16 sm:px-8 md:px-10 lg:px-16 xl:px-[160px]">
         <div class="mx-auto w-full max-w-screen-xl rounded-lg border border-gray-300 bg-white p-6 shadow-lg dark:border-secondary-300 dark:bg-secondary-100 md:p-8">
+            <h1 class="mb-6 text-3xl font-bold text-[#0B1528] dark:text-white">
+                {{ blogId ? 'Update blog entry' : 'Create blog entry' }}
+            </h1>
             @if(loading){
                 <div role="status" class="flex min-h-[300px] w-full items-center justify-center">
                     <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -55,7 +47,66 @@
                 <form class="md:p-8" [formGroup]="entryForm">
                       <label for="title" class="font-bold text-lg dark:text-white">Title</label>
                       <input data-cy="blogEntryTitle" id="title" type="text" formControlName="title"
-                              class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"/>
+                              class="mb-4 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"/>
+
+                      <label for="slug" class="font-bold text-lg dark:text-white">URL slug</label>
+                      <input data-cy="blogEntrySlug" id="slug" type="text" formControlName="slug"
+                              class="mb-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                              placeholder="my-blog-entry"/>
+                      <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">Blog URL preview: /blog/{{ entryForm.controls['slug'].value || 'my-blog-entry' }}</p>
+                      @if(entryForm.controls['slug'].touched && entryForm.controls['slug'].invalid){
+                        <p class="mb-2 text-sm text-red-600 dark:text-red-300">Use only lowercase letters, numbers and hyphens.</p>
+                      }
+                      @if(isSlugTaken()){
+                        <p class="mb-2 text-sm text-red-600 dark:text-red-300">This slug is already in use. Pick a different one.</p>
+                      }
+
+                      <label for="metaDescription" class="font-bold text-lg dark:text-white">Meta description (extract)</label>
+                      <textarea data-cy="blogEntryMetaDescription" id="metaDescription" formControlName="metaDescription" rows="3"
+                              class="mb-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                              placeholder="Short SEO summary (recommended up to 160 characters)"></textarea>
+                      <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">{{ (entryForm.controls['metaDescription'].value || '').length }}/160</p>
+                      @if(entryForm.controls['metaDescription'].touched && entryForm.controls['metaDescription'].hasError('maxlength')){
+                        <p class="mb-2 text-sm text-red-600 dark:text-red-300">Meta description cannot exceed 160 characters.</p>
+                      }
+
+                      <label for="excerpt" class="font-bold text-lg dark:text-white">Excerpt</label>
+                      <textarea data-cy="blogEntryExcerpt" id="excerpt" formControlName="excerpt" rows="4"
+                              class="mb-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                              placeholder="Short text used in blog cards and previews"></textarea>
+                      <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">{{ (entryForm.controls['excerpt'].value || '').length }}/300</p>
+                      @if(entryForm.controls['excerpt'].touched && entryForm.controls['excerpt'].hasError('maxlength')){
+                        <p class="mb-2 text-sm text-red-600 dark:text-red-300">Excerpt cannot exceed 300 characters.</p>
+                      }
+
+                      <label for="tags" class="font-bold text-lg dark:text-white">Tags</label>
+                      <input data-cy="blogEntryTags" id="tags" type="text" formControlName="tags"
+                              class="mb-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                              placeholder="ai, automation, product updates"/>
+                      <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">Separate tags with commas.</p>
+
+                      <label for="featuredImageFile" class="font-bold text-lg dark:text-white">Featured image</label>
+                      @if(getFeaturedImageUrl()){
+                        <div class="relative mb-3 mt-2 w-full">
+                          <img [src]="getFeaturedImageUrl()" alt="Featured image preview"
+                               class="h-56 w-full rounded-lg border border-gray-300 object-cover dark:border-gray-700">
+                          <button type="button" (click)="removeFeaturedImage()"
+                                  class="absolute right-2 top-2 rounded-full bg-red-700 p-1 text-white hover:bg-red-800">
+                            <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+                            </svg>
+                          </button>
+                        </div>
+                      }
+                      <div class="mb-3 mt-2">
+                        <input id="featuredImageFile" type="file" accept="image/*" (change)="onFeaturedImageSelected($event)"
+                               [disabled]="uploadingFeaturedImage"
+                               class="block w-full text-sm text-gray-900 file:mr-4 file:rounded-lg file:border-0 file:bg-primary-100 file:px-4 file:py-2 file:text-white hover:file:bg-primary-50 dark:text-white disabled:opacity-60"/>
+                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-300">Upload to media manager (max 3MB)</p>
+                        @if(uploadingFeaturedImage){
+                          <p class="mt-2 text-sm text-primary-100 dark:text-primary-50">Uploading featured image...</p>
+                        }
+                      </div>
           
                       <label class="font-bold text-lg col-span-2 dark:text-white">Content</label>
                       <app-markdown-textarea class="h-[500px]" formControlName="content"></app-markdown-textarea>
@@ -63,8 +114,11 @@
                 <!-- Navigation Buttons -->
                  @if(blogId){
                     <div class="flex justify-end mt-6 space-x-4">
-          
-                        <button data-cy="blogEntryCreate" (click)="update()" [disabled]="entryForm.invalid"
+                        <button data-cy="blogEntryDelete" (click)="openDeleteDialog()" [disabled]="loading"
+                        class="px-4 py-2 text-base font-medium text-white rounded-lg bg-red-700 hover:bg-red-800 disabled:opacity-60">
+                          Delete entry
+                        </button>
+                        <button data-cy="blogEntryCreate" (click)="update()" [disabled]="!canSubmit()"
                         class="px-4 py-2 text-base font-medium text-white rounded-lg bg-primary-100 disabled:opacity-50">
                           Update entry
                         </button>
@@ -72,7 +126,7 @@
                  } @else  {
                     <div class="flex justify-end mt-6 space-x-4">
           
-                        <button data-cy="blogEntryCreate" (click)="create()" [disabled]="entryForm.invalid"
+                        <button data-cy="blogEntryCreate" (click)="create()" [disabled]="!canSubmit()"
                         class="px-4 py-2 text-base font-medium text-white rounded-lg bg-primary-100 disabled:opacity-50">
                           Create entry
                         </button>
@@ -84,6 +138,15 @@
     </div>
   
   </div>
+  <app-confirm-dialog
+    [isOpen]="showDeleteConfirm"
+    [title]="deleteConfirmTitle"
+    [message]="deleteConfirmMessage"
+    [confirmText]="deleteConfirmButtonText"
+    [confirmButtonClass]="deleteConfirmButtonClass"
+    (confirm)="confirmDelete()"
+    (cancel)="closeDeleteDialog()"
+  ></app-confirm-dialog>
   @if(showError){
     <div class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
       <div id="alert-additional-content-2" class="p-4 mb-4 text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-red-900 dark:border-red-900 dark:text-white" role="alert">
