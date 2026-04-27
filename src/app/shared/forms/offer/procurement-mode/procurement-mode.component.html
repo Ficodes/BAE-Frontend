@@ -15,6 +15,24 @@
   </div>
 </div>
 
+@if (extBillingEnabledControl) {
+  <div class="mt-4 flex items-center gap-3">
+    <label class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._ext_billing' | translate }}</label>
+    <input data-cy="extBillingToggle" type="checkbox" [formControl]="extBillingEnabledControl"
+           class="w-4 h-4 text-primary-100 bg-gray-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-50 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"/>
+  </div>
+}
+@if (extBillingEnabledControl?.value && plaSpecIdControl) {
+  <label for="plaSpecId" class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._pla_spec_id' | translate }}</label>
+  <input data-cy="plaSpecId" id="plaSpecId" type="url" [formControl]="plaSpecIdControl"
+         class="bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+         [class.border-red-500]="plaSpecIdControl.invalid && plaSpecIdControl.touched"
+         placeholder="https://external-billing-engine.example.com"/>
+  @if (plaSpecIdControl.invalid && plaSpecIdControl.touched) {
+    <p class="text-red-500 text-sm mt-1 mb-2">{{ 'CREATE_OFFER._pla_spec_id_required' | translate }}</p>
+  }
+}
+
 @if(showProcurementError){
   <div
   class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"
