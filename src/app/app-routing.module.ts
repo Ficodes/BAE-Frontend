@@ -124,7 +124,7 @@ const routes: Routes = [
     component: DomeBlogComponent
   },
   {
-    path: 'blog/:id',
+    path: 'blog/:slugOrId',
     component: BlogEntryDetailComponent
   },
   {
@@ -163,4 +163,3 @@ const routes: Routes = [
   exports: [RouterModule]
 })
 export class AppRoutingModule { }
-

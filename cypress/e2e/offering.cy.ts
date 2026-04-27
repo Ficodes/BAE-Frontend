@@ -343,11 +343,10 @@ describe('/my-offerings',{
 
 const interceptors = (productSpec:any, productOfferingPOST:any, newCatalog:any, defaultCatalog: any, defaultCategory:any, offPricePOST:any) => {
     const specResponse = [[productSpec], []]
-    const response = [[],[], [productOfferingPOST], []]
     const sr = [[newCatalog],[],[newCatalog], []]
-    let call = 0
     let specCall = 0
     let scall = 0
+    let offeringCreated = false
 
     cy.intercept({method: 'GET', url: 'http://proxy.docker:8004/catalog/catalog?*'}, (res)=>{
         res.reply({
@@ -358,7 +357,7 @@ const interceptors = (productSpec:any, productOfferingPOST:any, newCatalog:any, 
     cy.intercept({method: 'GET', url: 'http://proxy.docker:8004/catalog/productOffering?*'}, (res)=>{
         res.reply({
             statusCode: 200,
-            body: response[call++]
+            body: offeringCreated ? [productOfferingPOST] : []
         })
     }).as('productOff')
     cy.intercept({method: 'GET', url: 'http://proxy.docker:8004/catalog/productSpecification?*'}, (res)=>{
@@ -384,7 +383,10 @@ const interceptors = (productSpec:any, productOfferingPOST:any, newCatalog:any, 
     }).as('defaultCategory')
 
 
-    cy.intercept({method: 'POST', url: `http://proxy.docker:8004/catalog/catalog/${newCatalog.id}/productOffering`}, {statusCode: 201, body: productOfferingPOST}).as('offPOST')
+    cy.intercept({method: 'POST', url: `http://proxy.docker:8004/catalog/catalog/${newCatalog.id}/productOffering`}, (req)=>{
+        offeringCreated = true
+        req.reply({statusCode: 201, body: productOfferingPOST})
+    }).as('offPOST')
     if (offPricePOST){
         cy.intercept({method: 'GET', url: 'http://proxy.docker:8004//usage/usageSpecification?*'}, (res)=>{
         res.reply({

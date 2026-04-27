@@ -90,4 +90,17 @@ describe('DomeBlogServiceService', () => {
 
     await expectAsync(promise).toBeResolvedTo(responseBody);
   });
+
+  it('deleteBlogEntry should DELETE /domeblog/:id', async () => {
+    const id = 'blog-1';
+    const responseBody = { success: true };
+
+    const promise = service.deleteBlogEntry(id);
+    const req = httpMock.expectOne(`${environment.BASE_URL}/domeblog/${id}`);
+
+    expect(req.request.method).toBe('DELETE');
+    req.flush(responseBody);
+
+    await expectAsync(promise).toBeResolvedTo(responseBody);
+  });
 });

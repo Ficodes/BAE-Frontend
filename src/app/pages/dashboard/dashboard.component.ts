@@ -185,7 +185,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
       )
       .subscribe((picked) => {
         this.productService.getProductsDetails(picked).then((data) => {
-          this.productOfferings = data as ProductOffering[];
+          this.productOfferings = (data as ProductOffering[]).filter((offering) =>
+            offering.attachment?.some(
+              (a) => a.attachmentType === 'Picture' || a.name === 'Profile Picture'
+            )
+          );
         })
       });
   }

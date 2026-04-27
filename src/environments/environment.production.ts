@@ -100,5 +100,6 @@ export const environment = {
     AI_SEARCH_SCORE_THRESHOLD: 0.3,
     AI_SEARCH_ANSWER_MAX_ITEMS: 5,
     AI_SEARCH_PROFILE: 'dome_dev2',
-    LEAR_URL: ''
+    LEAR_URL: '',
+    LAUNCH_VALIDATION_ENABLED: false
 };
