@@ -177,6 +177,11 @@ export class ApiServiceService {
     return lastValueFrom(this.http.get<any>(url));
   }
 
+  checkOfferingLaunch(id: string): Promise<{ canBeLaunched: boolean }> {
+    const url = `${ApiServiceService.BASE_URL}/offering/${id}/launch`;
+    return lastValueFrom(this.http.get<{ canBeLaunched: boolean }>(url));
+  }
+
   getProductPrice(id: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOfferingPrice/${id}`
 

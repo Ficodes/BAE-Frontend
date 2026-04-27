@@ -10,7 +10,7 @@
 }
 @if (statusControl && formType === 'update') {
   <label class="font-bold text-lg col-span-2 dark:text-white">{{ 'CREATE_OFFER._status' | translate }}</label>
-  <app-status-selector [formControl]="statusControl"></app-status-selector>
+  <app-status-selector [formControl]="statusControl" [disabledStatuses]="disabledStatuses"></app-status-selector>
 }
 @if (descControl) {
   <label class="font-bold text-lg col-span-2 dark:text-white">{{ 'CREATE_OFFER._description' | translate }}</label>

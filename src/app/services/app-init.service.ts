@@ -47,6 +47,7 @@ export class AppInitService {
                 environment.TENDER_ENABLED = config.tenderingEnabled ?? false
                 environment.DATA_SPACE_ENABLED = config.dataSpaceEnabled ?? false
                 environment.LEAR_URL = config.learUrl ?? ''
+                environment.LAUNCH_VALIDATION_ENABLED = config.launchValidationEnabled ?? false;
                 environment.AI_SEARCH_ENABLED = aiConfig.aiEnabled ?? config.aiEnabled ?? false;
                 environment.AI_SEARCH_API_KEY = aiConfig.aiApiKey ?? config.aiApiKey ?? '';
                 environment.AI_SEARCH_API_URL = aiConfig.aiApiUrl ?? config.aiApiUrl ?? '';
