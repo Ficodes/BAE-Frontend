@@ -29,6 +29,7 @@ type ServiceSpecificationRef = components["schemas"]["ServiceSpecificationRef"];
 type ResourceSpecificationRef = components["schemas"]["ResourceSpecificationRef"];
 type ProductSpecificationRelationship = components["schemas"]["ProductSpecificationRelationship"];
 type AttachmentRefOrValue = components["schemas"]["AttachmentRefOrValue"];
+type ProductSpecFormStep = 'general' | 'bundle' | 'compliance' | 'characteristics' | 'dataspace' | 'resource' | 'service' | 'attachments' | 'relationships' | 'summary';
 
 @Component({
   selector: 'create-product-spec',
@@ -182,6 +183,21 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   toValue: string = '';
   rangeUnit: string = '';
   jsonValue: string = '';
+  readonly dataSpaceCharacteristicTypes: string[] = [
+    'endpointUrl',
+    'upstreamAddress',
+    'endpointDescription',
+    'targetSpecification',
+    'serviceConfiguration',
+    'credentialsConfiguration',
+    'authorizationPolicy'
+  ];
+  readonly dataSpaceJsonCharacteristicTypes: string[] = [
+    'targetSpecification',
+    'serviceConfiguration',
+    'credentialsConfiguration',
+    'authorizationPolicy'
+  ];
 
   filenameRegex = /^[A-Za-z0-9_.-]+$/;
   private destroy$ = new Subject<void>();
@@ -231,30 +247,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   public files: NgxFileDropEntry[] = [];
 
   ngOnInit() {
-    if(this.BUNDLE_ENABLED){
-      this.steps = [
-        'General Info',
-        'Bundle',
-        'Compliance profile',
-        'Characteristics',
-        'Resource specifications',
-        'Service specifications',
-        'Attachments',
-        'Relationships',
-        'Summary'
-      ]
-    } else {
-      this.steps = [
-        'General Info',
-        'Compliance profile',
-        'Characteristics',
-        'Resource specifications',
-        'Service specifications',
-        'Attachments',
-        'Relationships',
-        'Summary'
-      ]
-    }
+    this.steps = this.getFormSteps();
     console.log(this.steps)
     this.initPartyInfo();
   }
@@ -513,7 +506,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
                 }, 3000);
                 return;
               }
-              if(((this.currentStep === 1 && !this.BUNDLE_ENABLED) || (this.currentStep === 2 && this.BUNDLE_ENABLED)) && !this.showUploadAtt){
+              if(this.isCurrentStep('compliance') && !this.showUploadAtt){
                 const index = this.selectedISOS.findIndex(item => item.name === sel.name);
                 this.attachmentService.uploadFile(fileBody).subscribe({
                   next: data => {
@@ -545,7 +538,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
                   }
                 });
               }
-              if(((this.currentStep === 1 && !this.BUNDLE_ENABLED) || (this.currentStep === 2 && this.BUNDLE_ENABLED)) && this.showUploadAtt){
+              if(this.isCurrentStep('compliance') && this.showUploadAtt){
                 const index = this.finishChars.findIndex(item => item.name === this.selfAtt.name);
                 this.attachmentService.uploadFile(fileBody).subscribe({
                   next: data => {
@@ -590,7 +583,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
                   }
                 });
               }
-              if((this.currentStep === 5 && !this.BUNDLE_ENABLED) || (this.currentStep === 6 && this.BUNDLE_ENABLED)){
+              if(this.isCurrentStep('attachments')){
                 console.log(file)
                 this.attachmentService.uploadFile(fileBody).subscribe({
                   next: data => {
@@ -692,6 +685,20 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     this.charTypeSelected='string';
     this.showPreview=false;
     this.refreshChars();
+  }
+
+  toggleCreateCharacteristicForm(){
+    this.showCreateChar = !this.showCreateChar;
+    if (this.showCreateChar) {
+      this.charTypeSelected = this.getInitialCharacteristicTypeForCurrentStep();
+      this.creatingChars = [];
+      this.isOptional = false;
+      this.optionalDftTrue = false;
+      this.booleanDefaultTrue = true;
+      if (this.charTypeSelected === 'boolean') {
+        this.setBooleanDefaultValues();
+      }
+    }
   }
 
   toggleResource(){
@@ -1015,7 +1022,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     this.toValue = '';
     this.rangeUnit = '';
     this.jsonValue = '';
-    this.charTypeSelected='string';
+    this.charTypeSelected=this.getInitialCharacteristicTypeForCurrentStep();
     this.booleanDefaultTrue=true;
     this.isOptional=false;
     this.optionalDftTrue=false;
@@ -1117,8 +1124,105 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     }
   }
 
-  private isJsonCharacteristicType(type: string): boolean {
-    return type === 'credentialsConfiguration' || type === 'authorizationPolicy';
+  isJsonCharacteristicType(type: string | undefined): boolean {
+    if (!type) {
+      return false;
+    }
+    return this.dataSpaceJsonCharacteristicTypes.includes(type);
+  }
+
+  isDataSpaceCharacteristicType(type: string | undefined): boolean {
+    if (!type) {
+      return false;
+    }
+    return this.dataSpaceCharacteristicTypes.includes(type);
+  }
+
+  isDataspaceConfigurationStep(): boolean {
+    return this.isCurrentStep('dataspace');
+  }
+
+  isDefaultCharacteristicsStep(): boolean {
+    return this.isCurrentStep('characteristics');
+  }
+
+  isTextCharacteristicType(type: string | undefined): boolean {
+    return type === 'string' || type === 'endpointUrl' || type === 'upstreamAddress' || type === 'endpointDescription';
+  }
+
+  getFilteredCharacteristicsForCurrentStep(): ProductSpecificationCharacteristic[] {
+    const nonCompliance = this.prodChars.filter((char: any) => !char.name?.startsWith('Compliance:'));
+    if (this.isDataspaceConfigurationStep()) {
+      return nonCompliance.filter((char: any) => this.isDataSpaceCharacteristicType(char.valueType));
+    }
+    return nonCompliance.filter((char: any) => !this.isDataSpaceCharacteristicType(char.valueType));
+  }
+
+  getInitialCharacteristicTypeForCurrentStep(): string {
+    if (this.isDataspaceConfigurationStep()) {
+      return this.dataSpaceCharacteristicTypes[0];
+    }
+    return 'string';
+  }
+
+  private getFormSteps(): string[] {
+    const steps: string[] = ['General Info'];
+    if (this.BUNDLE_ENABLED) {
+      steps.push('Bundle');
+    }
+    steps.push('Compliance profile');
+    steps.push('Characteristics');
+    if (this.DATA_SPACE_ENABLED) {
+      steps.push('Dataspace Configuration');
+    }
+    steps.push('Resource specifications');
+    steps.push('Service specifications');
+    steps.push('Attachments');
+    steps.push('Relationships');
+    steps.push('Summary');
+    return steps;
+  }
+
+  private getStepIndex(step: ProductSpecFormStep): number {
+    const bundleOffset = this.BUNDLE_ENABLED ? 1 : 0;
+    const complianceIndex = 1 + bundleOffset;
+    const characteristicsIndex = complianceIndex + 1;
+    const dataspaceIndex = this.DATA_SPACE_ENABLED ? characteristicsIndex + 1 : -1;
+    const resourceIndex = characteristicsIndex + (this.DATA_SPACE_ENABLED ? 2 : 1);
+    const serviceIndex = resourceIndex + 1;
+    const attachmentsIndex = serviceIndex + 1;
+    const relationshipsIndex = attachmentsIndex + 1;
+    const summaryIndex = relationshipsIndex + 1;
+
+    switch (step) {
+      case 'general':
+        return 0;
+      case 'bundle':
+        return this.BUNDLE_ENABLED ? 1 : -1;
+      case 'compliance':
+        return complianceIndex;
+      case 'characteristics':
+        return characteristicsIndex;
+      case 'dataspace':
+        return dataspaceIndex;
+      case 'resource':
+        return resourceIndex;
+      case 'service':
+        return serviceIndex;
+      case 'attachments':
+        return attachmentsIndex;
+      case 'relationships':
+        return relationshipsIndex;
+      case 'summary':
+        return summaryIndex;
+      default:
+        return -1;
+    }
+  }
+
+  isCurrentStep(step: ProductSpecFormStep): boolean {
+    const index = this.getStepIndex(step);
+    return index >= 0 && this.currentStep === index;
   }
 
   private getSchemaLocationForType(type: string): string | null {
@@ -1132,7 +1236,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   addCharValue(){
-    if(this.charTypeSelected == 'string'){
+    if(this.isTextCharacteristicType(this.charTypeSelected)){
       console.log('string')
       if(this.creatingChars.length==0){
         this.creatingChars.push({
@@ -1259,8 +1363,10 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       };
 
       const schemaLocation = this.getSchemaLocationForType(this.charTypeSelected);
-      if (schemaLocation) {
+      if (this.isDataSpaceCharacteristicType(this.charTypeSelected)) {
         characteristic.valueType = this.charTypeSelected;
+      }
+      if (schemaLocation) {
         characteristic['@schemaLocation'] = schemaLocation;
       }
 
@@ -1583,26 +1689,31 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       this.highestStep=this.currentStep
     }
     this.refreshChars();
+    if (this.isCurrentStep('compliance')) {
+      setTimeout(() => {
+        initFlowbite();
+      }, 100);
+    }
     //Resource
-    if((this.currentStep==4 && this.BUNDLE_ENABLED) || (this.currentStep==3 && !this.BUNDLE_ENABLED)){
+    if(this.isCurrentStep('resource')){
       this.getResSpecs(false);
     }
     //Service
-    if((this.currentStep==5 && this.BUNDLE_ENABLED) || (this.currentStep==4 && !this.BUNDLE_ENABLED)){
+    if(this.isCurrentStep('service')){
       this.getServSpecs(false);
     }
     //Attachment
-    if((this.currentStep==6 && this.BUNDLE_ENABLED) || (this.currentStep==5 && !this.BUNDLE_ENABLED)){
+    if(this.isCurrentStep('attachments')){
       setTimeout(() => {
         initFlowbite();
       }, 100);
     }
     //rels
-    if((this.currentStep==7 && this.BUNDLE_ENABLED) || (this.currentStep==6 && !this.BUNDLE_ENABLED)){
+    if(this.isCurrentStep('relationships')){
       this.getProdSpecsRel(false);
     }
     //finish
-    if((this.currentStep==8 && this.BUNDLE_ENABLED) || (this.currentStep==7 && !this.BUNDLE_ENABLED)){
+    if(this.isCurrentStep('summary')){
       this.showFinish();
     }
   }
@@ -1620,19 +1731,13 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     switch (this.currentStep) {
       case 0: // General Info
         return !this.generalForm?.valid || false;
-      case 1:
-        if(this.BUNDLE_ENABLED){
-          return this.prodSpecsBundle.length<2 && this.bundleChecked
-        } else {
-          return this.checkValidISOS()
-        }
-      case 2:
-        if(this.BUNDLE_ENABLED){
-          return this.checkValidISOS()
-        } else {
-          return false
-        }
       default:
+        if (this.BUNDLE_ENABLED && this.currentStep === this.getStepIndex('bundle')) {
+          return this.prodSpecsBundle.length<2 && this.bundleChecked;
+        }
+        if (this.currentStep === this.getStepIndex('compliance')) {
+          return this.checkValidISOS();
+        }
         return false;
     }
   }
