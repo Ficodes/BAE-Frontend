@@ -136,18 +136,40 @@ describe('CreateProductSpecComponent', () => {
 
   it('ngOnInit should configure steps with bundle enabled', () => {
     component.BUNDLE_ENABLED = true;
+    component.DATA_SPACE_ENABLED = false;
     const initSpy = spyOn(component, 'initPartyInfo');
     component.ngOnInit();
     expect(component.steps.length).toBe(9);
     expect(component.steps).toContain('Bundle');
+    expect(component.steps).not.toContain('Dataspace Configuration');
     expect(initSpy).toHaveBeenCalled();
   });
 
   it('ngOnInit should configure steps without bundle', () => {
     component.BUNDLE_ENABLED = false;
+    component.DATA_SPACE_ENABLED = false;
     component.ngOnInit();
     expect(component.steps.length).toBe(8);
     expect(component.steps).not.toContain('Bundle');
+    expect(component.steps).not.toContain('Dataspace Configuration');
+  });
+
+  it('ngOnInit should configure steps with dataspace enabled and bundle enabled', () => {
+    component.BUNDLE_ENABLED = true;
+    component.DATA_SPACE_ENABLED = true;
+    component.ngOnInit();
+    expect(component.steps.length).toBe(10);
+    expect(component.steps).toContain('Bundle');
+    expect(component.steps).toContain('Dataspace Configuration');
+  });
+
+  it('ngOnInit should configure steps with dataspace enabled and no bundle', () => {
+    component.BUNDLE_ENABLED = false;
+    component.DATA_SPACE_ENABLED = true;
+    component.ngOnInit();
+    expect(component.steps.length).toBe(9);
+    expect(component.steps).not.toContain('Bundle');
+    expect(component.steps).toContain('Dataspace Configuration');
   });
 
   it('initPartyInfo should set partyId when logged directly', () => {
@@ -643,6 +665,36 @@ describe('CreateProductSpecComponent', () => {
     expect(component.creatingChars).toEqual([]);
   });
 
+  it('refreshChars should use dataspace default type in dataspace step', () => {
+    component.BUNDLE_ENABLED = false;
+    component.DATA_SPACE_ENABLED = true;
+    component.ngOnInit();
+    component.currentStep = 3;
+    component.charTypeSelected = 'number';
+
+    component.refreshChars();
+
+    expect(component.charTypeSelected).toBe('endpointUrl');
+  });
+
+  it('getFilteredCharacteristicsForCurrentStep should split default and dataspace characteristics', () => {
+    component.BUNDLE_ENABLED = false;
+    component.DATA_SPACE_ENABLED = true;
+    component.ngOnInit();
+    component.prodChars = [
+      { id: '1', name: 'Latency', valueType: 'string' },
+      { id: '2', name: 'Compliance: ISO 27001', valueType: 'string' },
+      { id: '3', name: 'DCP endpoint', valueType: 'endpointUrl' },
+      { id: '4', name: 'Policy', valueType: 'authorizationPolicy' }
+    ] as any;
+
+    component.currentStep = 2;
+    expect(component.getFilteredCharacteristicsForCurrentStep().map(char => char.name)).toEqual(['Latency']);
+
+    component.currentStep = 3;
+    expect(component.getFilteredCharacteristicsForCurrentStep().map(char => char.name)).toEqual(['DCP endpoint', 'Policy']);
+  });
+
   it('removeClass and addClass should update className', () => {
     const elem = { className: 'a b c' } as HTMLElement;
     component.removeClass(elem, 'b');
@@ -737,6 +789,17 @@ describe('CreateProductSpecComponent', () => {
     expect(component.creatingChars[1].isDefault).toBeFalse();
   });
 
+  it('addCharValue should treat endpointUrl as text type', () => {
+    component.charTypeSelected = 'endpointUrl';
+    component.stringValue = 'https://example.org/api/dsp/2025-1';
+
+    component.addCharValue();
+
+    expect(component.creatingChars.length).toBe(1);
+    expect(component.creatingChars[0].value as any).toBe('https://example.org/api/dsp/2025-1');
+    expect(component.stringValue).toBe('');
+  });
+
   it('addCharValue should add number values with units', () => {
     component.charTypeSelected = 'number';
     component.numberValue = '100';
@@ -820,6 +883,20 @@ describe('CreateProductSpecComponent', () => {
     expect(component.showError).toBeTrue();
     expect(component.errorMessage).toBe('Invalid JSON format');
     expect(component.creatingChars).toEqual([]);
+  });
+
+  it('addCharValue should parse and add JSON values for targetSpecification', () => {
+    component.charTypeSelected = 'targetSpecification';
+    component.jsonValue = '{"@type":"AssetCollection","refinement":[]}';
+
+    component.addCharValue();
+
+    expect(component.creatingChars.length).toBe(1);
+    expect(component.creatingChars[0].isDefault).toBeTrue();
+    expect(component.creatingChars[0].value as any).toEqual({
+      '@type': 'AssetCollection',
+      refinement: []
+    });
   });
 
   it('removeCharValue and selectDefaultChar should manage created char values', () => {
@@ -911,6 +988,31 @@ describe('CreateProductSpecComponent', () => {
     expect((component.prodChars[0] as any)['@schemaLocation']).toContain('policyCharacteristic.json');
   });
 
+  it('saveChar should persist serviceConfiguration valueType without schema location', () => {
+    component.charTypeSelected = 'serviceConfiguration';
+    component.charsForm.patchValue({ name: 'Service Configuration', description: 'desc' });
+    component.creatingChars = [{ isDefault: true, value: { defaultOidcScope: 'openid' } } as any];
+    component.isOptional = true;
+
+    component.saveChar();
+
+    expect(component.prodChars.length).toBe(1);
+    expect((component.prodChars[0] as any).valueType).toBe('serviceConfiguration');
+    expect((component.prodChars[0] as any)['@schemaLocation']).toBeUndefined();
+    expect(component.prodChars.find(char => char.name === 'Service Configuration - enabled')).toBeUndefined();
+  });
+
+  it('saveChar should persist endpointUrl valueType', () => {
+    component.charTypeSelected = 'endpointUrl';
+    component.charsForm.patchValue({ name: 'DCP Endpoint', description: 'desc' });
+    component.creatingChars = [{ isDefault: true, value: 'https://example.org/api' } as any];
+
+    component.saveChar();
+
+    expect(component.prodChars.length).toBe(1);
+    expect((component.prodChars[0] as any).valueType).toBe('endpointUrl');
+  });
+
   it('deleteChar should remove characteristic and its related enabled one', () => {
     const detectSpy = spyOn((component as any).cdr, 'detectChanges');
     component.prodChars = [
@@ -1000,6 +1102,36 @@ describe('CreateProductSpecComponent', () => {
 
     expect(component.productSpecToCreate?.productSpecCharacteristic?.some((c: any) => c.name === 'A')).toBeFalse();
     expect(component.productSpecToCreate?.productSpecCharacteristic?.some((c: any) => c.name === 'B')).toBeTrue();
+  });
+
+  it('showFinish should include self attestation even when it is not in prodChars', () => {
+    component.partyId = 'party-1';
+    component.generalForm.patchValue({
+      name: 'My Product',
+      description: 'Desc',
+      version: '1.0',
+      brand: 'Brand',
+      number: 'PN-1'
+    });
+    component.selectedISOS = [];
+    component.additionalISOS = [];
+    component.prodRelationships = [];
+    component.prodAttachments = [];
+    component.selectedResourceSpecs = [];
+    component.selectedServiceSpecs = [];
+    component.prodChars = [{ id: 'char-1', name: 'Feature', productSpecCharacteristicValue: [{ value: 'x' }] } as any];
+    component.selfAtt = {
+      id: 'self-att-1',
+      name: 'Compliance:SelfAtt',
+      productSpecCharacteristicValue: [{ isDefault: true, value: 'https://self-att' }]
+    };
+
+    component.showFinish();
+
+    const selfAtt = component.productSpecToCreate?.productSpecCharacteristic?.find((c: any) => c.name === 'Compliance:SelfAtt');
+    const selfAttValue = (selfAtt as any)?.productSpecCharacteristicValue?.[0]?.value;
+    expect(selfAtt).toBeDefined();
+    expect(selfAttValue).toBe('https://self-att');
   });
 
   it('createProduct should call API and go back on success', () => {
