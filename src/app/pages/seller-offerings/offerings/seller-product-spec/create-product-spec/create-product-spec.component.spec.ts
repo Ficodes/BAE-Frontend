@@ -1104,6 +1104,36 @@ describe('CreateProductSpecComponent', () => {
     expect(component.productSpecToCreate?.productSpecCharacteristic?.some((c: any) => c.name === 'B')).toBeTrue();
   });
 
+  it('showFinish should include self attestation even when it is not in prodChars', () => {
+    component.partyId = 'party-1';
+    component.generalForm.patchValue({
+      name: 'My Product',
+      description: 'Desc',
+      version: '1.0',
+      brand: 'Brand',
+      number: 'PN-1'
+    });
+    component.selectedISOS = [];
+    component.additionalISOS = [];
+    component.prodRelationships = [];
+    component.prodAttachments = [];
+    component.selectedResourceSpecs = [];
+    component.selectedServiceSpecs = [];
+    component.prodChars = [{ id: 'char-1', name: 'Feature', productSpecCharacteristicValue: [{ value: 'x' }] } as any];
+    component.selfAtt = {
+      id: 'self-att-1',
+      name: 'Compliance:SelfAtt',
+      productSpecCharacteristicValue: [{ isDefault: true, value: 'https://self-att' }]
+    };
+
+    component.showFinish();
+
+    const selfAtt = component.productSpecToCreate?.productSpecCharacteristic?.find((c: any) => c.name === 'Compliance:SelfAtt');
+    const selfAttValue = (selfAtt as any)?.productSpecCharacteristicValue?.[0]?.value;
+    expect(selfAtt).toBeDefined();
+    expect(selfAttValue).toBe('https://self-att');
+  });
+
   it('createProduct should call API and go back on success', () => {
     const backSpy = spyOn(component, 'goBack');
     component.productSpecToCreate = { name: 'Prod' } as any;

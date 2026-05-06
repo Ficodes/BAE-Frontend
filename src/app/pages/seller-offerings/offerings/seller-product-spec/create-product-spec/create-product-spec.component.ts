@@ -459,6 +459,14 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
   }
 
+  private hasSelfAttestation(): boolean {
+    const selfAttestationValue = this.selfAtt?.productSpecCharacteristicValue?.[0]?.value;
+    if (typeof selfAttestationValue === 'string') {
+      return selfAttestationValue.trim() !== '';
+    }
+    return !!selfAttestationValue;
+  }
+
   public dropped(files: NgxFileDropEntry[],sel:any) {
     this.files = files;
     for (const droppedFile of files) {
@@ -1497,6 +1505,34 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       }
       console.log(this.finishChars)
     }
+
+    // Keep self attestation from compliance step in final payload.
+    if (this.hasSelfAttestation()) {
+      const selfAttName = 'Compliance:SelfAtt';
+      const selfAttValue = this.selfAtt?.productSpecCharacteristicValue?.[0]?.value;
+      const selfAttIndex = this.finishChars.findIndex(item => item.name === selfAttName);
+      const selfAttId = this.selfAtt?.id
+        ? this.selfAtt.id
+        : (selfAttIndex !== -1 && this.finishChars[selfAttIndex]?.id
+          ? this.finishChars[selfAttIndex].id
+          : `urn:ngsi-ld:characteristic:${uuidv4()}`);
+
+      const selfAttestationCharacteristic = {
+        id: selfAttId,
+        name: selfAttName,
+        productSpecCharacteristicValue: [{
+          isDefault: true,
+          value: selfAttValue
+        }]
+      } as ProductSpecificationCharacteristic;
+
+      if (selfAttIndex === -1) {
+        this.finishChars.push(selfAttestationCharacteristic);
+      } else {
+        this.finishChars[selfAttIndex] = selfAttestationCharacteristic;
+      }
+    }
+
     let rels = [];
     for(let i=0; i<this.prodRelationships.length;i++){
       rels.push({
