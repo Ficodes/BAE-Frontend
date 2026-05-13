@@ -268,7 +268,29 @@
                     </div>-->
                 }
                 @if (isCurrentStep('compliance')) {
-                    <div class="flex w-full justify-end items-center gap-2 px-4 mb-3">
+                    <div class="flex w-full items-center px-4 mb-3">
+                        <div class="flex items-center">
+                            @if(complianceVC && complianceLevel=='BL'){
+                                <img
+                                    class="h-[1.9rem] max-w-[12rem] object-contain rounded-md"
+                                    src="assets/logos/baseline.png"
+                                    alt="Baseline logo"
+                                />
+                            } @else if(complianceVC && complianceLevel=='P') {
+                                <img
+                                    class="h-[1.9rem] max-w-[12rem] object-contain rounded-md"
+                                    src="assets/logos/prof.png"
+                                    alt="Professional logo"
+                                />
+                            } @else if(complianceVC && complianceLevel=='PP') {
+                                <img
+                                    class="h-[1.9rem] max-w-[12rem] object-contain rounded-md"
+                                    src="assets/logos/profplus.png"
+                                    alt="Professional plus logo"
+                                />
+                            }
+                        </div>
+                        <div class="ml-auto flex items-center gap-2">
                         <button type="button" (click)="openRequestValidationModal(); $event.stopPropagation();"
                         [disabled]="!hasSelfAttestation() || hasUnsavedComplianceProfileChanges()"
                         [ngClass]="(!hasSelfAttestation() || hasUnsavedComplianceProfileChanges()) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
@@ -283,6 +305,7 @@
                             <svg data-popover-target="popover-default" class="flex self-center w-6 h-6 text-primary-100" clip-rule="evenodd" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                             </svg>
+                        </div>
                         </div>
                     </div>
                     @if (hasUnsavedComplianceProfileChanges()) {

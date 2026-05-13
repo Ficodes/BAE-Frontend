@@ -17,7 +17,6 @@ import { NgxFileDropEntry, FileSystemFileEntry, FileSystemDirectoryEntry } from 
 import { certifications } from 'src/app/models/certification-standards.const'
 import * as moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
-import { QrVerifierService } from 'src/app/services/qr-verifier.service';
 import { jwtDecode } from "jwt-decode";
 import { noWhitespaceValidator } from 'src/app/validators/validators';
 import { Subject } from 'rxjs';
@@ -114,6 +113,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   selectedISOS:any[]=[];
   additionalISOS:any[]=[];
   verifiedISO:string[] = [];
+  complianceLevel:string='NL';
   selectedISO:any;
   complianceVC:any = null;
   complianceVCId:string = '';
@@ -213,7 +213,6 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     private attachmentService: AttachmentServiceService,
     private servSpecService: ServiceSpecServiceService,
     private resSpecService: ResourceSpecServiceService,
-    private qrVerifier: QrVerifierService,
     private paginationService: PaginationService
   ) {
     for(let i=0; i<certifications.length; i++){
@@ -300,26 +299,10 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
         // Check if this is a VC
         if (this.prod.productSpecCharacteristic[i].name == 'Compliance:VC') {
           this.complianceVCId = this.prod.productSpecCharacteristic[i].id || '';
+          this.complianceVC = this.prod.productSpecCharacteristic[i].productSpecCharacteristicValue?.[0]?.value ?? null;
           // Decode the token
           try {
-            const decoded = jwtDecode(this.prod.productSpecCharacteristic[i].productSpecCharacteristicValue[0].value)
-            let credential: any = null
-
-            if ('verifiableCredential' in decoded) {
-              credential = decoded.verifiableCredential;
-            } else if('vc' in decoded) {
-              credential = decoded.vc;
-            }
-
-            if (credential != null) {
-              const subject = credential.credentialSubject;
-
-              if ('compliance' in subject) {
-                this.verifiedISO = subject.compliance.map((comp: any) => {
-                  return comp.standard
-                })
-              }
-            }
+            this.applyComplianceDataFromVcToken(this.complianceVC);
           } catch (e) {
             console.log(e)
           }
@@ -638,27 +621,36 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     console.log(this.selectedISOS)
   }
 
-  verifyCredential() {
-    console.log('verifing credential')
-    const state = `cert:${uuidv4()}`
+  private applyComplianceDataFromVcToken(vcToken: any) {
+    if (!vcToken || typeof vcToken !== 'string') {
+      this.complianceLevel = 'NL';
+      return;
+    }
 
-    const qrWin = this.qrVerifier.launchPopup(`${environment.SIOP_INFO.verifierHost}${environment.SIOP_INFO.verifierQRCodePath}?state=${state}&client_callback=${environment.SIOP_INFO.callbackURL}&client_id=${environment.SIOP_INFO.clientID}`,  'Scan QR code',  500, 500)
-    this.qrVerifier.pollCertCredential(qrWin, state).then((data) => {
-      // Process the VC to verify the cerficates
-      // Validate the product ID and company
-      const subject = data.subject
+    const allowedLevels = ['NL', 'BL', 'P', 'PP'];
 
-      if (subject.compliance) {
-        subject.compliance.forEach((comp: any) => {
-          this.verifiedISO.push(comp.standard)
-        })
+    try {
+      const decoded: any = jwtDecode(vcToken);
+      let credential: any = null;
 
-        this.complianceVC = data.vc;
+      if ('verifiableCredential' in decoded) {
+        credential = decoded.verifiableCredential;
+      } else if ('vc' in decoded) {
+        credential = decoded.vc;
       }
 
-      //this.verifiedISO[sel.name] = data.vc
-      console.log(`We got the vc: ${data['vc']}`)
-    })
+      const subject = credential?.credentialSubject;
+      if (!subject) {
+        this.complianceLevel = 'NL';
+        return;
+      }
+
+      const level = subject['gx:labelLevel'];
+      this.complianceLevel = (typeof level === 'string' && allowedLevels.includes(level)) ? level : 'NL';
+    } catch (error) {
+      this.complianceLevel = 'NL';
+      console.log(error);
+    }
   }
 
   openRequestValidationModal() {
