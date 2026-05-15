@@ -13,7 +13,6 @@ import { AttachmentServiceService } from 'src/app/services/attachment-service.se
 import { ServiceSpecServiceService } from 'src/app/services/service-spec-service.service';
 import { ResourceSpecServiceService } from 'src/app/services/resource-spec-service.service';
 import { PaginationService } from 'src/app/services/pagination.service';
-import { QrVerifierService } from 'src/app/services/qr-verifier.service';
 
 class SyncFileReaderMock {
   onload: ((event: any) => void) | null = null;
@@ -24,6 +23,13 @@ class SyncFileReaderMock {
     }
   }
 }
+
+const asJwt = (payload: any): string => {
+  const encode = (value: any) =>
+    btoa(JSON.stringify(value)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+
+  return `${encode({ alg: 'none', typ: 'JWT' })}.${encode(payload)}.`;
+};
 
 describe('UpdateProductSpecComponent', () => {
   let component: UpdateProductSpecComponent;
@@ -37,7 +43,6 @@ describe('UpdateProductSpecComponent', () => {
   let attachmentServiceSpy: jasmine.SpyObj<AttachmentServiceService>;
   let servSpecServiceSpy: jasmine.SpyObj<ServiceSpecServiceService>;
   let resSpecServiceSpy: jasmine.SpyObj<ResourceSpecServiceService>;
-  let qrVerifierSpy: jasmine.SpyObj<QrVerifierService>;
   let paginationServiceSpy: jasmine.SpyObj<PaginationService>;
   let originalFileReader: any;
 
@@ -67,15 +72,12 @@ describe('UpdateProductSpecComponent', () => {
     attachmentServiceSpy = jasmine.createSpyObj<AttachmentServiceService>('AttachmentServiceService', ['uploadFile']);
     servSpecServiceSpy = jasmine.createSpyObj<ServiceSpecServiceService>('ServiceSpecServiceService', ['getServiceSpecByUser']);
     resSpecServiceSpy = jasmine.createSpyObj<ResourceSpecServiceService>('ResourceSpecServiceService', ['getResourceSpecByUser']);
-    qrVerifierSpy = jasmine.createSpyObj<QrVerifierService>('QrVerifierService', ['launchPopup', 'pollCertCredential']);
     paginationServiceSpy = jasmine.createSpyObj<PaginationService>('PaginationService', ['getItemsPaginated']);
 
     localStorageSpy.getObject.and.returnValue({});
     attachmentServiceSpy.uploadFile.and.returnValue(of({ content: 'https://uploaded.file' }));
     prodSpecServiceSpy.getResSpecById.and.resolveTo({ id: 'rel-prod', name: 'Rel Prod' } as any);
     prodSpecServiceSpy.updateProdSpec.and.returnValue(of({ id: 'created' }));
-    qrVerifierSpy.launchPopup.and.returnValue({} as Window);
-    qrVerifierSpy.pollCertCredential.and.resolveTo({ subject: { compliance: [] }, vc: 'vc-token' });
     paginationServiceSpy.getItemsPaginated.and.resolveTo(defaultPaginationData);
 
     await TestBed.configureTestingModule({
@@ -90,7 +92,6 @@ describe('UpdateProductSpecComponent', () => {
         { provide: AttachmentServiceService, useValue: attachmentServiceSpy },
         { provide: ServiceSpecServiceService, useValue: servSpecServiceSpy },
         { provide: ResourceSpecServiceService, useValue: resSpecServiceSpy },
-        { provide: QrVerifierService, useValue: qrVerifierSpy },
         { provide: PaginationService, useValue: paginationServiceSpy }
       ]
     }).compileComponents();
@@ -506,6 +507,33 @@ describe('UpdateProductSpecComponent', () => {
 
     expect(component.prodChars.length).toBe(1);
     expect(component.prodChars[0].id).toBe('urn:ngsi-ld:characteristic:platinum-id');
+  });
+
+  it('populateProductInfo should decode Compliance:VC and expose compliance badge level', () => {
+    const vcToken = asJwt({
+      vc: {
+        credentialSubject: {
+          'gx:labelLevel': 'P'
+        }
+      }
+    });
+
+    component.prod = {
+      ...component.prod,
+      productSpecCharacteristic: [
+        {
+          id: 'urn:ngsi-ld:characteristic:vc-id',
+          name: 'Compliance:VC',
+          productSpecCharacteristicValue: [{ isDefault: true, value: vcToken }]
+        }
+      ]
+    } as any;
+
+    component.populateProductInfo();
+
+    expect(component.complianceVCId).toBe('urn:ngsi-ld:characteristic:vc-id');
+    expect(component.complianceVC).toBe(vcToken);
+    expect(component.complianceLevel).toBe('P');
   });
 
   it('hasUnsavedComplianceProfileChanges should return false when compliance profile matches persisted data', () => {
