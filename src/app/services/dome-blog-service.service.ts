@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { lastValueFrom, map } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { lastValueFrom } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import {LocalStorageService} from "./local-storage.service";
 
@@ -33,5 +33,11 @@ export class DomeBlogServiceService {
     let url = `${DomeBlogServiceService.BASE_URL}/domeblog/${id}`;
  
     return lastValueFrom(this.http.patch(url, body))
+  }
+
+  deleteBlogEntry(id:any){
+    let url = `${DomeBlogServiceService.BASE_URL}/domeblog/${id}`;
+
+    return lastValueFrom(this.http.delete(url));
   }
 }

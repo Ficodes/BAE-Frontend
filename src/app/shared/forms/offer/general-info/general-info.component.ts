@@ -4,20 +4,20 @@ import {SharedModule} from "../../../shared.module";
 import {MarkdownTextareaComponent} from "../../markdown-textarea/markdown-textarea.component";
 import {StatusSelectorComponent} from "../../status-selector/status-selector.component";
 import {EventMessageService} from "../../../../services/event-message.service";
+import {ApiServiceService} from "../../../../services/product-service.service";
 import {FormChangeState} from "../../../../models/interfaces";
 import {Subscription} from "rxjs";
 import {debounceTime} from "rxjs/operators";
 import { noWhitespaceValidator } from 'src/app/validators/validators';
 import {Subject} from "rxjs";
 import { takeUntil } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 
 interface GeneralInfo {
   name: string;
   status: string;
   description: string;
   version: string;
-  extBillingEnabled: boolean;
-  plaSpecId: string;
 }
 
 @Component({
@@ -43,7 +43,9 @@ export class GeneralInfoComponent implements OnInit, OnDestroy {
   private isEditMode: boolean = false;
   private destroy$ = new Subject<void>();
 
-  constructor(private eventMessage: EventMessageService) {
+  disabledStatuses: string[] = [];
+
+  constructor(private eventMessage: EventMessageService, private apiService: ApiServiceService) {
     console.log('🔄 Initializing GeneralInfoComponent');
   }
 
@@ -71,39 +73,16 @@ export class GeneralInfoComponent implements OnInit, OnDestroy {
     return control instanceof FormControl ? control : null;
   }
 
-  get extBillingEnabledControl(): FormControl | null {
-    const control = this.formGroup.get('extBillingEnabled');
-    return control instanceof FormControl ? control : null;
-  }
-
-  get plaSpecIdControl(): FormControl | null {
-    const control = this.formGroup.get('plaSpecId');
-    return control instanceof FormControl ? control : null;
-  }
-
   ngOnInit() {
     console.log('📝 Initializing form in', this.formType, 'mode');
     this.isEditMode = this.formType === 'update';
     
     if (this.isEditMode && this.data) {
       console.log('Initializing form in update mode with data:', this.data);
-      const existingPlaSpecId = this.data.pricingLogicAlgorithm?.[0]?.plaSpecId ?? '';
       this.formGroup.addControl('name', new FormControl<string>(this.data.name, [Validators.required, Validators.maxLength(100), noWhitespaceValidator]));
       this.formGroup.addControl('status', new FormControl<string>(this.data.lifecycleStatus));
       this.formGroup.addControl('description', new FormControl<string>(this.data.description, Validators.maxLength(100000)));
       this.formGroup.addControl('version', new FormControl<string>(this.data.version, [Validators.required,Validators.pattern('^-?[0-9]\\d*(\\.\\d*)?$'), noWhitespaceValidator]));
-      this.formGroup.addControl('extBillingEnabled', new FormControl<boolean>(!!existingPlaSpecId));
-      this.formGroup.addControl('plaSpecId', new FormControl<string>(existingPlaSpecId, !!existingPlaSpecId ? [Validators.required] : []));
-
-      this.formGroup.get('extBillingEnabled')!.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((enabled: boolean) => {
-        const plaControl = this.formGroup.get('plaSpecId')!;
-        if (enabled) {
-          plaControl.setValidators([Validators.required]);
-        } else {
-          plaControl.clearValidators();
-        }
-        plaControl.updateValueAndValidity();
-      });
 
       // Store original value only in edit mode
       this.originalValue = {
@@ -111,28 +90,24 @@ export class GeneralInfoComponent implements OnInit, OnDestroy {
         status: this.data.lifecycleStatus,
         description: this.data.description,
         version: this.data.version,
-        extBillingEnabled: !!existingPlaSpecId,
-        plaSpecId: existingPlaSpecId
       };
       console.log('📝 Original value stored:', this.originalValue);
+
+      if (environment.LAUNCH_VALIDATION_ENABLED && this.data.id) {
+        this.apiService.checkOfferingLaunch(this.data.id).then((result) => {
+          if (!result.canBeLaunched) {
+            this.disabledStatuses = ['Launched'];
+          }
+        }).catch(() => {
+          this.disabledStatuses = ['Launched'];
+        });
+      }
     } else {
       console.log('Initializing form in create mode');
       this.formGroup.addControl('name', new FormControl<string>('', [Validators.required, Validators.maxLength(100), noWhitespaceValidator]));
       this.formGroup.addControl('status', new FormControl<string>('Active', [Validators.required]));
       this.formGroup.addControl('description', new FormControl<string>(''));
       this.formGroup.addControl('version', new FormControl<string>('0.1', [Validators.required,Validators.pattern('^-?[0-9]\\d*(\\.\\d*)?$'), noWhitespaceValidator]));
-      this.formGroup.addControl('extBillingEnabled', new FormControl<boolean>(false));
-      this.formGroup.addControl('plaSpecId', new FormControl<string>(''));
-
-      this.formGroup.get('extBillingEnabled')!.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((enabled: boolean) => {
-        const plaControl = this.formGroup.get('plaSpecId')!;
-        if (enabled) {
-          plaControl.setValidators([Validators.required]);
-        } else {
-          plaControl.clearValidators();
-        }
-        plaControl.updateValueAndValidity();
-      });
     }
 
     // Subscribe to form changes only in edit mode

@@ -8,26 +8,9 @@
   <input data-cy="offerVersion" id="prod-version" type="text" [formControl]="versionControl"
          class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"/>
 }
-@if (extBillingEnabledControl) {
-  <div class="mb-2 flex items-center gap-3">
-    <label class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._ext_billing' | translate }}</label>
-    <input data-cy="extBillingToggle" type="checkbox" [formControl]="extBillingEnabledControl"
-           class="w-4 h-4 text-primary-100 bg-gray-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-50 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"/>
-  </div>
-}
-@if (extBillingEnabledControl?.value && plaSpecIdControl) {
-  <label for="plaSpecId" class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._pla_spec_id' | translate }}</label>
-  <input data-cy="plaSpecId" id="plaSpecId" type="url" [formControl]="plaSpecIdControl"
-         class="bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-         [class.border-red-500]="plaSpecIdControl.invalid && plaSpecIdControl.touched"
-         placeholder="https://external-billing-engine.example.com"/>
-  @if (plaSpecIdControl.invalid && plaSpecIdControl.touched) {
-    <p class="text-red-500 text-sm mt-1 mb-2">{{ 'CREATE_OFFER._pla_spec_id_required' | translate }}</p>
-  }
-}
 @if (statusControl && formType === 'update') {
   <label class="font-bold text-lg col-span-2 dark:text-white">{{ 'CREATE_OFFER._status' | translate }}</label>
-  <app-status-selector [formControl]="statusControl"></app-status-selector>
+  <app-status-selector [formControl]="statusControl" [disabledStatuses]="disabledStatuses"></app-status-selector>
 }
 @if (descControl) {
   <label class="font-bold text-lg col-span-2 dark:text-white">{{ 'CREATE_OFFER._description' | translate }}</label>

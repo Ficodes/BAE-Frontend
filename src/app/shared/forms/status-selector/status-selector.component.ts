@@ -19,7 +19,8 @@ import {SharedModule} from "../../shared.module";
   styleUrl: './status-selector.component.css'
 })
 export class StatusSelectorComponent implements ControlValueAccessor {
-  @Input() statuses: string[] = ['Active', 'Launched', 'Retired', 'Obsolete'];  // Estados disponibles
+  @Input() statuses: string[] = ['Active', 'Launched', 'Retired', 'Obsolete'];
+  @Input() disabledStatuses: string[] = [];
   selectedStatus: string = '';
 
   onChange = (status: string) => {};
@@ -38,8 +39,9 @@ export class StatusSelectorComponent implements ControlValueAccessor {
   }
 
   selectStatus(status: string): void {
+    if (this.disabledStatuses.includes(status)) return;
     this.selectedStatus = status;
-    this.onChange(status); // Notifica al formulario padre
+    this.onChange(status);
     this.onTouched();
   }
 
@@ -50,6 +52,10 @@ export class StatusSelectorComponent implements ControlValueAccessor {
       "Retired": 'text-[#b40404]',
       "Obsolete": 'text-gray-800'
     };
+
+    if (this.disabledStatuses.includes(status)) {
+      return "opacity-40 cursor-not-allowed flex items-center justify-center p-4 rounded-lg space-x-4 transition-all text-gray-500 dark:text-gray-200";
+    }
 
     const baseClasses = "cursor-pointer flex items-center justify-center p-4 rounded-lg space-x-4 transition-all";
 
