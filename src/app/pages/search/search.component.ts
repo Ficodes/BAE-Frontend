@@ -20,6 +20,9 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { AiSearchService } from 'src/app/services/ai-search.service';
+import { PriceServiceService } from 'src/app/services/price-service.service';
+import { availableFilters } from 'src/app/data/availableFilters';
+import { iconForCategory } from 'src/app/data/categoryIcons';
 
 @Component({
   selector: 'bae-search',
@@ -46,6 +49,49 @@ export class SearchComponent implements OnInit, OnDestroy {
   private navigatingToDetail = false;
   private destroy$ = new Subject<void>();
 
+  viewMode: 'grid' | 'list' = 'grid';
+  activeCategoryName: string | null = null;
+  activeCategoryId: string | null = null;
+  showCategoryDropdown = false;
+  rootCategories: Category[] = [];
+  iconForCategory = iconForCategory;
+
+  showComplianceDropdown = false;
+  complianceFilterKey = 'compliance_profile';
+  complianceLevels: string[] = [];
+  selectedComplianceLevels: string[] = [];
+
+  showProcurementDropdown = false;
+  procurementFilterKey = 'procurement_type';
+  procurementTypes: string[] = [];
+  selectedProcurementTypes: string[] = [];
+  private procurementCache = new Map<string, boolean>();
+
+  showDeliveryModelDropdown = false;
+  deliveryModelOptions: Category[] = [];
+  selectedDeliveryModelIds: string[] = [];
+
+  showSectorDropdown = false;
+  sectorOptions: Category[] = [];
+  selectedSectorIds: string[] = [];
+
+  showFrameworkDropdown = false;
+  frameworkOptions: Category[] = [];
+  selectedFrameworkIds: string[] = [];
+
+  showSortDropdown = false;
+  sortOption: 'name' | 'date_new' | 'date_old' = 'name';
+  sortOptions: { value: 'name' | 'date_new' | 'date_old'; label: string }[] = [
+    { value: 'name', label: 'Name' },
+    { value: 'date_new', label: 'Newest first' },
+    { value: 'date_old', label: 'Oldest first' },
+  ];
+
+  get sortLabel(): string {
+    return this.sortOptions.find(o => o.value === this.sortOption)?.label ?? 'Name';
+  }
+
+
   // AI Search properties
   aiSearchEnabled = environment.AI_SEARCH_ENABLED;
   aiAnswer: string = '';
@@ -69,7 +115,12 @@ export class SearchComponent implements OnInit, OnDestroy {
     private paginationService: PaginationService,
     private state: SearchStateService
     ,
-    private aiSearchService: AiSearchService) {
+    private aiSearchService: AiSearchService,
+    private priceService: PriceServiceService) {
+    const complianceFilter = availableFilters.find(f => f.name === this.complianceFilterKey);
+    this.complianceLevels = (complianceFilter?.children ?? []).map(c => c.name);
+    const procurementFilter = availableFilters.find(f => f.name === this.procurementFilterKey);
+    this.procurementTypes = (procurementFilter?.children ?? []).map(c => c.name);
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
     .subscribe(async ev => {
@@ -109,10 +160,11 @@ export class SearchComponent implements OnInit, OnDestroy {
     
     this.products=[];
     this.nextProducts=[];
-    /*await this.api.slaCheck().then(data => {  
+    /*await this.api.slaCheck().then(data => {
       console.log(data)
     })*/
     this.checkPanel();
+    this.loadRootCategories();
     if(this.route.snapshot.paramMap.get('keywords')){
       this.keywords = this.route.snapshot.paramMap.get('keywords');
       this.searchField.setValue(this.keywords);
@@ -128,6 +180,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       this.page = this.state.page;
       this.page_check = this.state.page_check;
       this.keywords = this.state.keywords;
+      this.refreshProcurementFilter();
 
       // restaurar campo de búsqueda
       this.searchField.setValue(this.keywords);
@@ -233,10 +286,139 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   @HostListener('document:click')
   onClick() {
-    if(this.showDrawer==true){
-      this.showDrawer=false;
+    if(this.showDrawer){
+      this.showDrawer = false;
+    }
+    const anyOpen = this.showCategoryDropdown || this.showComplianceDropdown ||
+      this.showProcurementDropdown || this.showSortDropdown ||
+      this.showDeliveryModelDropdown || this.showSectorDropdown || this.showFrameworkDropdown;
+    if (anyOpen) {
+      this.closeDropdownsExcept('none');
       this.cdr.detectChanges();
     }
+  }
+
+  get visibleProducts(): ProductOffering[] {
+    let items = this.products;
+    if (this.selectedProcurementTypes.length > 0) {
+      items = items.filter(p => {
+        const key = (p as any).id;
+        if (!key) return true;
+        const isCustom = this.procurementCache.get(key);
+        if (isCustom === undefined) return false;
+        const label = isCustom ? 'Request Quote' : 'Ready to Buy';
+        return this.selectedProcurementTypes.includes(label);
+      });
+    }
+    return this.applySort(items);
+  }
+
+  private applySort(items: ProductOffering[]): ProductOffering[] {
+    const sorted = [...items];
+    switch (this.sortOption) {
+      case 'name':
+        sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        break;
+      case 'date_new':
+        sorted.sort((a, b) => this.getStartDate(b) - this.getStartDate(a));
+        break;
+      case 'date_old':
+        sorted.sort((a, b) => this.getStartDate(a) - this.getStartDate(b));
+        break;
+    }
+    return sorted;
+  }
+
+  private getStartDate(p: ProductOffering): number {
+    const d = (p as any)?.validFor?.startDateTime;
+    return d ? new Date(d).getTime() : 0;
+  }
+
+  private getSortParam(): string | undefined {
+    switch (this.sortOption) {
+      case 'name': return 'name';
+      case 'date_new': return '-validFor.startDateTime';
+      case 'date_old': return 'validFor.startDateTime';
+      default: return undefined;
+    }
+  }
+
+  private closeDropdownsExcept(keep: 'category' | 'compliance' | 'procurement' | 'sort' | 'delivery' | 'sector' | 'framework' | 'none'): void {
+    if (keep !== 'category') this.showCategoryDropdown = false;
+    if (keep !== 'compliance') this.showComplianceDropdown = false;
+    if (keep !== 'procurement') this.showProcurementDropdown = false;
+    if (keep !== 'sort') this.showSortDropdown = false;
+    if (keep !== 'delivery') this.showDeliveryModelDropdown = false;
+    if (keep !== 'sector') this.showSectorDropdown = false;
+    if (keep !== 'framework') this.showFrameworkDropdown = false;
+  }
+
+  toggleSortDropdown(event: Event): void {
+    event.stopPropagation();
+    this.showSortDropdown = !this.showSortDropdown;
+    this.closeDropdownsExcept('sort');
+  }
+
+  async selectSort(option: 'name' | 'date_new' | 'date_old', event: Event): Promise<void> {
+    event.stopPropagation();
+    this.showSortDropdown = false;
+    if (this.sortOption === option) {
+      return;
+    }
+    this.sortOption = option;
+    if (this.aiSearchEnabled) {
+      if (this.keywords) {
+        await this.runAiSearch();
+      } else {
+        await this.runInitialAiSearch();
+      }
+    } else {
+      await this.getProducts(false);
+    }
+  }
+
+  toggleProcurementDropdown(event: Event): void {
+    event.stopPropagation();
+    this.showProcurementDropdown = !this.showProcurementDropdown;
+    this.closeDropdownsExcept('procurement');
+  }
+
+  isProcurementTypeSelected(type: string): boolean {
+    return this.selectedProcurementTypes.includes(type);
+  }
+
+  async toggleProcurementType(type: string, event: Event): Promise<void> {
+    event.stopPropagation();
+    const idx = this.selectedProcurementTypes.indexOf(type);
+    if (idx > -1) {
+      this.selectedProcurementTypes.splice(idx, 1);
+    } else {
+      this.selectedProcurementTypes.push(type);
+    }
+    if (this.selectedProcurementTypes.length > 0) {
+      await this.resolveProcurementCache(this.products);
+    }
+    this.cdr.detectChanges();
+  }
+
+  private async resolveProcurementCache(products: ProductOffering[]): Promise<void> {
+    const tasks = products
+      .filter(p => (p as any).id && !this.procurementCache.has((p as any).id))
+      .map(async p => {
+        const key = (p as any).id as string;
+        try {
+          const isCustom = await this.priceService.isCustomOffering(p);
+          this.procurementCache.set(key, isCustom);
+        } catch {
+          this.procurementCache.set(key, false);
+        }
+      });
+    await Promise.all(tasks);
+  }
+
+  private refreshProcurementFilter(): void {
+    if (this.selectedProcurementTypes.length === 0) return;
+    this.resolveProcurementCache(this.products).then(() => this.cdr.detectChanges());
   }
 
   ngOnDestroy(){
@@ -265,15 +447,20 @@ export class SearchComponent implements OnInit, OnDestroy {
       this.state.clear();
     }    
     
-    let options = {
+    let options: any = {
       "keywords": this.keywords,
       "filters": filters
+    }
+    const sortParam = this.getSortParam();
+    if (sortParam !== undefined) {
+      options.sort = sortParam;
     }
 
     this.paginationService.getItemsPaginated(this.page, this.PRODUCT_LIMIT, next, this.products,this.nextProducts, options,
       this.paginationService.getProducts.bind(this.paginationService)).then(async data => {
         this.products = await this.api.getProductsDetails(data.items);
         this.nextProducts = await this.api.getProductsDetails(data.nextItems);
+        this.refreshProcurementFilter();
       
         this.page = data.page;
         this.page_check = data.page_check;
@@ -337,6 +524,237 @@ export class SearchComponent implements OnInit, OnDestroy {
     }
   }
 
+  clearFilters(): void {
+    const raw = this.localStorage.getObject('selected_categories');
+    const storedFilters: Category[] = Array.isArray(raw) ? raw : [];
+    for (const f of storedFilters) {
+      this.localStorage.removeCategoryFilter(f);
+      this.eventMessage.emitRemovedFilter(f);
+    }
+    this.selectedComplianceLevels = [];
+    this.selectedProcurementTypes = [];
+    this.selectedDeliveryModelIds = [];
+    this.selectedSectorIds = [];
+    this.selectedFrameworkIds = [];
+    this.activeCategoryName = null;
+    this.activeCategoryId = null;
+  }
+
+  clearSubcategoryFilters(): void {
+    const raw = this.localStorage.getObject('selected_categories');
+    const storedFilters: Category[] = Array.isArray(raw) ? raw : [];
+    const pillIds = new Set<string>([
+      ...this.deliveryModelOptions.map(o => o.id).filter((id): id is string => !!id),
+      ...this.sectorOptions.map(o => o.id).filter((id): id is string => !!id),
+      ...this.frameworkOptions.map(o => o.id).filter((id): id is string => !!id),
+    ]);
+    for (const f of storedFilters) {
+      if (!f?.id) continue;
+      if (String(f.id).includes('::')) continue;
+      if (pillIds.has(f.id)) continue;
+      if (f.id === this.activeCategoryId) continue;
+      this.localStorage.removeCategoryFilter(f);
+      this.eventMessage.emitRemovedFilter(f);
+    }
+  }
+
+  async selectCategory(cat: Category | null): Promise<void> {
+    const raw = this.localStorage.getObject('selected_categories');
+    const storedFilters: Category[] = Array.isArray(raw) ? raw : [];
+    for (const f of storedFilters) {
+      this.localStorage.removeCategoryFilter(f);
+      this.eventMessage.emitRemovedFilter(f);
+    }
+    if (cat) {
+      this.localStorage.addCategoryFilter(cat);
+      this.eventMessage.emitAddedFilter(cat);
+      this.activeCategoryName = cat.name;
+      this.activeCategoryId = cat.id ?? null;
+
+      if (cat.id) {
+        const children = await this.api.getCategoriesByParentId(cat.id).catch(() => []);
+        const childList: Category[] = Array.isArray(children) ? children : [];
+        for (const child of childList) {
+          if (!child?.id) continue;
+          this.localStorage.addCategoryFilter(child);
+          this.eventMessage.emitAddedFilter(child);
+        }
+      }
+    } else {
+      this.activeCategoryName = null;
+      this.activeCategoryId = null;
+    }
+    this.showCategoryDropdown = false;
+  }
+
+  private async loadRootCategories(): Promise<void> {
+    try {
+      const roots = await this.api.getDefaultCategories();
+      const list = Array.isArray(roots) ? roots : [];
+
+      const domeRoot = list.find((c: any) => c?.name === 'DOME Categories');
+      const deliveryRoot = list.find((c: any) => c?.name === 'Delivery Model');
+      const sectorRoot = list.find((c: any) => c?.name === 'Sector');
+      const frameworkRoot = list.find((c: any) => c?.name === 'Framework');
+
+      const [domeChildren, deliveryChildren, sectorChildren, frameworkChildren] = await Promise.all([
+        domeRoot?.id ? this.api.getCategoriesByParentId(domeRoot.id).catch(() => []) : Promise.resolve([]),
+        deliveryRoot?.id ? this.api.getCategoriesByParentId(deliveryRoot.id).catch(() => []) : Promise.resolve([]),
+        sectorRoot?.id ? this.api.getCategoriesByParentId(sectorRoot.id).catch(() => []) : Promise.resolve([]),
+        frameworkRoot?.id ? this.api.getCategoriesByParentId(frameworkRoot.id).catch(() => []) : Promise.resolve([]),
+      ]);
+
+      this.rootCategories = Array.isArray(domeChildren) ? domeChildren : [];
+      this.deliveryModelOptions = Array.isArray(deliveryChildren) ? deliveryChildren : [];
+      this.sectorOptions = Array.isArray(sectorChildren) ? sectorChildren : [];
+      this.frameworkOptions = Array.isArray(frameworkChildren) ? frameworkChildren : [];
+      this.syncSelectionsFromStorage();
+    } catch {
+      this.rootCategories = [];
+      this.deliveryModelOptions = [];
+      this.sectorOptions = [];
+      this.frameworkOptions = [];
+    }
+  }
+
+  private syncSelectionsFromStorage(): void {
+    const raw = this.localStorage.getObject('selected_categories');
+    const selected: Category[] = Array.isArray(raw) ? raw as Category[] : [];
+    this.syncPillSelectionsFromStorage(selected);
+    const activeRoot = selected.find(c => !!c?.id && this.rootCategories.some(r => r.id === c.id));
+    if (activeRoot) {
+      this.activeCategoryName = activeRoot.name ?? null;
+      this.activeCategoryId = activeRoot.id ?? null;
+    }
+    this.cdr.detectChanges();
+  }
+
+  toggleCategoryDropdown(event?: Event): void {
+    event?.stopPropagation();
+    this.showCategoryDropdown = !this.showCategoryDropdown;
+    this.closeDropdownsExcept('category');
+  }
+
+  toggleComplianceDropdown(event: Event): void {
+    event.stopPropagation();
+    this.showComplianceDropdown = !this.showComplianceDropdown;
+    this.closeDropdownsExcept('compliance');
+  }
+
+  isComplianceLevelSelected(level: string): boolean {
+    return this.selectedComplianceLevels.includes(level);
+  }
+
+  toggleComplianceLevel(level: string, event: Event): void {
+    event.stopPropagation();
+    const cat: Category = { id: `${this.complianceFilterKey}::${level}`, name: level };
+    const idx = this.selectedComplianceLevels.indexOf(level);
+    if (idx > -1) {
+      this.selectedComplianceLevels.splice(idx, 1);
+      this.localStorage.removeCategoryFilter(cat);
+      this.eventMessage.emitRemovedFilter(cat);
+    } else {
+      this.selectedComplianceLevels.push(level);
+      this.localStorage.addCategoryFilter(cat);
+      this.eventMessage.emitAddedFilter(cat);
+    }
+  }
+
+  toggleDeliveryModelDropdown(event: Event): void {
+    event.stopPropagation();
+    this.showDeliveryModelDropdown = !this.showDeliveryModelDropdown;
+    this.closeDropdownsExcept('delivery');
+  }
+
+  toggleSectorDropdown(event: Event): void {
+    event.stopPropagation();
+    this.showSectorDropdown = !this.showSectorDropdown;
+    this.closeDropdownsExcept('sector');
+  }
+
+  toggleFrameworkDropdown(event: Event): void {
+    event.stopPropagation();
+    this.showFrameworkDropdown = !this.showFrameworkDropdown;
+    this.closeDropdownsExcept('framework');
+  }
+
+  isDeliveryModelSelected(option: Category): boolean {
+    return !!option?.id && this.selectedDeliveryModelIds.includes(option.id);
+  }
+
+  isSectorSelected(option: Category): boolean {
+    return !!option?.id && this.selectedSectorIds.includes(option.id);
+  }
+
+  isFrameworkSelected(option: Category): boolean {
+    return !!option?.id && this.selectedFrameworkIds.includes(option.id);
+  }
+
+  toggleDeliveryModel(option: Category, event: Event): void {
+    this.togglePillOption(option, event, this.selectedDeliveryModelIds);
+  }
+
+  toggleSector(option: Category, event: Event): void {
+    this.togglePillOption(option, event, this.selectedSectorIds);
+  }
+
+  toggleFramework(option: Category, event: Event): void {
+    this.togglePillOption(option, event, this.selectedFrameworkIds);
+  }
+
+  private togglePillOption(option: Category, event: Event, selectedIds: string[]): void {
+    event.stopPropagation();
+    if (!option?.id) return;
+    const idx = selectedIds.indexOf(option.id);
+    if (idx > -1) {
+      selectedIds.splice(idx, 1);
+      this.localStorage.removeCategoryFilter(option);
+      this.eventMessage.emitRemovedFilter(option);
+    } else {
+      selectedIds.push(option.id);
+      this.localStorage.addCategoryFilter(option);
+      this.eventMessage.emitAddedFilter(option);
+    }
+  }
+
+  clearDeliveryModelSelection(event: Event): void {
+    this.clearPillSelection(event, this.selectedDeliveryModelIds, this.deliveryModelOptions);
+  }
+
+  clearSectorSelection(event: Event): void {
+    this.clearPillSelection(event, this.selectedSectorIds, this.sectorOptions);
+  }
+
+  clearFrameworkSelection(event: Event): void {
+    this.clearPillSelection(event, this.selectedFrameworkIds, this.frameworkOptions);
+  }
+
+  private clearPillSelection(event: Event, selectedIds: string[], options: Category[]): void {
+    event.stopPropagation();
+    const idsToRemove = [...selectedIds];
+    selectedIds.length = 0;
+    for (const id of idsToRemove) {
+      const option = options.find(o => o.id === id);
+      if (option) {
+        this.localStorage.removeCategoryFilter(option);
+        this.eventMessage.emitRemovedFilter(option);
+      }
+    }
+  }
+
+  private syncPillSelectionsFromStorage(selected: Category[]): void {
+    const ids = new Set(selected.map(c => c?.id).filter((id): id is string => !!id));
+    this.selectedDeliveryModelIds = this.deliveryModelOptions
+      .map(o => o.id)
+      .filter((id): id is string => !!id && ids.has(id));
+    this.selectedSectorIds = this.sectorOptions
+      .map(o => o.id)
+      .filter((id): id is string => !!id && ids.has(id));
+    this.selectedFrameworkIds = this.frameworkOptions
+      .map(o => o.id)
+      .filter((id): id is string => !!id && ids.has(id));
+  }
+
   // Unified Search - triggers both standard search and AI answer
   async onUnifiedSearch(event: any): Promise<void> {
     event.preventDefault();
@@ -387,6 +805,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       );
 
       this.products = this.mapAiSearchToProducts(searchResponse.items || []);
+      this.refreshProcurementFilter();
       this.nextProducts = [];
       this.aiTotalItems = searchResponse.total_count;
       this.page_check = false; // Disable "load more" for AI search
@@ -441,6 +860,7 @@ export class SearchComponent implements OnInit, OnDestroy {
 
       // Map AI search results to ProductOffering format
       this.products = this.mapAiSearchToProducts(searchResponse.items || []);
+      this.refreshProcurementFilter();
       this.aiTotalItems = searchResponse.total_count;
       // Emit facets for categories filter
       if (searchResponse.facets) {
@@ -489,6 +909,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       );
 
       this.products = this.mapAiSearchToProducts(searchResponse.items || []);
+      this.refreshProcurementFilter();
       this.aiTotalItems = searchResponse.total_count;
 
       if (searchResponse.facets) {

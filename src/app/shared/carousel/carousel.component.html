@@ -1,6 +1,6 @@
 <div [class]="wrapperClass">
 
-  <button (click)="prev()" [disabled]="index === 0" [class]="leftButtonClass">
+  <button (click)="prev()" [disabled]="!loop && index === 0" [class]="leftButtonClass">
 
     <fa-icon [icon]="faChevronLeft">
     </fa-icon>
@@ -24,7 +24,7 @@
 
 
 
-  <button (click)="next()" [disabled]="index === maxIndex" [class]="rightButtonClass">
+  <button (click)="next()" [disabled]="!loop && index === maxIndex" [class]="rightButtonClass">
 
     <fa-icon [icon]="faChevronRight">
     </fa-icon>
