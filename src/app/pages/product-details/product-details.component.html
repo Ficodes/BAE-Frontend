@@ -62,11 +62,13 @@
         </div>
       </div>
 
-      <div class="hidden lg:block rounded-2xl bg-[#EBECEE] aspect-[2/1] overflow-hidden">
-        <img class="h-full w-full object-cover" src="{{getProductImage()}}" alt="Product image">
+      <div class="relative hidden lg:block rounded-2xl bg-[#EBECEE] aspect-[2/1] overflow-hidden">
+        <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
+        <img class="relative z-10 h-full w-full object-contain" src="{{getProductImage()}}" alt="Product image">
       </div>
-      <div class="lg:hidden rounded-2xl bg-[#EBECEE] aspect-[2/1] overflow-hidden">
-        <img class="h-full w-full object-cover" src="{{getProductImage()}}" alt="Product image">
+      <div class="relative lg:hidden rounded-2xl bg-[#EBECEE] aspect-[2/1] overflow-hidden">
+        <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
+        <img class="relative z-10 h-full w-full object-contain" src="{{getProductImage()}}" alt="Product image">
       </div>
     </div>
 
