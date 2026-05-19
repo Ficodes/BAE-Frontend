@@ -103,7 +103,7 @@ export class ProviderService {
 
   //Methods for the search engine
   getFilterOptions(): Observable<FilterOptions> {
-    const base = environment.searchOrganizationsEndpoint.replace(/\/searchOrganizations$/, '');
+    const base = environment.searchOrganizationsEndpoint.replace(/\/searchOrganizations.*$/, '');
     const categories$ = this.http.get<any>(`${base}/categories`).pipe(
       map(res => (Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [])),
       catchError(err => {
