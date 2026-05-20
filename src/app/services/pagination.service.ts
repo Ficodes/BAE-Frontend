@@ -242,13 +242,13 @@ export class PaginationService {
     }
   } */
 
-  async getProducts(page: number, keywords: any, filters?: Category[]): Promise<ProductOffering[]> {
+  async getProducts(page: number, keywords: any, filters?: Category[], sort?: any): Promise<ProductOffering[]> {
     try {
       console.log('-------------------------- getProducts ----------------------------');
       // Get data from API
       const productOfferings: ProductOffering[] = filters && filters.length > 0
-        ? await this.api.getProductsByCategory(filters, page, keywords)
-        : await this.api.getProducts(page, keywords);
+        ? await this.api.getProductsByCategory(filters, page, keywords, sort)
+        : await this.api.getProducts(page, keywords, sort);
         return productOfferings
 
       // Get Product Details in parallel
