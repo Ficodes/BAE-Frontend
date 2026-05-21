@@ -3,7 +3,13 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, forkJoin, map, of } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { FilterOptions } from '../models/filter-options.model';
-import { SearchOrganizationsFilters } from '../models/search-organizations-filters.model';
+import {
+  PROVIDER_COUNTRY_LIST_URL,
+  ProviderCountryListResponse,
+  ProviderCountryOption,
+  SearchOrganizationsFilters,
+  parseProviderCountryList,
+} from '../models/search-organizations-filters.model';
 
 export interface Provider {
   id?: string;
@@ -98,6 +104,16 @@ export class ProviderService {
       })
       // No catchError here — callers must handle HTTP errors themselves so they can
       // distinguish a genuine empty search result from a failed request.
+    );
+  }
+
+  getProviderCountryOptions(locale = 'en'): Observable<ProviderCountryOption[]> {
+    return this.http.get<ProviderCountryListResponse>(PROVIDER_COUNTRY_LIST_URL).pipe(
+      map(response => parseProviderCountryList(response, locale)),
+      catchError(err => {
+        console.warn('Provider country list failed:', err);
+        return of<ProviderCountryOption[]>([]);
+      })
     );
   }
 
