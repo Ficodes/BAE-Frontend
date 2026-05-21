@@ -13,42 +13,44 @@ import { Quote } from '../../models/quote.model';
     <!-- Modal Backdrop -->
     <div 
       *ngIf="isOpen" 
-      class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-[#0b1220]/45 px-4 font-[Blinker]"
       (click)="closeModal()"
     >
       <!-- Modal Content -->
       <div 
-        class="bg-white rounded-lg shadow-lg w-full max-w-lg p-8 relative"
+        class="relative w-full max-w-lg rounded-2xl border border-[#EBECEE] bg-white p-6 shadow-[0_20px_50px_rgba(11,18,32,0.24)]"
         (click)="$event.stopPropagation()"
       >
         <!-- Close Button -->
         <button
           (click)="closeModal()"
-          class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold w-8 h-8 flex items-center justify-center"
+          class="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg text-[#526179] transition-colors hover:bg-[#EBF0F7] hover:text-[#1f4fbf]"
           aria-label="Close"
         >
-          &times;
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
 
         <!-- Modal Header -->
-        <h3 class="text-lg font-semibold mb-4">
+        <h3 class="mb-4 pr-10 text-lg font-bold text-[#0b1220]">
           Add Attachment to Quote {{ getShortQuoteId() }}
         </h3>
 
         <!-- Warning for existing attachment -->
         <div 
           *ngIf="hasExistingAttachment" 
-          class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md"
+          class="mb-4 rounded-2xl border border-[#F2D28A] bg-[#FFF8E6] p-4"
         >
           <div class="flex">
             <div class="flex-shrink-0">
-              <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <svg class="h-5 w-5 text-[#7A4D00]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
               </svg>
             </div>
             <div class="ml-3">
-              <h3 class="text-sm font-medium text-yellow-800">Warning: Existing Attachment</h3>
-              <div class="mt-2 text-sm text-yellow-700">
+              <h3 class="text-sm font-semibold text-[#7A4D00]">Warning: Existing Attachment</h3>
+              <div class="mt-2 text-sm text-[#7A4D00]">
                 <p>This quote already has an attachment. Uploading a new file will overwrite the existing PDF.</p>
               </div>
             </div>
@@ -57,7 +59,7 @@ import { Quote } from '../../models/quote.model';
 
         <!-- File Input -->
         <div class="mb-4">
-          <label for="file-input" class="block text-sm font-medium text-gray-700 mb-2">
+          <label for="file-input" class="mb-2 block text-sm font-semibold text-[#324153]">
             Select PDF File
           </label>
           <input 
@@ -65,27 +67,27 @@ import { Quote } from '../../models/quote.model';
             type="file" 
             accept=".pdf" 
             (change)="onFileSelected($event)"
-            class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+            class="block w-full cursor-pointer rounded-lg border border-[#EBECEE] bg-white text-sm text-[#526179] transition-colors file:mr-4 file:h-12 file:cursor-pointer file:border-0 file:bg-[#EBF0F7] file:px-4 file:text-sm file:font-semibold file:text-[#1f4fbf] hover:border-[#1f4fbf] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC]"
           />
-          <p class="text-xs text-gray-500 mt-1">Only PDF files are allowed</p>
+          <p class="mt-1 text-xs text-[#526179]">Only PDF files are allowed</p>
         </div>
 
 
 
         <!-- Action Buttons -->
-        <div class="flex justify-between pt-6 mt-6 border-t border-gray-200">
+        <div class="mt-6 flex justify-between border-t border-[#EBECEE] pt-6">
           <button 
             type="button"
             (click)="uploadAttachment()"
             [disabled]="!selectedFile || isUploading"
-            class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {{ isUploading ? 'Uploading...' : 'Upload' }}
           </button>
           <button 
             type="button" 
             (click)="closeModal()"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            class="inline-flex h-10 items-center rounded-lg border border-[#EBECEE] bg-white px-4 text-sm font-semibold text-[#324153] transition-colors hover:border-[#1f4fbf] hover:text-[#1f4fbf] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC]"
           >
             Cancel
           </button>
@@ -183,4 +185,4 @@ export class AttachmentModalComponent implements OnInit, OnChanges {
     this.selectedFile = null;
     this.isUploading = false;
   }
-} 
+}

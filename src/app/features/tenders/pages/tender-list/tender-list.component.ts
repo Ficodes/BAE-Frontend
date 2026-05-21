@@ -37,7 +37,7 @@ import { environment } from 'src/environments/environment';
   template: `
     <app-notification></app-notification>
 
-    <div class="min-h-screen bg-[#F7F9FD] font-[Blinker]">
+    <div class="min-h-screen bg-[#F7F9FD] font-[Blinker]" (click)="closeStatusDropdown()">
       <div class="mx-auto max-w-[1440px] px-6 py-8 sm:px-10 lg:px-20 xl:px-[160px]">
         <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div class="flex min-w-0 items-center gap-3">
@@ -116,14 +116,44 @@ import { environment } from 'src/environments/environment';
           </svg>
           <span class="text-sm font-medium text-[#526179]">Status</span>
         </div>
-          <select
-            [(ngModel)]="statusFilter"
-            (ngModelChange)="filterQuotesByStatus()"
-            class="h-10 rounded-lg border border-gray-200 bg-white px-4 text-[15px] text-[#324153] outline-none transition-colors hover:border-[#1f4fbf] focus:border-[#1f4fbf] focus:ring-2 focus:ring-[#B6CAEC]"
+        <div class="relative min-w-[240px]" (click)="$event.stopPropagation()">
+          <button
+            type="button"
+            (click)="toggleStatusDropdown($event)"
+            [ngClass]="statusFilter ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] bg-white text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'"
+            class="flex h-10 w-full items-center justify-between gap-3 rounded-lg border px-4 text-[15px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#B6CAEC]"
           >
-            <option value="">All Statuses</option>
-            <option *ngFor="let opt of filterStatusOptions" [value]="opt.value">{{ opt.label }}</option>
-          </select>
+            <span class="truncate">{{ getStatusFilterLabel() }}</span>
+            <svg class="h-4 w-4 shrink-0 transition-transform" [ngClass]="showStatusDropdown ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+          <div *ngIf="showStatusDropdown" class="absolute right-0 top-full z-40 mt-2 w-full rounded-xl bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+            <button
+              type="button"
+              (click)="selectStatusFilter('', $event)"
+              [ngClass]="!statusFilter ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'"
+              class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors"
+            >
+              <span class="min-w-0 flex-1 truncate">All Statuses</span>
+              <svg *ngIf="!statusFilter" class="h-4 w-4 text-[#1f4fbf]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            </button>
+            <button
+              *ngFor="let opt of filterStatusOptions"
+              type="button"
+              (click)="selectStatusFilter(opt.value, $event)"
+              [ngClass]="statusFilter === opt.value ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'"
+              class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors"
+            >
+              <span class="min-w-0 flex-1 truncate">{{ opt.label }}</span>
+              <svg *ngIf="statusFilter === opt.value" class="h-4 w-4 text-[#1f4fbf]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Loading State -->
@@ -321,7 +351,7 @@ import { environment } from 'src/environments/environment';
                 <button
                   *ngIf="quote.category === QUOTE_CATEGORIES.COORDINATOR && !isCoordinatorExpandable(quote)"
                   (click)="editTender(quote)"
-                  class="px-2 py-1 text-xs font-medium transition-colors rounded border text-green-600 hover:text-green-800 border-green-200 hover:bg-green-50"
+                  class="inline-flex items-center rounded-lg border border-[#B6CAEC] px-2.5 py-1.5 text-xs font-semibold text-[#1f4fbf] transition-colors hover:bg-[#EBF0F7]"
                   title="Edit tender"
                 >
                   Edit
@@ -331,7 +361,7 @@ import { environment } from 'src/environments/environment';
                 <button
                   *ngIf="quote.category === QUOTE_CATEGORIES.COORDINATOR && isCoordinatorExpandable(quote) && isExpanded(quote.id)"
                   (click)="openBroadcastModal(quote)"
-                  class="px-2 py-1 text-xs font-medium transition-colors rounded border text-fuchsia-600 hover:text-fuchsia-800 border-fuchsia-200 hover:bg-fuchsia-50"
+                  class="inline-flex items-center rounded-lg border border-[#B6CAEC] px-2.5 py-1.5 text-xs font-semibold text-[#1f4fbf] transition-colors hover:bg-[#EBF0F7]"
                   title="Broadcast message to all invited providers"
                 >
                   Broadcast
@@ -341,7 +371,7 @@ import { environment } from 'src/environments/environment';
                 <button
                   *ngIf="environment.TENDER_DEV_BUTTONS_OPEN_CLOSE_ENABLED && quote.category === QUOTE_CATEGORIES.COORDINATOR && getPrimaryState(quote) === QUOTE_STATUSES.IN_PROGRESS"
                   (click)="simulateStartTender(quote)"
-                  class="px-2 py-1 text-xs font-medium transition-colors rounded border text-orange-600 hover:text-orange-800 border-orange-200 hover:bg-orange-50 flex items-center gap-1"
+                  class="inline-flex items-center gap-1 rounded-lg border border-[#B6CAEC] px-2.5 py-1.5 text-xs font-semibold text-[#1f4fbf] transition-colors hover:bg-[#EBF0F7]"
                   title="[TEST] Start tender - updates status to 'launched'"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -354,7 +384,7 @@ import { environment } from 'src/environments/environment';
                 <button
                   *ngIf="environment.TENDER_DEV_BUTTONS_OPEN_CLOSE_ENABLED && quote.category === QUOTE_CATEGORIES.COORDINATOR && getPrimaryState(quote) === QUOTE_STATUSES.APPROVED"
                   (click)="simulateCloseTender(quote)"
-                  class="px-2 py-1 text-xs font-medium transition-colors rounded border text-purple-600 hover:text-purple-800 border-purple-200 hover:bg-purple-50 flex items-center gap-1"
+                  class="inline-flex items-center gap-1 rounded-lg border border-[#B6CAEC] px-2.5 py-1.5 text-xs font-semibold text-[#1f4fbf] transition-colors hover:bg-[#EBF0F7]"
                   title="[TEST] Close tender - updates status to 'closed'"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -471,7 +501,7 @@ import { environment } from 'src/environments/environment';
       title="Delete Quote"
       [message]="deleteConfirmMessage"
       confirmText="Delete"
-      confirmButtonClass="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+      confirmButtonClass="inline-flex h-10 items-center rounded-lg border border-[#F4C7C7] bg-white px-4 text-sm font-semibold text-[#B42318] transition-colors hover:bg-[#FFF1F1] focus:outline-none focus:ring-2 focus:ring-[#F4C7C7] disabled:cursor-not-allowed disabled:opacity-50"
       (confirm)="deleteQuote()"
       (cancel)="showDeleteConfirm = false"
     ></app-confirm-dialog>
@@ -488,10 +518,10 @@ import { environment } from 'src/environments/environment';
     ></app-confirm-dialog>
 
     <!-- State Update Modal -->
-    <div *ngIf="showStateUpdate" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div *ngIf="showStateUpdate" class="fixed inset-0 z-50 h-full w-full overflow-y-auto bg-[#0b1220]/45 px-4 py-8">
+      <div class="relative mx-auto mt-12 w-full max-w-md rounded-2xl border border-[#EBECEE] bg-white p-6 shadow-[0_20px_50px_rgba(11,18,32,0.24)]">
         <div class="mt-3">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Update Quote State</h3>
+          <h3 class="mb-4 text-lg font-bold text-[#0b1220]">Update Quote State</h3>
           <div class="space-y-3">
             <div *ngFor="let state of availableStates" class="flex items-center">
               <input
@@ -499,24 +529,24 @@ import { environment } from 'src/environments/environment';
                 [(ngModel)]="selectedState"
                 [value]="state"
                 type="radio"
-                class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                class="h-4 w-4 border-[#B6CAEC] text-[#1f4fbf] focus:ring-[#B6CAEC]"
               >
-              <label [for]="'state-' + state" class="ml-3 block text-sm font-medium text-gray-700">
+              <label [for]="'state-' + state" class="ml-3 block text-sm font-semibold text-[#324153]">
                 {{ getStateDisplay(state) }}
               </label>
             </div>
           </div>
-          <div class="mt-6 flex justify-end space-x-3">
+          <div class="mt-6 flex justify-end gap-3 border-t border-[#EBECEE] pt-4">
             <button
               (click)="showStateUpdate = false"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              class="inline-flex h-10 items-center rounded-lg border border-[#EBECEE] bg-white px-4 text-sm font-semibold text-[#324153] transition-colors hover:border-[#1f4fbf] hover:text-[#1f4fbf]"
             >
               Cancel
             </button>
             <button
               (click)="confirmStateUpdate()"
               [disabled]="!selectedState"
-              class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              class="inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] disabled:cursor-not-allowed disabled:opacity-50"
             >
               Update
             </button>
@@ -551,27 +581,27 @@ import { environment } from 'src/environments/environment';
     ></app-attachment-modal>
 
     <!-- Broadcast Message Modal -->
-    <div *ngIf="showBroadcastModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div *ngIf="showBroadcastModal" class="fixed inset-0 z-50 h-full w-full overflow-y-auto bg-[#0b1220]/45 px-4 py-8">
+      <div class="relative mx-auto mt-12 w-full max-w-md rounded-2xl border border-[#EBECEE] bg-white p-6 shadow-[0_20px_50px_rgba(11,18,32,0.24)]">
         <div class="mt-1">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Broadcast Message</h3>
+          <h3 class="mb-4 text-lg font-bold text-[#0b1220]">Broadcast Message</h3>
           <textarea
             [(ngModel)]="broadcastMessage"
             rows="4"
             placeholder="Type your message to all invited providers..."
-            class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            class="w-full rounded-lg border border-[#EBECEE] bg-white p-3 text-sm text-[#0b1220] outline-none transition-colors placeholder:text-[#9AA6B8] hover:border-[#1f4fbf] focus:border-[#1f4fbf] focus:ring-2 focus:ring-[#B6CAEC]"
           ></textarea>
-          <div class="mt-4 flex justify-end space-x-3">
+          <div class="mt-4 flex justify-end gap-3 border-t border-[#EBECEE] pt-4">
             <button
               (click)="closeBroadcastModal()"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              class="inline-flex h-10 items-center rounded-lg border border-[#EBECEE] bg-white px-4 text-sm font-semibold text-[#324153] transition-colors hover:border-[#1f4fbf] hover:text-[#1f4fbf]"
             >
               Cancel
             </button>
             <button
               (click)="sendBroadcastMessage()"
               [disabled]="!broadcastMessage || isBroadcastSending"
-              class="px-4 py-2 text-sm font-medium text-white bg-fuchsia-600 border border-transparent rounded-md hover:bg-fuchsia-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fuchsia-500 disabled:opacity-50"
+              class="inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {{ isBroadcastSending ? 'Sending...' : 'Send' }}
             </button>
@@ -677,6 +707,7 @@ export class TenderListComponent implements OnInit {
 
   // Filtering
   statusFilter: string = '';
+  showStatusDropdown = false;
 
   // Quote Details Modal
   showQuoteDetailsModal = false;
@@ -700,7 +731,7 @@ export class TenderListComponent implements OnInit {
   genericConfirmTitle = '';
   genericConfirmMessage = '';
   genericConfirmButtonText = 'Confirm';
-  genericConfirmButtonClass = 'px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
+  genericConfirmButtonClass = 'inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:cursor-not-allowed disabled:opacity-50';
   genericConfirmCallback: (() => void) | null = null;
   isBroadcastSending = false;
 
@@ -955,6 +986,30 @@ export class TenderListComponent implements OnInit {
     ];
   }
 
+  toggleStatusDropdown(event: Event): void {
+    event.stopPropagation();
+    this.showStatusDropdown = !this.showStatusDropdown;
+  }
+
+  closeStatusDropdown(): void {
+    this.showStatusDropdown = false;
+  }
+
+  selectStatusFilter(value: string, event?: Event): void {
+    event?.stopPropagation();
+    this.statusFilter = value;
+    this.showStatusDropdown = false;
+    this.filterQuotesByStatus();
+  }
+
+  getStatusFilterLabel(): string {
+    if (!this.statusFilter) {
+      return 'All Statuses';
+    }
+
+    return this.filterStatusOptions.find(option => option.value === this.statusFilter)?.label ?? 'All Statuses';
+  }
+
   viewDetails(quote: Quote) {
     this.selectedQuoteId = quote.id!;
     this.showQuoteDetailsModal = true;
@@ -1027,7 +1082,7 @@ export class TenderListComponent implements OnInit {
     message: string,
     callback: () => void,
     buttonText: string = 'Confirm',
-    buttonClass: string = 'px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+    buttonClass: string = 'inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:cursor-not-allowed disabled:opacity-50'
   ) {
     this.genericConfirmTitle = title;
     this.genericConfirmMessage = message;
@@ -1141,7 +1196,7 @@ export class TenderListComponent implements OnInit {
       'Are you sure you want to broadcast this message to all the invited providers?',
       () => this.executeBroadcastMessage(),
       'Send',
-      'px-4 py-2 text-sm font-medium text-white bg-fuchsia-600 border border-transparent rounded-md hover:bg-fuchsia-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fuchsia-500'
+      'inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1345,7 +1400,7 @@ export class TenderListComponent implements OnInit {
         });
       },
       'Accept',
-      'px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
+      'inline-flex h-10 items-center rounded-lg bg-[#006B4A] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#00523A] focus:outline-none focus:ring-2 focus:ring-[#B8E6D1] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1375,7 +1430,7 @@ export class TenderListComponent implements OnInit {
         });
       },
       'Cancel Request',
-      'px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'
+      'inline-flex h-10 items-center rounded-lg border border-[#F4C7C7] bg-white px-4 text-sm font-semibold text-[#B42318] transition-colors hover:bg-[#FFF1F1] focus:outline-none focus:ring-2 focus:ring-[#F4C7C7] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1412,7 +1467,7 @@ export class TenderListComponent implements OnInit {
         });
       },
       'Start Tender',
-      'px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500'
+      'inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1449,7 +1504,7 @@ export class TenderListComponent implements OnInit {
         });
       },
       'Close Tender',
-      'px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500'
+      'inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1487,7 +1542,7 @@ export class TenderListComponent implements OnInit {
         });
       },
       'Accept',
-      'px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
+      'inline-flex h-10 items-center rounded-lg bg-[#006B4A] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#00523A] focus:outline-none focus:ring-2 focus:ring-[#B8E6D1] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1499,7 +1554,7 @@ export class TenderListComponent implements OnInit {
       'Are you sure you want to accept this quote? Every other quote in this tender will be Rejected.',
       () => this.executeAcceptTenderQuote(quote, shortId),
       'Accept',
-      'px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
+      'inline-flex h-10 items-center rounded-lg bg-[#006B4A] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#00523A] focus:outline-none focus:ring-2 focus:ring-[#B8E6D1] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1601,7 +1656,7 @@ export class TenderListComponent implements OnInit {
         });
       },
       'Reject',
-      'px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'
+      'inline-flex h-10 items-center rounded-lg border border-[#F4C7C7] bg-white px-4 text-sm font-semibold text-[#B42318] transition-colors hover:bg-[#FFF1F1] focus:outline-none focus:ring-2 focus:ring-[#F4C7C7] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1631,7 +1686,7 @@ export class TenderListComponent implements OnInit {
         });
       },
       'Cancel Quote',
-      'px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'
+      'inline-flex h-10 items-center rounded-lg border border-[#F4C7C7] bg-white px-4 text-sm font-semibold text-[#B42318] transition-colors hover:bg-[#FFF1F1] focus:outline-none focus:ring-2 focus:ring-[#F4C7C7] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1814,25 +1869,25 @@ export class TenderListComponent implements OnInit {
   }
 
   getButtonClass(quote: Quote, actionType: string): string {
-    const baseClass = 'px-2 py-1 text-xs font-medium transition-colors rounded border';
+    const baseClass = 'inline-flex items-center rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors';
 
     if (this.isActionDisabled(quote, actionType)) {
-      return `${baseClass} text-gray-400 cursor-not-allowed border-gray-200`;
+      return `${baseClass} cursor-not-allowed border-[#EBECEE] text-[#9AA6B8]`;
     }
 
     switch (actionType) {
       case 'viewDetails':
-        return `${baseClass} text-blue-600 hover:text-blue-800 border-blue-200 hover:bg-blue-50`;
+        return `${baseClass} border-[#B6CAEC] text-[#1f4fbf] hover:bg-[#EBF0F7]`;
       default:
-        return `${baseClass} text-indigo-600 hover:text-indigo-800 border-indigo-200 hover:bg-indigo-50`;
+        return `${baseClass} border-[#B6CAEC] text-[#1f4fbf] hover:bg-[#EBF0F7]`;
     }
   }
 
   getIconButtonClass(quote: Quote, actionType: string, normalColor: string): string {
-    const baseClass = 'p-1.5 text-xs cursor-pointer rounded hover:bg-gray-100 transition-colors';
+    const baseClass = 'cursor-pointer rounded-lg p-1.5 text-xs transition-colors hover:bg-[#EBF0F7]';
 
     if (this.isActionDisabled(quote, actionType)) {
-      return `${baseClass} text-gray-400 cursor-not-allowed hover:bg-transparent`;
+      return `${baseClass} cursor-not-allowed text-[#9AA6B8] hover:bg-transparent`;
     }
 
     return `${baseClass} ${normalColor}`;

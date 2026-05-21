@@ -17,22 +17,22 @@ type QuoteNote = Note;
     <!-- Modal Backdrop -->
     <div 
       *ngIf="isOpen" 
-      class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-[#0b1220]/45 px-4 font-[Blinker]"
       (click)="closeModal()"
     >
       <!-- Modal Content -->
       <div 
-        class="bg-white rounded-lg shadow-lg w-full max-w-4xl p-8 relative"
+        class="relative w-full max-w-4xl rounded-2xl border border-[#EBECEE] bg-white p-6 shadow-[0_20px_50px_rgba(11,18,32,0.24)]"
         (click)="$event.stopPropagation()"
       >
         <!-- Modal Header -->
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold text-gray-900">
+          <h2 class="text-lg font-bold text-[#0b1220]">
             Chat for Quote {{ getShortQuoteId() }}
           </h2>
           <button
             (click)="closeModal()"
-            class="text-gray-400 hover:text-gray-600 focus:outline-none"
+            class="rounded-lg p-2 text-[#526179] transition-colors hover:bg-[#EBF0F7] hover:text-[#1f4fbf] focus:outline-none"
           >
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
@@ -43,20 +43,20 @@ type QuoteNote = Note;
         <!-- Chat Messages Area -->
         <div 
           #messagesContainer
-          class="border rounded p-4 h-96 overflow-y-auto mb-6 bg-gray-50"
+          class="mb-6 h-96 overflow-y-auto rounded-2xl border border-[#EBECEE] bg-[#F7F9FD] p-4"
         >
           <!-- Loading State -->
-          <div *ngIf="isLoading" class="text-gray-400 text-center">
+          <div *ngIf="isLoading" class="text-center text-[#526179]">
             Loading messages...
           </div>
 
           <!-- Error State -->
-          <div *ngIf="error" class="text-red-500 text-center">
+          <div *ngIf="error" class="text-center text-[#B42318]">
             Error loading messages
           </div>
 
           <!-- No Messages -->
-          <div *ngIf="!isLoading && !error && messages.length === 0" class="text-gray-400 text-center">
+          <div *ngIf="!isLoading && !error && messages.length === 0" class="text-center text-[#526179]">
             No messages yet.
           </div>
 
@@ -68,8 +68,8 @@ type QuoteNote = Note;
               [ngClass]="isMyMessage(message) ? 'justify-end' : 'justify-start'"
             >
               <div
-                class="max-w-xs px-3 py-2 rounded-lg text-sm"
-                [ngClass]="isMyMessage(message) ? 'bg-blue-100 text-blue-900' : 'bg-gray-200 text-gray-800'"
+                class="max-w-xs rounded-lg px-3 py-2 text-sm"
+                [ngClass]="isMyMessage(message) ? 'bg-[#DDE6F6] text-[#0b1220]' : 'bg-white text-[#324153] border border-[#EBECEE]'"
               >
                 <div class="whitespace-pre-wrap">{{ message.text }}</div>
                 <div
@@ -89,7 +89,7 @@ type QuoteNote = Note;
             [(ngModel)]="newMessage"
             name="message"
             type="text"
-            class="w-full border rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            class="mb-4 h-11 w-full rounded-lg border border-[#EBECEE] bg-white px-3 text-sm text-[#0b1220] outline-none transition-colors placeholder:text-[#9AA6B8] hover:border-[#1f4fbf] focus:border-[#1f4fbf] focus:ring-2 focus:ring-[#B6CAEC]"
             placeholder="Type a message..."
             required
             [disabled]="isSending"
@@ -97,18 +97,18 @@ type QuoteNote = Note;
           />
 
           <!-- Action Buttons -->
-          <div class="flex justify-between pt-4 border-t border-gray-200">
+          <div class="flex justify-between border-t border-[#EBECEE] pt-4">
             <button
               type="submit"
               [disabled]="isSending || !newMessage.trim()"
-              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class="inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {{ isSending ? 'Sending...' : 'Send' }}
             </button>
             <button
               type="button"
               (click)="closeModal()"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              class="inline-flex h-10 items-center rounded-lg border border-[#EBECEE] bg-white px-4 text-sm font-semibold text-[#324153] transition-colors hover:border-[#1f4fbf] hover:text-[#1f4fbf] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC]"
             >
               Close
             </button>
@@ -293,4 +293,4 @@ export class ChatModalComponent implements OnInit, OnDestroy, OnChanges {
       }
     }, 100);
   }
-} 
+}

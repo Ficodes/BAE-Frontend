@@ -6,14 +6,14 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div *ngIf="isOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]">
-      <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 class="text-lg font-semibold mb-4">{{ title }}</h3>
-        <p class="text-gray-600 mb-6">{{ message }}</p>
-        <div class="flex justify-end space-x-3">
+    <div *ngIf="isOpen" class="fixed inset-0 z-[70] flex items-center justify-center bg-[#0b1220]/45 px-4 font-[Blinker]">
+      <div class="w-full max-w-md rounded-2xl border border-[#EBECEE] bg-white p-6 shadow-[0_20px_50px_rgba(11,18,32,0.24)]">
+        <h3 class="mb-4 text-lg font-bold text-[#0b1220]">{{ title }}</h3>
+        <p class="mb-6 text-sm text-[#526179]">{{ message }}</p>
+        <div class="flex justify-end gap-3 border-t border-[#EBECEE] pt-4">
           <button
             (click)="onCancel()"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            class="inline-flex h-10 items-center rounded-lg border border-[#EBECEE] bg-white px-4 text-sm font-semibold text-[#324153] transition-colors hover:border-[#1f4fbf] hover:text-[#1f4fbf] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC]"
           >
             Cancel
           </button>
@@ -33,7 +33,7 @@ export class ConfirmDialogComponent {
   @Input() title = 'Confirm Action';
   @Input() message = 'Are you sure you want to proceed?';
   @Input() confirmText = 'Confirm';
-  @Input() confirmButtonClass = 'px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
+  @Input() confirmButtonClass = 'inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:cursor-not-allowed disabled:opacity-50';
   @Output() confirm = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
 
@@ -44,4 +44,4 @@ export class ConfirmDialogComponent {
   onCancel() {
     this.cancel.emit();
   }
-} 
+}

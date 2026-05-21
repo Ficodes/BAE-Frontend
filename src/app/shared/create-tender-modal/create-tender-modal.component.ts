@@ -22,19 +22,20 @@ import {
   resolveTenderCategoryLeafNames,
 } from 'src/app/models/search-organizations-filters.model';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+import { TenderDateFieldComponent } from '../tender-date-field/tender-date-field.component';
 
 @Component({
   selector: 'app-create-tender-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, ConfirmDialogComponent, TenderDateFieldComponent],
   template: `
     <!-- Tender Creation Modal -->
-    <div *ngIf="isOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" (click)="closeTenderModal()">
-      <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white dark:bg-gray-800" (click)="$event.stopPropagation()">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ editingTenderId ? 'Edit Tender' : 'Create New Tender' }}</h3>
-          <button (click)="closeTenderModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div *ngIf="isOpen" class="fixed inset-0 z-50 h-full w-full overflow-y-auto bg-[#0b1220]/45 px-4 py-8 font-[Blinker]" (click)="closeTenderModal()">
+      <div class="relative mx-auto w-full max-w-[1280px] rounded-2xl border border-[#EBECEE] bg-[#F7F9FD] p-6 shadow-[0_20px_50px_rgba(11,18,32,0.24)]" (click)="$event.stopPropagation()">
+        <div class="mb-6 flex items-center justify-between">
+          <h3 class="text-[24px] font-bold text-[#0b1220]">{{ editingTenderId ? 'Edit Tender' : 'Create New Tender' }}</h3>
+          <button (click)="closeTenderModal()" class="rounded-lg p-2 text-[#526179] transition-colors hover:bg-[#EBF0F7] hover:text-[#1f4fbf]" aria-label="Close tender modal">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
@@ -43,32 +44,32 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
         <!-- Step 1: Title Only -->
         <div *ngIf="tenderCreationStep === 1">
           <div class="mb-6">
-            <label for="tenderTitle" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+            <label for="tenderTitle" class="mb-2 block text-sm font-semibold text-[#324153]">
               Tender Title *
             </label>
             <input 
               type="text" 
               id="tenderTitle"
               [(ngModel)]="tenderTitle"
-              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              class="h-12 w-full rounded-lg border border-[#EBECEE] bg-white px-4 text-[15px] text-[#0b1220] outline-none transition-colors placeholder:text-[#9AA6B8] hover:border-[#1f4fbf] focus:border-[#1f4fbf] focus:ring-2 focus:ring-[#B6CAEC]"
               placeholder="Enter tender title or description..."
               autofocus
             />
-            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">This will be the main description of your tender</p>
+            <p class="mt-2 text-sm text-[#526179]">This will be the main description of your tender</p>
           </div>
 
           <!-- Actions for Step 1 -->
-          <div class="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div class="mt-6 flex justify-end gap-3 border-t border-[#EBECEE] pt-4">
             <button 
               (click)="closeTenderModal()" 
-              class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+              class="inline-flex h-10 items-center rounded-lg border border-[#EBECEE] bg-white px-4 text-sm font-semibold text-[#324153] transition-colors hover:border-[#1f4fbf] hover:text-[#1f4fbf]"
             >
               Cancel
             </button>
             <button 
               (click)="saveInitialTender()" 
               [disabled]="!tenderTitle.trim() || tenderLoading"
-              class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {{ tenderLoading ? 'Saving...' : 'Save' }}
             </button>
@@ -78,75 +79,71 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
         <!-- Step 2: Completion Dates -->
         <div *ngIf="tenderCreationStep === 2">
           <!-- Display Title (Read-only) -->
-          <div class="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Tender Title</label>
-            <p class="text-gray-900 dark:text-white font-medium break-words overflow-wrap-anywhere">{{ tenderTitle }}</p>
+          <div class="mb-4 rounded-2xl border border-[#EBECEE] bg-white p-4 shadow-sm">
+            <label class="mb-2 block text-sm font-semibold text-[#526179]">Tender Title</label>
+            <p class="break-words text-[16px] font-semibold text-[#0b1220] overflow-wrap-anywhere">{{ tenderTitle }}</p>
           </div>
 
           <!-- Step 2 Instructions -->
-          <div class="mb-6 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
-            <p class="text-sm text-yellow-800 dark:text-yellow-200">{{ TENDER_STEP2_DESCRIPTION }}</p>
+          <div class="mb-6 rounded-2xl border border-[#F2D28A] bg-[#FFF8E6] p-4">
+            <p class="text-sm font-semibold text-[#7A4D00]">{{ TENDER_STEP2_DESCRIPTION }}</p>
           </div>
 
           <!-- Tender Start Date -->
           <div class="mb-6">
-            <label for="requestedDate" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+            <label for="requestedDate" class="mb-2 block text-sm font-semibold text-[#324153]">
               Tender Start Date *
             </label>
-            <input
-              type="date"
+            <app-tender-date-field
               id="requestedDate"
-              [(ngModel)]="requestedCompletionDate"
+              [(value)]="requestedCompletionDate"
               [min]="minDate"
-              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Format: DD/MM/YYYY</p>
+            ></app-tender-date-field>
+            <p class="mt-1 text-xs text-[#526179]">Format: DD/MM/YYYY</p>
             <p
               *ngIf="requestedCompletionDate && step2ValidationError && step2ValidationError.includes('Start date')"
-              class="mt-1 text-xs text-red-600 dark:text-red-400"
+              class="mt-1 text-xs text-[#B42318]"
             >{{ step2ValidationError }}</p>
           </div>
 
           <!-- Tender End Date -->
           <div class="mb-6">
-            <label for="expectedDate" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+            <label for="expectedDate" class="mb-2 block text-sm font-semibold text-[#324153]">
               Tender End Date *
             </label>
-            <input
-              type="date"
+            <app-tender-date-field
               id="expectedDate"
-              [(ngModel)]="expectedCompletionDate"
+              [(value)]="expectedCompletionDate"
               [min]="minDate"
-              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Format: DD/MM/YYYY</p>
+            ></app-tender-date-field>
+            <p class="mt-1 text-xs text-[#526179]">Format: DD/MM/YYYY</p>
             <p
               *ngIf="expectedCompletionDate && step2ValidationError && (step2ValidationError.includes('End date') || step2ValidationError.includes('End Date must be after'))"
-              class="mt-1 text-xs text-red-600 dark:text-red-400"
+              class="mt-1 text-xs text-[#B42318]"
             >{{ step2ValidationError }}</p>
           </div>
 
           <!-- PDF Upload -->
           <div class="mb-6">
-            <label for="pdfFile" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+            <label for="pdfFile" class="mb-2 block text-sm font-semibold text-[#324153]">
               PDF Attachment *
             </label>
 
             <!-- Display existing attachment prominently -->
-            <div *ngIf="existingAttachment" class="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+            <div *ngIf="existingAttachment" class="mb-3 rounded-2xl border border-[#B6CAEC] bg-[#EBF0F7] p-4">
               <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                  <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex min-w-0 items-center gap-3">
+                  <svg class="h-5 w-5 shrink-0 text-[#1f4fbf]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                   </svg>
-                  <div>
-                    <p class="text-sm font-medium text-blue-900 dark:text-blue-100">Current PDF:</p>
-                    <p class="text-sm text-blue-700 dark:text-blue-300">{{ existingAttachment.name }}</p>
+                  <div class="min-w-0">
+                    <p class="text-sm font-semibold text-[#0b1220]">Current PDF</p>
+                    <p class="truncate text-sm text-[#526179]">{{ existingAttachment.name }}</p>
                   </div>
                 </div>
-                <span class="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded">Attached</span>
+                <span class="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-[#1f4fbf]">Attached</span>
               </div>
-              <p class="text-xs text-blue-600 dark:text-blue-400 mt-2">Upload a new file to replace the existing attachment</p>
+              <p class="mt-2 text-xs text-[#526179]">Upload a new file to replace the existing attachment</p>
             </div>
 
             <input
@@ -154,18 +151,18 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
               id="pdfFile"
               accept=".pdf"
               (change)="onPdfFileSelected($any($event))"
-              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              class="block w-full cursor-pointer rounded-lg border border-[#EBECEE] bg-white text-sm text-[#526179] transition-colors file:mr-4 file:h-12 file:cursor-pointer file:border-0 file:bg-[#EBF0F7] file:px-4 file:text-sm file:font-semibold file:text-[#1f4fbf] hover:border-[#1f4fbf] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC]"
             />
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p class="mt-1 text-xs text-[#526179]">
               {{ existingAttachment ? 'Select a new file to upload or keep the current one' : 'Only PDF files allowed' }} — Max size 10MB
             </p>
           </div>
 
           <!-- Actions for Step 2 -->
-          <div class="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div class="mt-6 flex justify-end gap-3 border-t border-[#EBECEE] pt-4">
             <button
               (click)="closeTenderModal()"
-              class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+              class="inline-flex h-10 items-center rounded-lg border border-[#EBECEE] bg-white px-4 text-sm font-semibold text-[#324153] transition-colors hover:border-[#1f4fbf] hover:text-[#1f4fbf]"
             >
               Cancel
             </button>
@@ -173,7 +170,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
               (click)="proceedToProviderSelection()"
               [disabled]="!isStep2Complete() || tenderLoading"
               [title]="step2ValidationError"
-              class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed relative group"
+              class="group relative inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {{ tenderLoading ? 'Saving...' : 'Next: Select Providers' }}
               <span
@@ -189,63 +186,63 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
         <!-- Step 3: Provider Selection -->
         <div *ngIf="tenderCreationStep === 3">
           <!-- Display Title (Read-only) -->
-          <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Tender Title</label>
-            <p class="text-gray-900 dark:text-white font-medium break-words overflow-wrap-anywhere">{{ tenderTitle }}</p>
+          <div class="mb-6 rounded-2xl border border-[#EBECEE] bg-white p-4 shadow-sm">
+            <label class="mb-2 block text-sm font-semibold text-[#526179]">Tender Title</label>
+            <p class="break-words text-[16px] font-semibold text-[#0b1220] overflow-wrap-anywhere">{{ tenderTitle }}</p>
           </div>
 
           <!-- Date Summary -->
-          <div class="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
-            <h4 class="text-sm font-medium text-green-900 dark:text-green-100 mb-2">✓ Dates Set</h4>
+          <div class="mb-6 rounded-2xl border border-[#CBEADB] bg-[#F0FBF6] p-4">
+            <h4 class="mb-2 text-sm font-semibold text-[#006B4A]">Dates Set</h4>
             <div class="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span class="text-green-700 dark:text-green-300">Effective:</span>
-                <span class="ml-2 font-medium text-green-900 dark:text-green-100">{{ formatDateForDisplay(expectedCompletionDate) }}</span>
+                <span class="text-[#526179]">Effective:</span>
+                <span class="ml-2 font-semibold text-[#0b1220]">{{ formatDateForDisplay(expectedCompletionDate) }}</span>
               </div>
               <div>
-                <span class="text-green-700 dark:text-green-300">Expected Fulfillment:</span>
-                <span class="ml-2 font-medium text-green-900 dark:text-green-100">{{ formatDateForDisplay(requestedCompletionDate) }}</span>
+                <span class="text-[#526179]">Expected Fulfillment:</span>
+                <span class="ml-2 font-semibold text-[#0b1220]">{{ formatDateForDisplay(requestedCompletionDate) }}</span>
               </div>
             </div>
           </div>
 
           <!-- PDF Summary -->
-          <div *ngIf="existingAttachment || pdfAttachmentSet" class="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
-            <h4 class="text-sm font-medium text-green-900 dark:text-green-100 mb-2">✓ PDF Attachment Set</h4>
-            <p class="text-sm text-green-700 dark:text-green-300">{{ existingAttachment?.name || selectedPdfFile?.name }}</p>
+          <div *ngIf="existingAttachment || pdfAttachmentSet" class="mb-6 rounded-2xl border border-[#CBEADB] bg-[#F0FBF6] p-4">
+            <h4 class="mb-2 text-sm font-semibold text-[#006B4A]">PDF Attachment Set</h4>
+            <p class="text-sm font-semibold text-[#0b1220]">{{ existingAttachment?.name || selectedPdfFile?.name }}</p>
           </div>
 
           <!-- Loading State -->
           <div *ngIf="tenderLoading" class="flex justify-center py-8">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-[#1f4fbf]"></div>
           </div>
 
           <!-- Error State -->
-          <div *ngIf="tenderError" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-md p-4 mb-4">
-            <p class="text-sm text-red-700 dark:text-red-300">{{ tenderError }}</p>
+          <div *ngIf="tenderError" class="mb-4 rounded-2xl border border-[#F4C7C7] bg-[#FFF1F1] p-4">
+            <p class="text-sm font-semibold text-[#B42318]">{{ tenderError }}</p>
           </div>
 
           <div *ngIf="!tenderLoading && !tenderError">
             <!-- Already Invited Providers Section -->
             <div *ngIf="invitedProviders.length > 0" class="mb-6">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
+              <label class="mb-3 block text-sm font-semibold text-[#324153]">
                 Already Invited Providers ({{ invitedProviders.length }})
               </label>
               
-              <div class="max-h-64 overflow-y-auto border border-green-300 dark:border-green-700 rounded-lg bg-green-50 dark:bg-green-900/20">
+              <div class="max-h-64 overflow-y-auto rounded-2xl border border-[#CBEADB] bg-[#F0FBF6]">
                 <div *ngFor="let invited of invitedProviders" 
-                     class="flex items-center justify-between p-4 hover:bg-green-100 dark:hover:bg-green-900/30 border-b border-green-200 dark:border-green-700 last:border-b-0">
+                     class="flex items-center justify-between border-b border-[#CBEADB] p-4 transition-colors last:border-b-0 hover:bg-white">
                   <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">
+                    <p class="text-sm font-semibold text-[#0b1220]">
                       {{ invited.provider.tradingName || 'Unnamed Provider' }}
                     </p>
-                    <p *ngIf="invited.provider.externalReference?.[0]?.name" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <p *ngIf="invited.provider.externalReference?.[0]?.name" class="mt-1 text-xs text-[#526179]">
                       {{ invited.provider.externalReference?.[0]?.name }}
                     </p>
                   </div>
                   <button 
                     (click)="removeInvitedProvider(invited.quoteId, invited.provider.id)"
-                    class="ml-4 p-2 text-red-600 hover:text-red-800 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full transition-colors"
+                    class="ml-4 rounded-lg p-2 text-[#B42318] transition-colors hover:bg-[#FFF1F1]"
                     title="Remove invitation"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -258,7 +255,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
 
             <!-- Available Providers Selection -->
             <div class="mb-6">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
+              <label class="mb-3 block text-sm font-semibold text-[#324153]">
                 Select Providers to Invite
               </label>
               
@@ -268,7 +265,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                     <button
                       type="button"
                       (click)="toggleTenderFilterDropdown('serviceCategory', $event)"
-                      [ngClass]="selectedServiceCategory ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'"
+                      [ngClass]="selectedServiceCategory ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'"
                       class="flex h-10 max-w-[240px] items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors"
                     >
                       <span class="truncate">{{ selectedServiceCategory?.name || 'All Categories' }}</span>
@@ -290,7 +287,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                   </div>
 
                   <div class="relative shrink-0">
-                    <button type="button" (click)="toggleTenderFilterDropdown('compliance', $event)" [ngClass]="selectedComplianceLevels.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors">
+                    <button type="button" (click)="toggleTenderFilterDropdown('compliance', $event)" [ngClass]="selectedComplianceLevels.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors">
                       Compliance Levels
                       <span *ngIf="selectedComplianceLevels.length > 0" class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{ selectedComplianceLevels.length }}</span>
                       <svg class="h-4 w-4 transition-transform" [ngClass]="showComplianceDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -299,7 +296,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                     </button>
                     <div *ngIf="showComplianceDropdown" (click)="$event.stopPropagation()" class="absolute left-0 top-full z-[70] mt-2 w-[240px] rounded-xl bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
                       <button *ngFor="let option of complianceLevelOptions" type="button" (click)="toggleComplianceLevel(option.code, $event)" [ngClass]="isComplianceSelected(option.code) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-[#0b1220] transition-colors">
-                        <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border" [ngClass]="isComplianceSelected(option.code) ? 'border-[#1f4fbf] bg-[#1f4fbf] text-white' : 'border-gray-300 bg-white'">
+                        <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border" [ngClass]="isComplianceSelected(option.code) ? 'border-[#1f4fbf] bg-[#1f4fbf] text-white' : 'border-[#B6CAEC] bg-white'">
                           <svg *ngIf="isComplianceSelected(option.code)" class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                           </svg>
@@ -310,7 +307,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                   </div>
 
                   <div class="relative shrink-0">
-                    <button type="button" (click)="toggleTenderFilterDropdown('sector', $event)" [ngClass]="selectedSectorIds.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors">
+                    <button type="button" (click)="toggleTenderFilterDropdown('sector', $event)" [ngClass]="selectedSectorIds.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors">
                       Addressable Sectors
                       <span *ngIf="selectedSectorIds.length > 0" class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{ selectedSectorIds.length }}</span>
                       <svg class="h-4 w-4 transition-transform" [ngClass]="showSectorDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -319,7 +316,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                     </button>
                     <div *ngIf="showSectorDropdown" (click)="$event.stopPropagation()" class="absolute left-0 top-full z-[70] mt-2 max-h-[360px] w-[260px] overflow-y-auto rounded-xl bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
                       <button *ngFor="let option of addressableSectorOptions" type="button" (click)="toggleAddressableSector(option, $event)" [ngClass]="isSectorSelected(option) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors">
-                        <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border" [ngClass]="isSectorSelected(option) ? 'border-[#1f4fbf] bg-[#1f4fbf] text-white' : 'border-gray-300 bg-white'">
+                        <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border" [ngClass]="isSectorSelected(option) ? 'border-[#1f4fbf] bg-[#1f4fbf] text-white' : 'border-[#B6CAEC] bg-white'">
                           <svg *ngIf="isSectorSelected(option)" class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                           </svg>
@@ -330,7 +327,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                   </div>
 
                   <div class="relative shrink-0">
-                    <button type="button" (click)="toggleTenderFilterDropdown('country', $event)" [ngClass]="selectedCountryCodes.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors">
+                    <button type="button" (click)="toggleTenderFilterDropdown('country', $event)" [ngClass]="selectedCountryCodes.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors">
                       Country
                       <span *ngIf="selectedCountryCodes.length > 0" class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{ selectedCountryCodes.length }}</span>
                       <svg class="h-4 w-4 transition-transform" [ngClass]="showCountryDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -339,7 +336,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                     </button>
                     <div *ngIf="showCountryDropdown" (click)="$event.stopPropagation()" class="absolute left-0 top-full z-[70] mt-2 max-h-[360px] w-[240px] overflow-y-auto rounded-xl bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
                       <button *ngFor="let option of countryOptions" type="button" (click)="toggleCountry(option.code, $event)" [ngClass]="isCountrySelected(option.code) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors">
-                        <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border" [ngClass]="isCountrySelected(option.code) ? 'border-[#1f4fbf] bg-[#1f4fbf] text-white' : 'border-gray-300 bg-white'">
+                        <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border" [ngClass]="isCountrySelected(option.code) ? 'border-[#1f4fbf] bg-[#1f4fbf] text-white' : 'border-[#B6CAEC] bg-white'">
                           <svg *ngIf="isCountrySelected(option.code)" class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                           </svg>
@@ -350,7 +347,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                   </div>
 
                   <div class="relative shrink-0">
-                    <button type="button" (click)="toggleTenderFilterDropdown('framework', $event)" [ngClass]="selectedFrameworkIds.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors">
+                    <button type="button" (click)="toggleTenderFilterDropdown('framework', $event)" [ngClass]="selectedFrameworkIds.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors">
                       Integration Framework
                       <span *ngIf="selectedFrameworkIds.length > 0" class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{ selectedFrameworkIds.length }}</span>
                       <svg class="h-4 w-4 transition-transform" [ngClass]="showFrameworkDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -359,7 +356,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                     </button>
                     <div *ngIf="showFrameworkDropdown" (click)="$event.stopPropagation()" class="absolute left-0 top-full z-[70] mt-2 max-h-[360px] w-[280px] overflow-y-auto rounded-xl bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
                       <button *ngFor="let option of integrationFrameworkOptions" type="button" (click)="toggleIntegrationFramework(option, $event)" [ngClass]="isFrameworkSelected(option) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors">
-                        <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border" [ngClass]="isFrameworkSelected(option) ? 'border-[#1f4fbf] bg-[#1f4fbf] text-white' : 'border-gray-300 bg-white'">
+                        <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border" [ngClass]="isFrameworkSelected(option) ? 'border-[#1f4fbf] bg-[#1f4fbf] text-white' : 'border-[#B6CAEC] bg-white'">
                           <svg *ngIf="isFrameworkSelected(option)" class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                           </svg>
@@ -390,7 +387,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                     [id]="'provider-' + provider.id"
                     [checked]="selectedProviders.has(provider.id)"
                     (change)="toggleProviderSelection(provider.id)"
-                    class="h-4 w-4 rounded border-gray-300 text-[#1f4fbf] focus:ring-[#1f4fbf]"
+                    class="h-4 w-4 rounded border-[#B6CAEC] text-[#1f4fbf] focus:ring-[#B6CAEC]"
                   />
                   <label *ngIf="provider.id" [for]="'provider-' + provider.id" class="min-w-0 flex-1 cursor-pointer">
                     <p class="truncate text-sm font-semibold text-[#0b1220]">{{ provider.tradingName || 'Unnamed Provider' }}</p>
@@ -406,7 +403,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                     [id]="'provider-' + provider.id"
                     [checked]="selectedProviders.has(provider.id)"
                     (change)="toggleProviderSelection(provider.id)"
-                    class="h-4 w-4 rounded border-gray-300 text-[#1f4fbf] focus:ring-[#1f4fbf]"
+                    class="h-4 w-4 rounded border-[#B6CAEC] text-[#1f4fbf] focus:ring-[#B6CAEC]"
                   />
                   <label *ngIf="provider.id" [for]="'provider-' + provider.id" class="min-w-0 flex-1 cursor-pointer">
                     <p class="truncate text-sm font-semibold text-[#0b1220]">{{ provider.tradingName || 'Unnamed Provider' }}</p>
@@ -424,24 +421,24 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                 </div>
               </div>
 
-              <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              <p class="mt-2 text-sm font-semibold text-[#526179]">
                 {{ selectedProviders.size }} provider(s) selected
               </p>
             </div>
           </div>
 
           <!-- Actions for Step 3 -->
-          <div class="flex justify-between space-x-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div class="mt-6 flex justify-between gap-3 border-t border-[#EBECEE] pt-4">
             <button 
               (click)="backToStep2()" 
-              class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+              class="inline-flex h-10 items-center rounded-lg border border-[#EBECEE] bg-white px-4 text-sm font-semibold text-[#324153] transition-colors hover:border-[#1f4fbf] hover:text-[#1f4fbf]"
             >
               ← Back
             </button>
-            <div class="flex space-x-3">
+            <div class="flex gap-3">
               <button 
                 (click)="closeTenderModal()" 
-                class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                class="inline-flex h-10 items-center rounded-lg border border-[#EBECEE] bg-white px-4 text-sm font-semibold text-[#324153] transition-colors hover:border-[#1f4fbf] hover:text-[#1f4fbf]"
               >
                 Cancel
               </button>
@@ -449,7 +446,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                 (click)="saveProvidersList()"
                 [disabled]="selectedProviders.size === 0 || tenderLoading"
                 [title]="selectedProviders.size === 0 ? 'Please select at least one provider' : ''"
-                class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed relative group"
+                class="group relative inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {{ tenderLoading ? 'Inviting...' : 'Save Providers List' }}
                 <span 
@@ -463,7 +460,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                 (click)="finalizeTender()"
                 [disabled]="invitedProviders.length === 0 || tenderLoading"
                 [title]="invitedProviders.length === 0 ? 'Please invite at least one provider first' : ''"
-                class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed relative group"
+                class="group relative inline-flex h-10 items-center rounded-lg bg-[#006B4A] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#00523A] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Submit Tender
                 <span 
@@ -520,7 +517,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   genericConfirmTitle = '';
   genericConfirmMessage = '';
   genericConfirmButtonText = 'Confirm';
-  genericConfirmButtonClass = 'px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
+  genericConfirmButtonClass = 'inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:cursor-not-allowed disabled:opacity-50';
   genericConfirmCallback: (() => void) | null = null;
   currentUserId: string | null = null;
 
@@ -678,7 +675,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
     message: string,
     callback: () => void,
     buttonText: string = 'Confirm',
-    buttonClass: string = 'px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+    buttonClass: string = 'inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:cursor-not-allowed disabled:opacity-50'
   ) {
     this.genericConfirmTitle = title;
     this.genericConfirmMessage = message;
@@ -1456,7 +1453,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
         });
       },
       'Remove',
-      'px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'
+      'inline-flex h-10 items-center rounded-lg border border-[#F4C7C7] bg-white px-4 text-sm font-semibold text-[#B42318] transition-colors hover:bg-[#FFF1F1] focus:outline-none focus:ring-2 focus:ring-[#F4C7C7] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1479,7 +1476,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
       'Are you sure you want to finalize the tender? This will notify all invited providers.',
       () => this.executeFinalizeTender(),
       'Finalize',
-      'px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
+      'inline-flex h-10 items-center rounded-lg bg-[#006B4A] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#00523A] focus:outline-none focus:ring-2 focus:ring-[#B8E6D1] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
