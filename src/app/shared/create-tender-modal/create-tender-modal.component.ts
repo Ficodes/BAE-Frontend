@@ -47,7 +47,7 @@ import {
             </svg>
           </button>
         </div>
-        <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+        <div data-testid="tender-modal-body" class="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-6 py-5">
         
         <!-- Step 1: Title Only -->
         <div *ngIf="tenderCreationStep === 1">
@@ -441,14 +441,14 @@ import {
           </div>
 
           <!-- Actions for Step 3 -->
-          <div class="sticky bottom-0 -mx-6 -mb-5 mt-5 flex justify-between gap-3 border-t border-[#EBECEE] bg-[#F7F9FD]/95 px-6 py-4 backdrop-blur">
+          <div data-testid="tender-modal-provider-footer" class="sticky bottom-0 mt-5 flex flex-wrap justify-between gap-3 border-t border-[#EBECEE] bg-[#F7F9FD]/95 py-4 backdrop-blur">
             <button 
               (click)="backToStep2()" 
               class="inline-flex h-10 items-center rounded-lg border border-[#EBECEE] bg-white px-4 text-sm font-semibold text-[#324153] transition-colors hover:border-[#1f4fbf] hover:text-[#1f4fbf]"
             >
               ← Back
             </button>
-            <div class="flex gap-3">
+            <div class="flex flex-wrap justify-end gap-3">
               <button 
                 (click)="closeTenderModal()" 
                 class="inline-flex h-10 items-center rounded-lg border border-[#EBECEE] bg-white px-4 text-sm font-semibold text-[#324153] transition-colors hover:border-[#1f4fbf] hover:text-[#1f4fbf]"

@@ -49,4 +49,20 @@ describe('CreateTenderModalComponent', () => {
     expect(summary.textContent).toContain('Test ASD');
     expect(summary.textContent).toContain('test-file-pdf.pdf');
   });
+
+  it('keeps the provider step layout from creating horizontal overflow', () => {
+    component.isOpen = true;
+    component.customerId = 'customer-1';
+    component.tenderCreationStep = 3;
+
+    fixture.detectChanges();
+
+    const body = fixture.nativeElement.querySelector('[data-testid="tender-modal-body"]');
+    const footer = fixture.nativeElement.querySelector('[data-testid="tender-modal-provider-footer"]');
+
+    expect(body).not.toBeNull();
+    expect(body.className).toContain('overflow-x-hidden');
+    expect(footer).not.toBeNull();
+    expect(footer.className).not.toContain('-mx-6');
+  });
 });
