@@ -37,52 +37,61 @@ import { environment } from 'src/environments/environment';
   template: `
     <app-notification></app-notification>
 
-    <div class="w-full mx-auto px-6 py-8">
-      <div class="flex justify-between items-center mb-6">
-        <div class="flex items-center gap-3">
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Tenders Dashboard</h1>
-          <a
-            href="https://knowledgebase.dome-marketplace.eu/books/tailored-offering-guide"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Click here for the Tender process guide"
-            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-          >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-            </svg>
-          </a>
+    <div class="min-h-screen bg-[#F7F9FD] font-[Blinker]">
+      <div class="mx-auto max-w-[1440px] px-6 py-8 sm:px-10 lg:px-20 xl:px-[160px]">
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex min-w-0 items-center gap-3">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#eef2fb] text-[#1f4fbf]">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414A1 1 0 0 1 19 9.414V19a2 2 0 0 1-2 2Z" />
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <h1 class="truncate text-[28px] font-bold text-[#0b1220]">Tenders Dashboard</h1>
+                <a
+                  href="https://knowledgebase.dome-marketplace.eu/books/tailored-offering-guide"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Click here for the Tender process guide"
+                  class="rounded-lg p-1 text-[#526179] transition-colors hover:bg-[#EBF0F7] hover:text-[#1f4fbf]"
+                >
+                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-3a1 1 0 0 0-.867.5 1 1 0 1 1-1.731-1A3 3 0 0 1 13 8a3.001 3.001 0 0 1-2 2.83V11a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1 1 1 0 1 0 0-2Zm0 8a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              *ngIf="selectedRole === UI_ROLES.BUYER"
+              (click)="openCreateTenderModal()"
+              class="inline-flex h-10 items-center gap-2 rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:opacity-50"
+            >
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Create Tender
+            </button>
+            <button
+              (click)="refreshQuotes()"
+              [disabled]="loading"
+              class="inline-flex h-10 items-center rounded-lg border border-[#EBECEE] bg-white px-4 text-sm font-semibold text-[#324153] transition-colors hover:border-[#1f4fbf] hover:text-[#1f4fbf] disabled:opacity-50"
+            >
+              {{ loading ? 'Loading...' : 'Refresh' }}
+            </button>
+          </div>
         </div>
-        <div class="flex space-x-3">
-          <button
-            *ngIf="selectedRole === UI_ROLES.BUYER"
-            (click)="openCreateTenderModal()"
-            class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center"
-          >
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Create Tender
-          </button>
-          <button
-            (click)="refreshQuotes()"
-            [disabled]="loading"
-            class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50"
-          >
-            {{ loading ? 'Loading...' : 'Refresh' }}
-          </button>
-        </div>
-      </div>
 
       <!-- Role Tabs -->
       <div class="mb-6">
-        <div class="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+        <div class="inline-flex rounded-2xl border border-[#EBECEE] bg-white p-1 shadow-sm">
           <button
             (click)="selectRole(UI_ROLES.BUYER)"
             [class]="getRoleTabClass(UI_ROLES.BUYER)"
-            class="flex-1 px-8 py-4 text-2xl font-medium rounded-md transition-colors"
           >
-            <svg class="w-6 h-6 inline mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             As Buyer
@@ -90,9 +99,8 @@ import { environment } from 'src/environments/environment';
           <button
             (click)="selectRole(UI_ROLES.SELLER)"
             [class]="getRoleTabClass(UI_ROLES.SELLER)"
-            class="flex-1 px-8 py-4 text-2xl font-medium rounded-md transition-colors"
           >
-            <svg class="w-6 h-6 inline mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
             As Provider
@@ -101,26 +109,26 @@ import { environment } from 'src/environments/environment';
       </div>
 
       <!-- Status Filter -->
-      <div class="mb-6">
-        <div class="flex items-center space-x-4">
-          <svg class="w-5 h-5 text-gray-500 dark:text-gray-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#EBECEE] bg-white p-3 shadow-sm">
+        <div class="flex items-center gap-3">
+          <svg class="h-5 w-5 text-[#526179]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
           </svg>
-          <span class="text-sm font-medium text-gray-700 dark:text-gray-100">Filter by status</span>
+          <span class="text-sm font-medium text-[#526179]">Status</span>
+        </div>
           <select
             [(ngModel)]="statusFilter"
             (ngModelChange)="filterQuotesByStatus()"
-            class="form-select rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            class="h-10 rounded-lg border border-gray-200 bg-white px-4 text-[15px] text-[#324153] outline-none transition-colors hover:border-[#1f4fbf] focus:border-[#1f4fbf] focus:ring-2 focus:ring-[#B6CAEC]"
           >
             <option value="">All Statuses</option>
             <option *ngFor="let opt of filterStatusOptions" [value]="opt.value">{{ opt.label }}</option>
           </select>
-        </div>
       </div>
 
       <!-- Loading State -->
-      <div *ngIf="loading" class="flex justify-center items-center py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div *ngIf="loading" class="flex items-center justify-center py-8">
+        <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-[#1f4fbf]"></div>
       </div>
 
       <!-- Error State -->
@@ -139,18 +147,18 @@ import { environment } from 'src/environments/environment';
       </div>
 
       <!-- Quotes List -->
-      <div *ngIf="!loading && !error" class="bg-white dark:bg-gray-700 shadow-md rounded-lg overflow-hidden">
+      <div *ngIf="!loading && !error" class="overflow-hidden rounded-2xl border border-[#EBECEE] bg-white shadow-sm">
         <div *ngIf="filteredQuotes.length === 0" class="text-center py-12">
           <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No tenders found</h3>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No tender requests to display</p>
+          <h3 class="mt-2 text-sm font-semibold text-[#0b1220]">No tenders found</h3>
+          <p class="mt-1 text-sm text-[#526179]">No tender requests to display</p>
         </div>
 
         <!-- Provider View Header (matches Quote layout) -->
-        <div *ngIf="filteredQuotes.length > 0 && selectedRole === UI_ROLES.SELLER" class="bg-gray-50 dark:bg-gray-800 px-6 py-3">
-          <div class="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+        <div *ngIf="filteredQuotes.length > 0 && selectedRole === UI_ROLES.SELLER" class="bg-[#F7F9FD] px-6 py-3">
+          <div class="grid grid-cols-12 gap-4 text-xs font-semibold uppercase tracking-wider text-[#526179]">
             <div class="col-span-2">REQUEST DATE</div>
             <div class="col-span-3">CUSTOMER</div>
             <div class="col-span-4">TITLE</div>
@@ -160,8 +168,8 @@ import { environment } from 'src/environments/environment';
         </div>
 
         <!-- Buyer View Header (Coordinator quotes) -->
-        <div *ngIf="filteredQuotes.length > 0 && selectedRole === UI_ROLES.BUYER" class="bg-gray-50 dark:bg-gray-800 px-6 py-3">
-          <div class="grid grid-cols-16 gap-4 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+        <div *ngIf="filteredQuotes.length > 0 && selectedRole === UI_ROLES.BUYER" class="bg-[#F7F9FD] px-6 py-3">
+          <div class="grid grid-cols-16 gap-4 text-xs font-semibold uppercase tracking-wider text-[#526179]">
             <div class="col-span-1">EXPAND</div>
             <div class="col-span-3">TITLE</div>
             <div class="col-span-2">STATUS</div>
@@ -175,25 +183,22 @@ import { environment } from 'src/environments/environment';
         <!-- ==================== PROVIDER VIEW ROWS (matches Quote layout) ==================== -->
         <ng-container *ngIf="selectedRole === UI_ROLES.SELLER">
           <div *ngFor="let quote of filteredQuotes" class="quote-row">
-            <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 border-b border-gray-100 dark:border-gray-600 transition-colors"
-                 [class.bg-gray-50]="isQuoteFinalized(quote)"
-                 [class.dark:bg-gray-800]="isQuoteFinalized(quote)"
-                 [class.hover:bg-gray-50]="!isQuoteFinalized(quote)"
-                 [class.dark:hover:bg-gray-800]="!isQuoteFinalized(quote)"
+            <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 border-b border-[#EBECEE] transition-colors"
+                 [ngClass]="isQuoteFinalized(quote) ? 'bg-[#F7F9FD]' : 'hover:bg-[#F7F9FD]'"
                  [attr.data-quote-id]="quote.id">
 
               <!-- Request Date -->
-              <div class="col-span-2 text-sm text-gray-600 dark:text-gray-400">
+              <div class="col-span-2 text-sm text-[#526179]">
                 {{ quote.quoteDate | date:'dd-MM-yyyy' }}
               </div>
 
               <!-- Customer/Buyer Name -->
-              <div class="col-span-3 text-sm font-medium text-gray-900 dark:text-white">
+              <div class="col-span-3 text-sm font-semibold text-[#0b1220]">
                 {{ getBuyerName(quote) }}
               </div>
 
               <!-- Title -->
-              <div class="col-span-4 text-sm text-gray-700 dark:text-gray-300" [title]="quote.description || '(no title)'">
+              <div class="col-span-4 text-sm text-[#324153]" [title]="quote.description || '(no title)'">
                 {{ getTruncatedTitle(quote.description) }}
               </div>
 
@@ -211,7 +216,7 @@ import { environment } from 'src/environments/environment';
                 <button
                   [disabled]="isActionDisabled(quote, 'chat')"
                   (click)="openChat(quote)"
-                  [class]="getIconButtonClass(quote, 'chat', 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200')"
+                  [class]="getIconButtonClass(quote, 'chat', 'text-[#526179] hover:text-[#1f4fbf]')"
                   title="Chat"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -223,7 +228,7 @@ import { environment } from 'src/environments/environment';
                 <button
                   [disabled]="isActionDisabled(quote, 'viewDetails')"
                   (click)="viewDetails(quote)"
-                  class="px-3 py-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 border border-blue-200 dark:border-blue-700 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex items-center gap-1"
+                  class="inline-flex items-center gap-1 rounded-lg border border-[#B6CAEC] px-3 py-1.5 text-sm font-semibold text-[#1f4fbf] transition-colors hover:bg-[#EBF0F7]"
                   [class.opacity-50]="isActionDisabled(quote, 'viewDetails')"
                   [class.cursor-not-allowed]="isActionDisabled(quote, 'viewDetails')"
                 >
@@ -240,11 +245,8 @@ import { environment } from 'src/environments/environment';
         <!-- ==================== BUYER VIEW ROWS (Coordinator quotes with expand) ==================== -->
         <ng-container *ngIf="selectedRole === UI_ROLES.BUYER">
           <div *ngFor="let quote of filteredQuotes" class="quote-row">
-            <div class="grid grid-cols-16 gap-4 items-center px-6 py-4 border-b border-gray-100 dark:border-gray-600 transition-colors"
-                 [class.bg-gray-50]="isQuoteFinalized(quote)"
-                 [class.dark:bg-gray-800]="isQuoteFinalized(quote)"
-                 [class.hover:bg-gray-50]="!isQuoteFinalized(quote)"
-                 [class.dark:hover:bg-gray-800]="!isQuoteFinalized(quote)"
+            <div class="grid grid-cols-16 gap-4 items-center px-6 py-4 border-b border-[#EBECEE] transition-colors"
+                 [ngClass]="isQuoteFinalized(quote) ? 'bg-[#F7F9FD]' : 'hover:bg-[#F7F9FD]'"
                  [attr.data-quote-id]="quote.id">
 
               <!-- Quote Details (Expand/Collapse) -->
@@ -253,7 +255,7 @@ import { environment } from 'src/environments/environment';
                 <button
                   *ngIf="isCoordinatorExpandable(quote)"
                   (click)="toggleExpand(quote)"
-                  class="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded transition-colors"
+                  class="rounded-lg p-1.5 text-[#1f4fbf] transition-colors hover:bg-[#EBF0F7]"
                   [title]="isExpanded(quote.id) ? 'Collapse related quotes' : 'Expand to view related quotes'"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform" [class.rotate-180]="isExpanded(quote.id)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -263,7 +265,7 @@ import { environment } from 'src/environments/environment';
               </div>
 
               <!-- Title -->
-              <div class="col-span-3 text-sm font-medium text-gray-900 dark:text-white" [title]="quote.description || '(no title)'">
+              <div class="col-span-3 text-sm font-semibold text-[#0b1220]" [title]="quote.description || '(no title)'">
                 {{ getTruncatedTitle(quote.description) }}
               </div>
 
@@ -276,12 +278,12 @@ import { environment } from 'src/environments/environment';
               </div>
 
               <!-- Expected Fulfillment Start Date -->
-              <div class="col-span-2 text-sm text-gray-600 dark:text-gray-400">
+              <div class="col-span-2 text-sm text-[#526179]">
                 {{ quote.expectedFulfillmentStartDate | date:'dd/MM/yyyy' }}
               </div>
 
               <!-- Effective Completion Date -->
-              <div class="col-span-2 text-sm text-gray-600 dark:text-gray-400">
+              <div class="col-span-2 text-sm text-[#526179]">
                 {{ quote.effectiveQuoteCompletionDate | date:'dd/MM/yyyy' }}
               </div>
 
@@ -291,7 +293,7 @@ import { environment } from 'src/environments/environment';
                   <button
                     [disabled]="isActionDisabled(quote, 'downloadAttachment')"
                     (click)="downloadAttachment(quote)"
-                    class="flex items-center space-x-1 text-purple-600 hover:text-purple-800 disabled:text-gray-300"
+                    class="flex items-center space-x-1 text-[#1f4fbf] hover:text-[#183f99] disabled:text-gray-300"
                     title="Download attachment"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -307,7 +309,7 @@ import { environment } from 'src/environments/environment';
                 <!-- Details Button (matching Quote style) - Always visible -->
                 <button
                   (click)="viewDetails(quote)"
-                  class="px-3 py-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 border border-blue-200 dark:border-blue-700 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex items-center gap-1"
+                  class="inline-flex items-center gap-1 rounded-lg border border-[#B6CAEC] px-3 py-1.5 text-sm font-semibold text-[#1f4fbf] transition-colors hover:bg-[#EBF0F7]"
                 >
                   Details
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -364,21 +366,21 @@ import { environment } from 'src/environments/environment';
             </div>
 
           <!-- Expanded Related Quotes View -->
-          <div *ngIf="isExpanded(quote.id)" class="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-600">
+          <div *ngIf="isExpanded(quote.id)" class="border-t border-[#EBECEE] bg-[#F7F9FD] px-6 py-4">
             <div class="ml-8">
-              <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Related Provider Quotes</h4>
+              <h4 class="mb-3 text-sm font-semibold text-[#324153]">Related Provider Quotes</h4>
 
               <!-- Loading State -->
               <div *ngIf="isLoadingRelatedQuotes(quote.id)" class="flex items-center justify-center py-4">
-                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Loading related quotes...</span>
+                <div class="h-6 w-6 animate-spin rounded-full border-b-2 border-[#1f4fbf]"></div>
+                <span class="ml-2 text-sm text-[#526179]">Loading related quotes...</span>
               </div>
 
               <!-- Related Quotes Table (matching Quote layout) -->
-              <div *ngIf="!isLoadingRelatedQuotes(quote.id) && getRelatedQuotes(quote.id).length > 0" class="bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600">
+              <div *ngIf="!isLoadingRelatedQuotes(quote.id) && getRelatedQuotes(quote.id).length > 0" class="overflow-hidden rounded-2xl border border-[#EBECEE] bg-white shadow-sm">
                 <!-- Header -->
-                <div class="bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-600">
-                  <div class="grid grid-cols-12 gap-4 text-xs font-medium text-gray-600 dark:text-gray-300 uppercase">
+                <div class="border-b border-[#EBECEE] bg-[#F7F9FD] px-4 py-2">
+                  <div class="grid grid-cols-12 gap-4 text-xs font-semibold uppercase text-[#526179]">
                     <div class="col-span-4">Provider</div>
                     <div class="col-span-2">Status</div>
                     <div class="col-span-3">Attachments</div>
@@ -388,13 +390,11 @@ import { environment } from 'src/environments/environment';
 
                 <!-- Related Quote Rows -->
                 <div *ngFor="let relatedQuote of getRelatedQuotes(quote.id); let last = last"
-                     class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                     [class.border-b]="!last"
-                     [class.border-gray-200]="!last"
-                     [class.dark:border-gray-600]="!last">
+                     class="px-4 py-3 transition-colors hover:bg-[#F7F9FD]"
+                     [ngClass]="!last ? 'border-b border-[#EBECEE]' : ''">
                   <div class="grid grid-cols-12 gap-4 items-center text-sm">
                     <!-- Provider -->
-                    <div class="col-span-4 text-gray-900 dark:text-white font-medium">
+                    <div class="col-span-4 font-semibold text-[#0b1220]">
                       {{ getProviderName(relatedQuote) }}
                     </div>
 
@@ -411,7 +411,7 @@ import { environment } from 'src/environments/environment';
                       <button
                         *ngIf="hasAttachment(relatedQuote)"
                         (click)="downloadAttachment(relatedQuote)"
-                        class="flex items-center space-x-1 text-purple-600 hover:text-purple-800"
+                        class="flex items-center space-x-1 text-[#1f4fbf] hover:text-[#183f99]"
                         title="Download attachment"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -426,7 +426,7 @@ import { environment } from 'src/environments/environment';
                       <!-- Chat -->
                       <button
                         (click)="openChat(relatedQuote)"
-                        class="p-1 text-gray-500 hover:text-gray-700 rounded hover:bg-gray-100 transition-colors"
+                        class="rounded-lg p-1 text-[#526179] transition-colors hover:bg-[#EBF0F7] hover:text-[#1f4fbf]"
                         title="Chat"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -437,7 +437,7 @@ import { environment } from 'src/environments/environment';
                       <!-- View Details Button (matching Quote style) -->
                       <button
                         (click)="viewDetails(relatedQuote)"
-                        class="px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 border border-blue-200 rounded-md hover:bg-blue-50 transition-colors flex items-center gap-1"
+                        class="inline-flex items-center gap-1 rounded-lg border border-[#B6CAEC] px-2 py-1 text-xs font-semibold text-[#1f4fbf] transition-colors hover:bg-[#EBF0F7]"
                       >
                         Details
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -451,7 +451,7 @@ import { environment } from 'src/environments/environment';
 
               <!-- No Related Quotes -->
               <div *ngIf="!isLoadingRelatedQuotes(quote.id) && getRelatedQuotes(quote.id).length === 0"
-                   class="text-center py-6 text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                   class="rounded-2xl border border-[#EBECEE] bg-white py-6 text-center text-sm text-[#526179]">
                 <svg class="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -462,6 +462,7 @@ import { environment } from 'src/environments/environment';
         </div>
         </ng-container>
       </div>
+    </div>
     </div>
 
     <!-- Delete Confirmation Dialog -->
@@ -887,9 +888,10 @@ export class TenderListComponent implements OnInit {
   }
 
   getRoleTabClass(role: UiRole): string {
+    const base = 'inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors';
     return this.selectedRole === role
-      ? 'bg-white dark:bg-gray-600 text-indigo-600 dark:text-blue-400 shadow-sm'
-      : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-200';
+      ? `${base} bg-[#EBF0F7] text-[#1f4fbf]`
+      : `${base} text-[#526179] hover:bg-[#F7F9FD] hover:text-[#1f4fbf]`;
   }
 
   filterQuotesByStatus() {
