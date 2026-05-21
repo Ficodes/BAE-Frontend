@@ -38,7 +38,7 @@ import {
   template: `
     <!-- Tender Creation Modal -->
     <div *ngIf="isOpen" class="fixed inset-0 z-50 flex h-full w-full items-start justify-center overflow-hidden bg-[#0b1220]/45 px-4 py-6 font-[Blinker]" (click)="closeTenderModal()">
-      <div class="relative flex max-h-[calc(100vh-3rem)] w-full max-w-[1280px] flex-col overflow-hidden rounded-2xl border border-[#EBECEE] bg-[#F7F9FD] shadow-[0_20px_50px_rgba(11,18,32,0.24)]" (click)="$event.stopPropagation()">
+      <div class="relative flex max-h-[calc(100vh-3rem)] w-full max-w-[1280px] flex-col overflow-hidden rounded-2xl border border-[#EBECEE] bg-[#F7F9FD] shadow-[0_20px_50px_rgba(11,18,32,0.24)]" (click)="closeTenderFilterDropdowns(); $event.stopPropagation()">
         <div class="flex shrink-0 items-center justify-between border-b border-[#EBECEE] bg-[#F7F9FD] px-6 py-5">
           <h3 class="text-[24px] font-bold text-[#0b1220]">{{ editingTenderId ? 'Edit Tender' : 'Create New Tender' }}</h3>
           <button (click)="closeTenderModal()" class="rounded-lg p-2 text-[#526179] transition-colors hover:bg-[#EBF0F7] hover:text-[#1f4fbf]" aria-label="Close tender modal">

@@ -65,4 +65,19 @@ describe('CreateTenderModalComponent', () => {
     expect(footer).not.toBeNull();
     expect(footer.className).not.toContain('-mx-6');
   });
+
+  it('closes filter dropdowns when clicking elsewhere in the modal', () => {
+    component.isOpen = true;
+    component.customerId = 'customer-1';
+    component.tenderCreationStep = 3;
+    component.showCountryDropdown = true;
+
+    fixture.detectChanges();
+
+    const summary = fixture.nativeElement.querySelector('[aria-label="Tender setup summary"]');
+    summary.dispatchEvent(new Event('click', { bubbles: true }));
+    fixture.detectChanges();
+
+    expect(component.showCountryDropdown).toBeFalse();
+  });
 });
