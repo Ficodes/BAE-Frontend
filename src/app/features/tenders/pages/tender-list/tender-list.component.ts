@@ -187,7 +187,7 @@ import { environment } from 'src/environments/environment';
         </div>
 
         <!-- Provider View Header (matches Quote layout) -->
-        <div *ngIf="filteredQuotes.length > 0 && selectedRole === UI_ROLES.SELLER" class="bg-[#F7F9FD] px-6 py-3">
+        <div *ngIf="filteredQuotes.length > 0 && selectedRole === UI_ROLES.SELLER" class="border-b border-[#DDE6F6] bg-[#EBF0F7] px-6 py-3">
           <div class="grid grid-cols-12 gap-4 text-xs font-semibold uppercase tracking-wider text-[#526179]">
             <div class="col-span-2">REQUEST DATE</div>
             <div class="col-span-3">CUSTOMER</div>
@@ -198,7 +198,7 @@ import { environment } from 'src/environments/environment';
         </div>
 
         <!-- Buyer View Header (Coordinator quotes) -->
-        <div *ngIf="filteredQuotes.length > 0 && selectedRole === UI_ROLES.BUYER" class="bg-[#F7F9FD] px-6 py-3">
+        <div *ngIf="filteredQuotes.length > 0 && selectedRole === UI_ROLES.BUYER" class="border-b border-[#DDE6F6] bg-[#EBF0F7] px-6 py-3">
           <div class="grid grid-cols-16 gap-4 text-xs font-semibold uppercase tracking-wider text-[#526179]">
             <div class="col-span-1">EXPAND</div>
             <div class="col-span-3">TITLE</div>
@@ -409,7 +409,7 @@ import { environment } from 'src/environments/environment';
               <!-- Related Quotes Table (matching Quote layout) -->
               <div *ngIf="!isLoadingRelatedQuotes(quote.id) && getRelatedQuotes(quote.id).length > 0" class="overflow-hidden rounded-2xl border border-[#EBECEE] bg-white shadow-sm">
                 <!-- Header -->
-                <div class="border-b border-[#EBECEE] bg-[#F7F9FD] px-4 py-2">
+                <div class="border-b border-[#DDE6F6] bg-[#EBF0F7] px-4 py-2">
                   <div class="grid grid-cols-12 gap-4 text-xs font-semibold uppercase text-[#526179]">
                     <div class="col-span-4">Provider</div>
                     <div class="col-span-2">Status</div>
