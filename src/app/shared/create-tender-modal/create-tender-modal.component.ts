@@ -37,9 +37,9 @@ import {
   imports: [CommonModule, FormsModule, ConfirmDialogComponent, TenderDateFieldComponent],
   template: `
     <!-- Tender Creation Modal -->
-    <div *ngIf="isOpen" class="fixed inset-0 z-50 h-full w-full overflow-y-auto bg-[#0b1220]/45 px-4 py-8 font-[Blinker]" (click)="closeTenderModal()">
-      <div class="relative mx-auto w-full max-w-[1280px] rounded-2xl border border-[#EBECEE] bg-[#F7F9FD] p-6 shadow-[0_20px_50px_rgba(11,18,32,0.24)]" (click)="$event.stopPropagation()">
-        <div class="mb-6 flex items-center justify-between">
+    <div *ngIf="isOpen" class="fixed inset-0 z-50 flex h-full w-full items-start justify-center overflow-hidden bg-[#0b1220]/45 px-4 py-6 font-[Blinker]" (click)="closeTenderModal()">
+      <div class="relative flex max-h-[calc(100vh-3rem)] w-full max-w-[1280px] flex-col overflow-hidden rounded-2xl border border-[#EBECEE] bg-[#F7F9FD] shadow-[0_20px_50px_rgba(11,18,32,0.24)]" (click)="$event.stopPropagation()">
+        <div class="flex shrink-0 items-center justify-between border-b border-[#EBECEE] bg-[#F7F9FD] px-6 py-5">
           <h3 class="text-[24px] font-bold text-[#0b1220]">{{ editingTenderId ? 'Edit Tender' : 'Create New Tender' }}</h3>
           <button (click)="closeTenderModal()" class="rounded-lg p-2 text-[#526179] transition-colors hover:bg-[#EBF0F7] hover:text-[#1f4fbf]" aria-label="Close tender modal">
             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,6 +47,7 @@ import {
             </svg>
           </button>
         </div>
+        <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
         
         <!-- Step 1: Title Only -->
         <div *ngIf="tenderCreationStep === 1">
@@ -192,32 +193,38 @@ import {
 
         <!-- Step 3: Provider Selection -->
         <div *ngIf="tenderCreationStep === 3">
-          <!-- Display Title (Read-only) -->
-          <div class="mb-6 rounded-2xl border border-[#EBECEE] bg-white p-4 shadow-sm">
-            <label class="mb-2 block text-sm font-semibold text-[#526179]">Tender Title</label>
-            <p class="break-words text-[16px] font-semibold text-[#0b1220] overflow-wrap-anywhere">{{ tenderTitle }}</p>
-          </div>
+          <!-- Tender Setup Summary -->
+          <section aria-label="Tender setup summary" class="mb-5 grid gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)]">
+            <div data-summary-item class="rounded-xl border border-[#EBECEE] bg-white px-4 py-3 shadow-sm">
+              <p class="text-xs font-semibold uppercase tracking-[0.04em] text-[#526179]">Tender Title</p>
+              <p class="mt-1 break-words text-[15px] font-semibold leading-5 text-[#0b1220] overflow-wrap-anywhere">{{ tenderTitle }}</p>
+            </div>
 
-          <!-- Date Summary -->
-          <div class="mb-6 rounded-2xl border border-[#CBEADB] bg-[#F0FBF6] p-4">
-            <h4 class="mb-2 text-sm font-semibold text-[#006B4A]">Dates Set</h4>
-            <div class="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span class="text-[#526179]">Effective:</span>
-                <span class="ml-2 font-semibold text-[#0b1220]">{{ formatDateForDisplay(expectedCompletionDate) }}</span>
-              </div>
-              <div>
-                <span class="text-[#526179]">Expected Fulfillment:</span>
-                <span class="ml-2 font-semibold text-[#0b1220]">{{ formatDateForDisplay(requestedCompletionDate) }}</span>
+            <div data-summary-item class="rounded-xl border border-[#CBEADB] bg-[#F0FBF6] px-4 py-3">
+              <p class="text-xs font-semibold uppercase tracking-[0.04em] text-[#006B4A]">Dates Set</p>
+              <div class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <div class="min-w-0">
+                  <span class="block text-xs text-[#526179]">Start</span>
+                  <span class="block truncate font-semibold text-[#0b1220]">{{ formatDateForDisplay(requestedCompletionDate) }}</span>
+                </div>
+                <div class="min-w-0">
+                  <span class="block text-xs text-[#526179]">End</span>
+                  <span class="block truncate font-semibold text-[#0b1220]">{{ formatDateForDisplay(expectedCompletionDate) }}</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- PDF Summary -->
-          <div *ngIf="existingAttachment || pdfAttachmentSet" class="mb-6 rounded-2xl border border-[#CBEADB] bg-[#F0FBF6] p-4">
-            <h4 class="mb-2 text-sm font-semibold text-[#006B4A]">PDF Attachment Set</h4>
-            <p class="text-sm font-semibold text-[#0b1220]">{{ existingAttachment?.name || selectedPdfFile?.name }}</p>
-          </div>
+            <div data-summary-item *ngIf="existingAttachment || pdfAttachmentSet" class="rounded-xl border border-[#CBEADB] bg-[#F0FBF6] px-4 py-3">
+              <p class="text-xs font-semibold uppercase tracking-[0.04em] text-[#006B4A]">PDF Attachment</p>
+              <div class="mt-2 flex min-w-0 items-center gap-2">
+                <svg class="h-4 w-4 shrink-0 text-[#006B4A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 3v5h5" />
+                </svg>
+                <p class="min-w-0 truncate text-sm font-semibold text-[#0b1220]">{{ existingAttachment?.name || selectedPdfFile?.name }}</p>
+              </div>
+            </div>
+          </section>
 
           <!-- Loading State -->
           <div *ngIf="tenderLoading" class="flex justify-center py-8">
@@ -231,14 +238,14 @@ import {
 
           <div *ngIf="!tenderLoading && !tenderError">
             <!-- Already Invited Providers Section -->
-            <div *ngIf="invitedProviders.length > 0" class="mb-6">
-              <label class="mb-3 block text-sm font-semibold text-[#324153]">
+            <div *ngIf="invitedProviders.length > 0" class="mb-5">
+              <label class="mb-2 block text-sm font-semibold text-[#324153]">
                 Already Invited Providers ({{ invitedProviders.length }})
               </label>
-              
-              <div class="max-h-64 overflow-y-auto rounded-2xl border border-[#CBEADB] bg-[#F0FBF6]">
+
+              <div class="max-h-40 overflow-y-auto rounded-xl border border-[#CBEADB] bg-[#F0FBF6]">
                 <div *ngFor="let invited of invitedProviders" 
-                     class="flex items-center justify-between border-b border-[#CBEADB] p-4 transition-colors last:border-b-0 hover:bg-white">
+                     class="flex items-center justify-between border-b border-[#CBEADB] px-4 py-3 transition-colors last:border-b-0 hover:bg-white">
                   <div class="flex-1">
                     <p class="text-sm font-semibold text-[#0b1220]">
                       {{ invited.provider.tradingName || 'Unnamed Provider' }}
@@ -261,19 +268,19 @@ import {
             </div>
 
             <!-- Available Providers Selection -->
-            <div class="mb-6">
-              <label class="mb-3 block text-sm font-semibold text-[#324153]">
+            <div class="mb-5">
+              <label class="mb-2 block text-sm font-semibold text-[#324153]">
                 Select Providers to Invite
               </label>
-              
-              <div class="rounded-2xl border border-[#EBECEE] bg-white p-3 shadow-sm">
+
+              <div class="rounded-xl border border-[#EBECEE] bg-white p-3 shadow-sm">
                 <div class="flex flex-wrap items-center gap-2">
                   <div class="relative shrink-0">
                     <button
                       type="button"
                       (click)="toggleTenderFilterDropdown('serviceCategory', $event)"
                       [ngClass]="selectedServiceCategory ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'"
-                      class="flex h-10 max-w-[240px] items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors"
+                       class="flex h-10 max-w-[240px] items-center gap-2 rounded-lg border pl-4 pr-3 text-[15px] transition-colors"
                     >
                       <span class="truncate">{{ selectedServiceCategory?.name || 'All Categories' }}</span>
                       <svg class="h-4 w-4 shrink-0 transition-transform" [ngClass]="showServiceCategoryDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -296,7 +303,7 @@ import {
                   </div>
 
                   <div class="relative shrink-0">
-                    <button type="button" (click)="toggleTenderFilterDropdown('compliance', $event)" [ngClass]="selectedComplianceLevels.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors">
+                    <button type="button" (click)="toggleTenderFilterDropdown('compliance', $event)" [ngClass]="selectedComplianceLevels.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[15px] transition-colors">
                       Compliance Levels
                       <span *ngIf="selectedComplianceLevels.length > 0" class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{ selectedComplianceLevels.length }}</span>
                       <svg class="h-4 w-4 transition-transform" [ngClass]="showComplianceDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -316,7 +323,7 @@ import {
                   </div>
 
                   <div class="relative shrink-0">
-                    <button type="button" (click)="toggleTenderFilterDropdown('sector', $event)" [ngClass]="selectedSectorIds.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors">
+                    <button type="button" (click)="toggleTenderFilterDropdown('sector', $event)" [ngClass]="selectedSectorIds.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[15px] transition-colors">
                       Addressable Sectors
                       <span *ngIf="selectedSectorIds.length > 0" class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{ selectedSectorIds.length }}</span>
                       <svg class="h-4 w-4 transition-transform" [ngClass]="showSectorDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -338,7 +345,7 @@ import {
                   </div>
 
                   <div class="relative shrink-0">
-                    <button type="button" (click)="toggleTenderFilterDropdown('country', $event)" [ngClass]="selectedCountryCodes.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors">
+                    <button type="button" (click)="toggleTenderFilterDropdown('country', $event)" [ngClass]="selectedCountryCodes.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[15px] transition-colors">
                       Country
                       <span *ngIf="selectedCountryCodes.length > 0" class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{ selectedCountryCodes.length }}</span>
                       <svg class="h-4 w-4 transition-transform" [ngClass]="showCountryDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -360,7 +367,7 @@ import {
                   </div>
 
                   <div class="relative shrink-0">
-                    <button type="button" (click)="toggleTenderFilterDropdown('framework', $event)" [ngClass]="selectedFrameworkIds.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors">
+                    <button type="button" (click)="toggleTenderFilterDropdown('framework', $event)" [ngClass]="selectedFrameworkIds.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[15px] transition-colors">
                       Integration Framework
                       <span *ngIf="selectedFrameworkIds.length > 0" class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{ selectedFrameworkIds.length }}</span>
                       <svg class="h-4 w-4 transition-transform" [ngClass]="showFrameworkDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -396,7 +403,7 @@ import {
                 </div>
               </div>
 
-              <div class="mt-4 max-h-96 overflow-y-auto rounded-2xl border border-[#EBECEE] bg-white">
+              <div class="mt-4 max-h-[30vh] min-h-[156px] overflow-y-auto rounded-xl border border-[#EBECEE] bg-white">
                 <div
                   *ngFor="let candidate of availableProviders"
                   class="flex items-center gap-3 border-b border-[#EBECEE] px-4 py-3 last:border-b-0 hover:bg-[#F7F9FD]"
@@ -434,7 +441,7 @@ import {
           </div>
 
           <!-- Actions for Step 3 -->
-          <div class="mt-6 flex justify-between gap-3 border-t border-[#EBECEE] pt-4">
+          <div class="sticky bottom-0 -mx-6 -mb-5 mt-5 flex justify-between gap-3 border-t border-[#EBECEE] bg-[#F7F9FD]/95 px-6 py-4 backdrop-blur">
             <button 
               (click)="backToStep2()" 
               class="inline-flex h-10 items-center rounded-lg border border-[#EBECEE] bg-white px-4 text-sm font-semibold text-[#324153] transition-colors hover:border-[#1f4fbf] hover:text-[#1f4fbf]"
@@ -480,6 +487,7 @@ import {
           </div>
         </div>
       </div>
+    </div>
     </div>
 
     <!-- Generic Confirmation Dialog -->
