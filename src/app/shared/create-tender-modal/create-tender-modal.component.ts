@@ -23,6 +23,10 @@ import {
 } from 'src/app/models/search-organizations-filters.model';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { TenderDateFieldComponent } from '../tender-date-field/tender-date-field.component';
+import {
+  TenderProviderCandidate,
+  buildStableProviderCandidates,
+} from './tender-provider-selection.model';
 
 @Component({
   selector: 'app-create-tender-modal',
@@ -379,36 +383,24 @@ import { TenderDateFieldComponent } from '../tender-date-field/tender-date-field
               </div>
 
               <div class="mt-4 max-h-96 overflow-y-auto rounded-2xl border border-[#EBECEE] bg-white">
-                <div *ngFor="let provider of _safeInvitedList" 
-                     class="flex items-center gap-3 border-b border-[#EBECEE] bg-[#F7F9FD] px-4 py-3 last:border-b-0">
-                  <input 
-                    *ngIf="provider.id"
-                    type="checkbox" 
-                    [id]="'provider-' + provider.id"
-                    [checked]="selectedProviders.has(provider.id)"
-                    (change)="toggleProviderSelection(provider.id)"
-                    class="h-4 w-4 rounded border-[#B6CAEC] text-[#1f4fbf] focus:ring-[#B6CAEC]"
-                  />
-                  <label *ngIf="provider.id" [for]="'provider-' + provider.id" class="min-w-0 flex-1 cursor-pointer">
-                    <p class="truncate text-sm font-semibold text-[#0b1220]">{{ provider.tradingName || 'Unnamed Provider' }}</p>
-                    <p *ngIf="provider.externalReference?.[0]?.name" class="mt-0.5 truncate text-xs text-[#526179]">{{ provider.externalReference?.[0]?.name }}</p>
-                  </label>
-                </div>
-                
-                <div *ngFor="let provider of availableProviders" 
-                     class="flex items-center gap-3 border-b border-[#EBECEE] px-4 py-3 last:border-b-0 hover:bg-[#F7F9FD]">
-                  <input 
-                    *ngIf="provider.id"
-                    type="checkbox" 
-                    [id]="'provider-' + provider.id"
-                    [checked]="selectedProviders.has(provider.id)"
-                    (change)="toggleProviderSelection(provider.id)"
-                    class="h-4 w-4 rounded border-[#B6CAEC] text-[#1f4fbf] focus:ring-[#B6CAEC]"
-                  />
-                  <label *ngIf="provider.id" [for]="'provider-' + provider.id" class="min-w-0 flex-1 cursor-pointer">
-                    <p class="truncate text-sm font-semibold text-[#0b1220]">{{ provider.tradingName || 'Unnamed Provider' }}</p>
-                    <p *ngIf="provider.externalReference?.[0]?.name" class="mt-0.5 truncate text-xs text-[#526179]">{{ provider.externalReference?.[0]?.name }}</p>
-                  </label>
+                <div
+                  *ngFor="let candidate of availableProviders"
+                  class="flex items-center gap-3 border-b border-[#EBECEE] px-4 py-3 last:border-b-0 hover:bg-[#F7F9FD]"
+                  [ngClass]="candidate.selected ? 'bg-[#F7F9FD]' : ''"
+                >
+                  <ng-container *ngIf="candidate.provider.id as providerId">
+                    <input
+                      type="checkbox"
+                      [id]="'provider-' + providerId"
+                      [checked]="candidate.selected"
+                      (change)="toggleProviderSelection(providerId)"
+                      class="h-4 w-4 rounded border-[#B6CAEC] text-[#1f4fbf] focus:ring-[#B6CAEC]"
+                    />
+                    <label [for]="'provider-' + providerId" class="min-w-0 flex-1 cursor-pointer">
+                      <p class="truncate text-sm font-semibold text-[#0b1220]">{{ candidate.provider.tradingName || 'Unnamed Provider' }}</p>
+                      <p *ngIf="candidate.provider.externalReference?.[0]?.name" class="mt-0.5 truncate text-xs text-[#526179]">{{ candidate.provider.externalReference?.[0]?.name }}</p>
+                    </label>
+                  </ng-container>
                 </div>
                 
                 <div *ngIf="availableProviders.length === 0" class="p-8 text-center text-[#526179]">
@@ -557,7 +549,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
     complianceLevels: []
   };
   // Available providers list
-  availableProviders: Provider[] = [];
+  availableProviders: TenderProviderCandidate[] = [];
 
   // Tender form fields - Step 1: Title only
   tenderTitle: string = '';
@@ -1200,7 +1192,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
     this.rebuildSelectionAndAvailable();
   }
 
-  private rebuildSelectionAndAvailable(): Provider[] {
+  private rebuildSelectionAndAvailable(): TenderProviderCandidate[] {
     // 1) selectedProviders = IDs from local safe list
     this.selectedProviders = new Set(
       this._safeInvitedList
@@ -1208,23 +1200,19 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
         .filter((id): id is string => !!id)
     );
 
-    // 2) all IDs that must be excluded from availability (server invited + locally selected)
-    const excludeIds = new Set<string>([
-      ...this.invitedProviders
+    const invitedProviderIds = new Set(
+      this.invitedProviders
         .map(ip => ip?.provider?.id)
-        .filter((id): id is string => !!id),
-      ...Array.from(this.selectedProviders),
-    ]);
+        .filter((id): id is string => !!id)
+    );
 
-    // 3) compute available list
-    const available = this.tenderProviders
-      .filter(p => !!p?.id && !excludeIds.has(p.id!))
-      .map(p => ({ ...p } as Provider));
+    this.availableProviders = buildStableProviderCandidates({
+      tenderProviders: this.tenderProviders,
+      invitedProviderIds,
+      selectedProviderIds: this.selectedProviders,
+    });
 
-    // keep a cached copy if you want to bind directly in template
-    this.availableProviders = available;
-
-    return available;
+    return this.availableProviders;
   }
 
   /**
@@ -1285,6 +1273,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
         );
 
         this.invitedProviders = entries;
+        this.rebuildSelectionAndAvailable();
         console.log('Total invited providers loaded:', this.invitedProviders.length);
         this.tenderLoading = false;
       },
@@ -1325,8 +1314,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   /**
    * Get available providers (excluding already invited ones)
    */
-  getAvailableProviders(): Provider[] {
-    // Simple and clean — everything is handled by the helper
+  getAvailableProviders(): TenderProviderCandidate[] {
     return this.rebuildSelectionAndAvailable();
   }
 
