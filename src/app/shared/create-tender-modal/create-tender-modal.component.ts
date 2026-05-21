@@ -8,20 +8,25 @@ import { QuoteService } from 'src/app/features/quotes/services/quote.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
 import { ProviderService, Provider } from 'src/app/services/provider.service';
+import { ApiServiceService } from 'src/app/services/product-service.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
 import { Tender, TenderAttachment } from 'src/app/models/tender.model';
-import { LoginInfo } from 'src/app/models/interfaces';
+import { Category, LoginInfo } from 'src/app/models/interfaces';
 import { API_ROLES } from 'src/app/models/roles.constants';
 import { TENDER_STEP2_DESCRIPTION } from 'src/app/models/quote.constants';
-import { SearchOrganizationsFilters, countryName, complianceLevelsName } from 'src/app/models/search-organizations-filters.model';
-import { FormControl } from '@angular/forms';
-import { ReactiveFormsModule } from '@angular/forms';
+import {
+  ProviderCountryOption,
+  SearchOrganizationsFilters,
+  TENDER_COMPLIANCE_LEVELS,
+  buildTenderProviderSearchFilters,
+  resolveTenderCategoryLeafNames,
+} from 'src/app/models/search-organizations-filters.model';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-create-tender-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, ConfirmDialogComponent],
   template: `
     <!-- Tender Creation Modal -->
     <div *ngIf="isOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" (click)="closeTenderModal()">
@@ -257,110 +262,164 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                 Select Providers to Invite
               </label>
               
-              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                <!-- Responsive grid for filters -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                  <!-- Countries -->
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Countries</label>
-                    <select multiple [formControl]="countriesCtrl"
-                            class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white px-3 py-2 text-sm shadow-sm
-                                   focus:border-blue-500 focus:ring focus:ring-blue-200">
-                      <option *ngFor="let c of countriesOptions" [value]="c" (mousedown)="toggleFromSelect(countriesCtrl, c, $event)">{{ countryName(c) }}</option>
-                    </select>
-                  </div>
-
-                  <!-- Categories -->
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Categories</label>
-                    <select multiple [formControl]="categoriesCtrl"
-                            class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white px-3 py-2 text-sm shadow-sm
-                                   focus:border-blue-500 focus:ring focus:ring-blue-200">
-                      <option *ngFor="let cat of categoriesOptions" [value]="cat" (mousedown)="toggleFromSelect(categoriesCtrl, cat, $event)">{{ cat }}</option>
-                    </select>
-                  </div>
-
-                  <!-- Compliance Levels -->
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Compliance Levels</label>
-                    <select multiple [formControl]="complianceLevelsCtrl"
-                            class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white px-3 py-2 text-sm shadow-sm
-                                   focus:border-blue-500 focus:ring focus:ring-blue-200">
-                      <option *ngFor="let cl of complianceLevelsOptions" [value]="cl" (mousedown)="toggleFromSelect(complianceLevelsCtrl, cl, $event)">{{ complianceLevelsName(cl) }}</option>
-                    </select>
-                  </div>
-
-                  <!-- Clear/Search buttons -->
-                  <div class="md:col-span-2 flex justify-start gap-x-2 mb-2 mt-2 md:mt-0">
-                    <button type="button"
-                            (click)="clearFilters()"
-                            class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600">
-                      Clear Filters
+              <div class="rounded-2xl border border-[#EBECEE] bg-white p-3 shadow-sm">
+                <div class="flex flex-wrap items-center gap-2">
+                  <div class="relative shrink-0">
+                    <button
+                      type="button"
+                      (click)="toggleTenderFilterDropdown('serviceCategory', $event)"
+                      [ngClass]="selectedServiceCategory ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'"
+                      class="flex h-10 max-w-[240px] items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors"
+                    >
+                      <span class="truncate">{{ selectedServiceCategory?.name || 'All Categories' }}</span>
+                      <svg class="h-4 w-4 shrink-0 transition-transform" [ngClass]="showServiceCategoryDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                      </svg>
                     </button>
-                    <button type="button"
-                            (click)="emitFilters()"
-                            class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50">
-                      Search
+                    <div *ngIf="showServiceCategoryDropdown" (click)="$event.stopPropagation()" class="absolute left-0 top-full z-[70] mt-2 max-h-[360px] w-[280px] overflow-y-auto rounded-xl bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                      <button type="button" (click)="selectServiceCategory(null, $event)" [ngClass]="!selectedServiceCategory ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors">
+                        <span class="min-w-0 flex-1">All Categories</span>
+                        <svg *ngIf="!selectedServiceCategory" class="h-4 w-4 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                      </button>
+                      <button *ngFor="let option of serviceCategoryOptions" type="button" (click)="selectServiceCategory(option, $event)" [ngClass]="selectedServiceCategory?.id === option.id ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors">
+                        <span class="min-w-0 flex-1 truncate">{{ option.name }}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="relative shrink-0">
+                    <button type="button" (click)="toggleTenderFilterDropdown('compliance', $event)" [ngClass]="selectedComplianceLevels.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors">
+                      Compliance Levels
+                      <span *ngIf="selectedComplianceLevels.length > 0" class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{ selectedComplianceLevels.length }}</span>
+                      <svg class="h-4 w-4 transition-transform" [ngClass]="showComplianceDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                      </svg>
                     </button>
+                    <div *ngIf="showComplianceDropdown" (click)="$event.stopPropagation()" class="absolute left-0 top-full z-[70] mt-2 w-[240px] rounded-xl bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                      <button *ngFor="let option of complianceLevelOptions" type="button" (click)="toggleComplianceLevel(option.code, $event)" [ngClass]="isComplianceSelected(option.code) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-[#0b1220] transition-colors">
+                        <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border" [ngClass]="isComplianceSelected(option.code) ? 'border-[#1f4fbf] bg-[#1f4fbf] text-white' : 'border-gray-300 bg-white'">
+                          <svg *ngIf="isComplianceSelected(option.code)" class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                          </svg>
+                        </span>
+                        <span>{{ option.label }}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="relative shrink-0">
+                    <button type="button" (click)="toggleTenderFilterDropdown('sector', $event)" [ngClass]="selectedSectorIds.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors">
+                      Addressable Sectors
+                      <span *ngIf="selectedSectorIds.length > 0" class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{ selectedSectorIds.length }}</span>
+                      <svg class="h-4 w-4 transition-transform" [ngClass]="showSectorDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </button>
+                    <div *ngIf="showSectorDropdown" (click)="$event.stopPropagation()" class="absolute left-0 top-full z-[70] mt-2 max-h-[360px] w-[260px] overflow-y-auto rounded-xl bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                      <button *ngFor="let option of addressableSectorOptions" type="button" (click)="toggleAddressableSector(option, $event)" [ngClass]="isSectorSelected(option) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors">
+                        <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border" [ngClass]="isSectorSelected(option) ? 'border-[#1f4fbf] bg-[#1f4fbf] text-white' : 'border-gray-300 bg-white'">
+                          <svg *ngIf="isSectorSelected(option)" class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                          </svg>
+                        </span>
+                        <span class="truncate">{{ option.name }}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="relative shrink-0">
+                    <button type="button" (click)="toggleTenderFilterDropdown('country', $event)" [ngClass]="selectedCountryCodes.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors">
+                      Country
+                      <span *ngIf="selectedCountryCodes.length > 0" class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{ selectedCountryCodes.length }}</span>
+                      <svg class="h-4 w-4 transition-transform" [ngClass]="showCountryDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </button>
+                    <div *ngIf="showCountryDropdown" (click)="$event.stopPropagation()" class="absolute left-0 top-full z-[70] mt-2 max-h-[360px] w-[240px] overflow-y-auto rounded-xl bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                      <button *ngFor="let option of countryOptions" type="button" (click)="toggleCountry(option.code, $event)" [ngClass]="isCountrySelected(option.code) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors">
+                        <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border" [ngClass]="isCountrySelected(option.code) ? 'border-[#1f4fbf] bg-[#1f4fbf] text-white' : 'border-gray-300 bg-white'">
+                          <svg *ngIf="isCountrySelected(option.code)" class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                          </svg>
+                        </span>
+                        <span class="truncate">{{ option.label }}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="relative shrink-0">
+                    <button type="button" (click)="toggleTenderFilterDropdown('framework', $event)" [ngClass]="selectedFrameworkIds.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'" class="flex h-10 items-center gap-2 rounded-lg border pl-4 pr-3 text-[16px] transition-colors">
+                      Integration Framework
+                      <span *ngIf="selectedFrameworkIds.length > 0" class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{ selectedFrameworkIds.length }}</span>
+                      <svg class="h-4 w-4 transition-transform" [ngClass]="showFrameworkDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </button>
+                    <div *ngIf="showFrameworkDropdown" (click)="$event.stopPropagation()" class="absolute left-0 top-full z-[70] mt-2 max-h-[360px] w-[280px] overflow-y-auto rounded-xl bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                      <button *ngFor="let option of integrationFrameworkOptions" type="button" (click)="toggleIntegrationFramework(option, $event)" [ngClass]="isFrameworkSelected(option) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors">
+                        <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border" [ngClass]="isFrameworkSelected(option) ? 'border-[#1f4fbf] bg-[#1f4fbf] text-white' : 'border-gray-300 bg-white'">
+                          <svg *ngIf="isFrameworkSelected(option)" class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                          </svg>
+                        </span>
+                        <span class="truncate">{{ option.name }}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
+
+                <div class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#EBECEE] pt-3">
+                  <p class="text-sm text-[#526179]">{{ availableProviders.length }} provider candidate(s)</p>
+                  <button type="button" (click)="clearFilters()" class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#1f4fbf] hover:bg-[#EBF0F7]">
+                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M21.015 4.356v4.992m0 0h-4.992m4.993 0-3.181-3.183a8.25 8.25 0 0 0-13.803 3.7" />
+                    </svg>
+                    Clear all
+                  </button>
+                </div>
               </div>
-              
-              <div class="max-h-96 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg">
+
+              <div class="mt-4 max-h-96 overflow-y-auto rounded-2xl border border-[#EBECEE] bg-white">
                 <div *ngFor="let provider of _safeInvitedList" 
-                     class="flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-600 last:border-b-0">
+                     class="flex items-center gap-3 border-b border-[#EBECEE] bg-[#F7F9FD] px-4 py-3 last:border-b-0">
                   <input 
                     *ngIf="provider.id"
                     type="checkbox" 
                     [id]="'provider-' + provider.id"
                     [checked]="selectedProviders.has(provider.id)"
                     (change)="toggleProviderSelection(provider.id)"
-                    class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    class="h-4 w-4 rounded border-gray-300 text-[#1f4fbf] focus:ring-[#1f4fbf]"
                   />
-                  <label *ngIf="provider.id" [for]="'provider-' + provider.id" class="ml-3 flex-1 cursor-pointer">
-                    <div>
-                      <p class="text-sm font-medium text-gray-900 dark:text-white">
-                        {{ provider.tradingName || 'Unnamed Provider' }}
-                      </p>
-                      <p *ngIf="provider.externalReference?.[0]?.name" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {{ provider.externalReference?.[0]?.name }}
-                      </p>
-                    </div>
+                  <label *ngIf="provider.id" [for]="'provider-' + provider.id" class="min-w-0 flex-1 cursor-pointer">
+                    <p class="truncate text-sm font-semibold text-[#0b1220]">{{ provider.tradingName || 'Unnamed Provider' }}</p>
+                    <p *ngIf="provider.externalReference?.[0]?.name" class="mt-0.5 truncate text-xs text-[#526179]">{{ provider.externalReference?.[0]?.name }}</p>
                   </label>
                 </div>
                 
                 <div *ngFor="let provider of availableProviders" 
-                     class="flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-600 last:border-b-0">
+                     class="flex items-center gap-3 border-b border-[#EBECEE] px-4 py-3 last:border-b-0 hover:bg-[#F7F9FD]">
                   <input 
                     *ngIf="provider.id"
                     type="checkbox" 
                     [id]="'provider-' + provider.id"
                     [checked]="selectedProviders.has(provider.id)"
                     (change)="toggleProviderSelection(provider.id)"
-                    class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    class="h-4 w-4 rounded border-gray-300 text-[#1f4fbf] focus:ring-[#1f4fbf]"
                   />
-                  <label *ngIf="provider.id" [for]="'provider-' + provider.id" class="ml-3 flex-1 cursor-pointer">
-                    <div>
-                      <p class="text-sm font-medium text-gray-900 dark:text-white">
-                        {{ provider.tradingName || 'Unnamed Provider' }}
-                      </p>
-                      <p *ngIf="provider.externalReference?.[0]?.name" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {{ provider.externalReference?.[0]?.name }}
-                      </p>
-                    </div>
+                  <label *ngIf="provider.id" [for]="'provider-' + provider.id" class="min-w-0 flex-1 cursor-pointer">
+                    <p class="truncate text-sm font-semibold text-[#0b1220]">{{ provider.tradingName || 'Unnamed Provider' }}</p>
+                    <p *ngIf="provider.externalReference?.[0]?.name" class="mt-0.5 truncate text-xs text-[#526179]">{{ provider.externalReference?.[0]?.name }}</p>
                   </label>
                 </div>
                 
-                <div *ngIf="availableProviders.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">
-                  <ng-container *ngIf="!hasActiveFilters(); else filteredEmpty">
-                    <p class="text-sm">
-                      No more providers available. All providers have been invited.
-                    </p>
-                  </ng-container>
-                  <ng-template #filteredEmpty>
-                    <p class="text-sm">
-                      No providers found matching your filters. Try adjusting Countries/Categories and click <strong>Search</strong>.
-                    </p>
+                <div *ngIf="availableProviders.length === 0" class="p-8 text-center text-[#526179]">
+                  <p class="text-sm" *ngIf="hasActiveFilters(); else noMoreProviders">
+                    No provider candidates match the selected filters.
+                  </p>
+                  <ng-template #noMoreProviders>
+                    <p class="text-sm">No more providers available.</p>
                   </ng-template>
                 </div>
               </div>
@@ -445,6 +504,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   private notificationService = inject(NotificationService);
   private localStorage = inject(LocalStorageService);
   private providerService = inject(ProviderService);
+  private api = inject(ApiServiceService);
   private accountService = inject(AccountServiceService);
   private router = inject(Router);
 
@@ -464,16 +524,30 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   genericConfirmCallback: (() => void) | null = null;
   currentUserId: string | null = null;
 
-  // Filter options
-  countriesOptions: string[] = [];
-  categoriesOptions: string[] = [];
-  complianceLevelsOptions: string[] = [];
-  _safeInvitedList: Provider[] = [];
+  // Tender Provider Search filters
+  countryOptions: ProviderCountryOption[] = [];
+  serviceCategoryOptions: Category[] = [];
+  addressableSectorOptions: Category[] = [];
+  integrationFrameworkOptions: Category[] = [];
+  readonly complianceLevelOptions = TENDER_COMPLIANCE_LEVELS;
 
-  // Form controls for filters
-  countriesCtrl = new FormControl<string[]>([], { nonNullable: true });
-  categoriesCtrl = new FormControl<string[]>([], { nonNullable: true });
-  complianceLevelsCtrl = new FormControl<string[]>([], { nonNullable: true });
+  showServiceCategoryDropdown = false;
+  showComplianceDropdown = false;
+  showSectorDropdown = false;
+  showCountryDropdown = false;
+  showFrameworkDropdown = false;
+
+  selectedServiceCategory: Category | null = null;
+  selectedServiceCategoryLeafNames: string[] = [];
+  selectedComplianceLevels: string[] = [];
+  selectedCountryCodes: string[] = [];
+  selectedSectorIds: string[] = [];
+  selectedSectorLeafNames: string[] = [];
+  selectedFrameworkIds: string[] = [];
+  selectedFrameworkLeafNames: string[] = [];
+
+  private leafNameCache = new Map<string, string[]>();
+  _safeInvitedList: Provider[] = [];
 
   // Default organization search filters
   orgFilters: SearchOrganizationsFilters = {
@@ -481,11 +555,6 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
     countries: [],
     complianceLevels: []
   };
-  
-  // Helper functions for display
-  complianceLevelsName = complianceLevelsName;
-  countryName = countryName;
-
   // Available providers list
   availableProviders: Provider[] = [];
 
@@ -872,17 +941,10 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
         this.notificationService.showSuccess('Tender details saved successfully!');
         this.tenderCreationStep = 3;
 
-        // Reset any previously active filters silently (emitEvent:false avoids
-        // triggering the valueChanges → emitFilters → loadTenderProviders chain)
-        this.orgFilters = { categories: [], countries: [], complianceLevels: [] };
-        this.countriesCtrl.setValue([], { emitEvent: false });
-        this.categoriesCtrl.setValue([], { emitEvent: false });
-        this.complianceLevelsCtrl.setValue([], { emitEvent: false });
-
         // Notify parent so the list reflects the saved dates and PDF immediately
         this.tenderUpdated.emit();
 
-        // Load filter criteria and the provider list in parallel
+        this.resetTenderFilters();
         this.loadFilterOptions();
         this.loadTenderProviders();
       },
@@ -943,13 +1005,13 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
    * Emit filter changes and reload providers
    */
   emitFilters(): void {
-    const newFilters: SearchOrganizationsFilters = {
-      countries: this.countriesCtrl.value ?? [],
-      categories: this.categoriesCtrl.value ?? [],
-      complianceLevels: this.complianceLevelsCtrl.value ?? []
-    };
-    console.log(newFilters);
-    this.orgFilters = newFilters;
+    this.orgFilters = buildTenderProviderSearchFilters({
+      serviceCategoryLeafNames: this.selectedServiceCategoryLeafNames,
+      addressableSectorLeafNames: this.selectedSectorLeafNames,
+      integrationFrameworkLeafNames: this.selectedFrameworkLeafNames,
+      countryCodes: this.selectedCountryCodes,
+      complianceLevels: this.selectedComplianceLevels,
+    });
     this.loadTenderProviders();
   }
 
@@ -965,14 +1027,126 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   /**
    * Clear all filters
    */
-  clearFilters() {
-    // Reset both controls to empty arrays (and emit change)
-    this.countriesCtrl.setValue([], { emitEvent: true });
-    this.categoriesCtrl.setValue([], { emitEvent: true });
-    this.complianceLevelsCtrl.setValue([], { emitEvent: true });
-
-    // If you rely on (change) only, also call emit explicitly:
+  clearFilters(): void {
+    this.resetTenderFilters();
     this.emitFilters();
+  }
+
+  private resetTenderFilters(): void {
+    this.orgFilters = { categories: [], countries: [], complianceLevels: [] };
+    this.selectedServiceCategory = null;
+    this.selectedServiceCategoryLeafNames = [];
+    this.selectedComplianceLevels = [];
+    this.selectedCountryCodes = [];
+    this.selectedSectorIds = [];
+    this.selectedSectorLeafNames = [];
+    this.selectedFrameworkIds = [];
+    this.selectedFrameworkLeafNames = [];
+    this.closeTenderFilterDropdowns();
+  }
+
+  async selectServiceCategory(category: Category | null, event?: Event): Promise<void> {
+    event?.stopPropagation();
+    this.selectedServiceCategory = category;
+    this.selectedServiceCategoryLeafNames = category ? await this.resolveLeafNames(category) : [];
+    this.showServiceCategoryDropdown = false;
+    this.emitFilters();
+  }
+
+  toggleComplianceLevel(code: string, event: Event): void {
+    event.stopPropagation();
+    this.selectedComplianceLevels = this.toggleValue(this.selectedComplianceLevels, code);
+    this.emitFilters();
+  }
+
+  toggleCountry(code: string, event: Event): void {
+    event.stopPropagation();
+    this.selectedCountryCodes = this.toggleValue(this.selectedCountryCodes, code);
+    this.emitFilters();
+  }
+
+  async toggleAddressableSector(option: Category, event: Event): Promise<void> {
+    event.stopPropagation();
+    const id = option.id ?? option.name;
+    this.selectedSectorIds = this.toggleValue(this.selectedSectorIds, id);
+    this.selectedSectorLeafNames = await this.resolveSelectedLeafNames(
+      this.addressableSectorOptions,
+      this.selectedSectorIds
+    );
+    this.emitFilters();
+  }
+
+  async toggleIntegrationFramework(option: Category, event: Event): Promise<void> {
+    event.stopPropagation();
+    const id = option.id ?? option.name;
+    this.selectedFrameworkIds = this.toggleValue(this.selectedFrameworkIds, id);
+    this.selectedFrameworkLeafNames = await this.resolveSelectedLeafNames(
+      this.integrationFrameworkOptions,
+      this.selectedFrameworkIds
+    );
+    this.emitFilters();
+  }
+
+  isComplianceSelected(code: string): boolean {
+    return this.selectedComplianceLevels.includes(code);
+  }
+
+  isCountrySelected(code: string): boolean {
+    return this.selectedCountryCodes.includes(code);
+  }
+
+  isSectorSelected(option: Category): boolean {
+    return this.selectedSectorIds.includes(option.id ?? option.name);
+  }
+
+  isFrameworkSelected(option: Category): boolean {
+    return this.selectedFrameworkIds.includes(option.id ?? option.name);
+  }
+
+  toggleTenderFilterDropdown(
+    name: 'serviceCategory' | 'compliance' | 'sector' | 'country' | 'framework',
+    event: Event
+  ): void {
+    event.stopPropagation();
+    this.showServiceCategoryDropdown = name === 'serviceCategory' ? !this.showServiceCategoryDropdown : false;
+    this.showComplianceDropdown = name === 'compliance' ? !this.showComplianceDropdown : false;
+    this.showSectorDropdown = name === 'sector' ? !this.showSectorDropdown : false;
+    this.showCountryDropdown = name === 'country' ? !this.showCountryDropdown : false;
+    this.showFrameworkDropdown = name === 'framework' ? !this.showFrameworkDropdown : false;
+  }
+
+  closeTenderFilterDropdowns(): void {
+    this.showServiceCategoryDropdown = false;
+    this.showComplianceDropdown = false;
+    this.showSectorDropdown = false;
+    this.showCountryDropdown = false;
+    this.showFrameworkDropdown = false;
+  }
+
+  private toggleValue(values: string[], value: string): string[] {
+    return values.includes(value)
+      ? values.filter(current => current !== value)
+      : [...values, value];
+  }
+
+  private async resolveSelectedLeafNames(options: Category[], selectedIds: string[]): Promise<string[]> {
+    const selected = options.filter(option => selectedIds.includes(option.id ?? option.name));
+    const nested = await Promise.all(selected.map(option => this.resolveLeafNames(option)));
+    return Array.from(new Set(nested.flat()));
+  }
+
+  private async resolveLeafNames(category: Category): Promise<string[]> {
+    const cacheKey = category.id ?? category.name;
+    const cached = this.leafNameCache.get(cacheKey);
+    if (cached) return cached;
+
+    const leafNames = await resolveTenderCategoryLeafNames(category, async (id) => {
+      const children = await this.api.getCategoriesByParentId(id).catch(() => []);
+      return Array.isArray(children) ? children : [];
+    });
+
+    this.leafNameCache.set(cacheKey, leafNames);
+    return leafNames;
   }
 
   toggleProviderSelection(providerId: string) {
@@ -1330,36 +1504,45 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Load filter options (countries, categories, compliance levels).
+   * Load filter options for Tender Provider Search.
    * Only fetches the option lists — does NOT reset selected filter values
    * or trigger a provider reload.
    */
   private loadFilterOptions(): void {
-    this.providerService.getFilterOptions().subscribe({
-      next: ({ categories, countries, complianceLevels }) => {
-        this.categoriesOptions = categories ?? [];
-        this.countriesOptions = countries ?? [];
-        this.complianceLevelsOptions = complianceLevels ?? [];
+    this.providerService.getProviderCountryOptions().subscribe({
+      next: (options) => {
+        this.countryOptions = options;
       },
-      error: (err) => {
-        console.warn('Failed to load filter options', err);
-      }
+      error: (err) => console.warn('Failed to load provider countries', err)
     });
+
+    this.loadCatalogueFacetOptions();
   }
 
-  /**
-   * Toggle selection in multi-select dropdown
-   */
-  toggleFromSelect(ctrl: FormControl<string[]>, value: string, event: MouseEvent) {
-    event.preventDefault(); // stop native multi-select behavior
-    event.stopPropagation();
+  private async loadCatalogueFacetOptions(): Promise<void> {
+    try {
+      const roots = await this.api.getDefaultCategories();
+      const list = Array.isArray(roots) ? roots : [];
 
-    const cur = ctrl.value ?? [];
-    const next = cur.includes(value)
-      ? cur.filter(v => v !== value)
-      : [...cur, value];
+      const domeRoot = list.find((c: Category) => c?.name === 'DOME Categories');
+      const sectorRoot = list.find((c: Category) => c?.name === 'Sector');
+      const frameworkRoot = list.find((c: Category) => c?.name === 'Framework');
 
-    ctrl.setValue(next);
+      const [domeChildren, sectorChildren, frameworkChildren] = await Promise.all([
+        domeRoot?.id ? this.api.getCategoriesByParentId(domeRoot.id).catch(() => []) : Promise.resolve([]),
+        sectorRoot?.id ? this.api.getCategoriesByParentId(sectorRoot.id).catch(() => []) : Promise.resolve([]),
+        frameworkRoot?.id ? this.api.getCategoriesByParentId(frameworkRoot.id).catch(() => []) : Promise.resolve([]),
+      ]);
+
+      this.serviceCategoryOptions = Array.isArray(domeChildren) ? domeChildren : [];
+      this.addressableSectorOptions = Array.isArray(sectorChildren) ? sectorChildren : [];
+      this.integrationFrameworkOptions = Array.isArray(frameworkChildren) ? frameworkChildren : [];
+    } catch (error) {
+      console.warn('Tender catalogue filters failed:', error);
+      this.serviceCategoryOptions = [];
+      this.addressableSectorOptions = [];
+      this.integrationFrameworkOptions = [];
+    }
   }
 }
 
