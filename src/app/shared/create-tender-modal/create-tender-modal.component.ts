@@ -547,6 +547,10 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   selectedFrameworkLeafNames: string[] = [];
 
   private leafNameCache = new Map<string, string[]>();
+  private providerLoadSequence = 0;
+  private serviceCategoryResolutionSequence = 0;
+  private sectorResolutionSequence = 0;
+  private frameworkResolutionSequence = 0;
   _safeInvitedList: Provider[] = [];
 
   // Default organization search filters
@@ -963,11 +967,14 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
    * endpoint returns an actual HTTP error.
    */
   loadTenderProviders() {
+    const loadSequence = ++this.providerLoadSequence;
     this.tenderLoading = true;
     this.tenderError = null;
 
     this.providerService.getProvidersForTenderNew(this.orgFilters).subscribe({
       next: (providers) => {
+        if (!this.isCurrentProviderLoad(loadSequence)) return;
+
         this.tenderProviders = providers ?? [];
         console.log('Search loaded providers:', this.tenderProviders.length);
         this.tenderLoading = false;
@@ -978,10 +985,14 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
         }
       },
       error: (err) => {
+        if (!this.isCurrentProviderLoad(loadSequence)) return;
+
         // HTTP error from the search endpoint — fall back to the full organisation list
         console.warn('Search endpoint returned an error, falling back to full provider list:', err);
         this.providerService.getProvidersForTender().subscribe({
           next: (fallbackProviders) => {
+            if (!this.isCurrentProviderLoad(loadSequence)) return;
+
             this.tenderProviders = fallbackProviders;
             console.log('Fallback loaded providers:', fallbackProviders.length);
             this.tenderLoading = false;
@@ -992,6 +1003,8 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
             }
           },
           error: (fallbackErr) => {
+            if (!this.isCurrentProviderLoad(loadSequence)) return;
+
             this.tenderError = 'Failed to load providers: ' + (fallbackErr.message || 'Unknown error');
             this.tenderLoading = false;
             console.error('Fallback endpoint also failed:', fallbackErr);
@@ -999,6 +1012,10 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
         });
       }
     });
+  }
+
+  private isCurrentProviderLoad(sequence: number): boolean {
+    return sequence === this.providerLoadSequence;
   }
 
   /**
@@ -1033,6 +1050,9 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   }
 
   private resetTenderFilters(): void {
+    this.serviceCategoryResolutionSequence++;
+    this.sectorResolutionSequence++;
+    this.frameworkResolutionSequence++;
     this.orgFilters = { categories: [], countries: [], complianceLevels: [] };
     this.selectedServiceCategory = null;
     this.selectedServiceCategoryLeafNames = [];
@@ -1047,8 +1067,13 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
 
   async selectServiceCategory(category: Category | null, event?: Event): Promise<void> {
     event?.stopPropagation();
+    const resolutionSequence = ++this.serviceCategoryResolutionSequence;
     this.selectedServiceCategory = category;
-    this.selectedServiceCategoryLeafNames = category ? await this.resolveLeafNames(category) : [];
+    const leafNames = category ? await this.resolveLeafNames(category) : [];
+
+    if (resolutionSequence !== this.serviceCategoryResolutionSequence) return;
+
+    this.selectedServiceCategoryLeafNames = leafNames;
     this.showServiceCategoryDropdown = false;
     this.emitFilters();
   }
@@ -1067,23 +1092,33 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
 
   async toggleAddressableSector(option: Category, event: Event): Promise<void> {
     event.stopPropagation();
+    const resolutionSequence = ++this.sectorResolutionSequence;
     const id = option.id ?? option.name;
     this.selectedSectorIds = this.toggleValue(this.selectedSectorIds, id);
-    this.selectedSectorLeafNames = await this.resolveSelectedLeafNames(
+    const leafNames = await this.resolveSelectedLeafNames(
       this.addressableSectorOptions,
       this.selectedSectorIds
     );
+
+    if (resolutionSequence !== this.sectorResolutionSequence) return;
+
+    this.selectedSectorLeafNames = leafNames;
     this.emitFilters();
   }
 
   async toggleIntegrationFramework(option: Category, event: Event): Promise<void> {
     event.stopPropagation();
+    const resolutionSequence = ++this.frameworkResolutionSequence;
     const id = option.id ?? option.name;
     this.selectedFrameworkIds = this.toggleValue(this.selectedFrameworkIds, id);
-    this.selectedFrameworkLeafNames = await this.resolveSelectedLeafNames(
+    const leafNames = await this.resolveSelectedLeafNames(
       this.integrationFrameworkOptions,
       this.selectedFrameworkIds
     );
+
+    if (resolutionSequence !== this.frameworkResolutionSequence) return;
+
+    this.selectedFrameworkLeafNames = leafNames;
     this.emitFilters();
   }
 
