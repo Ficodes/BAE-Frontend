@@ -4,6 +4,7 @@ import {
   buildTenderProviderSearchFilters,
   complianceLevelsName,
   parseProviderCountryList,
+  resolveTenderCatalogueFacetOptions,
   resolveTenderCategoryLeafNames,
 } from './search-organizations-filters.model';
 
@@ -78,5 +79,29 @@ describe('Tender Provider Search filter helpers', () => {
     );
 
     expect(leafNames).toEqual(['Identity and access management', 'SIEM', 'DevOps']);
+  });
+
+  it('loads tender catalogue facet children using accepted facet aliases', async () => {
+    const roots: Category[] = [
+      { id: 'dome-root', name: 'DOME Categories' },
+      { id: 'sector-root', name: 'Addressable Sectors' },
+      { id: 'framework-root', name: 'Integration Framework' },
+    ];
+    const childrenById: Record<string, Category[]> = {
+      'dome-root': [{ id: 'security', name: 'Security' }],
+      'sector-root': [{ id: 'public-sector', name: 'Public sector' }],
+      'framework-root': [{ id: 'fiware', name: 'FIWARE' }],
+    };
+
+    const options = await resolveTenderCatalogueFacetOptions(
+      roots,
+      async (id: string) => childrenById[id] ?? []
+    );
+
+    expect(options).toEqual({
+      serviceCategories: [{ id: 'security', name: 'Security' }],
+      addressableSectors: [{ id: 'public-sector', name: 'Public sector' }],
+      integrationFrameworks: [{ id: 'fiware', name: 'FIWARE' }],
+    });
   });
 });

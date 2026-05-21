@@ -19,6 +19,7 @@ import {
   SearchOrganizationsFilters,
   TENDER_COMPLIANCE_LEVELS,
   buildTenderProviderSearchFilters,
+  resolveTenderCatalogueFacetOptions,
   resolveTenderCategoryLeafNames,
 } from 'src/app/models/search-organizations-filters.model';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
@@ -278,6 +279,7 @@ import {
                       </svg>
                     </button>
                     <div *ngIf="showServiceCategoryDropdown" (click)="$event.stopPropagation()" class="absolute left-0 top-full z-[70] mt-2 max-h-[360px] w-[280px] overflow-y-auto rounded-xl bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                      <div *ngIf="catalogueOptionsLoading" class="px-3 py-2.5 text-[14px] text-[#526179]">Loading categories...</div>
                       <button type="button" (click)="selectServiceCategory(null, $event)" [ngClass]="!selectedServiceCategory ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors">
                         <span class="min-w-0 flex-1">All Categories</span>
                         <svg *ngIf="!selectedServiceCategory" class="h-4 w-4 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -287,6 +289,7 @@ import {
                       <button *ngFor="let option of serviceCategoryOptions" type="button" (click)="selectServiceCategory(option, $event)" [ngClass]="selectedServiceCategory?.id === option.id ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors">
                         <span class="min-w-0 flex-1 truncate">{{ option.name }}</span>
                       </button>
+                      <div *ngIf="!catalogueOptionsLoading && serviceCategoryOptions.length === 0" class="px-3 py-2.5 text-[14px] text-[#526179]">No category options available</div>
                     </div>
                   </div>
 
@@ -319,6 +322,7 @@ import {
                       </svg>
                     </button>
                     <div *ngIf="showSectorDropdown" (click)="$event.stopPropagation()" class="absolute left-0 top-full z-[70] mt-2 max-h-[360px] w-[260px] overflow-y-auto rounded-xl bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                      <div *ngIf="catalogueOptionsLoading" class="px-3 py-2.5 text-[14px] text-[#526179]">Loading sectors...</div>
                       <button *ngFor="let option of addressableSectorOptions" type="button" (click)="toggleAddressableSector(option, $event)" [ngClass]="isSectorSelected(option) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors">
                         <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border" [ngClass]="isSectorSelected(option) ? 'border-[#1f4fbf] bg-[#1f4fbf] text-white' : 'border-[#B6CAEC] bg-white'">
                           <svg *ngIf="isSectorSelected(option)" class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
@@ -327,6 +331,7 @@ import {
                         </span>
                         <span class="truncate">{{ option.name }}</span>
                       </button>
+                      <div *ngIf="!catalogueOptionsLoading && addressableSectorOptions.length === 0" class="px-3 py-2.5 text-[14px] text-[#526179]">No sector options available</div>
                     </div>
                   </div>
 
@@ -339,6 +344,7 @@ import {
                       </svg>
                     </button>
                     <div *ngIf="showCountryDropdown" (click)="$event.stopPropagation()" class="absolute left-0 top-full z-[70] mt-2 max-h-[360px] w-[240px] overflow-y-auto rounded-xl bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                      <div *ngIf="countryOptionsLoading" class="px-3 py-2.5 text-[14px] text-[#526179]">Loading countries...</div>
                       <button *ngFor="let option of countryOptions" type="button" (click)="toggleCountry(option.code, $event)" [ngClass]="isCountrySelected(option.code) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors">
                         <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border" [ngClass]="isCountrySelected(option.code) ? 'border-[#1f4fbf] bg-[#1f4fbf] text-white' : 'border-[#B6CAEC] bg-white'">
                           <svg *ngIf="isCountrySelected(option.code)" class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
@@ -347,6 +353,7 @@ import {
                         </span>
                         <span class="truncate">{{ option.label }}</span>
                       </button>
+                      <div *ngIf="!countryOptionsLoading && countryOptions.length === 0" class="px-3 py-2.5 text-[14px] text-[#526179]">No country options available</div>
                     </div>
                   </div>
 
@@ -359,6 +366,7 @@ import {
                       </svg>
                     </button>
                     <div *ngIf="showFrameworkDropdown" (click)="$event.stopPropagation()" class="absolute left-0 top-full z-[70] mt-2 max-h-[360px] w-[280px] overflow-y-auto rounded-xl bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                      <div *ngIf="catalogueOptionsLoading" class="px-3 py-2.5 text-[14px] text-[#526179]">Loading frameworks...</div>
                       <button *ngFor="let option of integrationFrameworkOptions" type="button" (click)="toggleIntegrationFramework(option, $event)" [ngClass]="isFrameworkSelected(option) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors">
                         <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border" [ngClass]="isFrameworkSelected(option) ? 'border-[#1f4fbf] bg-[#1f4fbf] text-white' : 'border-[#B6CAEC] bg-white'">
                           <svg *ngIf="isFrameworkSelected(option)" class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
@@ -367,6 +375,7 @@ import {
                         </span>
                         <span class="truncate">{{ option.name }}</span>
                       </button>
+                      <div *ngIf="!catalogueOptionsLoading && integrationFrameworkOptions.length === 0" class="px-3 py-2.5 text-[14px] text-[#526179]">No framework options available</div>
                     </div>
                   </div>
                 </div>
@@ -518,6 +527,8 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   serviceCategoryOptions: Category[] = [];
   addressableSectorOptions: Category[] = [];
   integrationFrameworkOptions: Category[] = [];
+  countryOptionsLoading = false;
+  catalogueOptionsLoading = false;
   readonly complianceLevelOptions = TENDER_COMPLIANCE_LEVELS;
 
   showServiceCategoryDropdown = false;
@@ -1529,39 +1540,41 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
    * or trigger a provider reload.
    */
   private loadFilterOptions(): void {
+    this.countryOptionsLoading = true;
     this.providerService.getProviderCountryOptions().subscribe({
       next: (options) => {
         this.countryOptions = options;
+        this.countryOptionsLoading = false;
       },
-      error: (err) => console.warn('Failed to load provider countries', err)
+      error: (err) => {
+        console.warn('Failed to load provider countries', err);
+        this.countryOptions = [];
+        this.countryOptionsLoading = false;
+      }
     });
 
     this.loadCatalogueFacetOptions();
   }
 
   private async loadCatalogueFacetOptions(): Promise<void> {
+    this.catalogueOptionsLoading = true;
     try {
       const roots = await this.api.getDefaultCategories();
-      const list = Array.isArray(roots) ? roots : [];
+      const options = await resolveTenderCatalogueFacetOptions(
+        Array.isArray(roots) ? roots : [],
+        (id) => this.api.getCategoriesByParentId(id)
+      );
 
-      const domeRoot = list.find((c: Category) => c?.name === 'DOME Categories');
-      const sectorRoot = list.find((c: Category) => c?.name === 'Sector');
-      const frameworkRoot = list.find((c: Category) => c?.name === 'Framework');
-
-      const [domeChildren, sectorChildren, frameworkChildren] = await Promise.all([
-        domeRoot?.id ? this.api.getCategoriesByParentId(domeRoot.id).catch(() => []) : Promise.resolve([]),
-        sectorRoot?.id ? this.api.getCategoriesByParentId(sectorRoot.id).catch(() => []) : Promise.resolve([]),
-        frameworkRoot?.id ? this.api.getCategoriesByParentId(frameworkRoot.id).catch(() => []) : Promise.resolve([]),
-      ]);
-
-      this.serviceCategoryOptions = Array.isArray(domeChildren) ? domeChildren : [];
-      this.addressableSectorOptions = Array.isArray(sectorChildren) ? sectorChildren : [];
-      this.integrationFrameworkOptions = Array.isArray(frameworkChildren) ? frameworkChildren : [];
+      this.serviceCategoryOptions = options.serviceCategories;
+      this.addressableSectorOptions = options.addressableSectors;
+      this.integrationFrameworkOptions = options.integrationFrameworks;
     } catch (error) {
       console.warn('Tender catalogue filters failed:', error);
       this.serviceCategoryOptions = [];
       this.addressableSectorOptions = [];
       this.integrationFrameworkOptions = [];
+    } finally {
+      this.catalogueOptionsLoading = false;
     }
   }
 }

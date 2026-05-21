@@ -108,7 +108,9 @@ export class ProviderService {
   }
 
   getProviderCountryOptions(locale = 'en'): Observable<ProviderCountryOption[]> {
-    return this.http.get<ProviderCountryListResponse>(PROVIDER_COUNTRY_LIST_URL).pipe(
+    const url = environment.providerCountriesUrl || PROVIDER_COUNTRY_LIST_URL;
+
+    return this.http.get<ProviderCountryListResponse>(url).pipe(
       map(response => parseProviderCountryList(response, locale)),
       catchError(err => {
         console.warn('Provider country list failed:', err);

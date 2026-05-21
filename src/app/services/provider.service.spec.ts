@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ProviderService } from './provider.service';
-import { PROVIDER_COUNTRY_LIST_URL } from '../models/search-organizations-filters.model';
+import { environment } from '../../environments/environment';
 
 describe('ProviderService', () => {
   let service: ProviderService;
@@ -28,7 +28,7 @@ describe('ProviderService', () => {
       result = options;
     });
 
-    const req = httpMock.expectOne(PROVIDER_COUNTRY_LIST_URL);
+    const req = httpMock.expectOne(environment.providerCountriesUrl);
     expect(req.request.method).toBe('GET');
 
     req.flush({
@@ -49,7 +49,7 @@ describe('ProviderService', () => {
       result = options;
     });
 
-    const req = httpMock.expectOne(PROVIDER_COUNTRY_LIST_URL);
+    const req = httpMock.expectOne(environment.providerCountriesUrl);
     req.flush('failure', { status: 500, statusText: 'Server Error' });
 
     expect(result).toEqual([]);
