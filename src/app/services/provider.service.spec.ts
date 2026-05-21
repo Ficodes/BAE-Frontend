@@ -54,4 +54,25 @@ describe('ProviderService', () => {
 
     expect(result).toEqual([]);
   });
+
+  it('searches tender providers through the configured backend base URL', () => {
+    const filters = {
+      categories: ['Cloud services'],
+      countries: ['IT'],
+      complianceLevels: ['PP'],
+    };
+    let result: any[] | undefined;
+
+    service.getProvidersForTenderNew(filters).subscribe(providers => {
+      result = providers;
+    });
+
+    const req = httpMock.expectOne(`${environment.BASE_URL}${environment.searchOrganizationsEndpoint}`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(filters);
+
+    req.flush([{ id: 'provider-1', tradingName: 'Provider One' }]);
+
+    expect(result).toEqual([{ id: 'provider-1', tradingName: 'Provider One' }]);
+  });
 });

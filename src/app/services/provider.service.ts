@@ -94,7 +94,7 @@ export class ProviderService {
 
 
   getProvidersForTenderNew(filters: SearchOrganizationsFilters): Observable<Provider[]> {
-    const url = environment.searchOrganizationsEndpoint;
+    const url = this.buildBackendUrl(environment.searchOrganizationsEndpoint);
 
     return this.http.post<any>(url, filters).pipe(
       map((response) => {
@@ -122,7 +122,7 @@ export class ProviderService {
   //Methods for the search engine
   //TODO: Check if this is still necessary after we change the main endpoint
   getFilterOptions(): Observable<FilterOptions> {
-    const base = environment.searchOrganizationsEndpoint.replace(/\/searchOrganizations.*$/, '');
+    const base = this.buildBackendUrl(environment.searchOrganizationsEndpoint).replace(/\/searchOrganizations.*$/, '');
     const categories$ = this.http.get<any>(`${base}/categories`).pipe(
       map(res => (Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [])),
       catchError(err => {
@@ -152,6 +152,16 @@ export class ProviderService {
       countries: countries$,
       complianceLevels: complianceLevels$,
     });
+  }
+
+  private buildBackendUrl(endpoint: string): string {
+    if (/^https?:\/\//i.test(endpoint)) {
+      return endpoint;
+    }
+
+    const baseUrl = environment.BASE_URL.replace(/\/+$/, '');
+    const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    return `${baseUrl}${path}`;
   }
 
 }
