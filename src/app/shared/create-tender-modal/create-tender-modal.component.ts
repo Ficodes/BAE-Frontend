@@ -19,8 +19,10 @@ import {
   SearchOrganizationsFilters,
   TENDER_COMPLIANCE_LEVELS,
   buildTenderProviderSearchFilters,
+  hasTenderProviderSearchFilters,
   resolveTenderCatalogueFacetOptions,
   resolveTenderCategoryLeafNames,
+  shouldUseUnfilteredProviderFallback,
 } from 'src/app/models/search-organizations-filters.model';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { TenderDateFieldComponent } from '../tender-date-field/tender-date-field.component';
@@ -389,6 +391,9 @@ import {
                     Clear all
                   </button>
                 </div>
+                <div *ngIf="providerSearchWarning" class="mt-3 rounded-xl border border-[#F2D28A] bg-[#FFF8E6] px-3 py-2 text-sm font-semibold text-[#7A4D00]">
+                  {{ providerSearchWarning }}
+                </div>
               </div>
 
               <div class="mt-4 max-h-96 overflow-y-auto rounded-2xl border border-[#EBECEE] bg-white">
@@ -512,6 +517,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   invitedProviders: Array<{ provider: Provider; quoteId: string }> = [];
   tenderLoading = false;
   tenderError: string | null = null;
+  providerSearchWarning: string | null = null;
 
   // Generic Confirmation Dialog
   showGenericConfirm = false;
@@ -970,6 +976,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
     const loadSequence = ++this.providerLoadSequence;
     this.tenderLoading = true;
     this.tenderError = null;
+    this.providerSearchWarning = null;
 
     this.providerService.getProvidersForTenderNew(this.orgFilters).subscribe({
       next: (providers) => {
@@ -986,6 +993,15 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
       },
       error: (err) => {
         if (!this.isCurrentProviderLoad(loadSequence)) return;
+
+        if (!shouldUseUnfilteredProviderFallback(this.orgFilters)) {
+          console.warn('Filtered search endpoint returned an error:', err);
+          this.providerSearchWarning = 'Unable to apply the selected filters. Provider candidates were cleared to avoid showing unfiltered results.';
+          this.tenderProviders = [];
+          this.tenderLoading = false;
+          this.updateAvailableProviders();
+          return;
+        }
 
         // HTTP error from the search endpoint — fall back to the full organisation list
         console.warn('Search endpoint returned an error, falling back to full provider list:', err);
@@ -1036,9 +1052,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
    * Are any filters currently active?
    */
   hasActiveFilters(): boolean {
-    return (this.orgFilters.countries?.length ?? 0) > 0 ||
-           (this.orgFilters.categories?.length ?? 0) > 0 ||
-           (this.orgFilters.complianceLevels?.length ?? 0) > 0;
+    return hasTenderProviderSearchFilters(this.orgFilters);
   }
 
   /**

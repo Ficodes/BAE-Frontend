@@ -91,6 +91,18 @@ export function buildTenderProviderSearchFilters(
   };
 }
 
+export function hasTenderProviderSearchFilters(filters: SearchOrganizationsFilters): boolean {
+  return Boolean(
+    filters.categories.length ||
+    filters.countries.length ||
+    filters.complianceLevels.length
+  );
+}
+
+export function shouldUseUnfilteredProviderFallback(filters: SearchOrganizationsFilters): boolean {
+  return !hasTenderProviderSearchFilters(filters);
+}
+
 export async function resolveTenderCategoryLeafNames(
   category: Category,
   loadChildren: (id: string) => Promise<Category[]>

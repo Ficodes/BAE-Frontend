@@ -6,6 +6,7 @@ import {
   parseProviderCountryList,
   resolveTenderCatalogueFacetOptions,
   resolveTenderCategoryLeafNames,
+  shouldUseUnfilteredProviderFallback,
 } from './search-organizations-filters.model';
 
 describe('Tender Provider Search filter helpers', () => {
@@ -55,6 +56,20 @@ describe('Tender Provider Search filter helpers', () => {
       countries: [],
       complianceLevels: [],
     });
+  });
+
+  it('uses the unfiltered provider fallback only when no tender filters are active', () => {
+    expect(shouldUseUnfilteredProviderFallback({
+      categories: [],
+      countries: [],
+      complianceLevels: [],
+    })).toBeTrue();
+
+    expect(shouldUseUnfilteredProviderFallback({
+      categories: [],
+      countries: ['IT'],
+      complianceLevels: [],
+    })).toBeFalse();
   });
 
   it('expands selected parent categories recursively to leaf category names', async () => {
