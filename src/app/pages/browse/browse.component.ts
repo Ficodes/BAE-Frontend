@@ -9,6 +9,7 @@ import { ApiServiceService } from 'src/app/services/product-service.service';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
 import { Category } from 'src/app/models/interfaces';
 import { iconForCategory } from 'src/app/data/categoryIcons';
+import { searchCategoriesConfig } from 'src/app/data/availableFilters';
 
 interface PopularOffer {
   id: string;
@@ -71,14 +72,17 @@ export class BrowseComponent implements OnInit {
   private async loadCategories(): Promise<void> {
     try {
       const roots = await this.api.getDefaultCategories();
-      const domeRoot = (Array.isArray(roots) ? roots : []).find(
-        (c: any) => c?.name === 'DOME Categories',
-      );
-      if (domeRoot?.id) {
-        const children = await this.api.getCategoriesByParentId(domeRoot.id);
-        this.categories = Array.isArray(children) ? children : [];
+      const list = Array.isArray(roots) ? roots : [];
+      if (searchCategoriesConfig.primaryCategoriesMode === 'catalogFirstLevel') {
+        this.categories = list;
       } else {
-        this.categories = [];
+        const primaryRoot = list.find((c: any) => c?.name === searchCategoriesConfig.primaryRootName);
+        if (primaryRoot?.id) {
+          const children = await this.api.getCategoriesByParentId(primaryRoot.id);
+          this.categories = Array.isArray(children) ? children : [];
+        } else {
+          this.categories = [];
+        }
       }
     } catch (e) {
       console.error('Error loading categories:', e);

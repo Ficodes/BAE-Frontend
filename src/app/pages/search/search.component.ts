@@ -21,7 +21,7 @@ import { takeUntil } from 'rxjs/operators';
 
 import { AiSearchService } from 'src/app/services/ai-search.service';
 import { PriceServiceService } from 'src/app/services/price-service.service';
-import { availableFilters } from 'src/app/data/availableFilters';
+import { availableFilters, searchCategoriesConfig } from 'src/app/data/availableFilters';
 import { iconForCategory } from 'src/app/data/categoryIcons';
 
 @Component({
@@ -55,6 +55,8 @@ export class SearchComponent implements OnInit, OnDestroy {
   showCategoryDropdown = false;
   rootCategories: Category[] = [];
   iconForCategory = iconForCategory;
+  primaryCategoriesMode = searchCategoriesConfig.primaryCategoriesMode;
+  primaryRootName = searchCategoriesConfig.primaryRootName;
 
   showComplianceDropdown = false;
   complianceFilterKey = 'compliance_profile';
@@ -592,19 +594,28 @@ export class SearchComponent implements OnInit, OnDestroy {
       const roots = await this.api.getDefaultCategories();
       const list = Array.isArray(roots) ? roots : [];
 
-      const domeRoot = list.find((c: any) => c?.name === 'DOME Categories');
+      let primaryCategories: Category[] = [];
+      if (this.primaryCategoriesMode === 'catalogFirstLevel') {
+        primaryCategories = list;
+      } else {
+        const primaryRoot = list.find((c: any) => c?.name === this.primaryRootName);
+        if (primaryRoot?.id) {
+          const children = await this.api.getCategoriesByParentId(primaryRoot.id).catch(() => []);
+          primaryCategories = Array.isArray(children) ? children : [];
+        }
+      }
+
       const deliveryRoot = list.find((c: any) => c?.name === 'Delivery Model');
       const sectorRoot = list.find((c: any) => c?.name === 'Sector');
       const frameworkRoot = list.find((c: any) => c?.name === 'Framework');
 
-      const [domeChildren, deliveryChildren, sectorChildren, frameworkChildren] = await Promise.all([
-        domeRoot?.id ? this.api.getCategoriesByParentId(domeRoot.id).catch(() => []) : Promise.resolve([]),
+      const [deliveryChildren, sectorChildren, frameworkChildren] = await Promise.all([
         deliveryRoot?.id ? this.api.getCategoriesByParentId(deliveryRoot.id).catch(() => []) : Promise.resolve([]),
         sectorRoot?.id ? this.api.getCategoriesByParentId(sectorRoot.id).catch(() => []) : Promise.resolve([]),
         frameworkRoot?.id ? this.api.getCategoriesByParentId(frameworkRoot.id).catch(() => []) : Promise.resolve([]),
       ]);
 
-      this.rootCategories = Array.isArray(domeChildren) ? domeChildren : [];
+      this.rootCategories = primaryCategories;
       this.deliveryModelOptions = Array.isArray(deliveryChildren) ? deliveryChildren : [];
       this.sectorOptions = Array.isArray(sectorChildren) ? sectorChildren : [];
       this.frameworkOptions = Array.isArray(frameworkChildren) ? frameworkChildren : [];
