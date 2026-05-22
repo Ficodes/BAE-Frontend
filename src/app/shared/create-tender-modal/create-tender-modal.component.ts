@@ -406,8 +406,9 @@ import {
               <div class="mt-4 max-h-[30vh] min-h-[156px] overflow-y-auto rounded-xl border border-[#EBECEE] bg-white">
                 <div
                   *ngFor="let candidate of availableProviders"
-                  class="flex items-center gap-3 border-b border-[#EBECEE] px-4 py-3 last:border-b-0 hover:bg-[#F7F9FD]"
-                  [ngClass]="candidate.selected ? 'bg-[#F7F9FD]' : ''"
+                  data-testid="tender-provider-candidate"
+                  class="flex items-center gap-3 border-b border-l-4 border-b-[#EBECEE] px-4 py-3 transition-colors last:border-b-0"
+                  [ngClass]="candidate.selected ? 'border-l-[#1f4fbf] bg-[#EBF0F7]' : 'border-l-transparent hover:bg-[#F7F9FD]'"
                 >
                   <ng-container *ngIf="candidate.provider.id as providerId">
                     <input

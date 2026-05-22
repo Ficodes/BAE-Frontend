@@ -80,4 +80,28 @@ describe('CreateTenderModalComponent', () => {
 
     expect(component.showCountryDropdown).toBeFalse();
   });
+
+  it('marks selected provider candidates with a distinct active row surface', () => {
+    component.isOpen = true;
+    component.customerId = 'customer-1';
+    component.tenderCreationStep = 3;
+    component.availableProviders = [
+      {
+        selected: true,
+        provider: {
+          id: 'provider-1',
+          tradingName: 'SELLER ORG',
+          externalReference: [{ name: '56b80389-eb92-490a-9c92-c06dde069924' }],
+        },
+      },
+    ];
+
+    fixture.detectChanges();
+
+    const selectedRow = fixture.nativeElement.querySelector('[data-testid="tender-provider-candidate"]');
+
+    expect(selectedRow).not.toBeNull();
+    expect(selectedRow.className).toContain('bg-[#EBF0F7]');
+    expect(selectedRow.className).toContain('border-l-[#1f4fbf]');
+  });
 });

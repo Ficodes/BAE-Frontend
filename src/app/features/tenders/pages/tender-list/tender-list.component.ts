@@ -214,7 +214,7 @@ import { environment } from 'src/environments/environment';
         <ng-container *ngIf="selectedRole === UI_ROLES.SELLER">
           <div *ngFor="let quote of filteredQuotes" class="quote-row">
             <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 border-b border-[#EBECEE] transition-colors"
-                 [ngClass]="isQuoteFinalized(quote) ? 'bg-[#F7F9FD]' : 'hover:bg-[#F7F9FD]'"
+                 [ngClass]="isQuoteFinalized(quote) ? 'bg-[#F7F9FD]' : 'bg-white hover:bg-[#EBF0F7]'"
                  [attr.data-quote-id]="quote.id">
 
               <!-- Request Date -->
@@ -276,7 +276,7 @@ import { environment } from 'src/environments/environment';
         <ng-container *ngIf="selectedRole === UI_ROLES.BUYER">
           <div *ngFor="let quote of filteredQuotes" class="quote-row">
             <div class="grid grid-cols-16 gap-4 items-center px-6 py-4 border-b border-[#EBECEE] transition-colors"
-                 [ngClass]="isQuoteFinalized(quote) ? 'bg-[#F7F9FD]' : 'hover:bg-[#F7F9FD]'"
+                 [ngClass]="isQuoteFinalized(quote) ? 'bg-[#F7F9FD]' : 'bg-white hover:bg-[#EBF0F7]'"
                  [attr.data-quote-id]="quote.id">
 
               <!-- Quote Details (Expand/Collapse) -->
@@ -420,7 +420,7 @@ import { environment } from 'src/environments/environment';
 
                 <!-- Related Quote Rows -->
                 <div *ngFor="let relatedQuote of getRelatedQuotes(quote.id); let last = last"
-                     class="px-4 py-3 transition-colors hover:bg-[#F7F9FD]"
+                     class="px-4 py-3 transition-colors hover:bg-[#EBF0F7]"
                      [ngClass]="!last ? 'border-b border-[#EBECEE]' : ''">
                   <div class="grid grid-cols-12 gap-4 items-center text-sm">
                     <!-- Provider -->
@@ -622,51 +622,73 @@ import { environment } from 'src/environments/environment';
   `,
   styles: [`
     .status-badge {
-      @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+      @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold;
     }
 
     .status-pending {
-      @apply bg-yellow-100 text-yellow-800;
+      background-color: #FFF8E6;
+      border-color: #F2D28A;
+      color: #7A4D00;
     }
 
     .status-inProgress {
-      @apply bg-blue-100 text-blue-800;
+      background-color: #EBF0F7;
+      border-color: #B6CAEC;
+      color: #1f4fbf;
     }
 
     .status-approved {
-      @apply bg-green-100 text-green-800;
+      background-color: #EAF8F1;
+      border-color: #A8DDC8;
+      color: #006B4A;
     }
 
     .status-rejected {
-      @apply bg-red-100 text-red-800;
+      background-color: #FFF1F1;
+      border-color: #F4C7C7;
+      color: #B42318;
     }
 
     .status-cancelled {
-      @apply bg-gray-100 text-gray-800;
+      background-color: #F2F4F8;
+      border-color: #CBD3DF;
+      color: #324153;
     }
 
     .status-accepted {
-      @apply bg-emerald-100 text-emerald-800;
+      background-color: #EAF8F1;
+      border-color: #A8DDC8;
+      color: #006B4A;
     }
 
     .status-unknown {
-      @apply bg-gray-100 text-gray-600;
+      background-color: #F2F4F8;
+      border-color: #CBD3DF;
+      color: #526179;
     }
 
     .status-draft {
-      @apply bg-yellow-100 text-yellow-800;
+      background-color: #FFF8E6;
+      border-color: #F2D28A;
+      color: #7A4D00;
     }
 
     .status-pre-launched {
-      @apply bg-blue-100 text-blue-800;
+      background-color: #EBF0F7;
+      border-color: #B6CAEC;
+      color: #1f4fbf;
     }
 
     .status-launched {
-      @apply bg-green-100 text-green-800;
+      background-color: #EAF8F1;
+      border-color: #A8DDC8;
+      color: #006B4A;
     }
 
     .status-closed {
-      @apply bg-gray-100 text-gray-800;
+      background-color: #F2F4F8;
+      border-color: #CBD3DF;
+      color: #324153;
     }
 
     .rotate-180 {
