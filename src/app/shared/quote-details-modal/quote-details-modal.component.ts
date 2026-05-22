@@ -25,16 +25,18 @@ import { TenderDateFieldComponent } from '../tender-date-field/tender-date-field
     <!-- Modal Backdrop -->
     <div
       *ngIf="isOpen"
-      class="fixed inset-0 z-50 h-full w-full overflow-y-auto bg-[#0b1220]/45 px-4 py-8 font-[Blinker]"
+      data-testid="quote-details-modal-backdrop"
+      class="fixed inset-0 z-50 flex h-dvh w-full items-center justify-center overflow-hidden bg-[#0b1220]/45 p-4 font-[Blinker]"
       (click)="closeModal()"
     >
       <!-- Modal Content -->
       <div
-        class="relative mx-auto w-full max-w-4xl rounded-2xl border border-[#EBECEE] bg-[#F7F9FD] p-6 shadow-[0_20px_50px_rgba(11,18,32,0.24)]"
+        data-testid="quote-details-modal-shell"
+        class="relative mx-auto flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-[#EBECEE] bg-[#F7F9FD] p-6 shadow-[0_20px_50px_rgba(11,18,32,0.24)]"
         (click)="$event.stopPropagation()"
       >
         <!-- Modal Header -->
-        <div class="flex justify-between items-center mb-6">
+        <div class="mb-5 flex shrink-0 items-center justify-between">
           <h2 class="text-[24px] font-bold text-[#0b1220]">{{ getModalTitle() }}</h2>
           <button
             (click)="closeModal()"
@@ -57,7 +59,11 @@ import { TenderDateFieldComponent } from '../tender-date-field/tender-date-field
         </div>
 
         <!-- Quote Content -->
-        <div *ngIf="!isLoading && !error && quote" class="max-h-[70vh] space-y-5 overflow-y-auto pr-2">
+        <div
+          *ngIf="!isLoading && !error && quote"
+          data-testid="quote-details-modal-body"
+          class="min-h-0 flex-1 space-y-5 overflow-y-auto pr-2"
+        >
 
           <!-- Buyer Section (hidden for coordinator quotes) -->
           <div *ngIf="getQuoteCategory() !== QUOTE_CATEGORIES.COORDINATOR" class="rounded-2xl border border-[#EBECEE] bg-white p-4 shadow-sm">
@@ -315,7 +321,7 @@ import { TenderDateFieldComponent } from '../tender-date-field/tender-date-field
         </div>
 
         <!-- Modal Footer -->
-        <div class="mt-6 flex justify-between border-t border-[#EBECEE] pt-4">
+        <div data-testid="quote-details-modal-footer" class="mt-5 flex shrink-0 justify-between border-t border-[#EBECEE] pt-4">
           <!-- Chat Button -->
           <button
             (click)="openChat()"
