@@ -191,8 +191,8 @@ import { environment } from 'src/environments/environment';
           <div class="grid grid-cols-12 gap-4 text-xs font-semibold uppercase tracking-wider text-[#526179]">
             <div class="col-span-2">REQUEST DATE</div>
             <div class="col-span-3">CUSTOMER</div>
-            <div class="col-span-4">TITLE</div>
-            <div class="col-span-1">STATUS</div>
+            <div class="col-span-3">TITLE</div>
+            <div class="col-span-2">STATUS</div>
             <div class="col-span-2">ACTIONS</div>
           </div>
         </div>
@@ -228,13 +228,13 @@ import { environment } from 'src/environments/environment';
               </div>
 
               <!-- Title -->
-              <div class="col-span-4 text-sm text-[#324153]" [title]="quote.description || '(no title)'">
+              <div class="col-span-3 text-sm text-[#324153]" [title]="quote.description || '(no title)'">
                 {{ getTruncatedTitle(quote.description) }}
               </div>
 
               <!-- Status -->
-              <div class="col-span-1">
-                <span class="status-badge px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+              <div class="col-span-2" data-testid="provider-tender-status-cell">
+                <span class="status-badge inline-flex whitespace-nowrap rounded-full px-2 text-xs font-semibold leading-5"
                       [ngClass]="getStateClass(getQuoteItemState(quote))">
                   {{ getStatusLabel(quote) }}
                 </span>
@@ -301,7 +301,7 @@ import { environment } from 'src/environments/environment';
 
               <!-- Status -->
               <div class="col-span-2">
-                <span class="status-badge px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                <span class="status-badge inline-flex whitespace-nowrap rounded-full px-2 text-xs font-semibold leading-5"
                       [ngClass]="getStateClass(getQuoteItemState(quote))">
                   {{ getStatusLabel(quote) }}
                 </span>
@@ -430,7 +430,7 @@ import { environment } from 'src/environments/environment';
 
                     <!-- Status -->
                     <div class="col-span-2">
-                      <span class="status-badge px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full"
+                      <span class="status-badge inline-flex whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold leading-5"
                             [ngClass]="getStateClass(getQuoteItemState(relatedQuote))">
                         {{ getStatusLabel(relatedQuote) }}
                       </span>

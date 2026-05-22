@@ -110,4 +110,32 @@ describe('TenderListComponent', () => {
 
     expect(badge.textContent?.trim()).toBe('Tender Closed');
   });
+
+  it('keeps provider tender status badges readable in the table row', () => {
+    fixture.detectChanges();
+
+    component.selectedRole = UI_ROLES.SELLER;
+    component.loading = false;
+    component.error = null;
+    component.filteredQuotes = [
+      {
+        id: 'quote-1',
+        category: QUOTE_CATEGORIES.TENDER,
+        description: 'Provider invite',
+        quoteDate: '2026-05-22T00:00:00.000Z',
+        quoteItem: [{ state: QUOTE_STATUSES.PENDING }],
+        relatedParty: [],
+      } as Quote,
+    ];
+
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('.status-badge') as HTMLElement;
+    const row = fixture.nativeElement.querySelector('[data-quote-id="quote-1"]') as HTMLElement;
+
+    expect(badge.textContent?.trim()).toBe('Invite Received');
+    expect(badge.className).toContain('whitespace-nowrap');
+    expect(row.className).toContain('grid-cols-12');
+    expect(row.querySelector('[data-testid="provider-tender-status-cell"]')?.className).toContain('col-span-2');
+  });
 });

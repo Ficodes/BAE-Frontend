@@ -61,7 +61,7 @@ export type TenderRelatedQuotesLabelsCustomer = typeof TENDER_RELATED_QUOTES_LAB
  * Tender status constants (frontend display states)
  */
 export const TENDER_RELATED_QUOTES_LABELS_PROVIDER = {
-  PENDING: 'Invite Received to Tender',
+  PENDING: 'Invite Received',
   IN_PROGRESS: 'Invitation Accepted',
   APPROVED: 'Offering Submitted',
   ACCEPTED: 'Offering Accepted by Customer',
