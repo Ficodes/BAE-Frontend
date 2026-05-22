@@ -8,7 +8,7 @@ import { QuoteService } from '../../../quotes/services/quote.service';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
-import { Tender, TenderAttachment } from 'src/app/models/tender.model';
+import { Tender, TenderAttachment, TenderStateType } from 'src/app/models/tender.model';
 import { Quote, QuoteStateType } from 'src/app/models/quote.model';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { NotificationComponent } from 'src/app/shared/notification/notification.component';
@@ -19,6 +19,7 @@ import { AttachmentModalComponent } from 'src/app/shared/attachment-modal/attach
 import { CreateTenderModalComponent } from 'src/app/shared/create-tender-modal/create-tender-modal.component';
 import { UI_ROLES, API_ROLES, UiRole, toApiRole } from 'src/app/models/roles.constants';
 import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, TENDER_RELATED_QUOTES_LABELS_CUSTOMER, TENDER_RELATED_QUOTES_LABELS_PROVIDER } from 'src/app/models/quote.constants';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-quote-list',
@@ -336,7 +337,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
 
                 <!-- Test: Start Tender (for coordinator quotes in pre-launched status) -->
                 <button
-                  *ngIf="quote.category === QUOTE_CATEGORIES.COORDINATOR && getPrimaryState(quote) === QUOTE_STATUSES.IN_PROGRESS"
+                  *ngIf="environment.TENDER_DEV_BUTTONS_OPEN_CLOSE_ENABLED && quote.category === QUOTE_CATEGORIES.COORDINATOR && getPrimaryState(quote) === QUOTE_STATUSES.IN_PROGRESS"
                   (click)="simulateStartTender(quote)"
                   class="px-2 py-1 text-xs font-medium transition-colors rounded border text-orange-600 hover:text-orange-800 border-orange-200 hover:bg-orange-50 flex items-center gap-1"
                   title="[TEST] Start tender - updates status to 'launched'"
@@ -349,7 +350,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
 
                 <!-- Test: Close Tender (for coordinator quotes in launched status) -->
                 <button
-                  *ngIf="quote.category === QUOTE_CATEGORIES.COORDINATOR && getPrimaryState(quote) === QUOTE_STATUSES.APPROVED"
+                  *ngIf="environment.TENDER_DEV_BUTTONS_OPEN_CLOSE_ENABLED && quote.category === QUOTE_CATEGORIES.COORDINATOR && getPrimaryState(quote) === QUOTE_STATUSES.APPROVED"
                   (click)="simulateCloseTender(quote)"
                   class="px-2 py-1 text-xs font-medium transition-colors rounded border text-purple-600 hover:text-purple-800 border-purple-200 hover:bg-purple-50 flex items-center gap-1"
                   title="[TEST] Close tender - updates status to 'closed'"
@@ -671,6 +672,7 @@ export class TenderListComponent implements OnInit {
   readonly UI_ROLES = UI_ROLES;
   readonly QUOTE_CATEGORIES = QUOTE_CATEGORIES;
   readonly QUOTE_STATUSES = QUOTE_STATUSES;
+  readonly environment = environment;
 
   // Filtering
   statusFilter: string = '';
@@ -862,13 +864,15 @@ export class TenderListComponent implements OnInit {
     };
   }
 
-  private mapTenderStateToQuoteState(tenderState: 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed'): QuoteStateType {
+  private mapTenderStateToQuoteState(tenderState: TenderStateType): QuoteStateType {
     switch (tenderState) {
-      case 'draft': return 'pending';  // draft → pending → GUI shows 'draft'
-      case 'pre-launched': return 'inProgress';  // pre-launched → inProgress → GUI shows 'pre-launched'
+      case 'draft': return 'pending';
+      case 'pre-launched': return 'inProgress';
       case 'pending': return 'pending';
-      case 'sent': return 'approved';  // sent → approved → GUI shows 'launched'
-      case 'closed': return 'accepted';  // closed → accepted → GUI shows 'closed'
+      case 'sent': return 'approved';
+      case 'closed': return 'accepted';
+      case 'cancelled': return 'cancelled';
+      case 'rejected': return 'rejected';
       default: return 'pending';
     }
   }
@@ -1110,6 +1114,7 @@ export class TenderListComponent implements OnInit {
   closeCreateTenderModal() {
     this.showCreateTenderModal = false;
     this.tenderToEdit = null;
+    this.loadQuotes();
   }
 
   onTenderCreated(tender: Tender) {

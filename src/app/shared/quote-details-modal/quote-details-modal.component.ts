@@ -1164,44 +1164,14 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
 
     this.isBroadcastSending = true;
 
-    // Get the coordinator quote's external ID to find related quotes
-    const coordinatorQuoteId = this.quote.id;
-
-    // Fetch all quotes to find related tendering quotes
-    this.quoteService.getAllQuotes().subscribe({
-      next: (allQuotes) => {
-        // Find all tendering quotes that have this coordinator quote as their external_id
-        const relatedQuotes = allQuotes.filter(q =>
-          q.category === QUOTE_CATEGORIES.TENDER && q.externalId === coordinatorQuoteId
-        );
-
-        if (relatedQuotes.length === 0) {
-          this.notificationService.showError('No related provider quotes found to broadcast to.');
-          this.isBroadcastSending = false;
-          this.closeBroadcastModal();
-          return;
-        }
-
-        // Send message to each related quote
-        const requests = relatedQuotes.map(q =>
-          this.quoteService.addNoteToQuote(q.id!, this.broadcastMessage, this.currentUserId!)
-        ) as Observable<Quote>[];
-
-        forkJoin(requests).subscribe({
-          next: () => {
-            this.notificationService.showSuccess('Message broadcast sent to all invited providers.');
-            this.closeBroadcastModal();
-          },
-          error: (error: Error) => {
-            console.error('Failed to broadcast message:', error);
-            this.notificationService.showError('Failed to broadcast message.');
-            this.isBroadcastSending = false;
-          }
-        });
+    this.quoteService.broadcastMessage(this.quote.id, this.currentUserId, this.broadcastMessage).subscribe({
+      next: () => {
+        this.notificationService.showSuccess('Message broadcast sent to all invited providers.');
+        this.closeBroadcastModal();
       },
-      error: (error) => {
-        console.error('Failed to fetch quotes:', error);
-        this.notificationService.showError('Failed to fetch related quotes.');
+      error: (error: Error) => {
+        console.error('Failed to broadcast message:', error);
+        this.notificationService.showError('Failed to broadcast message.');
         this.isBroadcastSending = false;
       }
     });

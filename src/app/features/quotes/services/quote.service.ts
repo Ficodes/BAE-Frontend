@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable, map, forkJoin } from 'rxjs';
 import { Quote, Quote_Create, Quote_Update, QuoteStateType } from 'src/app/models/quote.model';
-import { Tender } from 'src/app/models/tender.model';
+import { Tender, TenderStateType } from 'src/app/models/tender.model';
 import { ApiRole, API_ROLES } from 'src/app/models/roles.constants';
 import { QUOTE_STATUSES, QUOTE_CATEGORIES } from 'src/app/models/quote.constants';
 import { environment } from '../../../../environments/environment';
@@ -577,14 +577,16 @@ export class QuoteService {
     // - pending → draft → 'draft'
     // - inProgress → pre-launched → 'pre-launched'
     // - approved → sent → 'launched'
-    // - accepted/cancelled/rejected → closed → 'closed'
-    let state: 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed' = 'draft';
+    // - accepted → closed → 'closed'
+    // - cancelled → cancelled (preserved to distinguish from accepted/rejected)
+    // - rejected → rejected (preserved to distinguish from accepted/cancelled)
+    let state: TenderStateType = 'draft';
     if (quoteItemState === QUOTE_STATUSES.PENDING) state = 'draft';
     else if (quoteItemState === QUOTE_STATUSES.IN_PROGRESS) state = 'pre-launched';
     else if (quoteItemState === QUOTE_STATUSES.APPROVED) state = 'sent';
     else if (quoteItemState === QUOTE_STATUSES.ACCEPTED) state = 'closed';
-    else if (quoteItemState === QUOTE_STATUSES.CANCELLED) state = 'closed';
-    else if (quoteItemState === QUOTE_STATUSES.REJECTED) state = 'closed';
+    else if (quoteItemState === QUOTE_STATUSES.CANCELLED) state = 'cancelled';
+    else if (quoteItemState === QUOTE_STATUSES.REJECTED) state = 'rejected';
 
     // Extract external_id, provider and buyerPartyId from quote
     const external_id = quote.externalId;

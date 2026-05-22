@@ -6,7 +6,7 @@
 export interface Tender {
   id?: string;
   category: 'coordinator' | 'tendering';
-  state: 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed';
+  state: 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed' | 'cancelled' | 'rejected';
   responseDeadline: string;
   tenderNote?: string;
   attachment?: TenderAttachment;
@@ -52,5 +52,5 @@ export interface Tender_Update {
   provider?: string;
 }
 
-export type TenderStateType = 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed';
+export type TenderStateType = 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed' | 'cancelled' | 'rejected';
 

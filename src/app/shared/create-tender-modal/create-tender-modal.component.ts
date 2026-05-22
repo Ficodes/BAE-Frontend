@@ -96,6 +96,10 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Format: DD/MM/YYYY</p>
+            <p
+              *ngIf="requestedCompletionDate && step2ValidationError && step2ValidationError.includes('Start date')"
+              class="mt-1 text-xs text-red-600 dark:text-red-400"
+            >{{ step2ValidationError }}</p>
           </div>
 
           <!-- Tender End Date -->
@@ -111,6 +115,10 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Format: DD/MM/YYYY</p>
+            <p
+              *ngIf="expectedCompletionDate && step2ValidationError && (step2ValidationError.includes('End date') || step2ValidationError.includes('End Date must be after'))"
+              class="mt-1 text-xs text-red-600 dark:text-red-400"
+            >{{ step2ValidationError }}</p>
           </div>
 
           <!-- PDF Upload -->
@@ -159,7 +167,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
             <button
               (click)="proceedToProviderSelection()"
               [disabled]="!isStep2Complete() || tenderLoading"
-              [title]="!isStep2Complete() ? 'Fill in all fields to continue' : ''"
+              [title]="step2ValidationError"
               class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed relative group"
             >
               {{ tenderLoading ? 'Saving...' : 'Next: Select Providers' }}
@@ -167,7 +175,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                 *ngIf="!isStep2Complete()"
                 class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
               >
-                Fill in all fields to continue
+                {{ step2ValidationError }}
               </span>
             </button>
           </div>
@@ -351,7 +359,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
                   </ng-container>
                   <ng-template #filteredEmpty>
                     <p class="text-sm">
-                      No filters Selected. Adjust Countries/Categories and click <strong>Search</strong>.
+                      No providers found matching your filters. Try adjusting Countries/Categories and click <strong>Search</strong>.
                     </p>
                   </ng-template>
                 </div>
@@ -797,9 +805,43 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   /**
    * Check if all Step 2 fields are filled (drives the Next button enabled state)
    */
+  get step2ValidationError(): string {
+    const currentYear = new Date().getFullYear();
+    const maxYear = currentYear + 10;
+
+    if (this.requestedCompletionDate) {
+      const startYear = new Date(this.requestedCompletionDate).getFullYear();
+      if (startYear < currentYear || startYear > maxYear) {
+        return `Start date year must be between ${currentYear} and ${maxYear}.`;
+      }
+    }
+
+    if (this.expectedCompletionDate) {
+      const endYear = new Date(this.expectedCompletionDate).getFullYear();
+      if (endYear < currentYear || endYear > maxYear) {
+        return `End date year must be between ${currentYear} and ${maxYear}.`;
+      }
+    }
+
+    if (this.requestedCompletionDate && this.expectedCompletionDate) {
+      if (new Date(this.expectedCompletionDate) <= new Date(this.requestedCompletionDate)) {
+        return 'Tender End Date must be after the Tender Start Date.';
+      }
+    }
+
+    if (!this.requestedCompletionDate || !this.expectedCompletionDate) {
+      return 'Both start and end dates are required.';
+    }
+
+    if (!this.selectedPdfFile && !this.existingAttachment) {
+      return 'A PDF attachment is required.';
+    }
+
+    return '';
+  }
+
   isStep2Complete(): boolean {
-    const hasPdf = !!this.selectedPdfFile || !!this.existingAttachment;
-    return !!this.requestedCompletionDate && !!this.expectedCompletionDate && hasPdf;
+    return this.step2ValidationError === '';
   }
 
   /**
@@ -836,6 +878,9 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
         this.countriesCtrl.setValue([], { emitEvent: false });
         this.categoriesCtrl.setValue([], { emitEvent: false });
         this.complianceLevelsCtrl.setValue([], { emitEvent: false });
+
+        // Notify parent so the list reflects the saved dates and PDF immediately
+        this.tenderUpdated.emit();
 
         // Load filter criteria and the provider list in parallel
         this.loadFilterOptions();
@@ -912,11 +957,9 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
    * Are any filters currently active?
    */
   hasActiveFilters(): boolean {
-    const hasCountries = (this.orgFilters.countries?.length ?? 0) == 0;
-    const hasCategories = (this.orgFilters.categories?.length ?? 0) == 0;
-    const hasComplianceLevels = (this.orgFilters.complianceLevels?.length ?? 0) == 0;
-
-    return hasCountries && hasCategories && hasComplianceLevels;
+    return (this.orgFilters.countries?.length ?? 0) > 0 ||
+           (this.orgFilters.categories?.length ?? 0) > 0 ||
+           (this.orgFilters.complianceLevels?.length ?? 0) > 0;
   }
 
   /**
@@ -1128,9 +1171,14 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
         // Add to invited providers list
         this.invitedProviders.push(...results);
 
-        // Clear selection and safe list
+        // Clear selection and safe list, then recompute available so
+        // just-invited providers are no longer shown as available
         this.selectedProviders.clear();
         this._safeInvitedList = [];
+        this.rebuildSelectionAndAvailable();
+
+        // Notify parent so the list reflects the new provider invites
+        this.tenderUpdated.emit();
 
         this.notificationService.showSuccess(`${providerIds.length} provider(s) has been saved for invite`);
         this.tenderLoading = false;
@@ -1146,7 +1194,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
    * Remove an invited provider by deleting their tendering quote
    */
   removeInvitedProvider(quoteId: string, providerId: string | undefined) {
-    if (!providerId) return;
+    if (!quoteId) return;
 
     this.showConfirmation(
       'Remove Provider',
@@ -1158,9 +1206,8 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
           next: () => {
             console.log('Quote deleted for provider:', providerId);
 
-            // Remove from invited list
             this.invitedProviders = this.invitedProviders.filter(ip => ip.quoteId !== quoteId);
-
+            this.rebuildSelectionAndAvailable();
             this.notificationService.showSuccess('Provider invitation removed successfully');
             this.tenderLoading = false;
           },
@@ -1179,7 +1226,9 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
             // and the BAE no longer returns 500 on successful quote deletion.
             const isKnownFalsePositive =
               error.status === 500 &&
-              error.error?.error === 'Service unreachable';
+              (error.error?.error === 'Service unreachable' ||
+               error.error?.message === 'Service unreachable' ||
+               (typeof error.error === 'string' && error.error.includes('Service unreachable')));
 
             if (isKnownFalsePositive) {
               console.warn(
@@ -1187,6 +1236,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
                 '— quote was deleted on the backend. Removing from UI anyway.'
               );
               this.invitedProviders = this.invitedProviders.filter(ip => ip.quoteId !== quoteId);
+              this.rebuildSelectionAndAvailable();
               this.notificationService.showSuccess('Provider invitation removed successfully');
             } else {
               console.error('Error deleting quote:', error);
