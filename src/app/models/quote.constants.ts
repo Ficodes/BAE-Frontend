@@ -33,12 +33,12 @@ export type QuoteStatus = typeof QUOTE_STATUSES[keyof typeof QUOTE_STATUSES];
  * Tender status constants (frontend display states)
  */
 export const TENDER_COORDINATOR_STATUSES_LABELS = {
-  PENDING: 'not-yet-submitted',
-  IN_PROGRESS: 'invites-sent-waiting-acceptance',
-  APPROVED: 'tender-started',
-  ACCEPTED: 'tender-closed',
-  CANCELLED: 'cancelled',
-  REJECTED: 'rejected'
+  PENDING: 'Not Yet Submitted',
+  IN_PROGRESS: 'Invites Sent, Waiting Acceptance',
+  APPROVED: 'Tender Started',
+  ACCEPTED: 'Tender Closed',
+  CANCELLED: 'Cancelled',
+  REJECTED: 'Rejected'
 } as const;
 
 export type TenderCoordinatorStatusesLabel = typeof TENDER_COORDINATOR_STATUSES_LABELS[keyof typeof TENDER_COORDINATOR_STATUSES_LABELS];
@@ -47,12 +47,12 @@ export type TenderCoordinatorStatusesLabel = typeof TENDER_COORDINATOR_STATUSES_
  * Tender status constants (frontend display states)
  */
 export const TENDER_RELATED_QUOTES_LABELS_CUSTOMER = {
-  PENDING: 'invite-sent',
-  IN_PROGRESS: 'invite-accepted-by-provider',
-  APPROVED: 'offer-submitted-by-provider',
-  ACCEPTED: 'offering-accepted',
-  CANCELLED: 'request-canceled',
-  REJECTED: 'offering-rejected'
+  PENDING: 'Invite Sent',
+  IN_PROGRESS: 'Invite Accepted by Provider',
+  APPROVED: 'Offer Submitted by Provider',
+  ACCEPTED: 'Offering Accepted',
+  CANCELLED: 'Request Cancelled',
+  REJECTED: 'Offering Rejected'
 } as const;
 
 export type TenderRelatedQuotesLabelsCustomer = typeof TENDER_RELATED_QUOTES_LABELS_CUSTOMER[keyof typeof TENDER_RELATED_QUOTES_LABELS_CUSTOMER];
@@ -61,12 +61,12 @@ export type TenderRelatedQuotesLabelsCustomer = typeof TENDER_RELATED_QUOTES_LAB
  * Tender status constants (frontend display states)
  */
 export const TENDER_RELATED_QUOTES_LABELS_PROVIDER = {
-  PENDING: 'invite-received-to-tender',
-  IN_PROGRESS: 'invitation-accepted',
-  APPROVED: 'offering-submitted',
-  ACCEPTED: 'offering-accepted-by-customer',
-  CANCELLED: 'request-canceled',
-  REJECTED: 'offering-rejected'
+  PENDING: 'Invite Received to Tender',
+  IN_PROGRESS: 'Invitation Accepted',
+  APPROVED: 'Offering Submitted',
+  ACCEPTED: 'Offering Accepted by Customer',
+  CANCELLED: 'Request Cancelled',
+  REJECTED: 'Offering Rejected'
 } as const;
 
 export type TenderRelatedQuotesLabelsProvider = typeof TENDER_RELATED_QUOTES_LABELS_PROVIDER[keyof typeof TENDER_RELATED_QUOTES_LABELS_PROVIDER];

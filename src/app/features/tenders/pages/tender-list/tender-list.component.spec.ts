@@ -76,4 +76,38 @@ describe('TenderListComponent', () => {
     expect(computedStyle.borderStyle).not.toBe('none');
     expect(computedStyle.borderWidth).not.toBe('0px');
   });
+
+  it('shows tender status filter options with user friendly labels', () => {
+    component.selectedRole = UI_ROLES.BUYER;
+
+    const labels = component.filterStatusOptions.map(option => option.label);
+
+    expect(labels).toContain('Not Yet Submitted');
+    expect(labels).toContain('Invites Sent, Waiting Acceptance');
+    expect(labels).toContain('Tender Started');
+    expect(labels).toContain('Tender Closed');
+    expect(labels.some(label => label.includes('-'))).toBeFalse();
+  });
+
+  it('renders tender status badges with user friendly text', () => {
+    fixture.detectChanges();
+
+    component.selectedRole = UI_ROLES.BUYER;
+    component.loading = false;
+    component.error = null;
+    component.filteredQuotes = [
+      {
+        id: 'quote-1',
+        category: QUOTE_CATEGORIES.COORDINATOR,
+        description: 'Tender with closed state',
+        quoteItem: [{ state: QUOTE_STATUSES.ACCEPTED }],
+      } as Quote,
+    ];
+
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('.status-badge') as HTMLElement;
+
+    expect(badge.textContent?.trim()).toBe('Tender Closed');
+  });
 });
