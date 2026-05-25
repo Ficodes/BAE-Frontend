@@ -114,11 +114,12 @@
                 <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 popular-grid" [attr.data-direction]="popularDirection">
                   @for (offer of popularPages[page]; track offer.id) {
                     <div class="popular-card flex h-[438px] flex-col rounded-[20px] border border-[#d5dace] bg-white p-2">
-                      <div class="h-[170px] w-full shrink-0 overflow-hidden rounded-[14px] bg-[#e2e9f5]">
+                      <div class="relative h-[170px] w-full shrink-0 overflow-hidden rounded-[14px] bg-[#e2e9f5] flex justify-center items-center">
+                        <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + offer.imageUrl + ')'" style="filter: blur(20px);"></div>
                         <img
                           [src]="offer.imageUrl"
                           [alt]="offer.name"
-                          class="h-full w-full object-cover"
+                          class="relative z-10 h-full w-full object-contain"
                         />
                       </div>
                       <div class="flex flex-1 flex-col gap-3 px-4 pt-6 pb-6">

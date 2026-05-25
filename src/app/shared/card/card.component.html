@@ -2,8 +2,9 @@
 <div (click)="goToProductDetails(productOff)" class="flex flex-col w-full h-[430px] bg-white rounded-[16px] border border-[#D8DADE] hover:shadow-md transition-shadow cursor-pointer font-[Blinker]">
 
   <div class="px-2 pt-2">
-    <div class="h-[170px] w-full rounded-xl bg-[#EBECEE] overflow-hidden">
-      <img class="h-full w-full object-cover" src="{{getProductImage()}}" alt="Product image">
+    <div class="relative h-[170px] w-full rounded-xl bg-[#EBECEE] overflow-hidden flex justify-center items-center">
+      <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
+      <img class="relative z-10 h-full w-full object-contain" src="{{getProductImage()}}" alt="Product image">
     </div>
   </div>
 
@@ -12,7 +13,7 @@
       <svg class="h-[18px] w-[18px] text-[#526179] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
       </svg>
-      <span class="truncate min-w-0" [title]="orgInfo?.tradingName || prodSpec?.brand || ''">{{ orgInfo?.tradingName || prodSpec?.brand || 'Owner/Brand' }}</span>
+      <span class="truncate min-w-0" [title]="orgInfo?.tradingName || prodSpec.brand || ''">{{ orgInfo?.tradingName || prodSpec.brand || 'Owner/Brand' }}</span>
     </div>
 
     <h5 data-cy="searchOfferTitle" [ngClass]="{'break-all': hasLongWord(productOff?.name, 20), 'break-words': !hasLongWord(productOff?.name, 20)}"
@@ -37,8 +38,9 @@
 <div (click)="goToProductDetails(productOff)" class="flex w-full bg-white rounded-[16px] border border-[#D8DADE] hover:shadow-md transition-shadow cursor-pointer font-[Blinker]">
 
   <div class="p-2 pr-0 shrink-0">
-    <div class="h-full w-[260px] min-h-[180px] rounded-xl bg-[#EBECEE] overflow-hidden">
-      <img class="h-full w-full object-cover" src="{{getProductImage()}}" alt="Product image">
+    <div class="relative h-full w-[260px] min-h-[180px] rounded-xl bg-[#EBECEE] overflow-hidden flex justify-center items-center">
+      <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
+      <img class="relative z-10 h-full w-full object-contain" src="{{getProductImage()}}" alt="Product image">
     </div>
   </div>
 
@@ -47,7 +49,7 @@
       <svg class="h-[18px] w-[18px] text-[#526179] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
       </svg>
-      <span class="truncate min-w-0" [title]="orgInfo?.tradingName || prodSpec?.brand || ''">{{ orgInfo?.tradingName || prodSpec?.brand || 'Owner/Brand' }}</span>
+      <span class="truncate min-w-0" [title]="orgInfo?.tradingName || prodSpec.brand || ''">{{ orgInfo?.tradingName || prodSpec.brand || 'Owner/Brand' }}</span>
     </div>
 
     <h5 data-cy="searchOfferTitle" [ngClass]="{'break-all': hasLongWord(productOff?.name, 20), 'break-words': !hasLongWord(productOff?.name, 20)}"
@@ -76,7 +78,7 @@
             <span class="font-semibold text-[#14274A]">{{ cheapestPrice.unit }}{{ cheapestPrice.price | number:'1.2-2' }}{{ cheapestPrice.text ? '/' + cheapestPrice.text : '' }}</span>
           </div>
         }
-        @if (prodSpec?.brand) {
+        @if (prodSpec.brand) {
           <div class="border-l border-gray-200 pl-6">
             <span class="text-[12px] text-[#8896A8] block">Technology</span>
             <span class="font-medium text-[#14274A]">{{ prodSpec.brand }}</span>
