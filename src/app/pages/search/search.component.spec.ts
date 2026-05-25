@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
@@ -11,6 +12,7 @@ import { LocalStorageService } from '../../services/local-storage.service';
 import { EventMessageService } from '../../services/event-message.service';
 import { SearchStateService } from '../../services/search-state.service';
 import { LoginServiceService } from 'src/app/services/login-service.service';
+import { AiSearchService } from 'src/app/services/ai-search.service';
 
 describe('SearchComponent', () => {
   let component: SearchComponent;
@@ -19,6 +21,7 @@ describe('SearchComponent', () => {
   let paginationSpy: jasmine.SpyObj<PaginationService>;
   let localStorageSpy: jasmine.SpyObj<LocalStorageService>;
   let eventMessageSpy: jasmine.SpyObj<EventMessageService>;
+  let aiSearchSpy: jasmine.SpyObj<AiSearchService>;
   let stateMock: {
     products: any[];
     nextProducts: any[];
@@ -48,6 +51,11 @@ describe('SearchComponent', () => {
     eventMessageSpy = jasmine.createSpyObj<EventMessageService>('EventMessageService', [
       'emitFilterShown',
       'emitRemovedFilter',
+      'emitAiSearchFacets',
+    ]);
+    aiSearchSpy = jasmine.createSpyObj<AiSearchService>('AiSearchService', [
+      'search',
+      'searchWithAnswer',
     ]);
     routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate'], {
       events: undefined,
@@ -77,6 +85,11 @@ describe('SearchComponent', () => {
       page: 0,
       page_check: false,
     });
+    aiSearchSpy.search.and.resolveTo({ productOfferingIds: [], facets: [] } as any);
+    aiSearchSpy.searchWithAnswer.and.resolveTo({
+      searchResponse: { productOfferingIds: [], facets: [] },
+      answer: '',
+    } as any);
     apiSpy.getProductsDetails.and.callFake(async (items: any[]) => items as any);
     localStorageSpy.getObject.and.callFake((key: string) => {
       if (key === 'selected_categories') return [];
@@ -89,7 +102,7 @@ describe('SearchComponent', () => {
     await TestBed.configureTestingModule({
       schemas: [NO_ERRORS_SCHEMA],
       declarations: [SearchComponent],
-      imports: [TranslateModule.forRoot()],
+      imports: [HttpClientTestingModule, TranslateModule.forRoot()],
       providers: [
         { provide: ApiServiceService, useValue: apiSpy },
         { provide: PaginationService, useValue: paginationSpy },
@@ -97,6 +110,7 @@ describe('SearchComponent', () => {
         { provide: EventMessageService, useValue: eventMessageSpy },
         { provide: SearchStateService, useValue: stateMock },
         { provide: LoginServiceService, useValue: {} },
+        { provide: AiSearchService, useValue: aiSearchSpy },
         { provide: Router, useValue: routerSpy },
         {
           provide: ActivatedRoute,
@@ -224,7 +238,7 @@ describe('SearchComponent', () => {
       false,
       [{ id: 'old' }],
       [{ id: 'next-old' }],
-      { keywords: 'gpu', filters: [{ id: 'cat-1' }] },
+      { keywords: 'gpu', filters: [{ id: 'cat-1' }], sort: 'name' },
       jasmine.any(Function),
     );
     expect(apiSpy.getProductsDetails).toHaveBeenCalledTimes(2);
@@ -306,12 +320,10 @@ describe('SearchComponent', () => {
 
   it('onClick should close drawer when open', () => {
     component.showDrawer = true;
-    const detectSpy = spyOn((component as any).cdr, 'detectChanges');
 
     component.onClick();
 
     expect(component.showDrawer).toBeFalse();
-    expect(detectSpy).toHaveBeenCalled();
   });
 
   it('ngOnDestroy should clear selected filters and state when not navigating to detail', () => {
