@@ -39,6 +39,7 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy, OnChanges {
   @Input() showTitle: boolean = true;
   @Input() simpleMode: boolean = false;
   @Input() selectedRootId: string | null | undefined = undefined;
+  @Input() selectedRootName: string | null | undefined = undefined;
 
   // AI Search facets
   aiSearchEnabled = environment.AI_SEARCH_ENABLED;
@@ -224,7 +225,43 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy, OnChanges {
         this.checkedCategories.splice(index, 1);
       }
     }
+    if (this.selectedRootId) {
+      this.syncParentFilterForSimpleMode();
+    }
     this.eventMessage.emitFiltersCommitted();
+  }
+
+  private syncParentFilterForSimpleMode(): void {
+    const rootId = this.selectedRootId;
+    if (!rootId) {
+      return;
+    }
+
+    const selected = this.localStorage.getObject('selected_categories') as Category[] || [];
+    const selectableChildIds = new Set(
+      this.allFilterItems
+        .map(item => item?.id)
+        .filter((id): id is string => !!id)
+    );
+    const hasSelectedChildren = selected.some(item => !!item?.id && selectableChildIds.has(item.id));
+    const parentInStorage = selected.find(item => item?.id === rootId);
+
+    if (hasSelectedChildren) {
+      if (parentInStorage) {
+        this.localStorage.removeCategoryFilter(parentInStorage);
+        this.eventMessage.emitRemovedFilter(parentInStorage);
+      }
+      return;
+    }
+
+    if (!parentInStorage) {
+      const parentFilter: Category = {
+        id: rootId,
+        name: this.selectedRootName || 'Category'
+      };
+      this.localStorage.addCategoryFilter(parentFilter);
+      this.eventMessage.emitAddedFilter(parentFilter);
+    }
   }
 
   isCheckedCategory(cat:Category){
