@@ -71,6 +71,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   toolbarFilters: ToolbarFilter[] = [];
   procurementFilterKey = 'procurement_type';
   private procurementCache = new Map<string, boolean>();
+  private productsRequestVersion = 0;
 
   showSortDropdown = false;
   sortOption: 'name' | 'date_new' | 'date_old' = 'name';
@@ -114,7 +115,11 @@ export class SearchComponent implements OnInit, OnDestroy {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
     .subscribe(async ev => {
-      if(ev.type === 'AddedFilter' || ev.type === 'RemovedFilter') {
+      if (ev.type === 'AddedFilter' || ev.type === 'RemovedFilter') {
+        this.syncSelectionsFromStorage();
+        this.checkPanel();
+      }
+      if (ev.type === 'FiltersCommitted') {
         this.syncSelectionsFromStorage();
         // Use AI search if enabled, otherwise use standard search
         if (this.aiSearchEnabled) {
@@ -429,6 +434,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (filter.key === this.procurementFilterKey && filter.selectedIds.length > 0) {
       await this.resolveProcurementCache(this.products);
     }
+    this.eventMessage.emitFiltersCommitted();
   }
 
   clearToolbarFilterSelection(filter: ToolbarFilter, event: Event): void {
@@ -442,6 +448,7 @@ export class SearchComponent implements OnInit, OnDestroy {
         this.eventMessage.emitRemovedFilter(option);
       }
     }
+    this.eventMessage.emitFiltersCommitted();
   }
 
   private getSelectedFilterLabels(filterKey: string): string[] {
@@ -454,6 +461,8 @@ export class SearchComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
+    this.productsRequestVersion = 0;
+
     if (this.navigatingToDetail) {
       return;
     }
@@ -471,15 +480,16 @@ export class SearchComponent implements OnInit, OnDestroy {
   }
 
   async getProducts(next:boolean){
-    let filters = this.localStorage.getObject('selected_categories') as Category[] || [];
+    const requestVersion = ++this.productsRequestVersion;
+    const filters = this.localStorage.getObject('selected_categories') as Category[] || [];
     if(next==false){
       this.loading=true;
     }
     if (!next) {
       this.state.clear();
-    }    
-    
-    let options: any = {
+    }
+
+    const options: any = {
       "keywords": this.keywords,
       "filters": filters
     }
@@ -488,28 +498,51 @@ export class SearchComponent implements OnInit, OnDestroy {
       options.sort = sortParam;
     }
 
-    this.paginationService.getItemsPaginated(this.page, this.PRODUCT_LIMIT, next, this.products,this.nextProducts, options,
-      this.paginationService.getProducts.bind(this.paginationService)).then(async data => {
-        this.products = await this.api.getProductsDetails(data.items);
-        this.nextProducts = await this.api.getProductsDetails(data.nextItems);
-        this.refreshProcurementFilter();
-      
-        this.page = data.page;
-        this.page_check = data.page_check;
-      
+    try {
+      const data = await this.paginationService.getItemsPaginated(
+        this.page,
+        this.PRODUCT_LIMIT,
+        next,
+        this.products,
+        this.nextProducts,
+        options,
+        this.paginationService.getProducts.bind(this.paginationService)
+      );
+
+      if (requestVersion !== this.productsRequestVersion) {
+        return;
+      }
+
+      const [products, nextProducts] = await Promise.all([
+        this.api.getProductsDetails(data.items),
+        this.api.getProductsDetails(data.nextItems)
+      ]);
+
+      if (requestVersion !== this.productsRequestVersion) {
+        return;
+      }
+
+      this.products = products;
+      this.nextProducts = nextProducts;
+      this.refreshProcurementFilter();
+
+      this.page = data.page;
+      this.page_check = data.page_check;
+
+      // SAVE STATE
+      this.state.save({
+        products: this.products,
+        nextProducts: this.nextProducts,
+        page: this.page,
+        page_check: this.page_check,
+        keywords: this.keywords
+      });
+    } finally {
+      if (requestVersion === this.productsRequestVersion) {
         this.loading = false;
         this.loading_more = false;
-      
-        // SAVE STATE
-        this.state.save({
-          products: this.products,
-          nextProducts: this.nextProducts,
-          page: this.page,
-          page_check: this.page_check,
-          keywords: this.keywords
-        });
-    })
-
+      }
+    }
   }
 
   async next(){
@@ -568,6 +601,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     }
     this.activeCategoryName = null;
     this.activeCategoryId = null;
+    this.eventMessage.emitFiltersCommitted();
   }
 
   clearSubcategoryFilters(): void {
@@ -587,6 +621,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       this.localStorage.removeCategoryFilter(f);
       this.eventMessage.emitRemovedFilter(f);
     }
+    this.eventMessage.emitFiltersCommitted();
   }
 
   async selectCategory(cat: Category | null): Promise<void> {
@@ -616,6 +651,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       this.activeCategoryId = null;
     }
     this.syncSelectionsFromStorage();
+    this.eventMessage.emitFiltersCommitted();
     this.showCategoryDropdown = false;
   }
 
