@@ -29,7 +29,6 @@ type ToolbarFilter = {
   label: string;
   source: 'configured' | 'categoryRoot';
   rootName?: string;
-  clientSide: boolean;
   options: Category[];
   selectedIds: string[];
   open: boolean;
@@ -394,7 +393,6 @@ export class SearchComponent implements OnInit, OnDestroy {
       label: filter.label ?? filter.name,
       source: filter.source ?? 'configured',
       rootName: filter.rootName,
-      clientSide: !!filter.clientSide,
       options: (filter.source ?? 'configured') === 'configured'
         ? (filter.children ?? []).map(child => ({ id: `${filter.name}::${child.name}`, name: child.name }))
         : [],
