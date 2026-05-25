@@ -28,6 +28,7 @@ import { CategoriesComponent } from './pages/admin/categories/categories.compone
 import { CreateCategoryComponent } from './pages/admin/categories/create-category/create-category.component';
 import { UpdateCategoryComponent } from './pages/admin/categories/update-category/update-category.component';
 import { EmailComponent } from './pages/admin/email/email.component';
+import { DefaultCatalogComponent } from './pages/admin/default-catalog/default-catalog.component';
 import { VerificationComponent } from './pages/admin/verification/verification.component';
 import { CatalogsComponent } from "./pages/catalogs/catalogs.component";
 import { BillingAddressComponent } from "./pages/checkout/billing-address/billing-address.component";
@@ -149,6 +150,7 @@ import { RequestValidationModalComponent } from './pages/seller-offerings/offeri
     ContactUsComponent,
     VerificationComponent,
     EmailComponent,
+    DefaultCatalogComponent,
     InventoryResourcesComponent,
     InventoryServicesComponent,
     ProductInvDetailComponent,
