@@ -20,6 +20,7 @@ export const environment = {
   BILLING: '/billing',
 
   searchOrganizationsEndpoint: '/search-bck/api/searchOrganizations?size=1000',
+  providerCountriesUrl: 'https://raw.githubusercontent.com/DOME-Marketplace/eu-eea-countries/refs/heads/main/countries.json',
 
   CUSTOMER_BILLING: '/customerBill',
   CONSUMER_BILLING_URL: 'http://localhost:8640',
