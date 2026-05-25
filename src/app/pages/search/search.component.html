@@ -88,198 +88,48 @@
 
     <div class="flex items-center justify-between rounded-2xl bg-white border border-[#EBECEE] shadow-sm p-3 flex-wrap gap-y-2">
       <div class="flex items-center gap-2">
-        <div class="relative shrink-0">
-          <button (click)="toggleDeliveryModelDropdown($event)"
-            [ngClass]="selectedDeliveryModelIds.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'"
-            class="flex items-center gap-2 h-10 rounded-lg border pl-4 pr-3 text-[16px] font-normal transition-colors">
-            Delivery model
-            @if (selectedDeliveryModelIds.length > 0) {
-              <span class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{ selectedDeliveryModelIds.length }}</span>
-              <span (click)="clearDeliveryModelSelection($event)" class="inline-flex h-5 w-5 items-center justify-center rounded-full hover:bg-[#DDE6F6] cursor-pointer">
-                <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        @for (filter of toolbarFilters; track filter.key) {
+          <div class="relative shrink-0">
+            <button (click)="toggleToolbarFilterDropdown(filter, $event)"
+              [ngClass]="filter.selectedIds.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'"
+              class="flex items-center gap-2 h-10 rounded-lg border pl-4 pr-3 text-[16px] font-normal transition-colors">
+              {{ filter.label }}
+              @if (filter.selectedIds.length > 0) {
+                <span class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{ filter.selectedIds.length }}</span>
+                <span (click)="clearToolbarFilterSelection(filter, $event)" class="inline-flex h-5 w-5 items-center justify-center rounded-full hover:bg-[#DDE6F6] cursor-pointer">
+                  <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
+                </span>
+              } @else {
+                <svg class="h-4 w-4 transition-transform" [ngClass]="filter.open ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                 </svg>
-              </span>
-            } @else {
-              <svg class="h-4 w-4 transition-transform" [ngClass]="showDeliveryModelDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-              </svg>
+              }
+            </button>
+            @if (filter.open) {
+              <div (click)="$event.stopPropagation()" class="absolute top-full left-0 mt-2 z-[60] w-[260px] rounded-xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] overflow-hidden">
+                <div class="p-2 flex flex-col gap-1 max-h-[360px] overflow-y-auto">
+                  @for (option of filter.options; track option.id) {
+                    <button (click)="toggleToolbarOption(filter, option, $event)"
+                      [ngClass]="isToolbarOptionSelected(filter, option) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'"
+                      class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-[#0b1220] transition-colors">
+                      <div class="flex h-4 w-4 shrink-0 items-center justify-center rounded border"
+                        [ngClass]="isToolbarOptionSelected(filter, option) ? 'bg-[#1f4fbf] border-[#1f4fbf] text-white' : 'border-gray-300 bg-white'">
+                        @if (isToolbarOptionSelected(filter, option)) {
+                          <svg class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                          </svg>
+                        }
+                      </div>
+                      <span class="text-left">{{ option.name }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
             }
-          </button>
-          @if (showDeliveryModelDropdown) {
-            <div (click)="$event.stopPropagation()" class="absolute top-full left-0 mt-2 z-[60] w-[260px] rounded-xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] overflow-hidden">
-              <div class="p-2 flex flex-col gap-1 max-h-[360px] overflow-y-auto">
-                @for (option of deliveryModelOptions; track option.id) {
-                  <button (click)="toggleDeliveryModel(option, $event)"
-                    [ngClass]="isDeliveryModelSelected(option) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'"
-                    class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-[#0b1220] transition-colors">
-                    <div class="flex h-4 w-4 shrink-0 items-center justify-center rounded border"
-                      [ngClass]="isDeliveryModelSelected(option)
-                        ? 'bg-[#1f4fbf] border-[#1f4fbf] text-white'
-                        : 'border-gray-300 bg-white'">
-                      @if (isDeliveryModelSelected(option)) {
-                        <svg class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                        </svg>
-                      }
-                    </div>
-                    <span class="text-left">{{ option.name }}</span>
-                  </button>
-                }
-              </div>
-            </div>
-          }
-        </div>
-        <div class="relative shrink-0">
-          <button (click)="toggleComplianceDropdown($event)"
-            [ngClass]="selectedComplianceLevels.length > 0 ? 'border-[#1f4fbf] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'"
-            class="flex items-center gap-2 h-10 rounded-lg border pl-4 pr-3 text-[16px] font-normal transition-colors">
-            Compliance level
-            <svg class="h-4 w-4 transition-transform" [ngClass]="showComplianceDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-            </svg>
-          </button>
-          @if (showComplianceDropdown) {
-            <div (click)="$event.stopPropagation()" class="absolute top-full left-0 mt-2 z-50 w-[240px] rounded-xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] overflow-hidden">
-              <div class="p-2 flex flex-col gap-1">
-                @for (level of complianceLevels; track level) {
-                  <button (click)="toggleComplianceLevel(level, $event)"
-                    [ngClass]="isComplianceLevelSelected(level) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'"
-                    class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-[#0b1220] transition-colors">
-                    <div class="flex h-4 w-4 shrink-0 items-center justify-center rounded border"
-                      [ngClass]="isComplianceLevelSelected(level)
-                        ? 'bg-[#1f4fbf] border-[#1f4fbf] text-white'
-                        : 'border-gray-300 bg-white'">
-                      @if (isComplianceLevelSelected(level)) {
-                        <svg class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                        </svg>
-                      }
-                    </div>
-                    <span>{{ level }}</span>
-                  </button>
-                }
-              </div>
-            </div>
-          }
-        </div>
-        <div class="relative shrink-0">
-          <button (click)="toggleSectorDropdown($event)"
-            [ngClass]="selectedSectorIds.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'"
-            class="flex items-center gap-2 h-10 rounded-lg border pl-4 pr-3 text-[16px] font-normal transition-colors">
-            Addressable sector
-            @if (selectedSectorIds.length > 0) {
-              <span class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{ selectedSectorIds.length }}</span>
-              <span (click)="clearSectorSelection($event)" class="inline-flex h-5 w-5 items-center justify-center rounded-full hover:bg-[#DDE6F6] cursor-pointer">
-                <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              </span>
-            } @else {
-              <svg class="h-4 w-4 transition-transform" [ngClass]="showSectorDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-              </svg>
-            }
-          </button>
-          @if (showSectorDropdown) {
-            <div (click)="$event.stopPropagation()" class="absolute top-full left-0 mt-2 z-[60] w-[260px] rounded-xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] overflow-hidden">
-              <div class="p-2 flex flex-col gap-1 max-h-[360px] overflow-y-auto">
-                @for (option of sectorOptions; track option.id) {
-                  <button (click)="toggleSector(option, $event)"
-                    [ngClass]="isSectorSelected(option) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'"
-                    class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-[#0b1220] transition-colors">
-                    <div class="flex h-4 w-4 shrink-0 items-center justify-center rounded border"
-                      [ngClass]="isSectorSelected(option)
-                        ? 'bg-[#1f4fbf] border-[#1f4fbf] text-white'
-                        : 'border-gray-300 bg-white'">
-                      @if (isSectorSelected(option)) {
-                        <svg class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                        </svg>
-                      }
-                    </div>
-                    <span class="text-left">{{ option.name }}</span>
-                  </button>
-                }
-              </div>
-            </div>
-          }
-        </div>
-        <div class="relative shrink-0">
-          <button (click)="toggleProcurementDropdown($event)"
-            [ngClass]="selectedProcurementTypes.length > 0 ? 'border-[#1f4fbf] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'"
-            class="flex items-center gap-2 h-10 rounded-lg border pl-4 pr-3 text-[16px] font-normal transition-colors">
-            Procurement type
-            <svg class="h-4 w-4 transition-transform" [ngClass]="showProcurementDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-            </svg>
-          </button>
-          @if (showProcurementDropdown) {
-            <div (click)="$event.stopPropagation()" class="absolute top-full left-0 mt-2 z-50 w-[240px] rounded-xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] overflow-hidden">
-              <div class="p-2 flex flex-col gap-1">
-                @for (type of procurementTypes; track type) {
-                  <button (click)="toggleProcurementType(type, $event)"
-                    [ngClass]="isProcurementTypeSelected(type) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'"
-                    class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-[#0b1220] transition-colors">
-                    <div class="flex h-4 w-4 shrink-0 items-center justify-center rounded border"
-                      [ngClass]="isProcurementTypeSelected(type)
-                        ? 'bg-[#1f4fbf] border-[#1f4fbf] text-white'
-                        : 'border-gray-300 bg-white'">
-                      @if (isProcurementTypeSelected(type)) {
-                        <svg class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                        </svg>
-                      }
-                    </div>
-                    <span>{{ type }}</span>
-                  </button>
-                }
-              </div>
-            </div>
-          }
-        </div>
-        <div class="relative shrink-0">
-          <button (click)="toggleFrameworkDropdown($event)"
-            [ngClass]="selectedFrameworkIds.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'"
-            class="flex items-center gap-2 h-10 rounded-lg border pl-4 pr-3 text-[16px] font-normal transition-colors">
-            Integration type
-            @if (selectedFrameworkIds.length > 0) {
-              <span class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{ selectedFrameworkIds.length }}</span>
-              <span (click)="clearFrameworkSelection($event)" class="inline-flex h-5 w-5 items-center justify-center rounded-full hover:bg-[#DDE6F6] cursor-pointer">
-                <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              </span>
-            } @else {
-              <svg class="h-4 w-4 transition-transform" [ngClass]="showFrameworkDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-              </svg>
-            }
-          </button>
-          @if (showFrameworkDropdown) {
-            <div (click)="$event.stopPropagation()" class="absolute top-full left-0 mt-2 z-[60] w-[260px] rounded-xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] overflow-hidden">
-              <div class="p-2 flex flex-col gap-1 max-h-[360px] overflow-y-auto">
-                @for (option of frameworkOptions; track option.id) {
-                  <button (click)="toggleFramework(option, $event)"
-                    [ngClass]="isFrameworkSelected(option) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'"
-                    class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-[#0b1220] transition-colors">
-                    <div class="flex h-4 w-4 shrink-0 items-center justify-center rounded border"
-                      [ngClass]="isFrameworkSelected(option)
-                        ? 'bg-[#1f4fbf] border-[#1f4fbf] text-white'
-                        : 'border-gray-300 bg-white'">
-                      @if (isFrameworkSelected(option)) {
-                        <svg class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                        </svg>
-                      }
-                    </div>
-                    <span class="text-left">{{ option.name }}</span>
-                  </button>
-                }
-              </div>
-            </div>
-          }
-        </div>
+          </div>
+        }
       </div>
       <div class="shrink-0">
           <button (click)="clearFilters()" class="flex items-center gap-2 text-[16px] font-normal text-[#1f4fbf] hover:text-[#163b99] transition-colors">
