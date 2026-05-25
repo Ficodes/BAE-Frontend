@@ -318,10 +318,28 @@ export class ApiServiceService {
     return this.http.post<any>(url, catalog);
   }
 
+  postAdminCatalog(catalog: any) {
+    let url = `${ApiServiceService.BASE_URL}/admin/catalog/catalog`;
+
+    return this.http.post<any>(url, catalog);
+  }
+
   updateCatalog(catalog: any, id: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog/${id}`;
 
     return this.http.patch<any>(url, catalog);
+  }
+
+  updateAdminCatalog(catalog: any, id: any) {
+    let url = `${ApiServiceService.BASE_URL}/admin/catalog/catalog/${id}`;
+
+    return this.http.patch<any>(url, catalog);
+  }
+
+  setDefaultCatalog(catalogId: string) {
+    let url = `${ApiServiceService.BASE_URL}/admin/defaultcatalog`;
+
+    return this.http.post<any>(url, { catalogId });
   }
 
   getServiceSpec(id: any) {

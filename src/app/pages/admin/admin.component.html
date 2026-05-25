@@ -31,6 +31,9 @@
         <li>
           <a (click)="goToEmail()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'ADMIN._email' | translate }}</a>
         </li>
+        <li>
+          <a (click)="goToDefaultCatalog()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'ADMIN._defaultCatalog' | translate }}</a>
+        </li>
       </ul>
     </div>
     
@@ -48,6 +51,9 @@
             </button>
             <button (click)="goToEmail()" id="email-button" class="block w-full px-4 py-2 border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
               {{ 'ADMIN._email' | translate }}
+            </button>
+            <button (click)="goToDefaultCatalog()" id="default-catalog-button" class="block w-full px-4 py-2 border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 rounded-b-lg dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+              {{ 'ADMIN._defaultCatalog' | translate }}
             </button>
           </div>
        </div>
@@ -69,6 +75,9 @@
         }
         @if(show_email){
           <email></email>
+        }
+        @if(show_default_catalog){
+          <default-catalog></default-catalog>
         }
     </div>
 </div>
