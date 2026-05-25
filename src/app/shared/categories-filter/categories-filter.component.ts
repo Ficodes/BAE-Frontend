@@ -180,6 +180,7 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy, OnChanges {
       this.selectedCategories.emit(this.selected);
       this.localStorage.setObject('selected_categories', this.selected);
       this.eventMessage.emitAddedFilter(cat);
+      this.eventMessage.emitFiltersCommitted();
     }
   }
 
@@ -194,6 +195,7 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy, OnChanges {
       if (checkId !== -1) {
         this.checkedCategories.splice(checkId, 1);
       }
+      this.eventMessage.emitFiltersCommitted();
     }
   }
   
@@ -222,6 +224,7 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy, OnChanges {
         this.checkedCategories.splice(index, 1);
       }
     }
+    this.eventMessage.emitFiltersCommitted();
   }
 
   isCheckedCategory(cat:Category){

@@ -107,7 +107,8 @@ export class CategoryItemComponent implements OnInit, OnDestroy {
         this.checkedCategories.splice(index, 1);
       } 
     }
-    this.checked = !this.checked;    
+    this.checked = !this.checked;
+    this.eventMessage.emitFiltersCommitted();
   }
 
   onClickCategory(cat:Category){
@@ -123,6 +124,7 @@ export class CategoryItemComponent implements OnInit, OnDestroy {
         this.checkedCategories.splice(index, 1);
       }      
     }
+    this.eventMessage.emitFiltersCommitted();
   }
 
   isCheckedCategory(cat:Category){
