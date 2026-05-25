@@ -72,6 +72,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   procurementFilterKey = 'procurement_type';
   private procurementCache = new Map<string, boolean>();
   private productsRequestVersion = 0;
+  private readonly activeCategoryStorageKey = 'search_active_category_id';
 
   showSortDropdown = false;
   sortOption: 'name' | 'date_new' | 'date_old' = 'name';
@@ -472,6 +473,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       this.localStorage.removeCategoryFilter(storedFilters[i]);
       this.eventMessage.emitRemovedFilter(storedFilters[i]);
     }
+    this.setPersistedActiveCategoryId(null);
 
     this.state.clear();
 
@@ -601,6 +603,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     }
     this.activeCategoryName = null;
     this.activeCategoryId = null;
+    this.setPersistedActiveCategoryId(null);
     this.eventMessage.emitFiltersCommitted();
   }
 
@@ -632,10 +635,9 @@ export class SearchComponent implements OnInit, OnDestroy {
       this.eventMessage.emitRemovedFilter(f);
     }
     if (cat) {
-      this.localStorage.addCategoryFilter(cat);
-      this.eventMessage.emitAddedFilter(cat);
       this.activeCategoryName = cat.name;
       this.activeCategoryId = cat.id ?? null;
+      this.setPersistedActiveCategoryId(this.activeCategoryId);
 
       if (cat.id) {
         const children = await this.api.getCategoriesByParentId(cat.id).catch(() => []);
@@ -649,6 +651,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     } else {
       this.activeCategoryName = null;
       this.activeCategoryId = null;
+      this.setPersistedActiveCategoryId(null);
     }
     this.syncSelectionsFromStorage();
     this.eventMessage.emitFiltersCommitted();
@@ -706,8 +709,34 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (activeRoot) {
       this.activeCategoryName = activeRoot.name ?? null;
       this.activeCategoryId = activeRoot.id ?? null;
+      this.setPersistedActiveCategoryId(this.activeCategoryId);
+    } else {
+      const persistedRootId = this.getPersistedActiveCategoryId();
+      const persistedRoot = persistedRootId
+        ? this.rootCategories.find(root => root?.id === persistedRootId)
+        : undefined;
+      if (persistedRoot) {
+        this.activeCategoryName = persistedRoot.name ?? null;
+        this.activeCategoryId = persistedRoot.id ?? null;
+      } else {
+        this.activeCategoryName = null;
+        this.activeCategoryId = null;
+        this.setPersistedActiveCategoryId(null);
+      }
     }
     this.cdr.detectChanges();
+  }
+
+  private setPersistedActiveCategoryId(id: string | null): void {
+    if (id) {
+      this.localStorage.setItem(this.activeCategoryStorageKey, id);
+    } else {
+      this.localStorage.removeItem(this.activeCategoryStorageKey);
+    }
+  }
+
+  private getPersistedActiveCategoryId(): string | null {
+    return this.localStorage.getItem(this.activeCategoryStorageKey);
   }
 
   toggleCategoryDropdown(event?: Event): void {
