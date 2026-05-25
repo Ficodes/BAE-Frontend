@@ -86,6 +86,7 @@
       </form>
     </div>
 
+    @if (toolbarFilters.length > 0) {
     <div class="flex items-center justify-between rounded-2xl bg-white border border-[#EBECEE] shadow-sm p-3 flex-wrap gap-y-2">
       <div class="flex items-center gap-2">
         @for (filter of toolbarFilters; track filter.key) {
@@ -140,6 +141,7 @@
           </button>
         </div>
       </div>
+    }
 
   </div>
 
