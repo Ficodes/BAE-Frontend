@@ -24,6 +24,17 @@ import { PriceServiceService } from 'src/app/services/price-service.service';
 import { availableFilters, searchCategoriesConfig } from 'src/app/data/availableFilters';
 import { iconForCategory } from 'src/app/data/categoryIcons';
 
+type ToolbarFilter = {
+  key: string;
+  label: string;
+  source: 'configured' | 'categoryRoot';
+  rootName?: string;
+  clientSide: boolean;
+  options: Category[];
+  selectedIds: string[];
+  open: boolean;
+};
+
 @Component({
   selector: 'bae-search',
   templateUrl: './search.component.html',
@@ -58,28 +69,9 @@ export class SearchComponent implements OnInit, OnDestroy {
   primaryCategoriesMode = searchCategoriesConfig.primaryCategoriesMode;
   primaryRootName = searchCategoriesConfig.primaryRootName;
 
-  showComplianceDropdown = false;
-  complianceFilterKey = 'compliance_profile';
-  complianceLevels: string[] = [];
-  selectedComplianceLevels: string[] = [];
-
-  showProcurementDropdown = false;
+  toolbarFilters: ToolbarFilter[] = [];
   procurementFilterKey = 'procurement_type';
-  procurementTypes: string[] = [];
-  selectedProcurementTypes: string[] = [];
   private procurementCache = new Map<string, boolean>();
-
-  showDeliveryModelDropdown = false;
-  deliveryModelOptions: Category[] = [];
-  selectedDeliveryModelIds: string[] = [];
-
-  showSectorDropdown = false;
-  sectorOptions: Category[] = [];
-  selectedSectorIds: string[] = [];
-
-  showFrameworkDropdown = false;
-  frameworkOptions: Category[] = [];
-  selectedFrameworkIds: string[] = [];
 
   showSortDropdown = false;
   sortOption: 'name' | 'date_new' | 'date_old' = 'name';
@@ -119,14 +111,12 @@ export class SearchComponent implements OnInit, OnDestroy {
     ,
     private aiSearchService: AiSearchService,
     private priceService: PriceServiceService) {
-    const complianceFilter = availableFilters.find(f => f.name === this.complianceFilterKey);
-    this.complianceLevels = (complianceFilter?.children ?? []).map(c => c.name);
-    const procurementFilter = availableFilters.find(f => f.name === this.procurementFilterKey);
-    this.procurementTypes = (procurementFilter?.children ?? []).map(c => c.name);
+    this.initToolbarFilters();
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
     .subscribe(async ev => {
       if(ev.type === 'AddedFilter' || ev.type === 'RemovedFilter') {
+        this.syncSelectionsFromStorage();
         // Use AI search if enabled, otherwise use standard search
         if (this.aiSearchEnabled) {
           await this.runInitialAiSearch();
@@ -291,9 +281,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     if(this.showDrawer){
       this.showDrawer = false;
     }
-    const anyOpen = this.showCategoryDropdown || this.showComplianceDropdown ||
-      this.showProcurementDropdown || this.showSortDropdown ||
-      this.showDeliveryModelDropdown || this.showSectorDropdown || this.showFrameworkDropdown;
+    const anyOpen = this.showCategoryDropdown || this.showSortDropdown || this.toolbarFilters.some(filter => filter.open);
     if (anyOpen) {
       this.closeDropdownsExcept('none');
       this.cdr.detectChanges();
@@ -302,14 +290,15 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   get visibleProducts(): ProductOffering[] {
     let items = this.products;
-    if (this.selectedProcurementTypes.length > 0) {
+    const selectedProcurementTypes = this.getSelectedFilterLabels(this.procurementFilterKey);
+    if (selectedProcurementTypes.length > 0) {
       items = items.filter(p => {
         const key = (p as any).id;
         if (!key) return true;
         const isCustom = this.procurementCache.get(key);
         if (isCustom === undefined) return false;
         const label = isCustom ? 'Request Quote' : 'Ready to Buy';
-        return this.selectedProcurementTypes.includes(label);
+        return selectedProcurementTypes.includes(label);
       });
     }
     return this.applySort(items);
@@ -345,14 +334,14 @@ export class SearchComponent implements OnInit, OnDestroy {
     }
   }
 
-  private closeDropdownsExcept(keep: 'category' | 'compliance' | 'procurement' | 'sort' | 'delivery' | 'sector' | 'framework' | 'none'): void {
+  private closeDropdownsExcept(keep: string): void {
     if (keep !== 'category') this.showCategoryDropdown = false;
-    if (keep !== 'compliance') this.showComplianceDropdown = false;
-    if (keep !== 'procurement') this.showProcurementDropdown = false;
     if (keep !== 'sort') this.showSortDropdown = false;
-    if (keep !== 'delivery') this.showDeliveryModelDropdown = false;
-    if (keep !== 'sector') this.showSectorDropdown = false;
-    if (keep !== 'framework') this.showFrameworkDropdown = false;
+    for (const filter of this.toolbarFilters) {
+      if (keep !== filter.key) {
+        filter.open = false;
+      }
+    }
   }
 
   toggleSortDropdown(event: Event): void {
@@ -379,30 +368,6 @@ export class SearchComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleProcurementDropdown(event: Event): void {
-    event.stopPropagation();
-    this.showProcurementDropdown = !this.showProcurementDropdown;
-    this.closeDropdownsExcept('procurement');
-  }
-
-  isProcurementTypeSelected(type: string): boolean {
-    return this.selectedProcurementTypes.includes(type);
-  }
-
-  async toggleProcurementType(type: string, event: Event): Promise<void> {
-    event.stopPropagation();
-    const idx = this.selectedProcurementTypes.indexOf(type);
-    if (idx > -1) {
-      this.selectedProcurementTypes.splice(idx, 1);
-    } else {
-      this.selectedProcurementTypes.push(type);
-    }
-    if (this.selectedProcurementTypes.length > 0) {
-      await this.resolveProcurementCache(this.products);
-    }
-    this.cdr.detectChanges();
-  }
-
   private async resolveProcurementCache(products: ProductOffering[]): Promise<void> {
     const tasks = products
       .filter(p => (p as any).id && !this.procurementCache.has((p as any).id))
@@ -419,8 +384,75 @@ export class SearchComponent implements OnInit, OnDestroy {
   }
 
   private refreshProcurementFilter(): void {
-    if (this.selectedProcurementTypes.length === 0) return;
+    if (this.getSelectedFilterLabels(this.procurementFilterKey).length === 0) return;
     this.resolveProcurementCache(this.products).then(() => this.cdr.detectChanges());
+  }
+
+  private initToolbarFilters(): void {
+    this.toolbarFilters = availableFilters.map(filter => ({
+      key: filter.name,
+      label: filter.label ?? filter.name,
+      source: filter.source ?? 'configured',
+      rootName: filter.rootName,
+      clientSide: !!filter.clientSide,
+      options: (filter.source ?? 'configured') === 'configured'
+        ? (filter.children ?? []).map(child => ({ id: `${filter.name}::${child.name}`, name: child.name }))
+        : [],
+      selectedIds: [],
+      open: false,
+    }));
+  }
+
+  toggleToolbarFilterDropdown(filter: ToolbarFilter, event: Event): void {
+    event.stopPropagation();
+    filter.open = !filter.open;
+    this.closeDropdownsExcept(filter.key);
+  }
+
+  isToolbarOptionSelected(filter: ToolbarFilter, option: Category): boolean {
+    return !!option?.id && filter.selectedIds.includes(option.id);
+  }
+
+  async toggleToolbarOption(filter: ToolbarFilter, option: Category, event: Event): Promise<void> {
+    event.stopPropagation();
+    if (!option?.id) return;
+
+    const idx = filter.selectedIds.indexOf(option.id);
+    if (idx > -1) {
+      filter.selectedIds.splice(idx, 1);
+      this.localStorage.removeCategoryFilter(option);
+      this.eventMessage.emitRemovedFilter(option);
+    } else {
+      filter.selectedIds.push(option.id);
+      this.localStorage.addCategoryFilter(option);
+      this.eventMessage.emitAddedFilter(option);
+    }
+
+    if (filter.key === this.procurementFilterKey && filter.selectedIds.length > 0) {
+      await this.resolveProcurementCache(this.products);
+    }
+  }
+
+  clearToolbarFilterSelection(filter: ToolbarFilter, event: Event): void {
+    event.stopPropagation();
+    const idsToRemove = [...filter.selectedIds];
+    filter.selectedIds = [];
+    for (const id of idsToRemove) {
+      const option = filter.options.find(opt => opt.id === id);
+      if (option) {
+        this.localStorage.removeCategoryFilter(option);
+        this.eventMessage.emitRemovedFilter(option);
+      }
+    }
+  }
+
+  private getSelectedFilterLabels(filterKey: string): string[] {
+    const filter = this.toolbarFilters.find(item => item.key === filterKey);
+    if (!filter) return [];
+    const selectedSet = new Set(filter.selectedIds);
+    return filter.options
+      .filter(option => !!option.id && selectedSet.has(option.id))
+      .map(option => option.name);
   }
 
   ngOnDestroy(){
@@ -533,11 +565,9 @@ export class SearchComponent implements OnInit, OnDestroy {
       this.localStorage.removeCategoryFilter(f);
       this.eventMessage.emitRemovedFilter(f);
     }
-    this.selectedComplianceLevels = [];
-    this.selectedProcurementTypes = [];
-    this.selectedDeliveryModelIds = [];
-    this.selectedSectorIds = [];
-    this.selectedFrameworkIds = [];
+    for (const filter of this.toolbarFilters) {
+      filter.selectedIds = [];
+    }
     this.activeCategoryName = null;
     this.activeCategoryId = null;
   }
@@ -545,11 +575,12 @@ export class SearchComponent implements OnInit, OnDestroy {
   clearSubcategoryFilters(): void {
     const raw = this.localStorage.getObject('selected_categories');
     const storedFilters: Category[] = Array.isArray(raw) ? raw : [];
-    const pillIds = new Set<string>([
-      ...this.deliveryModelOptions.map(o => o.id).filter((id): id is string => !!id),
-      ...this.sectorOptions.map(o => o.id).filter((id): id is string => !!id),
-      ...this.frameworkOptions.map(o => o.id).filter((id): id is string => !!id),
-    ]);
+    const pillIds = new Set<string>(
+      this.toolbarFilters
+        .filter(filter => filter.source === 'categoryRoot')
+        .flatMap(filter => filter.options.map(option => option.id))
+        .filter((id): id is string => !!id)
+    );
     for (const f of storedFilters) {
       if (!f?.id) continue;
       if (String(f.id).includes('::')) continue;
@@ -586,6 +617,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       this.activeCategoryName = null;
       this.activeCategoryId = null;
     }
+    this.syncSelectionsFromStorage();
     this.showCategoryDropdown = false;
   }
 
@@ -605,33 +637,37 @@ export class SearchComponent implements OnInit, OnDestroy {
         }
       }
 
-      const deliveryRoot = list.find((c: any) => c?.name === 'Delivery Model');
-      const sectorRoot = list.find((c: any) => c?.name === 'Sector');
-      const frameworkRoot = list.find((c: any) => c?.name === 'Framework');
-
-      const [deliveryChildren, sectorChildren, frameworkChildren] = await Promise.all([
-        deliveryRoot?.id ? this.api.getCategoriesByParentId(deliveryRoot.id).catch(() => []) : Promise.resolve([]),
-        sectorRoot?.id ? this.api.getCategoriesByParentId(sectorRoot.id).catch(() => []) : Promise.resolve([]),
-        frameworkRoot?.id ? this.api.getCategoriesByParentId(frameworkRoot.id).catch(() => []) : Promise.resolve([]),
-      ]);
+      await Promise.all(
+        this.toolbarFilters
+          .filter(filter => filter.source === 'categoryRoot')
+          .map(async filter => {
+            const root = list.find((c: any) => c?.name === filter.rootName);
+            const children = root?.id ? await this.api.getCategoriesByParentId(root.id).catch(() => []) : [];
+            filter.options = Array.isArray(children) ? children : [];
+          })
+      );
 
       this.rootCategories = primaryCategories;
-      this.deliveryModelOptions = Array.isArray(deliveryChildren) ? deliveryChildren : [];
-      this.sectorOptions = Array.isArray(sectorChildren) ? sectorChildren : [];
-      this.frameworkOptions = Array.isArray(frameworkChildren) ? frameworkChildren : [];
       this.syncSelectionsFromStorage();
     } catch {
       this.rootCategories = [];
-      this.deliveryModelOptions = [];
-      this.sectorOptions = [];
-      this.frameworkOptions = [];
+      for (const filter of this.toolbarFilters) {
+        if (filter.source === 'categoryRoot') {
+          filter.options = [];
+        }
+      }
     }
   }
 
   private syncSelectionsFromStorage(): void {
     const raw = this.localStorage.getObject('selected_categories');
     const selected: Category[] = Array.isArray(raw) ? raw as Category[] : [];
-    this.syncPillSelectionsFromStorage(selected);
+    const ids = new Set(selected.map(c => c?.id).filter((id): id is string => !!id));
+    for (const filter of this.toolbarFilters) {
+      filter.selectedIds = filter.options
+        .map(option => option.id)
+        .filter((id): id is string => !!id && ids.has(id));
+    }
     const activeRoot = selected.find(c => !!c?.id && this.rootCategories.some(r => r.id === c.id));
     if (activeRoot) {
       this.activeCategoryName = activeRoot.name ?? null;
@@ -644,126 +680,6 @@ export class SearchComponent implements OnInit, OnDestroy {
     event?.stopPropagation();
     this.showCategoryDropdown = !this.showCategoryDropdown;
     this.closeDropdownsExcept('category');
-  }
-
-  toggleComplianceDropdown(event: Event): void {
-    event.stopPropagation();
-    this.showComplianceDropdown = !this.showComplianceDropdown;
-    this.closeDropdownsExcept('compliance');
-  }
-
-  isComplianceLevelSelected(level: string): boolean {
-    return this.selectedComplianceLevels.includes(level);
-  }
-
-  toggleComplianceLevel(level: string, event: Event): void {
-    event.stopPropagation();
-    const cat: Category = { id: `${this.complianceFilterKey}::${level}`, name: level };
-    const idx = this.selectedComplianceLevels.indexOf(level);
-    if (idx > -1) {
-      this.selectedComplianceLevels.splice(idx, 1);
-      this.localStorage.removeCategoryFilter(cat);
-      this.eventMessage.emitRemovedFilter(cat);
-    } else {
-      this.selectedComplianceLevels.push(level);
-      this.localStorage.addCategoryFilter(cat);
-      this.eventMessage.emitAddedFilter(cat);
-    }
-  }
-
-  toggleDeliveryModelDropdown(event: Event): void {
-    event.stopPropagation();
-    this.showDeliveryModelDropdown = !this.showDeliveryModelDropdown;
-    this.closeDropdownsExcept('delivery');
-  }
-
-  toggleSectorDropdown(event: Event): void {
-    event.stopPropagation();
-    this.showSectorDropdown = !this.showSectorDropdown;
-    this.closeDropdownsExcept('sector');
-  }
-
-  toggleFrameworkDropdown(event: Event): void {
-    event.stopPropagation();
-    this.showFrameworkDropdown = !this.showFrameworkDropdown;
-    this.closeDropdownsExcept('framework');
-  }
-
-  isDeliveryModelSelected(option: Category): boolean {
-    return !!option?.id && this.selectedDeliveryModelIds.includes(option.id);
-  }
-
-  isSectorSelected(option: Category): boolean {
-    return !!option?.id && this.selectedSectorIds.includes(option.id);
-  }
-
-  isFrameworkSelected(option: Category): boolean {
-    return !!option?.id && this.selectedFrameworkIds.includes(option.id);
-  }
-
-  toggleDeliveryModel(option: Category, event: Event): void {
-    this.togglePillOption(option, event, this.selectedDeliveryModelIds);
-  }
-
-  toggleSector(option: Category, event: Event): void {
-    this.togglePillOption(option, event, this.selectedSectorIds);
-  }
-
-  toggleFramework(option: Category, event: Event): void {
-    this.togglePillOption(option, event, this.selectedFrameworkIds);
-  }
-
-  private togglePillOption(option: Category, event: Event, selectedIds: string[]): void {
-    event.stopPropagation();
-    if (!option?.id) return;
-    const idx = selectedIds.indexOf(option.id);
-    if (idx > -1) {
-      selectedIds.splice(idx, 1);
-      this.localStorage.removeCategoryFilter(option);
-      this.eventMessage.emitRemovedFilter(option);
-    } else {
-      selectedIds.push(option.id);
-      this.localStorage.addCategoryFilter(option);
-      this.eventMessage.emitAddedFilter(option);
-    }
-  }
-
-  clearDeliveryModelSelection(event: Event): void {
-    this.clearPillSelection(event, this.selectedDeliveryModelIds, this.deliveryModelOptions);
-  }
-
-  clearSectorSelection(event: Event): void {
-    this.clearPillSelection(event, this.selectedSectorIds, this.sectorOptions);
-  }
-
-  clearFrameworkSelection(event: Event): void {
-    this.clearPillSelection(event, this.selectedFrameworkIds, this.frameworkOptions);
-  }
-
-  private clearPillSelection(event: Event, selectedIds: string[], options: Category[]): void {
-    event.stopPropagation();
-    const idsToRemove = [...selectedIds];
-    selectedIds.length = 0;
-    for (const id of idsToRemove) {
-      const option = options.find(o => o.id === id);
-      if (option) {
-        this.localStorage.removeCategoryFilter(option);
-        this.eventMessage.emitRemovedFilter(option);
-      }
-    }
-  }
-
-  private syncPillSelectionsFromStorage(selected: Category[]): void {
-    const ids = new Set(selected.map(c => c?.id).filter((id): id is string => !!id));
-    this.selectedDeliveryModelIds = this.deliveryModelOptions
-      .map(o => o.id)
-      .filter((id): id is string => !!id && ids.has(id));
-    this.selectedSectorIds = this.sectorOptions
-      .map(o => o.id)
-      .filter((id): id is string => !!id && ids.has(id));
-    this.selectedFrameworkIds = this.frameworkOptions
-      .map(o => o.id)
-      .filter((id): id is string => !!id && ids.has(id));
   }
 
   // Unified Search - triggers both standard search and AI answer
