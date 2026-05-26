@@ -132,10 +132,13 @@ describe('TenderListComponent', () => {
 
     const badge = fixture.nativeElement.querySelector('.status-badge') as HTMLElement;
     const row = fixture.nativeElement.querySelector('[data-quote-id="quote-1"]') as HTMLElement;
+    const statusCell = row.querySelector('[data-testid="provider-tender-status-cell"]') as HTMLElement;
 
     expect(badge.textContent?.trim()).toBe('Invite Received');
-    expect(badge.className).toContain('whitespace-nowrap');
+    expect(badge.className).toContain('max-w-full');
+    expect(badge.className).toContain('truncate');
     expect(row.className).toContain('grid-cols-12');
-    expect(row.querySelector('[data-testid="provider-tender-status-cell"]')?.className).toContain('col-span-2');
+    expect(statusCell.className).toContain('col-span-2');
+    expect(statusCell.className).toContain('min-w-0');
   });
 });

@@ -232,8 +232,8 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
               </div>
 
               <!-- Status -->
-              <div class="col-span-2" data-testid="provider-tender-status-cell">
-                <span class="status-badge inline-flex whitespace-nowrap rounded-full px-2 text-xs font-semibold leading-5"
+              <div class="col-span-2 min-w-0" data-testid="provider-tender-status-cell">
+                <span class="status-badge max-w-full truncate rounded-full px-2 text-xs font-semibold leading-5"
                       [ngClass]="getStateClass(getQuoteItemState(quote))">
                   {{ getStatusLabel(quote) }}
                 </span>
@@ -299,8 +299,8 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
               </div>
 
               <!-- Status -->
-              <div class="col-span-2">
-                <span class="status-badge inline-flex whitespace-nowrap rounded-full px-2 text-xs font-semibold leading-5"
+              <div class="col-span-2 min-w-0">
+                <span class="status-badge max-w-full truncate rounded-full px-2 text-xs font-semibold leading-5"
                       [ngClass]="getStateClass(getQuoteItemState(quote))">
                   {{ getStatusLabel(quote) }}
                 </span>
@@ -428,8 +428,8 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
                     </div>
 
                     <!-- Status -->
-                    <div class="col-span-2">
-                      <span class="status-badge inline-flex whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold leading-5"
+                    <div class="col-span-2 min-w-0">
+                      <span class="status-badge max-w-full truncate rounded-full px-2 py-0.5 text-xs font-semibold leading-5"
                             [ngClass]="getStateClass(getQuoteItemState(relatedQuote))">
                         {{ getStatusLabel(relatedQuote) }}
                       </span>
@@ -621,7 +621,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
   `,
   styles: [`
     .status-badge {
-      @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold;
+      @apply inline-block overflow-hidden text-ellipsis whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold;
     }
 
     .status-pending {
