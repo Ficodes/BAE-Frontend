@@ -624,6 +624,22 @@ export class SearchComponent implements OnInit, OnDestroy {
       this.localStorage.removeCategoryFilter(f);
       this.eventMessage.emitRemovedFilter(f);
     }
+
+    // Keep current category scope after clearing subcategories.
+    if (this.activeCategoryId) {
+      const updatedRaw = this.localStorage.getObject('selected_categories');
+      const updatedFilters: Category[] = Array.isArray(updatedRaw) ? updatedRaw : [];
+      const hasParent = updatedFilters.some(f => f?.id === this.activeCategoryId);
+      if (!hasParent) {
+        const parentFilter: Category = {
+          id: this.activeCategoryId,
+          name: this.activeCategoryName || 'Category'
+        };
+        this.localStorage.addCategoryFilter(parentFilter);
+        this.eventMessage.emitAddedFilter(parentFilter);
+      }
+    }
+
     this.eventMessage.emitFiltersCommitted();
   }
 
