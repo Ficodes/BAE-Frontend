@@ -9,7 +9,7 @@ import {faCircleCheck} from "@fortawesome/pro-solid-svg-icons";
 import {faCircle} from "@fortawesome/pro-regular-svg-icons";
 import { takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
-import availableFilters, { type Filter } from '../../data/availableFilters';
+import availableFilters, { type Filter, type FilterOption } from '../../data/availableFilters';
 import { iconForCategory } from '../../data/categoryIcons';
 
 @Component({
@@ -573,19 +573,28 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private convertFiltersToCategories(filters: Filter[]): Category[] {
-    return filters.map(filter => this.convertFilterToCategory(filter, true, filter.name));
+    return filters.map(filter => this.convertFilterToCategory(filter));
   }
 
-  private convertFilterToCategory(filter: Filter, isRoot: boolean = false, rootFilterName?: string): Category {
-    const filterKey = rootFilterName || filter.name;
-    const sanitizedId = this.sanitizeIdForCss(filter.name);
-
+  private convertFilterToCategory(filter: Filter): Category {
+    const filterKey = filter.name;
     return {
-      id: isRoot ? filter.name : `${filterKey}::${filter.name}`,
-      name: isRoot ? this.formatFacetName(filter.name) : filter.name,
-      isRoot,
-      children: (filter.children || []).map(child => this.convertFilterToCategory(child, false, filterKey)),
-      sanitizedId: isRoot ? sanitizedId : `${this.sanitizeIdForCss(filterKey)}-${sanitizedId}`
+      id: filter.name,
+      name: this.formatFacetName(filter.name),
+      isRoot: true,
+      children: (filter.children || []).map(child => this.convertOptionToCategory(filterKey, child)),
+      sanitizedId: this.sanitizeIdForCss(filter.name)
+    };
+  }
+
+  private convertOptionToCategory(filterKey: string, option: FilterOption): Category {
+    const optionId = `${filterKey}::${option.name}`;
+    return {
+      id: optionId,
+      name: option.label?.trim() || option.name,
+      isRoot: false,
+      children: [],
+      sanitizedId: `${this.sanitizeIdForCss(filterKey)}-${this.sanitizeIdForCss(option.name)}`
     };
   }
 

@@ -1,9 +1,14 @@
+export type FilterOption = {
+  name: string
+  label?: string
+}
+
 export type Filter = {
   name: string
   label?: string
   source?: 'configured' | 'categoryRoot'
   rootName?: string
-  children?: Filter[]
+  children?: FilterOption[]
 }
 
 export type PrimaryCategoriesMode = 'rooted' | 'catalogFirstLevel'
@@ -37,8 +42,24 @@ type RuntimeSearchFiltersConfig = {
 function cloneFilters(filters: Filter[]): Filter[] {
   return (filters || []).map(filter => ({
     ...filter,
-    children: filter.children ? cloneFilters(filter.children) : undefined,
+    children: filter.children
+      ? filter.children.map(child => ({
+          name: child.name,
+          label: child.label,
+        }))
+      : undefined,
   }))
+}
+
+function normalizeFilterOption(raw: any): FilterOption | null {
+  if (!raw || typeof raw !== 'object' || typeof raw.name !== 'string' || raw.name.trim() === '') {
+    return null
+  }
+
+  return {
+    name: raw.name.trim(),
+    label: typeof raw.label === 'string' ? raw.label : undefined,
+  }
 }
 
 function normalizeFilter(raw: any): Filter | null {
@@ -52,8 +73,8 @@ function normalizeFilter(raw: any): Filter | null {
     label: typeof raw.label === 'string' ? raw.label : undefined,
     source,
     rootName: source === 'categoryRoot' && typeof raw.rootName === 'string' ? raw.rootName : undefined,
-    children: Array.isArray(raw.children)
-      ? raw.children.map(normalizeFilter).filter((child: Filter | null): child is Filter => !!child)
+    children: source === 'configured' && Array.isArray(raw.children)
+      ? raw.children.map(normalizeFilterOption).filter((child: FilterOption | null): child is FilterOption => !!child)
       : undefined,
   }
 
@@ -71,15 +92,22 @@ function getRuntimeSearchFiltersConfig(config: any): RuntimeSearchFiltersConfig 
 export function applyRuntimeSearchFiltersConfig(config: any): void {
   const runtimeConfig = getRuntimeSearchFiltersConfig(config)
 
-  const nextMode = runtimeConfig?.primaryCategoriesMode === 'catalogFirstLevel'
-    ? 'catalogFirstLevel'
-    : DEFAULT_SEARCH_CATEGORIES_CONFIG.primaryCategoriesMode
+  const nextMode = runtimeConfig?.primaryCategoriesMode === 'rooted'
+    ? 'rooted'
+    : 'catalogFirstLevel'
 
-  const nextRootName = typeof runtimeConfig?.primaryRootName === 'string' && runtimeConfig.primaryRootName.trim() !== ''
+  if (nextMode === 'catalogFirstLevel') {
+    searchCategoriesConfig.primaryCategoriesMode = 'catalogFirstLevel'
+    searchCategoriesConfig.primaryRootName = ''
+    availableFilters.splice(0, availableFilters.length, ...cloneFilters(DEFAULT_AVAILABLE_FILTERS))
+    return
+  }
+
+  const nextRootName = typeof runtimeConfig?.primaryRootName === 'string'
     ? runtimeConfig.primaryRootName.trim()
     : DEFAULT_SEARCH_CATEGORIES_CONFIG.primaryRootName
 
-  searchCategoriesConfig.primaryCategoriesMode = nextMode
+  searchCategoriesConfig.primaryCategoriesMode = 'rooted'
   searchCategoriesConfig.primaryRootName = nextRootName
 
   const rawFilters = runtimeConfig?.filters
