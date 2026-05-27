@@ -400,7 +400,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       source: filter.source ?? 'configured',
       rootName: filter.rootName,
       options: (filter.source ?? 'configured') === 'configured'
-        ? (filter.children ?? []).map(child => ({ id: `${filter.name}::${child.name}`, name: child.name }))
+        ? (filter.children ?? []).map(child => ({ id: `${filter.name}::${child.name}`, name: child.label ?? child.name }))
         : [],
       selectedIds: [],
       open: false,
