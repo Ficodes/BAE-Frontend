@@ -1404,6 +1404,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
         this._safeInvitedList = [];
 
         this.notificationService.showSuccess(`${providerIds.length} provider(s) has been saved for invite`);
+        this.tenderUpdated.emit();
         this.tenderLoading = false;
       })
       .catch(error => {
@@ -1417,7 +1418,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
    * Remove an invited provider by deleting their tendering quote
    */
   removeInvitedProvider(quoteId: string, providerId: string | undefined) {
-    if (!providerId) return;
+    if (!quoteId) return;
 
     this.showConfirmation(
       'Remove Provider',
@@ -1431,6 +1432,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
 
             // Remove from invited list
             this.invitedProviders = this.invitedProviders.filter(ip => ip.quoteId !== quoteId);
+            this.rebuildSelectionAndAvailable();
 
             this.notificationService.showSuccess('Provider invitation removed successfully');
             this.tenderLoading = false;
@@ -1458,6 +1460,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
                 '— quote was deleted on the backend. Removing from UI anyway.'
               );
               this.invitedProviders = this.invitedProviders.filter(ip => ip.quoteId !== quoteId);
+              this.rebuildSelectionAndAvailable();
               this.notificationService.showSuccess('Provider invitation removed successfully');
             } else {
               console.error('Error deleting quote:', error);
