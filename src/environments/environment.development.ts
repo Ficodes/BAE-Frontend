@@ -20,6 +20,7 @@ export const environment = {
   CHARGING: '/charging',
 
   searchOrganizationsEndpoint: '/search-bck/api/searchOrganizations?size=1000',
+  providerCountriesUrl: 'https://raw.githubusercontent.com/DOME-Marketplace/eu-eea-countries/refs/heads/main/countries.json',
   //searchOrganizationsEndpoint: 'org-api/searchOrganizations',
 
   CUSTOMER_BILLING: '/customerBill',

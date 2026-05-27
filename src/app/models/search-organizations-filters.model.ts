@@ -1,8 +1,45 @@
+import { Category } from './interfaces';
+
 export interface SearchOrganizationsFilters {
   categories: string[];
   countries: string[];
   complianceLevels: string[];
 }
+
+export interface ComplianceLevelOption {
+  code: string;
+  label: string;
+}
+
+export interface ProviderCountryOption {
+  code: string;
+  label: string;
+}
+
+export type ProviderCountryListResponse = Record<string, Record<string, string>>;
+
+export interface TenderProviderFilterState {
+  serviceCategoryLeafNames?: string[];
+  addressableSectorLeafNames?: string[];
+  integrationFrameworkLeafNames?: string[];
+  countryCodes?: string[];
+  complianceLevels?: string[];
+}
+
+export interface TenderCatalogueFacetOptions {
+  serviceCategories: Category[];
+  addressableSectors: Category[];
+  integrationFrameworks: Category[];
+}
+
+export const PROVIDER_COUNTRY_LIST_URL =
+  'https://raw.githubusercontent.com/DOME-Marketplace/eu-eea-countries/refs/heads/main/countries.json';
+
+export const TENDER_COMPLIANCE_LEVELS: ComplianceLevelOption[] = [
+  { code: 'BL', label: 'Baseline' },
+  { code: 'P', label: 'Professional' },
+  { code: 'PP', label: 'Professional+' },
+];
 
 const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
 
@@ -23,15 +60,128 @@ export function complianceLevelsName(code: string | null | undefined): string {
   if (!code) return '';
 
   const upper = code.toUpperCase();
+  const match = TENDER_COMPLIANCE_LEVELS.find(option => option.code === upper);
 
-  const map: Record<string, string> = {
-    'BL': 'Baseline',
-    'P': 'Professional',
-    'P+': 'Professional+',
-  };
-
-  return map[upper] ?? upper;
+  return match?.label ?? upper;
 }
 
+export function parseProviderCountryList(
+  response: ProviderCountryListResponse | null | undefined,
+  locale = 'en'
+): ProviderCountryOption[] {
+  return Object.entries(response ?? {})
+    .map(([code, labels]) => ({
+      code: code.toUpperCase(),
+      label: labels?.[locale] ?? labels?.['en'] ?? Object.values(labels ?? {})[0] ?? code.toUpperCase(),
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+}
 
+export function buildTenderProviderSearchFilters(
+  state: TenderProviderFilterState = {}
+): SearchOrganizationsFilters {
+  return {
+    categories: unique([
+      ...(state.serviceCategoryLeafNames ?? []),
+      ...(state.addressableSectorLeafNames ?? []),
+      ...(state.integrationFrameworkLeafNames ?? []),
+    ]),
+    countries: unique(state.countryCodes ?? []),
+    complianceLevels: unique(state.complianceLevels ?? []),
+  };
+}
+
+export function hasTenderProviderSearchFilters(filters: SearchOrganizationsFilters): boolean {
+  return Boolean(
+    filters.categories.length ||
+    filters.countries.length ||
+    filters.complianceLevels.length
+  );
+}
+
+export function shouldUseUnfilteredProviderFallback(filters: SearchOrganizationsFilters): boolean {
+  return !hasTenderProviderSearchFilters(filters);
+}
+
+export async function resolveTenderCategoryLeafNames(
+  category: Category,
+  loadChildren: (id: string) => Promise<Category[]>
+): Promise<string[]> {
+  if (!category.id) return [category.name];
+
+  const children = await loadChildren(category.id);
+  const childList = Array.isArray(children) ? children : [];
+
+  if (childList.length === 0) return [category.name];
+
+  const nested = await Promise.all(
+    childList.map(child => resolveTenderCategoryLeafNames(child, loadChildren))
+  );
+
+  return nested.flat();
+}
+
+export async function resolveTenderCatalogueFacetOptions(
+  roots: Category[],
+  loadChildren: (id: string) => Promise<Category[]>
+): Promise<TenderCatalogueFacetOptions> {
+  const list = Array.isArray(roots) ? roots : [];
+  const serviceCategoryRoot = findCatalogueFacetRoot(list, ['DOME Categories']);
+  const sectorRoot = findCatalogueFacetRoot(list, [
+    'Sector',
+    'Sectors',
+    'Addressable Sector',
+    'Addressable Sectors',
+  ]);
+  const frameworkRoot = findCatalogueFacetRoot(list, [
+    'Framework',
+    'Frameworks',
+    'Integration Framework',
+    'Integration Frameworks',
+    'Integration Type',
+    'Integration Types',
+  ]);
+
+  const [serviceCategories, addressableSectors, integrationFrameworks] = await Promise.all([
+    loadFacetChildren(serviceCategoryRoot, loadChildren),
+    loadFacetChildren(sectorRoot, loadChildren),
+    loadFacetChildren(frameworkRoot, loadChildren),
+  ]);
+
+  return {
+    serviceCategories,
+    addressableSectors,
+    integrationFrameworks,
+  };
+}
+
+function unique(values: string[]): string[] {
+  return Array.from(new Set(values.filter(Boolean)));
+}
+
+function findCatalogueFacetRoot(roots: Category[], aliases: string[]): Category | undefined {
+  const aliasSet = new Set(aliases.map(normalizeCatalogueFacetName));
+  return roots.find(root => aliasSet.has(normalizeCatalogueFacetName(root?.name)));
+}
+
+async function loadFacetChildren(
+  root: Category | undefined,
+  loadChildren: (id: string) => Promise<Category[]>
+): Promise<Category[]> {
+  if (!root?.id) return [];
+
+  try {
+    const children = await loadChildren(root.id);
+    return Array.isArray(children) ? children : [];
+  } catch {
+    return [];
+  }
+}
+
+function normalizeCatalogueFacetName(value: string | null | undefined): string {
+  return (value ?? '')
+    .normalize('NFKD')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '');
+}
 
