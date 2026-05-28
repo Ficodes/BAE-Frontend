@@ -85,6 +85,16 @@
                               placeholder="ai, automation, product updates"/>
                       <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">Separate tags with commas.</p>
 
+                      <label for="author" class="font-bold text-lg dark:text-white">Author</label>
+                      <input data-cy="blogEntryAuthor" id="author" type="text" formControlName="author"
+                              class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                              placeholder="Optional. If empty on create, current session user is used"/>
+
+                      <label for="date" class="font-bold text-lg dark:text-white">Date</label>
+                      <input data-cy="blogEntryDate" id="date" type="datetime-local" formControlName="date"
+                              class="mb-3 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"/>
+                      <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">Optional. Leave empty to avoid sending a date.</p>
+
                       <label for="featuredImageFile" class="font-bold text-lg dark:text-white">Featured image</label>
                       @if(getFeaturedImageUrl()){
                         <div class="relative mb-3 mt-2 w-full">

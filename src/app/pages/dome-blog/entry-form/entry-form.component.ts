@@ -39,6 +39,8 @@ export class EntryFormComponent implements OnInit {
     metaDescription: new FormControl('', [Validators.maxLength(160)]),
     excerpt: new FormControl('', [Validators.maxLength(300)]),
     tags: new FormControl(''),
+    author: new FormControl(''),
+    date: new FormControl(''),
     content: new FormControl('', [Validators.required]),
   });
 
@@ -70,6 +72,8 @@ export class EntryFormComponent implements OnInit {
       this.entryForm.controls['metaDescription'].setValue(blogInfo.metaDescription || '');
       this.entryForm.controls['excerpt'].setValue(blogInfo.excerpt || '');
       this.entryForm.controls['tags'].setValue(this.formatTagsForInput(blogInfo.tags));
+      this.entryForm.controls['author'].setValue((blogInfo.author || '').toString().trim());
+      this.entryForm.controls['date'].setValue(this.formatDateForInput(blogInfo.date));
       this.slugManuallyEdited = slugValue.length > 0 && slugValue !== this.slugify(blogInfo.title || '');
       this.entryForm.controls['content'].setValue(blogInfo.content);
     } else {
@@ -88,7 +92,9 @@ export class EntryFormComponent implements OnInit {
       return;
     }
 
-    let body={
+    const authorFromForm = this.normalizeOptionalText(this.entryForm.controls['author'].value);
+    const dateFromForm = this.normalizeOptionalText(this.entryForm.controls['date'].value);
+    let body:any={
       title: this.entryForm.value.title,
       slug: this.entryForm.value.slug,
       featuredImage: this.getFeaturedImageUrl(),
@@ -96,8 +102,11 @@ export class EntryFormComponent implements OnInit {
       excerpt: this.entryForm.value.excerpt,
       tags: this.parseTagsFromForm(),
       partyId: this.partyId,
-      author: this.name,
+      author: authorFromForm || this.name,
       content: this.entryForm.value.content,
+    }
+    if (dateFromForm) {
+      body.date = dateFromForm;
     }
     //await lastValueFrom(this.domeBlogService.createBlogEntry(body))
     this.domeBlogService.createBlogEntry(body).subscribe({
@@ -128,7 +137,9 @@ export class EntryFormComponent implements OnInit {
       return;
     }
 
-    let body={
+    const authorFromForm = this.normalizeOptionalText(this.entryForm.controls['author'].value);
+    const dateFromForm = this.normalizeOptionalText(this.entryForm.controls['date'].value);
+    let body:any={
       title: this.entryForm.value.title,
       slug: this.entryForm.value.slug,
       featuredImage: this.getFeaturedImageUrl(),
@@ -136,6 +147,12 @@ export class EntryFormComponent implements OnInit {
       excerpt: this.entryForm.value.excerpt,
       tags: this.parseTagsFromForm(),
       content: this.entryForm.value.content
+    }
+    if (authorFromForm) {
+      body.author = authorFromForm;
+    }
+    if (dateFromForm) {
+      body.date = dateFromForm;
     }
     //await lastValueFrom(this.domeBlogService.createBlogEntry(body))
     try {
@@ -402,6 +419,32 @@ export class EntryFormComponent implements OnInit {
     }
 
     return '';
+  }
+
+  private normalizeOptionalText(value: any): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    return value.toString().trim();
+  }
+
+  private formatDateForInput(value: any): string {
+    const rawDate = this.normalizeOptionalText(value);
+    if (!rawDate) {
+      return '';
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(rawDate)) {
+      return rawDate;
+    }
+
+    const parsedDate = moment(rawDate);
+    if (!parsedDate.isValid()) {
+      return '';
+    }
+
+    return parsedDate.format('YYYY-MM-DDTHH:mm');
   }
 
   private showTemporaryError(message: string) {

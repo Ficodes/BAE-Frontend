@@ -88,7 +88,7 @@ describe('EntryFormComponent', () => {
     expect(component.entryForm.controls['tags'].value).toBe('one, two');
   });
 
-  it('should include tags and seo fields in create payload', async () => {
+  it('should include tags and seo fields in create payload and fallback author from session info', async () => {
     const { component, domeBlogService, router } = buildComponent();
     component.partyId = 'party-1';
     component.name = 'Author Name';
@@ -99,6 +99,8 @@ describe('EntryFormComponent', () => {
       metaDescription: 'Meta',
       excerpt: 'Excerpt',
       tags: 'AI, ai, Launches',
+      author: '',
+      date: '',
       content: 'Body'
     });
 
@@ -146,11 +148,43 @@ describe('EntryFormComponent', () => {
       metaDescription: '',
       excerpt: '',
       tags: '',
+      author: '',
+      date: '',
       content: 'Body'
     });
     component.uploadingFeaturedImage = true;
 
     expect(component.canSubmit()).toBeFalse();
+  });
+
+  it('should include optional author and date on update payload when provided', async () => {
+    const { component, domeBlogService } = buildComponent({ routeId: 'entry-1' });
+    component.blogId = 'entry-1';
+    component.entryForm.setValue({
+      title: 'Updated entry',
+      slug: 'updated-entry',
+      featuredImage: '',
+      metaDescription: '',
+      excerpt: '',
+      tags: 'one, two',
+      author: 'Manual Author',
+      date: '2026-05-27T10:30',
+      content: 'Updated body'
+    });
+
+    await component.update();
+
+    expect(domeBlogService.updateBlogEntry).toHaveBeenCalledWith({
+      title: 'Updated entry',
+      slug: 'updated-entry',
+      featuredImage: '',
+      metaDescription: '',
+      excerpt: '',
+      tags: ['one', 'two'],
+      content: 'Updated body',
+      author: 'Manual Author',
+      date: '2026-05-27T10:30'
+    }, 'entry-1');
   });
 
   it('should delete entry and navigate back when confirmed', async () => {
