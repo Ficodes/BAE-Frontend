@@ -23,6 +23,7 @@ import { AiSearchService } from 'src/app/services/ai-search.service';
 import { PriceServiceService } from 'src/app/services/price-service.service';
 import { availableFilters, searchCategoriesConfig } from 'src/app/data/availableFilters';
 import { iconForCategory } from 'src/app/data/categoryIcons';
+import { ThemeService } from 'src/app/services/theme.service';
 
 type ToolbarFilter = {
   key: string;
@@ -75,16 +76,17 @@ export class SearchComponent implements OnInit, OnDestroy {
   private readonly activeCategoryStorageKey = 'search_active_category_id';
 
   showSortDropdown = false;
-  sortOption: 'name' | 'date_new' | 'date_old' = 'name';
+  sortOption: 'name' | 'date_new' | 'date_old' = 'date_new';
   sortOptions: { value: 'name' | 'date_new' | 'date_old'; label: string }[] = [
-    { value: 'name', label: 'Name' },
     { value: 'date_new', label: 'Newest first' },
     { value: 'date_old', label: 'Oldest first' },
+    { value: 'name', label: 'Name' },
   ];
 
   get sortLabel(): string {
     return this.sortOptions.find(o => o.value === this.sortOption)?.label ?? 'Name';
   }
+  marketplaceHomeUrl = '/search';
 
 
   // AI Search properties
@@ -111,7 +113,8 @@ export class SearchComponent implements OnInit, OnDestroy {
     private state: SearchStateService
     ,
     private aiSearchService: AiSearchService,
-    private priceService: PriceServiceService) {
+    private priceService: PriceServiceService,
+    private themeService: ThemeService) {
     this.initToolbarFilters();
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -141,6 +144,11 @@ export class SearchComponent implements OnInit, OnDestroy {
   } 
 
   async ngOnInit() {
+    this.themeService.currentTheme$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(theme => {
+        this.marketplaceHomeUrl = theme?.links?.marketplaceHomeUrl || '/search';
+      });
 
     this.router.events
     .pipe(takeUntil(this.destroy$))
@@ -306,7 +314,10 @@ export class SearchComponent implements OnInit, OnDestroy {
         return selectedProcurementTypes.includes(label);
       });
     }
-    return this.applySort(items);
+    // Local sort intentionally disabled to avoid client-side reordering
+    // when new paginated batches are appended.
+    // return this.applySort(items);
+    return items;
   }
 
   private applySort(items: ProductOffering[]): ProductOffering[] {
@@ -333,8 +344,8 @@ export class SearchComponent implements OnInit, OnDestroy {
   private getSortParam(): string | undefined {
     switch (this.sortOption) {
       case 'name': return 'name';
-      case 'date_new': return '-validFor.startDateTime';
-      case 'date_old': return 'validFor.startDateTime';
+      case 'date_new': return '-lastUpdate';
+      case 'date_old': return 'lastUpdate';
       default: return undefined;
     }
   }

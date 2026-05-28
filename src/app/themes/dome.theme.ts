@@ -132,6 +132,7 @@ export const DOME_THEME_CONFIG: ThemeConfig = {
     headerLinks: domeHeaderLinks,
     footerLinks: domeFooterLinks,
     footerLinksColsNumber: domeFooterLinks.length,
+    marketplaceHomeUrl: '/browse',
 
     linkedin: environment.DOME_LINKEDIN,
     youtube: environment.DOME_YOUTUBE,

@@ -11,6 +11,7 @@ import { LocalStorageService } from '../../services/local-storage.service';
 import { EventMessageService } from '../../services/event-message.service';
 import { SearchStateService } from '../../services/search-state.service';
 import { LoginServiceService } from 'src/app/services/login-service.service';
+import { ThemeService } from 'src/app/services/theme.service';
 
 describe('SearchComponent', () => {
   let component: SearchComponent;
@@ -97,6 +98,7 @@ describe('SearchComponent', () => {
         { provide: EventMessageService, useValue: eventMessageSpy },
         { provide: SearchStateService, useValue: stateMock },
         { provide: LoginServiceService, useValue: {} },
+        { provide: ThemeService, useValue: { currentTheme$: new Subject<any>().asObservable() } },
         { provide: Router, useValue: routerSpy },
         {
           provide: ActivatedRoute,
@@ -224,7 +226,7 @@ describe('SearchComponent', () => {
       false,
       [{ id: 'old' }],
       [{ id: 'next-old' }],
-      { keywords: 'gpu', filters: [{ id: 'cat-1' }] },
+      { keywords: 'gpu', filters: [{ id: 'cat-1' }], sort: '-lastUpdate' },
       jasmine.any(Function),
     );
     expect(apiSpy.getProductsDetails).toHaveBeenCalledTimes(2);
