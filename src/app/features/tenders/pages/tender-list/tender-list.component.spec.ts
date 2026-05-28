@@ -111,6 +111,29 @@ describe('TenderListComponent', () => {
     expect(badge.textContent?.trim()).toBe('Tender Closed');
   });
 
+  it('adds status explanations to tender badges for mouseover', () => {
+    fixture.detectChanges();
+
+    component.selectedRole = UI_ROLES.BUYER;
+    component.loading = false;
+    component.error = null;
+    component.filteredQuotes = [
+      {
+        id: 'quote-1',
+        category: QUOTE_CATEGORIES.COORDINATOR,
+        description: 'Tender waiting for providers',
+        quoteItem: [{ state: QUOTE_STATUSES.IN_PROGRESS }],
+      } as Quote,
+    ];
+
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('.status-badge') as HTMLElement;
+
+    expect(badge.getAttribute('title')).toContain('The invited providers now have time to accept or decline the invite to the tender');
+    expect(badge.getAttribute('title')).toContain('Available actions: View provider responses, send messages, monitor progress, or start the tender');
+  });
+
   it('keeps provider tender status badges readable in the table row', () => {
     fixture.detectChanges();
 

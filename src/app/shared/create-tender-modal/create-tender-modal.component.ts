@@ -227,7 +227,7 @@ import {
           </section>
 
           <!-- Loading State -->
-          <div *ngIf="tenderLoading" class="flex justify-center py-8">
+          <div *ngIf="providerSearchLoading" class="flex justify-center py-8">
             <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-[#1f4fbf]"></div>
           </div>
 
@@ -236,7 +236,7 @@ import {
             <p class="text-sm font-semibold text-[#B42318]">{{ tenderError }}</p>
           </div>
 
-          <div *ngIf="!tenderLoading && !tenderError">
+          <div *ngIf="!tenderError">
             <!-- Already Invited Providers Section -->
             <div *ngIf="invitedProviders.length > 0" class="mb-5">
               <label class="mb-2 block text-sm font-semibold text-[#324153]">
@@ -458,11 +458,11 @@ import {
               </button>
               <button
                 (click)="saveProvidersList()"
-                [disabled]="selectedProviders.size === 0 || tenderLoading"
+                [disabled]="selectedProviders.size === 0 || providerInviteSaving || providerSearchLoading"
                 [title]="selectedProviders.size === 0 ? 'Please select at least one provider' : ''"
                 class="group relative inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {{ tenderLoading ? 'Inviting...' : 'Save Providers List' }}
+                {{ providerInviteSaving ? 'Inviting...' : 'Save Providers List' }}
                 <span
                   *ngIf="selectedProviders.size === 0"
                   class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
@@ -472,7 +472,7 @@ import {
               </button>
               <button
                 (click)="finalizeTender()"
-                [disabled]="invitedProviders.length === 0 || tenderLoading"
+                [disabled]="invitedProviders.length === 0 || tenderLoading || providerInviteSaving"
                 [title]="invitedProviders.length === 0 ? 'Please invite at least one provider first' : ''"
                 class="group relative inline-flex h-10 items-center rounded-lg bg-[#006B4A] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#00523A] disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -525,6 +525,8 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   selectedProviders: Set<string> = new Set();
   invitedProviders: Array<{ provider: Provider; quoteId: string }> = [];
   tenderLoading = false;
+  providerSearchLoading = false;
+  providerInviteSaving = false;
   tenderError: string | null = null;
   providerSearchWarning: string | null = null;
 
@@ -680,6 +682,8 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
     this.invitedProviders = [];
     this.tenderProviders = [];
     this.tenderError = null;
+    this.providerSearchLoading = false;
+    this.providerInviteSaving = false;
     this.editingTenderId = null;
     this.resetTenderForm();
     this.closeModal.emit();
@@ -717,6 +721,8 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
     this.selectedPdfFile = null;
     this.pdfAttachmentSet = false;
     this.invitedProviders = [];
+    this.providerSearchLoading = false;
+    this.providerInviteSaving = false;
   }
 
   /**
@@ -856,21 +862,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
 
     this.quoteService.addAttachmentToQuote(this.createdQuoteId, this.selectedPdfFile, '').subscribe({
       next: (updatedQuote: any) => {
-        this.pdfAttachmentSet = true;
-
-        // Extract attachment from quoteItem (where it's actually stored)
-        if (updatedQuote.quoteItem && updatedQuote.quoteItem.length > 0) {
-          const firstItem = updatedQuote.quoteItem[0];
-          if (firstItem.attachment && firstItem.attachment.length > 0) {
-            const att = firstItem.attachment[0];
-            this.existingAttachment = {
-              name: att.name || 'attachment.pdf',
-              mimeType: att.mimeType || 'application/pdf',
-              content: att.content || '',
-              size: att.size?.amount
-            };
-          }
-        }
+        this.setAttachmentFromQuoteOrFile(updatedQuote, this.selectedPdfFile);
 
         // Reset the file input to show the updated state
         this.selectedPdfFile = null;
@@ -888,6 +880,30 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
         this.tenderLoading = false;
       }
     });
+  }
+
+  private setAttachmentFromQuoteOrFile(updatedQuote: any, fallbackFile: File | null): void {
+    const attachment = updatedQuote?.quoteItem
+      ?.flatMap((item: any) => item?.attachment ?? [])
+      ?.find((item: any) => item);
+
+    if (attachment) {
+      this.existingAttachment = {
+        name: attachment.name || fallbackFile?.name || 'attachment.pdf',
+        mimeType: attachment.mimeType || fallbackFile?.type || 'application/pdf',
+        content: attachment.content || '',
+        size: attachment.size?.amount ?? fallbackFile?.size
+      };
+    } else if (fallbackFile) {
+      this.existingAttachment = {
+        name: fallbackFile.name,
+        mimeType: fallbackFile.type || 'application/pdf',
+        content: '',
+        size: fallbackFile.size
+      };
+    }
+
+    this.pdfAttachmentSet = Boolean(this.existingAttachment);
   }
 
   /**
@@ -939,6 +955,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
     if (!this.isStep2Complete() || !this.createdQuoteId) return;
 
     this.tenderLoading = true;
+    const pendingPdfFile = this.selectedPdfFile;
 
     const formattedRequested = this.formatDateForAPI(this.requestedCompletionDate);
     const formattedExpected = this.formatDateForAPI(this.expectedCompletionDate);
@@ -949,13 +966,18 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
       switchMap(() => this.quoteService.updateQuoteDate(this.createdQuoteId!, formattedExpected, 'effective')),
       // 3. Upload PDF only if a new file was selected (skip if keeping existing)
       switchMap(() => {
-        if (this.selectedPdfFile) {
-          return this.quoteService.addAttachmentToQuote(this.createdQuoteId!, this.selectedPdfFile, '');
+        if (pendingPdfFile) {
+          return this.quoteService.addAttachmentToQuote(this.createdQuoteId!, pendingPdfFile, '');
         }
         return of(null);
       })
     ).subscribe({
-      next: () => {
+      next: (updatedQuote: any) => {
+        if (pendingPdfFile) {
+          this.setAttachmentFromQuoteOrFile(updatedQuote, pendingPdfFile);
+          this.selectedPdfFile = null;
+        }
+
         this.tenderLoading = false;
         this.notificationService.showSuccess('Tender details saved successfully!');
         this.tenderCreationStep = 3;
@@ -983,7 +1005,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
    */
   loadTenderProviders() {
     const loadSequence = ++this.providerLoadSequence;
-    this.tenderLoading = true;
+    this.providerSearchLoading = true;
     this.tenderError = null;
     this.providerSearchWarning = null;
 
@@ -993,11 +1015,12 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
 
         this.tenderProviders = providers ?? [];
         console.log('Search loaded providers:', this.tenderProviders.length);
-        this.tenderLoading = false;
         this.updateAvailableProviders();
 
         if (this.tenderCreationStep === 3) {
           this.loadInvitedProviders();
+        } else {
+          this.providerSearchLoading = false;
         }
       },
       error: (err) => {
@@ -1007,7 +1030,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
           console.warn('Filtered search endpoint returned an error:', err);
           this.providerSearchWarning = 'Unable to apply the selected filters. Provider candidates were cleared to avoid showing unfiltered results.';
           this.tenderProviders = [];
-          this.tenderLoading = false;
+          this.providerSearchLoading = false;
           this.updateAvailableProviders();
           return;
         }
@@ -1020,18 +1043,19 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
 
             this.tenderProviders = fallbackProviders;
             console.log('Fallback loaded providers:', fallbackProviders.length);
-            this.tenderLoading = false;
             this.updateAvailableProviders();
 
             if (this.tenderCreationStep === 3) {
               this.loadInvitedProviders();
+            } else {
+              this.providerSearchLoading = false;
             }
           },
           error: (fallbackErr) => {
             if (!this.isCurrentProviderLoad(loadSequence)) return;
 
             this.tenderError = 'Failed to load providers: ' + (fallbackErr.message || 'Unknown error');
-            this.tenderLoading = false;
+            this.providerSearchLoading = false;
             console.error('Fallback endpoint also failed:', fallbackErr);
           }
         });
@@ -1261,12 +1285,13 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
   loadInvitedProviders() {
     if (!this.createdQuoteId || !this.currentUserId) {
       console.log('No coordinator quote ID or user ID, skipping invited providers load');
+      this.providerSearchLoading = false;
       return;
     }
 
     console.log('Loading invited providers for externalId:', this.createdQuoteId);
 
-    this.tenderLoading = true;
+    this.providerSearchLoading = true;
 
     this.quoteService.getTenderingQuotesByUser(this.currentUserId, API_ROLES.BUYER).subscribe({
       next: async (tenders) => {
@@ -1309,11 +1334,11 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
         this.invitedProviders = entries;
         this.rebuildSelectionAndAvailable();
         console.log('Total invited providers loaded:', this.invitedProviders.length);
-        this.tenderLoading = false;
+        this.providerSearchLoading = false;
       },
       error: (error) => {
         console.error('Error loading invited providers:', error);
-        this.tenderLoading = false;
+        this.providerSearchLoading = false;
       }
     });
   }
@@ -1366,7 +1391,7 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
       return;
     }
 
-    this.tenderLoading = true;
+    this.providerInviteSaving = true;
     const providerIds = Array.from(this.selectedProviders);
     const customerMessage = this.tenderTitle;
 
@@ -1402,15 +1427,16 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
         // Clear selection and safe list
         this.selectedProviders.clear();
         this._safeInvitedList = [];
+        this.rebuildSelectionAndAvailable();
 
         this.notificationService.showSuccess(`${providerIds.length} provider(s) has been saved for invite`);
         this.tenderUpdated.emit();
-        this.tenderLoading = false;
+        this.providerInviteSaving = false;
       })
       .catch(error => {
         console.error('Error creating tendering quotes:', error);
         this.notificationService.showError('Failed to invite providers: ' + (error.message || 'Unknown error'));
-        this.tenderLoading = false;
+        this.providerInviteSaving = false;
       });
   }
 
@@ -1424,55 +1450,67 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
       'Remove Provider',
       'Are you sure you want to remove this provider invitation? This will delete the quote.',
       () => {
-        this.tenderLoading = true;
+        this.providerInviteSaving = true;
 
         this.quoteService.deleteQuote(quoteId).subscribe({
           next: () => {
             console.log('Quote deleted for provider:', providerId);
 
-            // Remove from invited list
-            this.invitedProviders = this.invitedProviders.filter(ip => ip.quoteId !== quoteId);
-            this.rebuildSelectionAndAvailable();
+            this.completeInvitedProviderRemoval(quoteId, providerId);
 
             this.notificationService.showSuccess('Provider invitation removed successfully');
-            this.tenderLoading = false;
+            this.providerInviteSaving = false;
           },
           error: (error) => {
             // TEMPORARY WORKAROUND — sandbox environment issue:
-            // The TMForum/BAE backend successfully deletes the quote but then attempts to
-            // notify a downstream microservice (charging/events) that is unreachable in sandbox.
-            // This causes the BAE to return 500 {error: "Service unreachable"} AFTER the deletion
-            // has already completed. As a result, the HTTP 500 reaches this error handler even
-            // though the underlying operation succeeded.
+            // The TMForum/BAE backend can delete the quote and then return an error when a
+            // downstream notification hop times out or is unreachable. In that case, the
+            // frontend receives the error after the useful delete side effect already happened.
             //
-            // We detect this specific case (HTTP 500 + "Service unreachable" in the response body)
-            // and treat it as a success so the UI stays consistent with the actual backend state.
+            // Treat known false-positive delete errors as success so the UI stays consistent with
+            // the backend state and does not show a failure for a removed invitation.
             //
             // TODO: Remove this workaround once the sandbox downstream service is reachable
-            // and the BAE no longer returns 500 on successful quote deletion.
-            const isKnownFalsePositive =
-              error.status === 500 &&
-              error.error?.error === 'Service unreachable';
+            // and the BAE no longer returns errors on successful quote deletion.
+            const isKnownFalsePositive = this.isKnownDeleteQuoteFalsePositive(error);
 
             if (isKnownFalsePositive) {
               console.warn(
-                '[WORKAROUND] deleteQuote returned 500 "Service unreachable" for quoteId:', quoteId,
-                '— quote was deleted on the backend. Removing from UI anyway.'
+                '[WORKAROUND] deleteQuote returned a false-positive error for quoteId:', quoteId,
+                '— removing from UI anyway.'
               );
-              this.invitedProviders = this.invitedProviders.filter(ip => ip.quoteId !== quoteId);
-              this.rebuildSelectionAndAvailable();
+              this.completeInvitedProviderRemoval(quoteId, providerId);
               this.notificationService.showSuccess('Provider invitation removed successfully');
             } else {
               console.error('Error deleting quote:', error);
               this.notificationService.showError('Failed to remove provider invitation: ' + (error.message || 'Unknown error'));
             }
-            this.tenderLoading = false;
+            this.providerInviteSaving = false;
           }
         });
       },
       'Remove',
       'inline-flex h-10 items-center rounded-lg border border-[#F4C7C7] bg-white px-4 text-sm font-semibold text-[#B42318] transition-colors hover:bg-[#FFF1F1] focus:outline-none focus:ring-2 focus:ring-[#F4C7C7] disabled:cursor-not-allowed disabled:opacity-50'
     );
+  }
+
+  private completeInvitedProviderRemoval(quoteId: string, providerId?: string): void {
+    const resolvedProviderId = providerId ?? this.invitedProviders.find(ip => ip.quoteId === quoteId)?.provider?.id;
+
+    this.invitedProviders = this.invitedProviders.filter(ip => ip.quoteId !== quoteId);
+
+    if (resolvedProviderId) {
+      this.selectedProviders.delete(resolvedProviderId);
+      this._safeInvitedList = this._safeInvitedList.filter(provider => provider.id !== resolvedProviderId);
+    }
+
+    this.rebuildSelectionAndAvailable();
+  }
+
+  private isKnownDeleteQuoteFalsePositive(error: any): boolean {
+    return error?.status === 404 ||
+      error?.status === 504 ||
+      (error?.status === 500 && error?.error?.error === 'Service unreachable');
   }
 
   /**

@@ -19,7 +19,7 @@ import { ChatModalComponent } from 'src/app/shared/chat-modal/chat-modal.compone
 import { AttachmentModalComponent } from 'src/app/shared/attachment-modal/attachment-modal.component';
 import { CreateTenderModalComponent } from 'src/app/shared/create-tender-modal/create-tender-modal.component';
 import { UI_ROLES, API_ROLES, UiRole, toApiRole } from 'src/app/models/roles.constants';
-import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, TENDER_RELATED_QUOTES_LABELS_CUSTOMER, TENDER_RELATED_QUOTES_LABELS_PROVIDER } from 'src/app/models/quote.constants';
+import { COORDINATOR_STATUS_MESSAGES, QUOTE_CATEGORIES, QUOTE_STATUSES, TENDERING_STATUS_MESSAGES, TENDER_COORDINATOR_STATUSES_LABELS, TENDER_RELATED_QUOTES_LABELS_CUSTOMER, TENDER_RELATED_QUOTES_LABELS_PROVIDER } from 'src/app/models/quote.constants';
 
 @Component({
   selector: 'app-quote-list',
@@ -235,6 +235,8 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
               <!-- Status -->
               <div class="col-span-2 min-w-0" data-testid="provider-tender-status-cell">
                 <span class="status-badge max-w-full truncate rounded-full px-2 text-xs font-semibold leading-5"
+                      [title]="getStatusTooltip(quote)"
+                      [attr.aria-label]="getStatusTooltip(quote)"
                       [ngClass]="getStateClass(getQuoteItemState(quote))">
                   {{ getStatusLabel(quote) }}
                 </span>
@@ -302,6 +304,8 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
               <!-- Status -->
               <div class="col-span-2 min-w-0">
                 <span class="status-badge max-w-full truncate rounded-full px-2 text-xs font-semibold leading-5"
+                      [title]="getStatusTooltip(quote)"
+                      [attr.aria-label]="getStatusTooltip(quote)"
                       [ngClass]="getStateClass(getQuoteItemState(quote))">
                   {{ getStatusLabel(quote) }}
                 </span>
@@ -431,6 +435,8 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
                     <!-- Status -->
                     <div class="col-span-2 min-w-0">
                       <span class="status-badge max-w-full truncate rounded-full px-2 py-0.5 text-xs font-semibold leading-5"
+                            [title]="getStatusTooltip(relatedQuote)"
+                            [attr.aria-label]="getStatusTooltip(relatedQuote)"
                             [ngClass]="getStateClass(getQuoteItemState(relatedQuote))">
                         {{ getStatusLabel(relatedQuote) }}
                       </span>
@@ -1793,6 +1799,31 @@ export class TenderListComponent implements OnInit {
       default:
         return state;
     }
+  }
+
+  getStatusTooltip(quote: Quote): string {
+    const state = this.getPrimaryState(quote);
+    const role = this.selectedRole === UI_ROLES.BUYER ? 'buyer' : 'provider';
+    const fallback = this.getStatusLabel(quote);
+    const messages = quote.category === QUOTE_CATEGORIES.COORDINATOR
+      ? COORDINATOR_STATUS_MESSAGES
+      : quote.category === QUOTE_CATEGORIES.TENDER
+        ? TENDERING_STATUS_MESSAGES
+        : null;
+    const statusInfo = messages?.[state]?.[role];
+
+    if (!statusInfo) {
+      return fallback;
+    }
+
+    const explanation = statusInfo.explanation === '...' ? '' : statusInfo.explanation;
+    const availableActions = statusInfo.availableActions === '...' ? '' : statusInfo.availableActions;
+    const tooltipParts = [
+      explanation,
+      availableActions ? `Available actions: ${availableActions}` : ''
+    ].filter(Boolean);
+
+    return tooltipParts.length > 0 ? tooltipParts.join('\n') : fallback;
   }
 
   /**
