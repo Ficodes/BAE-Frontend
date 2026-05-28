@@ -386,7 +386,8 @@
           "step2": "Verify your organisation",
           "step3": "Publish your services",
           "step4": "Start receiving requests"
-        }
+        },
+        "ctaButton": "Start your onboarding journey"
       },
       "included": {
         "title": "What's Included for Providers",
