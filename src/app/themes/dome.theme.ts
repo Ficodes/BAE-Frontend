@@ -27,11 +27,10 @@ const domeHeaderLinks: NavLink[] = [
     }
     ]
   },
-  {
-    label: 'HEADER._resources',
-    url: 'https://knowledgebase.dome-marketplace-prd.org/'
-  },
-
+  // {
+  //   label: 'HEADER._resources',
+  //   url: 'https://knowledgebase.dome-marketplace-prd.org/'
+  // },
   {
     label: 'HEADER._blog',
     url: '/blog',
