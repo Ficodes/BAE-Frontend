@@ -55,35 +55,37 @@
         }
       </div>
 
-      <form class="w-full sm:w-auto sm:min-w-[440px]" (ngSubmit)="onUnifiedSearch($event)">
-        <div class="relative">
-          @if (aiSearchEnabled) {
-            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-              <svg class="w-4 h-4 text-purple-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>
-              </svg>
-            </div>
-          }
-          <input type="search" [formControl]="searchField"
-            (keydown.enter)="onUnifiedSearch($event)"
-            [ngClass]="aiSearchEnabled ? 'ps-10 border-purple-300 focus:ring-purple-500 focus:border-purple-500' : 'border-gray-200 focus:ring-[#00ADD3] focus:border-[#00ADD3]'"
-            class="block w-full rounded-[12px] border bg-white py-3.5 pl-5 pr-14 text-[16px] text-gray-900 placeholder:text-gray-400 shadow-sm hover:shadow-md focus:shadow-none transition-shadow outline-none"
-            placeholder="{{ aiSearchEnabled ? ('DASHBOARD._ai_search_ph' | translate) : ('DASHBOARD._search_ph' | translate) }}">
-          <button type="submit" class="absolute top-0 end-0 h-full px-4 flex items-center justify-center rounded-e-[12px] text-gray-400 hover:text-[#1f4fbf] transition-colors">
-            @if (aiSearchLoading) {
-              <svg class="w-4 h-4 animate-spin" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            } @else {
-              <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-              </svg>
+      @if (searchEnabled) {
+        <form class="w-full sm:w-auto sm:min-w-[440px]" (ngSubmit)="onUnifiedSearch($event)">
+          <div class="relative">
+            @if (aiSearchEnabled) {
+              <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                <svg class="w-4 h-4 text-purple-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>
+                </svg>
+              </div>
             }
-            <span class="sr-only">{{ 'DASHBOARD._search' | translate }}</span>
-          </button>
-        </div>
-      </form>
+            <input type="search" [formControl]="searchField"
+              (keydown.enter)="onUnifiedSearch($event)"
+              [ngClass]="aiSearchEnabled ? 'ps-10 border-purple-300 focus:ring-purple-500 focus:border-purple-500' : 'border-gray-200 focus:ring-[#00ADD3] focus:border-[#00ADD3]'"
+              class="block w-full rounded-[12px] border bg-white py-3.5 pl-5 pr-14 text-[16px] text-gray-900 placeholder:text-gray-400 shadow-sm hover:shadow-md focus:shadow-none transition-shadow outline-none"
+              placeholder="{{ aiSearchEnabled ? ('DASHBOARD._ai_search_ph' | translate) : ('DASHBOARD._search_ph' | translate) }}">
+            <button type="submit" class="absolute top-0 end-0 h-full px-4 flex items-center justify-center rounded-e-[12px] text-gray-400 hover:text-[#1f4fbf] transition-colors">
+              @if (aiSearchLoading) {
+                <svg class="w-4 h-4 animate-spin" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              } @else {
+                <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+                </svg>
+              }
+              <span class="sr-only">{{ 'DASHBOARD._search' | translate }}</span>
+            </button>
+          </div>
+        </form>
+      }
     </div>
 
     @if (toolbarFilters.length > 0) {
