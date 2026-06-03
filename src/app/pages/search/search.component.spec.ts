@@ -12,6 +12,8 @@ import { EventMessageService } from '../../services/event-message.service';
 import { SearchStateService } from '../../services/search-state.service';
 import { LoginServiceService } from 'src/app/services/login-service.service';
 import { ThemeService } from 'src/app/services/theme.service';
+import { AiSearchService } from 'src/app/services/ai-search.service';
+import { PriceServiceService } from 'src/app/services/price-service.service';
 
 describe('SearchComponent', () => {
   let component: SearchComponent;
@@ -20,6 +22,8 @@ describe('SearchComponent', () => {
   let paginationSpy: jasmine.SpyObj<PaginationService>;
   let localStorageSpy: jasmine.SpyObj<LocalStorageService>;
   let eventMessageSpy: jasmine.SpyObj<EventMessageService>;
+  let aiSearchSpy: jasmine.SpyObj<AiSearchService>;
+  let priceSpy: jasmine.SpyObj<PriceServiceService>;
   let stateMock: {
     products: any[];
     nextProducts: any[];
@@ -42,14 +46,22 @@ describe('SearchComponent', () => {
     paginationSpy = jasmine.createSpyObj<PaginationService>('PaginationService', ['getItemsPaginated', 'getProducts']);
     localStorageSpy = jasmine.createSpyObj<LocalStorageService>('LocalStorageService', [
       'getObject',
+      'getItem',
       'removeCategoryFilter',
+      'removeItem',
       'setItem',
       'setObject',
     ]);
     eventMessageSpy = jasmine.createSpyObj<EventMessageService>('EventMessageService', [
+      'emitAddedFilter',
+      'emitAiSearchCleared',
+      'emitAiSearchFacets',
       'emitFilterShown',
+      'emitFiltersCommitted',
       'emitRemovedFilter',
     ]);
+    aiSearchSpy = jasmine.createSpyObj<AiSearchService>('AiSearchService', ['search', 'searchWithAnswer']);
+    priceSpy = jasmine.createSpyObj<PriceServiceService>('PriceServiceService', ['isCustomOffering']);
     routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate'], {
       events: undefined,
     });
@@ -79,12 +91,19 @@ describe('SearchComponent', () => {
       page_check: false,
     });
     apiSpy.getProductsDetails.and.callFake(async (items: any[]) => items as any);
+    aiSearchSpy.search.and.resolveTo({ items: [], total_count: 0, facets: {} } as any);
+    aiSearchSpy.searchWithAnswer.and.resolveTo({
+      searchResponse: { items: [], total_count: 0, facets: {} },
+      answer: '',
+    } as any);
+    priceSpy.isCustomOffering.and.resolveTo(false);
     localStorageSpy.getObject.and.callFake((key: string) => {
       if (key === 'selected_categories') return [];
       if (key === 'login_items') return {};
       if (key === 'feedback') return {};
       return {};
     });
+    localStorageSpy.getItem.and.returnValue(null);
     spyOn(window, 'scrollTo');
 
     await TestBed.configureTestingModule({
@@ -98,6 +117,8 @@ describe('SearchComponent', () => {
         { provide: EventMessageService, useValue: eventMessageSpy },
         { provide: SearchStateService, useValue: stateMock },
         { provide: LoginServiceService, useValue: {} },
+        { provide: AiSearchService, useValue: aiSearchSpy },
+        { provide: PriceServiceService, useValue: priceSpy },
         { provide: ThemeService, useValue: { currentTheme$: new Subject<any>().asObservable() } },
         { provide: Router, useValue: routerSpy },
         {
@@ -113,6 +134,7 @@ describe('SearchComponent', () => {
 
     fixture = TestBed.createComponent(SearchComponent);
     component = fixture.componentInstance;
+    component.aiSearchEnabled = false;
   });
 
   afterEach(() => {
@@ -124,7 +146,7 @@ describe('SearchComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('constructor should react to AddedFilter and RemovedFilter events', async () => {
+  it('constructor should refresh selections for AddedFilter and RemovedFilter events', async () => {
     component.aiSearchEnabled = false;
     const getProductsSpy = spyOn(component, 'getProducts').and.resolveTo();
     const checkPanelSpy = spyOn(component, 'checkPanel').and.stub();
@@ -133,8 +155,7 @@ describe('SearchComponent', () => {
     messages$.next({ type: 'RemovedFilter' });
     await flushPromises();
 
-    expect(getProductsSpy).toHaveBeenCalledTimes(2);
-    expect(getProductsSpy).toHaveBeenCalledWith(false);
+    expect(getProductsSpy).not.toHaveBeenCalled();
     expect(checkPanelSpy).toHaveBeenCalledTimes(2);
   });
 
@@ -226,7 +247,7 @@ describe('SearchComponent', () => {
       false,
       [{ id: 'old' }],
       [{ id: 'next-old' }],
-      { keywords: 'gpu', filters: [{ id: 'cat-1' }], sort: '-lastUpdate' },
+      { keywords: 'gpu', filters: [{ id: 'cat-1' }] },
       jasmine.any(Function),
     );
     expect(apiSpy.getProductsDetails).toHaveBeenCalledTimes(2);
@@ -313,7 +334,7 @@ describe('SearchComponent', () => {
     component.onClick();
 
     expect(component.showDrawer).toBeFalse();
-    expect(detectSpy).toHaveBeenCalled();
+    expect(detectSpy).not.toHaveBeenCalled();
   });
 
   it('ngOnDestroy should clear selected filters and state when not navigating to detail', () => {
