@@ -10,7 +10,6 @@ import { NotificationService } from 'src/app/services/notification.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { Quote, QuoteStateType } from 'src/app/models/quote.model';
-import { NotificationComponent } from 'src/app/shared/notification/notification.component';
 import { ConfirmDialogComponent } from 'src/app/shared/confirm-dialog/confirm-dialog.component';
 import { QuoteDetailsModalComponent } from 'src/app/shared/quote-details-modal/quote-details-modal.component';
 import { ChatModalComponent } from 'src/app/shared/chat-modal/chat-modal.component';
@@ -22,10 +21,8 @@ import { environment } from 'src/environments/environment';
 @Component({
   selector: 'app-quote-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, NotificationComponent, ConfirmDialogComponent, QuoteDetailsModalComponent, ChatModalComponent, AttachmentModalComponent],
+  imports: [CommonModule, FormsModule, ConfirmDialogComponent, QuoteDetailsModalComponent, ChatModalComponent, AttachmentModalComponent],
   template: `
-    <app-notification></app-notification>
-    
     <div class="w-full mx-auto px-6 py-8">
       <div class="flex justify-between items-center mb-6">
         <div class="flex items-center gap-3">

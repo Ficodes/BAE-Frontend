@@ -12,7 +12,6 @@ import { Tender, TenderAttachment, TenderStateType } from 'src/app/models/tender
 import { Quote, QuoteStateType } from 'src/app/models/quote.model';
 import { environment } from 'src/environments/environment';
 import { LoginInfo } from 'src/app/models/interfaces';
-import { NotificationComponent } from 'src/app/shared/notification/notification.component';
 import { ConfirmDialogComponent } from 'src/app/shared/confirm-dialog/confirm-dialog.component';
 import { QuoteDetailsModalComponent } from 'src/app/shared/quote-details-modal/quote-details-modal.component';
 import { ChatModalComponent } from 'src/app/shared/chat-modal/chat-modal.component';
@@ -27,7 +26,6 @@ import { COORDINATOR_STATUS_MESSAGES, QUOTE_CATEGORIES, QUOTE_STATUSES, TENDERIN
   imports: [
     CommonModule,
     FormsModule,
-    NotificationComponent,
     ConfirmDialogComponent,
     QuoteDetailsModalComponent,
     ChatModalComponent,
@@ -35,8 +33,6 @@ import { COORDINATOR_STATUS_MESSAGES, QUOTE_CATEGORIES, QUOTE_STATUSES, TENDERIN
     CreateTenderModalComponent
   ],
   template: `
-    <app-notification></app-notification>
-
     <div class="min-h-screen bg-[#F7F9FD] font-[Blinker]" (click)="closeStatusDropdown()">
       <div class="mx-auto max-w-[1440px] px-6 py-8 sm:px-10 lg:px-20 xl:px-[160px]">
         <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
