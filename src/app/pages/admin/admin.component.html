@@ -57,7 +57,7 @@
             <div>
               <p class="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Catalog</p>
               <div class="bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600">
-                <button (click)="goToDefaultCatalog()" id="default-catalog-button" class="block w-full px-4 py-2 border-b border-gray-200 rounded-t-lg cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+                <button (click)="goToDefaultCatalog()" id="default-catalog-button" data-cy="adminDefaultCatalogSection" class="block w-full px-4 py-2 border-b border-gray-200 rounded-t-lg cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
                   {{ 'ADMIN._defaultCatalog' | translate }}
                 </button>
                 <button (click)="goToCategories()" id="categories-button" data-cy="adminCategoriesSection" aria-current="true" class="block w-full px-4 py-2 text-white bg-primary-100 rounded-b-lg cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
