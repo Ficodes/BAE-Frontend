@@ -5,7 +5,7 @@
 @if (simpleMode) {
 <ul class="flex flex-col">
   @for (cat of allFilterItems; track cat.id) {
-  <li class="flex items-center gap-3 cursor-pointer rounded-lg py-3 pl-4 pr-2 hover:bg-[#F0F4FB] transition-colors"
+  <li data-cy="searchSubcategoryItem" class="flex items-center gap-3 cursor-pointer rounded-lg py-3 pl-4 pr-2 hover:bg-[#F0F4FB] transition-colors"
     (click)="onClick(cat)">
     <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2" [ngClass]="isCheckedCategory(cat)
             ? 'bg-[#2D58A7] border-[#2D58A7] text-white'
