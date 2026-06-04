@@ -1,4 +1,4 @@
-<div class="bg-secondary-50 dark:bg-secondary-100 border border-secondary-50 dark:border-gray-800 mt-4 p-8 rounded-lg">
+<div data-cy="adminSearchFiltersConfig" class="bg-secondary-50 dark:bg-secondary-100 border border-secondary-50 dark:border-gray-800 mt-4 p-8 rounded-lg">
   <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white">Search &amp; filters</h2>
   <hr class="h-px m-4 bg-gray-300 dark:bg-gray-200 border-0">
 
@@ -13,14 +13,14 @@
   } @else {
     <div class="m-4">
       <label for="search-filters-provided-json" class="font-bold text-lg dark:text-white">Provide searchFilters JSON</label>
-      <textarea id="search-filters-provided-json" [(ngModel)]="providedJson" [ngModelOptions]="{ standalone: true }" rows="8"
+      <textarea id="search-filters-provided-json" data-cy="adminSearchFiltersJson" [(ngModel)]="providedJson" [ngModelOptions]="{ standalone: true }" rows="8"
         class="mt-2 mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-mono"></textarea>
       <div class="flex gap-2 justify-end">
-        <button type="button" (click)="loadProvidedJsonIntoForm()"
+        <button data-cy="adminLoadSearchFiltersJson" type="button" (click)="loadProvidedJsonIntoForm()"
           class="text-primary-100 border border-primary-100 hover:bg-primary-50 rounded-lg text-sm px-4 py-2">
           Load JSON
         </button>
-        <button type="button" (click)="saveProvidedJson()" [disabled]="saving"
+        <button data-cy="adminSaveSearchFiltersJson" type="button" (click)="saveProvidedJson()" [disabled]="saving"
           [ngClass]="saving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
           class="text-white bg-primary-100 rounded-lg text-sm px-4 py-2">
           Save JSON

@@ -78,7 +78,7 @@
 
         @if ((isAdmin && loggedAsOrg === false) || roles.includes(certifierRole)) {
         <li>
-          <button id="administration" type="button" class="dropdown-item" (click)="goTo('/admin')">
+          <button id="administration" data-cy="administration" type="button" class="dropdown-item" (click)="goTo('/admin')">
             <fa-icon [icon]="faCogs" class="mr-2"></fa-icon>{{ 'HEADER._admin' | translate }}
           </button>
         </li>

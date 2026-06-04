@@ -93,7 +93,7 @@
       <div class="flex items-center gap-2">
         @for (filter of toolbarFilters; track filter.key) {
           <div class="relative shrink-0">
-            <button (click)="toggleToolbarFilterDropdown(filter, $event)"
+            <button data-cy="searchToolbarFilter" [attr.data-filter-key]="filter.key" (click)="toggleToolbarFilterDropdown(filter, $event)"
               [ngClass]="filter.selectedIds.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'"
               class="flex items-center gap-2 h-10 rounded-lg border pl-4 pr-3 text-[16px] font-normal transition-colors">
               {{ filter.label }}
@@ -114,7 +114,7 @@
               <div (click)="$event.stopPropagation()" class="absolute top-full left-0 mt-2 z-[60] w-[260px] rounded-xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] overflow-hidden">
                 <div class="p-2 flex flex-col gap-1 max-h-[360px] overflow-y-auto">
                   @for (option of filter.options; track option.id) {
-                    <button (click)="toggleToolbarOption(filter, option, $event)"
+                    <button data-cy="searchToolbarFilterOption" [attr.data-option-id]="option.id" (click)="toggleToolbarOption(filter, option, $event)"
                       [ngClass]="isToolbarOptionSelected(filter, option) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'"
                       class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-[#0b1220] transition-colors">
                       <div class="flex h-4 w-4 shrink-0 items-center justify-center rounded border"

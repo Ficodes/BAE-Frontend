@@ -58,7 +58,7 @@
                 <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white">{{ 'UPDATE_CATEGORIES._general' | translate }}</h2>
                     <form class="m-4 gap-4" [formGroup]="generalForm">
                         <label for="prod-name" class="font-bold text-lg dark:text-white">{{ 'UPDATE_CATEGORIES._name' | translate }}</label>
-                        <input formControlName="name" type="text" id="prod-name" maxLength="100"
+                        <input data-cy="adminCategoryNameInput" formControlName="name" type="text" id="prod-name" maxLength="100"
                         [ngClass]="generalForm.get('name')?.invalid == true && generalForm.value.name!='' ? 'border-red-600' : 'border-gray-300'"
                         class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
 
@@ -67,7 +67,7 @@
 
                             <ol class="flex items-center w-full text-sm font-medium text-center text-gray-500 dark:text-gray-200 sm:text-base">
                                 @if(catStatus=='Active'){
-                                    <li (click)="setCatStatus('Active')"
+                                    <li data-cy="adminCategoryStatusActive" (click)="setCatStatus('Active')"
                                     class="cursor-pointer flex w-fit md:w-full items-center text-blue-500 after:w-full after:h-1 after:border-b after:border-gray-700 dark:after:border-gray-400 after:border-1 after:mx-2 md:after:mx-6 xl:after:mx-10">
                                         <span class="flex items-center">
                                             <svg class="w-6 h-6 text-blue-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -77,7 +77,7 @@
                                         </span>
                                     </li>
                                 }@else{
-                                    <li (click)="setCatStatus('Active')"
+                                    <li data-cy="adminCategoryStatusActive" (click)="setCatStatus('Active')"
                                     class="cursor-pointer flex w-fit md:w-full items-center after:w-full after:h-1 after:border-b after:border-gray-700 dark:after:border-gray-400 after:border-1 after:mx-2 md:after:mx-6 xl:after:mx-10">
                                         <span class="flex items-center">                                    
                                             Active
@@ -85,7 +85,7 @@
                                     </li>
                                 }
                                 @if(catStatus=='Launched'){
-                                    <li (click)="setCatStatus('Launched')"
+                                    <li data-cy="adminCategoryStatusLaunched" (click)="setCatStatus('Launched')"
                                     class="cursor-pointer flex w-fit md:w-full items-center text-green-700 after:w-full after:h-1 after:border-b after:border-gray-700 dark:after:border-gray-400 after:border-1 after:mx-2 md:after:mx-6 xl:after:mx-10">
                                         <span class="flex items-center">
                                             <svg class="w-6 h-6 text-green-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -95,7 +95,7 @@
                                         </span>
                                     </li>
                                 }@else{
-                                    <li (click)="setCatStatus('Launched')"
+                                    <li data-cy="adminCategoryStatusLaunched" (click)="setCatStatus('Launched')"
                                     class="cursor-pointer flex w-fit md:w-full items-center after:w-full after:h-1 after:border-b after:border-gray-700 dark:after:border-gray-400 after:border-1 after:mx-2 md:after:mx-6 xl:after:mx-10">
                                         <span class="flex items-center">                                         
                                             Launched
@@ -103,7 +103,7 @@
                                     </li>
                                 }
                                 @if(catStatus=='Retired'){
-                                    <li (click)="setCatStatus('Retired')"
+                                    <li data-cy="adminCategoryStatusRetired" (click)="setCatStatus('Retired')"
                                     class="cursor-pointer flex w-fit md:w-full items-center text-yellow-500 after:w-full after:h-1 after:border-b after:border-gray-700 dark:after:border-gray-400 after:border-1 after:mx-2 md:after:mx-6 xl:after:mx-10">
                                         <span class="flex items-center">
                                             <svg class="w-6 h-6 text-yellow-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -113,7 +113,7 @@
                                         </span>
                                     </li>
                                 }@else{
-                                    <li (click)="setCatStatus('Retired')"
+                                    <li data-cy="adminCategoryStatusRetired" (click)="setCatStatus('Retired')"
                                     class="cursor-pointer flex w-fit md:w-full items-center after:w-full after:h-1 after:border-b after:border-gray-700 dark:after:border-gray-400 after:border-1 after:mx-2 md:after:mx-6 xl:after:mx-10">
                                         <span class="flex items-center">                                        
                                             Retired
@@ -121,7 +121,7 @@
                                     </li>
                                 }
                                 @if(catStatus=='Obsolete'){
-                                    <li (click)="setCatStatus('Obsolete')" class="cursor-pointer flex items-center">
+                                    <li data-cy="adminCategoryStatusObsolete" (click)="setCatStatus('Obsolete')" class="cursor-pointer flex items-center">
                                         <span class="flex items-center text-red-800">
                                             <svg class="w-6 h-6 text-red-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                                 <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M8.737 8.737a21.49 21.49 0 0 1 3.308-2.724m0 0c3.063-2.026 5.99-2.641 7.331-1.3 1.827 1.828.026 6.591-4.023 10.64-4.049 4.049-8.812 5.85-10.64 4.023-1.33-1.33-.736-4.218 1.249-7.253m6.083-6.11c-3.063-2.026-5.99-2.641-7.331-1.3-1.827 1.828-.026 6.591 4.023 10.64m3.308-9.34a21.497 21.497 0 0 1 3.308 2.724m2.775 3.386c1.985 3.035 2.579 5.923 1.248 7.253-1.336 1.337-4.245.732-7.295-1.275M14 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"/>
@@ -130,7 +130,7 @@
                                         </span>
                                     </li>
                                 }@else{
-                                    <li (click)="setCatStatus('Obsolete')" class="cursor-pointer flex items-center">
+                                    <li data-cy="adminCategoryStatusObsolete" (click)="setCatStatus('Obsolete')" class="cursor-pointer flex items-center">
                                         <span class="flex items-center">                                        
                                             Obsolete
                                         </span>
@@ -141,10 +141,10 @@
                         </div>
                         
                         <label for="prod-name" class="font-bold text-lg dark:text-white">{{ 'UPDATE_CATEGORIES._description' | translate }}</label>
-                        <app-markdown-textarea formControlName="description"></app-markdown-textarea>
+                        <app-markdown-textarea data-cy="adminCategoryDescription" formControlName="description"></app-markdown-textarea>
                         <label class="font-bold text-lg dark:text-white">{{ 'UPDATE_CATEGORIES._choose_parent' | translate }}</label>
                         <label class="inline-flex items-center me-5 cursor-pointer ml-4">
-                            <input type="checkbox" (change)="toggleParent()" [disabled]="checkDisableParent" [checked]="parentSelectionCheck" class="sr-only peer">
+                            <input data-cy="adminToggleParentCategory" type="checkbox" (change)="toggleParent()" [disabled]="checkDisableParent" [checked]="parentSelectionCheck" class="sr-only peer">
                             <div class="relative w-11 h-6 bg-gray-400 dark:bg-gray-700 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-100 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-100"></div>
                         </label>
                         @if(parentSelectionCheck){
@@ -177,15 +177,15 @@
                                 </thead>
                                 <tbody>
                                     @for (cat of categories; track cat.id;let idx = $index) {
-                                        <tr class="flex border-b dark:border-gray-700 hover:bg-gray-200 w-full justify-between dark:bg-secondary-300 dark:hover:bg-secondary-200">
-                                            <td class="flex px-6 py-4 w-3/5 text-wrap break-all">
+                                        <tr data-cy="adminParentCategoryRow" class="flex border-b dark:border-gray-700 hover:bg-gray-200 w-full justify-between dark:bg-secondary-300 dark:hover:bg-secondary-200">
+                                            <td data-cy="adminParentCategoryName" class="flex px-6 py-4 w-3/5 text-wrap break-all">
                                                 <b>{{cat.name}}</b>
                                             </td>
                                             <td class="hidden md:flex px-6 py-4 w-fit">
                                                 {{cat.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}} 
                                             </td>
                                             <td class="flex px-6 py-4 w-fit justify-end">
-                                                <input id="select-checkbox" [checked]="isCategorySelected(cat)" type="checkbox" value="" (click)="addCategory(cat)" class="flex w-4 h-4 justify-end text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                                <input id="select-checkbox" data-cy="adminParentCategoryCheckbox" [checked]="isCategorySelected(cat)" type="checkbox" value="" (click)="addCategory(cat)" class="flex w-4 h-4 justify-end text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
                                             </td>
                                         </tr>
                                         @if(cat.children.length>0){
@@ -206,7 +206,7 @@
 
                     </form>
                     <div class="flex w-full justify-items-end justify-end">
-                        <button type="button" (click)="showFinish();generalDone=true;" [disabled]="!generalForm.valid || (parentSelectionCheck == true && selectedCategory==undefined)" [ngClass]="!generalForm.valid || (parentSelectionCheck == true && selectedCategory==undefined) ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        <button data-cy="adminCategoryNext" type="button" (click)="showFinish();generalDone=true;" [disabled]="!generalForm.valid || (parentSelectionCheck == true && selectedCategory==undefined)" [ngClass]="!generalForm.valid || (parentSelectionCheck == true && selectedCategory==undefined) ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                             {{ 'UPDATE_CATEGORIES._next' | translate }}
                             <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
@@ -254,7 +254,7 @@
                     
                     
                     <div class="flex w-full justify-items-end justify-end ml-4">
-                        <button type="button" (click)="updateCategory();" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        <button data-cy="adminUpdateCategory" type="button" (click)="updateCategory();" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                             {{ 'UPDATE_CATEGORIES._update' | translate }}
                             <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
