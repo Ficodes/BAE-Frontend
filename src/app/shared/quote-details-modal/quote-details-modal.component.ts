@@ -317,6 +317,7 @@ import { environment } from 'src/environments/environment';
         <div class="flex justify-between border-t border-[#EBECEE] px-8 py-6">
           <!-- Chat Button -->
           <button
+            *ngIf="getQuoteCategory() !== QUOTE_CATEGORIES.COORDINATOR"
             (click)="openChat()"
             class="inline-flex h-10 items-center gap-2 rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99]"
           >
@@ -1164,8 +1165,25 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
 
     this.isBroadcastSending = true;
 
-    this.quoteService.broadcastMessage(this.quote.id, this.currentUserId, this.broadcastMessage).subscribe({
-      next: () => {
+    this.quoteService.getTenderingQuotesByExternalId(this.currentUserId, this.quote.id, API_ROLES.BUYER).pipe(
+      switchMap((quotes) => {
+        const quotesToMessage = quotes.filter(q => q.category === QUOTE_CATEGORIES.TENDER && q.id);
+
+        if (quotesToMessage.length === 0) {
+          this.notificationService.showError('No related provider quotes found to broadcast to.');
+          this.isBroadcastSending = false;
+          return of(null);
+        }
+
+        const requests = quotesToMessage.map(q =>
+          this.quoteService.addNoteToQuote(q.id!, this.broadcastMessage, this.currentUserId)
+        ) as Observable<Quote>[];
+
+        return forkJoin(requests);
+      })
+    ).subscribe({
+      next: (result) => {
+        if (!result) return;
         this.notificationService.showSuccess('Message broadcast sent to all invited providers.');
         this.closeBroadcastModal();
       },
