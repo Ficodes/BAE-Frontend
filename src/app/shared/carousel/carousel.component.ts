@@ -133,6 +133,9 @@ export class CarouselComponent<T> implements OnChanges {
   @Input()
   sidePadding = true;
 
+  @Input()
+  loop = false;
+
   /**
    * Current visible index.
    *
@@ -255,6 +258,10 @@ export class CarouselComponent<T> implements OnChanges {
    * Move forward by one step.
    */
   next(): void {
+    if (this.loop && this.index >= this.maxIndex) {
+      this.index = 0;
+      return;
+    }
     this.index = Math.min(
       this.index + 1,
       this.maxIndex
@@ -265,6 +272,10 @@ export class CarouselComponent<T> implements OnChanges {
    * Move backward by one step.
    */
   prev(): void {
+    if (this.loop && this.index <= 0) {
+      this.index = this.maxIndex;
+      return;
+    }
     this.index = Math.max(
       this.index - 1,
       0

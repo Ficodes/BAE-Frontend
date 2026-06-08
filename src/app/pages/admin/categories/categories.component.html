@@ -109,21 +109,21 @@
                     </th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody data-cy="adminCategoriesTable">
                 @for (cat of categories; track cat.id;let idx = $index) {
-                    <tr class="flex border-b dark:border-gray-700 hover:bg-gray-200 w-full justify-between dark:bg-secondary-300 dark:hover:bg-secondary-200">
+                    <tr data-cy="adminCategoryRow" class="flex border-b dark:border-gray-700 hover:bg-gray-200 w-full justify-between dark:bg-secondary-300 dark:hover:bg-secondary-200">
                         <td data-cy="adminTableOfferName" class="flex px-6 py-4 w-2/4">
-                            <b>{{cat.name}}</b>
+                            <b data-cy="adminCategoryName">{{cat.name}}</b>
                         </td>
                         <td data-cy="adminTableOfferStatus" class="hidden md:flex px-6 py-4 w-fit">
                             @if(cat.lifecycleStatus == 'Active'){
-                                <span class="bg-blue-100 max-h-6 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{cat.lifecycleStatus}}</span>
+                                <span data-cy="adminCategoryStatus" class="bg-blue-100 max-h-6 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{cat.lifecycleStatus}}</span>
                             } @else if(cat.lifecycleStatus == 'Launched') {
-                                <span class="bg-blue-100 max-h-6 dark:bg-secondary-300 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500">{{cat.lifecycleStatus}}</span>
+                                <span data-cy="adminCategoryStatus" class="bg-blue-100 max-h-6 dark:bg-secondary-300 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500">{{cat.lifecycleStatus}}</span>
                             } @else if(cat.lifecycleStatus == 'Retired') {
-                                <span class="bg-blue-100 max-h-6 dark:bg-secondary-300 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{cat.lifecycleStatus}}</span>
+                                <span data-cy="adminCategoryStatus" class="bg-blue-100 max-h-6 dark:bg-secondary-300 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{cat.lifecycleStatus}}</span>
                             } @else if(cat.lifecycleStatus == 'Obsolete') {
-                                <span class="bg-blue-100 max-h-6 dark:bg-secondary-300 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{cat.lifecycleStatus}}</span>
+                                <span data-cy="adminCategoryStatus" class="bg-blue-100 max-h-6 dark:bg-secondary-300 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{cat.lifecycleStatus}}</span>
                             }
                         </td>
                         <td class="hidden md:table-cell px-6 py-4 w-fit">

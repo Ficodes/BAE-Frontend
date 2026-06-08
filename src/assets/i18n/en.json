@@ -1470,7 +1470,11 @@
       "_smtpServer": "SMTP Server",
       "_smtpPort": "SMTP Port",
       "_emailUser": "Email User",
-      "_emailPass": "Email Password"
+      "_emailPass": "Email Password",
+      "_defaultCatalog": "Default catalog",
+      "_defaultCatalogId": "Default catalog ID",
+      "_noDefaultCatalogConfigured": "No default catalog is currently configured.",
+      "_saveDefaultCatalog": "Save default catalog"
     },
     "CATEGORIES": {
       "_categories": "Categories",
@@ -1656,6 +1660,19 @@
     "follow-us": "Follow us",
     "forCustomers": "For Customers",
     "forProviders": "For Providers"
+  },
+  "BROWSE": {
+    "heroTitle1": "Discover ",
+    "heroAccent1": "trusted European",
+    "heroTitle2": " cloud, edge & AI ",
+    "heroAccent2": "services",
+    "searchPlaceholder": "Search Cloud Services, Data Services, Providers...",
+    "categoriesTitle": "What are you looking for?",
+    "categoriesSubtitle": "Explore trusted digital services by category",
+    "showAll": "Show all",
+    "popularTitle": "Most popular services",
+    "popularSubtitle": "Discover services tailored to your needs",
+    "viewService": "View service"
   },
   "HEADER": {
     "contactUs": "Contact us",
@@ -2528,7 +2545,11 @@
     "_smtpServer": "SMTP Server",
     "_smtpPort": "SMTP Port",
     "_emailUser": "Email User",
-    "_emailPass": "Email Password"
+    "_emailPass": "Email Password",
+    "_defaultCatalog": "Default catalog",
+    "_defaultCatalogId": "Default catalog ID",
+    "_noDefaultCatalogConfigured": "No default catalog is currently configured.",
+    "_saveDefaultCatalog": "Save default catalog"
   },
   "CATEGORIES": {
     "_categories": "Categories",

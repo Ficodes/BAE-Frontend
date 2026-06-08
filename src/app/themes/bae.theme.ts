@@ -35,6 +35,7 @@ export const BAE_THEME_CONFIG: ThemeConfig = {
   },
   links: {
     headerLinks: baeHeaderLinks,
+    marketplaceHomeUrl: '/search',
 
     linkedin: 'https://linkedin.com/company/ocean-theme-example',
     youtube: 'https://youtube.com/c/ocean-theme-example',

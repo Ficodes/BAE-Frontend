@@ -60,6 +60,7 @@ export class CategoriesPanelComponent implements OnInit, OnDestroy {
     console.log('Category dismissed: '+ JSON.stringify(cat));
     this.localStorage.removeCategoryFilter(cat);
     this.eventMessage.emitRemovedFilter(cat);
+    this.eventMessage.emitFiltersCommitted();
   }
 
   hasLongWord(str: string | undefined, threshold = 20) {

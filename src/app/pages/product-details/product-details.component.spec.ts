@@ -369,23 +369,6 @@ describe('ProductDetailsComponent', () => {
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/org-details', 'org-42']);
   });
 
-  it('updateTabs should ignore scroll events during manual scroll', () => {
-    (component as any).isManualScroll = true;
-    spyOn(component, 'goToDetails');
-    spyOn(component, 'goToChars');
-    spyOn(component, 'goToAttach');
-    spyOn(component, 'goToAgreements');
-    spyOn(component, 'goToRelationships');
-
-    component.updateTabs({});
-
-    expect(component.goToDetails).not.toHaveBeenCalled();
-    expect(component.goToChars).not.toHaveBeenCalled();
-    expect(component.goToAttach).not.toHaveBeenCalled();
-    expect(component.goToAgreements).not.toHaveBeenCalled();
-    expect(component.goToRelationships).not.toHaveBeenCalled();
-  });
-
   it('loadUsageMetrics should collect linked metrics and deduplicate by usageSpecId + metric name', async () => {
     apiSpy.getOfferingPrice.and.callFake(async (id: string) => {
       if (id === 'price-comp-1') {

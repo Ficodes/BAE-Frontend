@@ -10,7 +10,8 @@ export interface EventMessage {
   'SellerCatalog' | 'SellerCatalogCreate' | 'SellerCatalogUpdate' | 'CategoryAdded' | 'CategoryRemoved' | 'ChangedSession' | 'CloseCartCard'|
   'AdminCategories' | 'CreateCategory' | 'UpdateCategory' | 'ShowCartToast' | 'HideCartToast' | 'CloseContact' | 'OpenServiceDetails' | 'OpenResourceDetails' | 'OpenProductInvDetails' |
   'SavePricePlan' | 'UpdatePricePlan' | 'ToggleEditPrice' | 'ToggleNewPrice' |
-  'SubformChange' | 'CloseFeedback' | 'UpdateOffer' | 'CloseQuoteRequest' | 'UpdateUsageSpec' | 'UsageSpecList' | 'CreateUsageSpec' | 'AiSearchFacets' | 'AiSearchCleared';
+  'SubformChange' | 'CloseFeedback' | 'UpdateOffer' | 'CloseQuoteRequest' | 'UpdateUsageSpec' | 'UsageSpecList' | 'CreateUsageSpec' | 'AiSearchFacets' | 'AiSearchCleared' |
+  'FiltersCommitted';
   text?: string,
   value?: object | boolean | FormChangeState | PricePlanChangeState
 }
@@ -225,6 +226,10 @@ export class EventMessageService {
 
   emitAiSearchCleared(){
     this.eventMessageSubject.next({type: 'AiSearchCleared', value: true})
+  }
+
+  emitFiltersCommitted() {
+    this.eventMessageSubject.next({ type: 'FiltersCommitted', value: true });
   }
 
 }
