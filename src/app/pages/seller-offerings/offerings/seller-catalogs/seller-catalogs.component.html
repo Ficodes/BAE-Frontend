@@ -7,23 +7,6 @@
         </div>
 
         <div class="flex flex-row w-full justify-end items-center">
-            @if(searchEnabled && federationEnabled){
-              <form class="w-full max-w-lg pr-4 z-10" (ngSubmit)="filterInventoryByKeywords($event)">
-                <div class="relative">
-                    <input type="search" id="search" [formControl]="searchField"
-                    (input)="onSearchInput()"
-                    (keydown.enter)="onSearchEnter($event)"
-                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-secondary-500 dark:placeholder-gray-400 dark:text-white"
-                    placeholder="{{ 'DASHBOARD._search_ph' | translate }}" />
-                    <button type="submit" class="absolute top-0 end-0 p-2.5 text-sm font-medium h-full text-white bg-primary-100 border-secondary-100 hover:bg-primary-50 focus:ring-blue-300 dark:border-secondary-400 rounded-e-lg border focus:ring-4 focus:outline-none">
-                        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-                        </svg>
-                        <span class="sr-only">{{ 'DASHBOARD._search' | translate }}</span>
-                    </button>
-                </div>
-              </form>
-            }
             <button data-cy="newCatalog" type="button" (click)="goToCreate()" class="ml-2 mr-8 mb-4 text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center align-middle me-2">
                 <p class="pl-2 pr-2">{{ 'OFFERINGS._add_new_catalog' | translate }}</p>
                 <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">

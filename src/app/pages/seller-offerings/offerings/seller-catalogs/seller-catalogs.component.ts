@@ -1,6 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormControl } from '@angular/forms';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
 import {components} from "src/app/models/product-catalog";
 type Catalog = components["schemas"]["Catalog"];
@@ -25,17 +24,13 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
   protected readonly faSort = faSort;
   protected readonly faSwatchbook = faSwatchbook;
 
-  searchField = new FormControl();
   catalogs:Catalog[]=[];
   nextCatalogs:Catalog[]=[];
   page:number=0;
   CATALOG_LIMIT: number = environment.CATALOG_LIMIT;
-  searchEnabled: boolean = environment.SEARCH_ENABLED;
-  federationEnabled: boolean = environment.FEDERATION_ENABLED;
   loading: boolean = false;
   loading_more: boolean = false;
   page_check:boolean = true;
-  filter:any=undefined;
   partyId:any;
   status:any[]=['Active','Launched'];
   private destroy$ = new Subject<void>();
@@ -101,7 +96,6 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
 
     //async getItemsPaginated(page:number, pageSize:any, next:boolean, items:any[], nextItems:any[], options:any
     let options = {
-      "keywords": this.filter,
       "filters": this.status,
       "partyId": this.partyId
     }
@@ -119,29 +113,6 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
 
   async next(){
     await this.getCatalogs(true);
-  }
-
-  filterInventoryByKeywords(event?: Event){
-    event?.preventDefault();
-    this.filter = this.searchField.value || undefined;
-    this.page = 0;
-    this.catalogs = [];
-    this.nextCatalogs = [];
-    this.getCatalogs(false);
-  }
-
-  onSearchInput() {
-    if(this.searchField.value == ''){
-      this.filter = undefined;
-      this.page = 0;
-      this.catalogs = [];
-      this.nextCatalogs = [];
-      this.getCatalogs(false);
-    }
-  }
-
-  onSearchEnter(event: Event){
-    this.filterInventoryByKeywords(event);
   }
 
   onStateFilterChange(filter:string){

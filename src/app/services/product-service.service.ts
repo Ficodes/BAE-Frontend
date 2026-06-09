@@ -421,7 +421,7 @@ export class ApiServiceService {
     return lastValueFrom(this.http.get<any>(url));
   }
 
-  getCatalogsByUser(page: any, filter: any, status: any[], partyId: any) {
+  getCatalogsByUser(page: any, status: any[], partyId: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog?limit=${ApiServiceService.CATALOG_LIMIT}&offset=${page}&relatedParty.id=${partyId}`;
     let lifeStatus = ''
     if (status)
@@ -435,10 +435,6 @@ export class ApiServiceService {
         }
         url = url + '&lifecycleStatus=' + lifeStatus;
       }
-
-    if (filter != undefined) {
-      url = url + `&body=${filter}`;
-    }
 
     return lastValueFrom(this.http.get<any>(url));
   }
