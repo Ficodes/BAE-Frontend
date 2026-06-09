@@ -263,7 +263,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.complianceLevel = this.api.getComplianceLevel(this.prodSpec);
     }
 
-    this.isCustomPrice = await this.priceService.isCustomOffering(this.productOff)
+    this.isCustomPrice = await this.priceService.isCustomOffering(this.productOff, false)
 
     this.prepareOffData();
 
