@@ -80,7 +80,6 @@ export class CatalogueComponent implements ControlValueAccessor, OnInit, AfterVi
     }
     
     let options = {
-      "keywords": undefined,
       "filters": ['Active','Launched'],
       "partyId": this.partyId
     }

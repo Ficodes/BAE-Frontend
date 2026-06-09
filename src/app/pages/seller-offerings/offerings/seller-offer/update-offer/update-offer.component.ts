@@ -870,7 +870,6 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
     }
 
     let options = {
-      "keywords": undefined,
       "filters": ['Active','Launched'],
       "partyId": this.partyId
     }

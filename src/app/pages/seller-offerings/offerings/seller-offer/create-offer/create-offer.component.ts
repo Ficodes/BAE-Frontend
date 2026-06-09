@@ -782,7 +782,6 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
     }
     
     let options = {
-      "keywords": undefined,
       "filters": ['Active','Launched'],
       "partyId": this.partyId
     }
