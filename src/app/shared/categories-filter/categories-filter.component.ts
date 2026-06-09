@@ -1,4 +1,4 @@
-import {Component, EventEmitter, OnInit, Output, ChangeDetectorRef, Input, OnDestroy} from '@angular/core';
+import {Component, EventEmitter, OnInit, Output, ChangeDetectorRef, Input, OnDestroy, OnChanges, SimpleChanges} from '@angular/core';
 import {Category} from "../../models/interfaces";
 import {Subject} from "rxjs";
 import {LocalStorageService} from "../../services/local-storage.service";
@@ -10,13 +10,14 @@ import {faCircle} from "@fortawesome/pro-regular-svg-icons";
 import { takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import availableFilters, { type Filter } from '../../data/availableFilters';
+import { iconForCategory } from '../../data/categoryIcons';
 
 @Component({
   selector: 'bae-categories-filter',
   templateUrl: './categories-filter.component.html',
   styleUrl: './categories-filter.component.css'
 })
-export class CategoriesFilterComponent implements OnInit, OnDestroy {
+export class CategoriesFilterComponent implements OnInit, OnDestroy, OnChanges {
 
   classListFirst = 'flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-b-0 border-gray-200 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-tertiary-100 gap-3';
   classListLast  = 'flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-gray-200 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-tertiary-100 gap-3';
@@ -35,6 +36,9 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
   cs: Category[] = [];
   @Output() selectedCategories = new EventEmitter<Category[]>();
   @Input() catalogId: any = undefined;
+  @Input() showTitle: boolean = true;
+  @Input() simpleMode: boolean = false;
+  @Input() selectedRootId: string | null | undefined = undefined;
 
   // AI Search facets
   aiSearchEnabled = environment.AI_SEARCH_ENABLED;
@@ -42,8 +46,24 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
   dynamicAiCategories: Category[] = [];
   configuredAiCategories: Category[] = [];
 
+  get allFilterItems(): Category[] {
+    const result: Category[] = [];
+    const collect = (cats: Category[]) => {
+      for (const cat of cats) {
+        if (cat.children && cat.children.length > 0) {
+          collect(cat.children);
+        } else {
+          result.push(cat);
+        }
+      }
+    };
+    collect(this.categories);
+    return result;
+  }
+
   protected readonly faCircleCheck = faCircleCheck;
   protected readonly faCircle = faCircle;
+  protected readonly iconForCategory = iconForCategory;
 
   private destroy$ = new Subject<void>();
 
@@ -90,7 +110,7 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
       this.checkedCategories.push(this.selected[i].id)
     }
 
-    if (this.aiSearchEnabled) {
+    if (this.aiSearchEnabled && !this.selectedRootId) {
       await this.loadCatalogCategories();
       this.dynamicAiCategories = this.convertDynamicCategoriesToAiFilterCategories(this.categories);
       this.configuredAiCategories = this.convertFiltersToCategories(availableFilters);
@@ -444,6 +464,13 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
 
   private async loadCatalogCategories(): Promise<void> {
     this.categories = [];
+
+    if (this.selectedRootId) {
+      const children = await this.api.getCategoriesByParentId(this.selectedRootId).catch(() => []);
+      this.categories = Array.isArray(children) ? children : [];
+      return;
+    }
+
     const hasCatalogId = this.catalogId !== undefined && this.catalogId !== null && String(this.catalogId).trim() !== '';
 
     if (hasCatalogId) {
@@ -473,6 +500,15 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
     const launchedList = Array.isArray(launched) ? launched : [];
     for (const category of launchedList) {
       this.findChildren(category, launchedList);
+    }
+  }
+
+  async ngOnChanges(changes: SimpleChanges) {
+    const rootChange = changes['selectedRootId'];
+    if (rootChange && !rootChange.firstChange) {
+      await this.loadCatalogCategories();
+      this.cdr.detectChanges();
+      initFlowbite();
     }
   }
 
