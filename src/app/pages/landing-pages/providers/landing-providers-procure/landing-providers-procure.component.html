@@ -1,6 +1,6 @@
 <section class="providers-steps-section w-full bg-[#EBF0F7] font-[Blinker]">
   <div
-    class="mx-auto w-full max-w-[1440px] px-6 py-16 sm:px-8 sm:py-20 lg:px-16 lg:py-[80px] xl:px-[160px] xl:py-[100px]">
+    class="mx-auto w-full max-w-[1440px] px-6 pt-16 sm:px-8 sm:pt-20 lg:px-16 lg:pt-[80px] xl:px-[160px] xl:pt-[100px]">
     <div class="providers-steps-layout">
       <div class="providers-steps-copy">
         <h2 class="text-[32px] sm:text-[40px] xl:text-[48px] font-bold leading-[1.2] xl:leading-[58px] text-[#0B1528]"
@@ -32,6 +32,12 @@
       </div>
       }
       }
+    </div>
+
+    <div class="providers-steps-cta">
+      <a [href]="url()" class="providers-steps-cta__button">
+        {{ 'LANDINGPAGE.providers.procureSteps.ctaButton' | translate }}
+      </a>
     </div>
   </div>
   </div>

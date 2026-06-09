@@ -14,6 +14,8 @@ import { takeUntil } from 'rxjs/operators';
 interface ProcurementMode {
   id: string;
   name: string;
+  extBillingEnabled?: boolean;
+  plaSpecId?: string;
 }
 
 @Component({
@@ -71,7 +73,9 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
         if (this.isEditMode && this.hasBeenModified && this.originalValue) {
           const currentValue = {
             id: this.procurementMode,
-            name: this.procurementModes.find(m => m.id === this.procurementMode)?.name || 'Manual'
+            name: this.procurementModes.find(m => m.id === this.procurementMode)?.name || 'Manual',
+            extBillingEnabled: this.formGroup.get('extBillingEnabled')?.value ?? false,
+            plaSpecId: this.formGroup.get('plaSpecId')?.value ?? ''
           };
           
           // Solo emitir si el valor es diferente al original
@@ -125,6 +129,16 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
     return control instanceof FormControl ? control : null;
   }
 
+  get extBillingEnabledControl(): FormControl | null {
+    const control = this.formGroup.get('extBillingEnabled');
+    return control instanceof FormControl ? control : null;
+  }
+
+  get plaSpecIdControl(): FormControl | null {
+    const control = this.formGroup.get('plaSpecId');
+    return control instanceof FormControl ? control : null;
+  }
+
   registerOnChange(fn: any): void {
     this.onChange = fn;
   }
@@ -154,11 +168,27 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
     // Inicializar el control del formulario
     this.formGroup.addControl('mode', new FormControl<string>(initialValue, [Validators.required]));
 
+    const existingPlaSpecId = this.data?.pricingLogicAlgorithm?.[0]?.plaSpecId ?? '';
+    this.formGroup.addControl('extBillingEnabled', new FormControl<boolean>(!!existingPlaSpecId));
+    this.formGroup.addControl('plaSpecId', new FormControl<string>(existingPlaSpecId, !!existingPlaSpecId ? [Validators.required] : []));
+
+    this.formGroup.get('extBillingEnabled')!.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((enabled: boolean) => {
+      const plaControl = this.formGroup.get('plaSpecId')!;
+      if (enabled) {
+        plaControl.setValidators([Validators.required]);
+      } else {
+        plaControl.clearValidators();
+      }
+      plaControl.updateValueAndValidity();
+    });
+
     // Guardar el valor original solo en modo edición
     if (this.isEditMode) {
       this.originalValue = {
         id: initialValue,
-        name: this.procurementModes.find(m => m.id === initialValue)?.name || 'Manual'
+        name: this.procurementModes.find(m => m.id === initialValue)?.name || 'Manual',
+        extBillingEnabled: !!existingPlaSpecId,
+        plaSpecId: existingPlaSpecId
       };
       console.log('📝 Original value stored:', this.originalValue);
     }
@@ -169,26 +199,29 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
     .subscribe(value => {
       console.log('📝 Form value changed in subscription:', value);
 
-      if (value && value.mode) {
-        if (value.mode != 'manual' && this.gatewayCount == 0) {
-          this.errorMessage = "You can't select this procurement mode as you are not registered on the payment gateway.";
-          this.showProcurementError = true;
-          this.form.setErrors({ invalidProcurement: true });
-          this.formGroup.patchValue({
-            mode: 'manual'
-          }, { emitEvent: false });
-          return;
+      if (value) {
+        if (value.mode) {
+          if (value.mode != 'manual' && this.gatewayCount == 0) {
+            this.errorMessage = "You can't select this procurement mode as you are not registered on the payment gateway.";
+            this.showProcurementError = true;
+            this.form.setErrors({ invalidProcurement: true });
+            this.formGroup.patchValue({
+              mode: 'manual'
+            }, { emitEvent: false });
+            return;
+          }
+
+          this.errorMessage = "";
+          this.showProcurementError = false;
+          this.form.setErrors(null);
+
+          const mode = this.procurementModes.find(m => m.id === value.mode) || this.procurementModes[0];
+          console.log('📝 Found mode:', mode);
+
+          this.procurementMode = mode.id;
+          console.log('📝 Current procurementMode:', this.procurementMode);
         }
 
-        this.errorMessage = "";
-        this.showProcurementError = false;
-        this.form.setErrors(null)
-
-        const mode = this.procurementModes.find(m => m.id === value.mode) || this.procurementModes[0];
-        console.log('📝 Found mode:', mode);
-
-        this.procurementMode = mode.id;
-        console.log('📝 Current procurementMode:', this.procurementMode);
         this.hasBeenModified = true;
       }
     });

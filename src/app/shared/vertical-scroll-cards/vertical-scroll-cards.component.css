@@ -32,7 +32,7 @@
   top: 0;
   width: 6px;
   border-radius: 16px 0 0 16px;
-  background: linear-gradient(180deg, #2d58a7 0%, #00add3 100%);
+  background: linear-gradient(180deg, rgb(var(--theme-primary-100)) 0%, rgb(var(--theme-primary-50)) 100%);
   z-index: 3;
   transition:
     transform 0.26s ease,
@@ -57,4 +57,41 @@
 .vertical-snap-scroll-fade-bottom {
   bottom: 0;
   background: linear-gradient(0deg, #ffffff 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.vertical-snap-scroll-outer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+}
+
+.vertical-snap-scroll-arrow-slot {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.vertical-snap-scroll-arrow {
+  position: relative;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  border: 1px solid rgb(var(--theme-primary-100));
+  background: rgb(var(--theme-primary-100));
+  color: #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.vertical-snap-scroll-arrow:hover {
+  background: #18B5D9;
+  border-color: #18B5D9;
 }

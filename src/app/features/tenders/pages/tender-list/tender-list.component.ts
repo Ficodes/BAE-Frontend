@@ -8,17 +8,17 @@ import { QuoteService } from '../../../quotes/services/quote.service';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
-import { Tender, TenderAttachment } from 'src/app/models/tender.model';
+import { Tender, TenderAttachment, TenderStateType } from 'src/app/models/tender.model';
 import { Quote, QuoteStateType } from 'src/app/models/quote.model';
+import { environment } from 'src/environments/environment';
 import { LoginInfo } from 'src/app/models/interfaces';
-import { NotificationComponent } from 'src/app/shared/notification/notification.component';
 import { ConfirmDialogComponent } from 'src/app/shared/confirm-dialog/confirm-dialog.component';
 import { QuoteDetailsModalComponent } from 'src/app/shared/quote-details-modal/quote-details-modal.component';
 import { ChatModalComponent } from 'src/app/shared/chat-modal/chat-modal.component';
 import { AttachmentModalComponent } from 'src/app/shared/attachment-modal/attachment-modal.component';
 import { CreateTenderModalComponent } from 'src/app/shared/create-tender-modal/create-tender-modal.component';
 import { UI_ROLES, API_ROLES, UiRole, toApiRole } from 'src/app/models/roles.constants';
-import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, TENDER_RELATED_QUOTES_LABELS_CUSTOMER, TENDER_RELATED_QUOTES_LABELS_PROVIDER } from 'src/app/models/quote.constants';
+import { COORDINATOR_STATUS_MESSAGES, QUOTE_CATEGORIES, QUOTE_STATUSES, TENDERING_STATUS_MESSAGES, TENDER_COORDINATOR_STATUSES_LABELS, TENDER_RELATED_QUOTES_LABELS_CUSTOMER, TENDER_RELATED_QUOTES_LABELS_PROVIDER } from 'src/app/models/quote.constants';
 
 @Component({
   selector: 'app-quote-list',
@@ -26,7 +26,6 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
   imports: [
     CommonModule,
     FormsModule,
-    NotificationComponent,
     ConfirmDialogComponent,
     QuoteDetailsModalComponent,
     ChatModalComponent,
@@ -34,54 +33,61 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
     CreateTenderModalComponent
   ],
   template: `
-    <app-notification></app-notification>
-
-    <div class="w-full mx-auto px-6 py-8">
-      <div class="flex justify-between items-center mb-6">
-        <div class="flex items-center gap-3">
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Tenders Dashboard</h1>
-          <a
-            href="https://knowledgebase.dome-marketplace.eu/books/tailored-offering-guide"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Click here for the Tender process guide"
-            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-          >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-            </svg>
-          </a>
+    <div class="min-h-screen bg-[#F7F9FD] font-[Blinker]" (click)="closeStatusDropdown()">
+      <div class="mx-auto max-w-[1440px] px-6 py-8 sm:px-10 lg:px-20 xl:px-[160px]">
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex min-w-0 items-center gap-3">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#eef2fb] text-[#1f4fbf]">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414A1 1 0 0 1 19 9.414V19a2 2 0 0 1-2 2Z" />
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <h1 class="truncate text-[28px] font-bold text-[#0b1220]">Tenders Dashboard</h1>
+                <a
+                  href="https://knowledgebase.dome-marketplace.eu/books/tailored-offering-guide"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Click here for the Tender process guide"
+                  class="rounded-lg p-1 text-[#526179] transition-colors hover:bg-[#EBF0F7] hover:text-[#1f4fbf]"
+                >
+                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-3a1 1 0 0 0-.867.5 1 1 0 1 1-1.731-1A3 3 0 0 1 13 8a3.001 3.001 0 0 1-2 2.83V11a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1 1 1 0 1 0 0-2Zm0 8a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              *ngIf="selectedRole === UI_ROLES.BUYER"
+              (click)="openCreateTenderModal()"
+              class="inline-flex h-10 items-center gap-2 rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:opacity-50"
+            >
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Create Tender
+            </button>
+            <button
+              (click)="refreshQuotes()"
+              [disabled]="loading"
+              class="inline-flex h-10 items-center rounded-lg border border-[#EBECEE] bg-white px-4 text-sm font-semibold text-[#324153] transition-colors hover:border-[#1f4fbf] hover:text-[#1f4fbf] disabled:opacity-50"
+            >
+              {{ loading ? 'Loading...' : 'Refresh' }}
+            </button>
+          </div>
         </div>
-        <div class="flex space-x-3">
-          <button
-            *ngIf="selectedRole === UI_ROLES.BUYER"
-            (click)="openCreateTenderModal()"
-            class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center"
-          >
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Create Tender
-          </button>
-          <button
-            (click)="refreshQuotes()"
-            [disabled]="loading"
-            class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50"
-          >
-            {{ loading ? 'Loading...' : 'Refresh' }}
-          </button>
-        </div>
-      </div>
 
       <!-- Role Tabs -->
       <div class="mb-6">
-        <div class="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+        <div class="inline-flex rounded-2xl border border-[#EBECEE] bg-white p-1 shadow-sm">
           <button
             (click)="selectRole(UI_ROLES.BUYER)"
             [class]="getRoleTabClass(UI_ROLES.BUYER)"
-            class="flex-1 px-8 py-4 text-2xl font-medium rounded-md transition-colors"
           >
-            <svg class="w-6 h-6 inline mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             As Buyer
@@ -89,9 +95,8 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
           <button
             (click)="selectRole(UI_ROLES.SELLER)"
             [class]="getRoleTabClass(UI_ROLES.SELLER)"
-            class="flex-1 px-8 py-4 text-2xl font-medium rounded-md transition-colors"
           >
-            <svg class="w-6 h-6 inline mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
             As Provider
@@ -100,26 +105,56 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
       </div>
 
       <!-- Status Filter -->
-      <div class="mb-6">
-        <div class="flex items-center space-x-4">
-          <svg class="w-5 h-5 text-gray-500 dark:text-gray-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#EBECEE] bg-white p-3 shadow-sm">
+        <div class="flex items-center gap-3">
+          <svg class="h-5 w-5 text-[#526179]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
           </svg>
-          <span class="text-sm font-medium text-gray-700 dark:text-gray-100">Filter by status</span>
-          <select
-            [(ngModel)]="statusFilter"
-            (ngModelChange)="filterQuotesByStatus()"
-            class="form-select rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          <span class="text-sm font-medium text-[#526179]">Status</span>
+        </div>
+        <div class="relative min-w-[240px]" (click)="$event.stopPropagation()">
+          <button
+            type="button"
+            (click)="toggleStatusDropdown($event)"
+            [ngClass]="statusFilter ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] bg-white text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'"
+            class="flex h-10 w-full items-center justify-between gap-3 rounded-lg border px-4 text-[15px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#B6CAEC]"
           >
-            <option value="">All Statuses</option>
-            <option *ngFor="let opt of filterStatusOptions" [value]="opt.value">{{ opt.label }}</option>
-          </select>
+            <span class="truncate">{{ getStatusFilterLabel() }}</span>
+            <svg class="h-4 w-4 shrink-0 transition-transform" [ngClass]="showStatusDropdown ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+          <div *ngIf="showStatusDropdown" class="absolute right-0 top-full z-40 mt-2 w-full rounded-xl bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+            <button
+              type="button"
+              (click)="selectStatusFilter('', $event)"
+              [ngClass]="!statusFilter ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'"
+              class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors"
+            >
+              <span class="min-w-0 flex-1 truncate">All Statuses</span>
+              <svg *ngIf="!statusFilter" class="h-4 w-4 text-[#1f4fbf]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            </button>
+            <button
+              *ngFor="let opt of filterStatusOptions"
+              type="button"
+              (click)="selectStatusFilter(opt.value, $event)"
+              [ngClass]="statusFilter === opt.value ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'"
+              class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors"
+            >
+              <span class="min-w-0 flex-1 truncate">{{ opt.label }}</span>
+              <svg *ngIf="statusFilter === opt.value" class="h-4 w-4 text-[#1f4fbf]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Loading State -->
-      <div *ngIf="loading" class="flex justify-center items-center py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div *ngIf="loading" class="flex items-center justify-center py-8">
+        <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-[#1f4fbf]"></div>
       </div>
 
       <!-- Error State -->
@@ -138,29 +173,29 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
       </div>
 
       <!-- Quotes List -->
-      <div *ngIf="!loading && !error" class="bg-white dark:bg-gray-700 shadow-md rounded-lg overflow-hidden">
+      <div *ngIf="!loading && !error" class="overflow-hidden rounded-2xl border border-[#EBECEE] bg-white shadow-sm">
         <div *ngIf="filteredQuotes.length === 0" class="text-center py-12">
           <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No tenders found</h3>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No tender requests to display</p>
+          <h3 class="mt-2 text-sm font-semibold text-[#0b1220]">No tenders found</h3>
+          <p class="mt-1 text-sm text-[#526179]">No tender requests to display</p>
         </div>
 
         <!-- Provider View Header (matches Quote layout) -->
-        <div *ngIf="filteredQuotes.length > 0 && selectedRole === UI_ROLES.SELLER" class="bg-gray-50 dark:bg-gray-800 px-6 py-3">
-          <div class="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+        <div *ngIf="filteredQuotes.length > 0 && selectedRole === UI_ROLES.SELLER" class="border-b border-[#DDE6F6] bg-[#EBF0F7] px-6 py-3">
+          <div class="grid grid-cols-12 gap-4 text-xs font-semibold uppercase tracking-wider text-[#526179]">
             <div class="col-span-2">REQUEST DATE</div>
             <div class="col-span-3">CUSTOMER</div>
-            <div class="col-span-4">TITLE</div>
-            <div class="col-span-1">STATUS</div>
+            <div class="col-span-3">TITLE</div>
+            <div class="col-span-2">STATUS</div>
             <div class="col-span-2">ACTIONS</div>
           </div>
         </div>
 
         <!-- Buyer View Header (Coordinator quotes) -->
-        <div *ngIf="filteredQuotes.length > 0 && selectedRole === UI_ROLES.BUYER" class="bg-gray-50 dark:bg-gray-800 px-6 py-3">
-          <div class="grid grid-cols-16 gap-4 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+        <div *ngIf="filteredQuotes.length > 0 && selectedRole === UI_ROLES.BUYER" class="border-b border-[#DDE6F6] bg-[#EBF0F7] px-6 py-3">
+          <div class="grid grid-cols-16 gap-4 text-xs font-semibold uppercase tracking-wider text-[#526179]">
             <div class="col-span-1">EXPAND</div>
             <div class="col-span-3">TITLE</div>
             <div class="col-span-2">STATUS</div>
@@ -174,31 +209,30 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
         <!-- ==================== PROVIDER VIEW ROWS (matches Quote layout) ==================== -->
         <ng-container *ngIf="selectedRole === UI_ROLES.SELLER">
           <div *ngFor="let quote of filteredQuotes" class="quote-row">
-            <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 border-b border-gray-100 dark:border-gray-600 transition-colors"
-                 [class.bg-gray-50]="isQuoteFinalized(quote)"
-                 [class.dark:bg-gray-800]="isQuoteFinalized(quote)"
-                 [class.hover:bg-gray-50]="!isQuoteFinalized(quote)"
-                 [class.dark:hover:bg-gray-800]="!isQuoteFinalized(quote)"
+            <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 border-b border-[#EBECEE] transition-colors"
+                 [ngClass]="isQuoteFinalized(quote) ? 'bg-[#F7F9FD]' : 'bg-white hover:bg-[#EBF0F7]'"
                  [attr.data-quote-id]="quote.id">
 
               <!-- Request Date -->
-              <div class="col-span-2 text-sm text-gray-600 dark:text-gray-400">
+              <div class="col-span-2 text-sm text-[#526179]">
                 {{ quote.quoteDate | date:'dd-MM-yyyy' }}
               </div>
 
               <!-- Customer/Buyer Name -->
-              <div class="col-span-3 text-sm font-medium text-gray-900 dark:text-white">
+              <div class="col-span-3 text-sm font-semibold text-[#0b1220]">
                 {{ getBuyerName(quote) }}
               </div>
 
               <!-- Title -->
-              <div class="col-span-4 text-sm text-gray-700 dark:text-gray-300" [title]="quote.description || '(no title)'">
+              <div class="col-span-3 text-sm text-[#324153]" [title]="quote.description || '(no title)'">
                 {{ getTruncatedTitle(quote.description) }}
               </div>
 
               <!-- Status -->
-              <div class="col-span-1">
-                <span class="status-badge px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+              <div class="col-span-2 min-w-0" data-testid="provider-tender-status-cell">
+                <span class="status-badge max-w-full truncate rounded-full px-2 text-xs font-semibold leading-5"
+                      [title]="getStatusTooltip(quote)"
+                      [attr.aria-label]="getStatusTooltip(quote)"
                       [ngClass]="getStateClass(getQuoteItemState(quote))">
                   {{ getStatusLabel(quote) }}
                 </span>
@@ -210,7 +244,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
                 <button
                   [disabled]="isActionDisabled(quote, 'chat')"
                   (click)="openChat(quote)"
-                  [class]="getIconButtonClass(quote, 'chat', 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200')"
+                  [class]="getIconButtonClass(quote, 'chat', 'text-[#526179] hover:text-[#1f4fbf]')"
                   title="Chat"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -222,7 +256,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
                 <button
                   [disabled]="isActionDisabled(quote, 'viewDetails')"
                   (click)="viewDetails(quote)"
-                  class="px-3 py-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 border border-blue-200 dark:border-blue-700 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex items-center gap-1"
+                  class="inline-flex items-center gap-1 rounded-lg border border-[#B6CAEC] px-3 py-1.5 text-sm font-semibold text-[#1f4fbf] transition-colors hover:bg-[#EBF0F7]"
                   [class.opacity-50]="isActionDisabled(quote, 'viewDetails')"
                   [class.cursor-not-allowed]="isActionDisabled(quote, 'viewDetails')"
                 >
@@ -239,11 +273,8 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
         <!-- ==================== BUYER VIEW ROWS (Coordinator quotes with expand) ==================== -->
         <ng-container *ngIf="selectedRole === UI_ROLES.BUYER">
           <div *ngFor="let quote of filteredQuotes" class="quote-row">
-            <div class="grid grid-cols-16 gap-4 items-center px-6 py-4 border-b border-gray-100 dark:border-gray-600 transition-colors"
-                 [class.bg-gray-50]="isQuoteFinalized(quote)"
-                 [class.dark:bg-gray-800]="isQuoteFinalized(quote)"
-                 [class.hover:bg-gray-50]="!isQuoteFinalized(quote)"
-                 [class.dark:hover:bg-gray-800]="!isQuoteFinalized(quote)"
+            <div class="grid grid-cols-16 gap-4 items-center px-6 py-4 border-b border-[#EBECEE] transition-colors"
+                 [ngClass]="isQuoteFinalized(quote) ? 'bg-[#F7F9FD]' : 'bg-white hover:bg-[#EBF0F7]'"
                  [attr.data-quote-id]="quote.id">
 
               <!-- Quote Details (Expand/Collapse) -->
@@ -252,7 +283,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
                 <button
                   *ngIf="isCoordinatorExpandable(quote)"
                   (click)="toggleExpand(quote)"
-                  class="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded transition-colors"
+                  class="rounded-lg p-1.5 text-[#1f4fbf] transition-colors hover:bg-[#EBF0F7]"
                   [title]="isExpanded(quote.id) ? 'Collapse related quotes' : 'Expand to view related quotes'"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform" [class.rotate-180]="isExpanded(quote.id)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -262,25 +293,27 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
               </div>
 
               <!-- Title -->
-              <div class="col-span-3 text-sm font-medium text-gray-900 dark:text-white" [title]="quote.description || '(no title)'">
+              <div class="col-span-3 text-sm font-semibold text-[#0b1220]" [title]="quote.description || '(no title)'">
                 {{ getTruncatedTitle(quote.description) }}
               </div>
 
               <!-- Status -->
-              <div class="col-span-2">
-                <span class="status-badge px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+              <div class="col-span-2 min-w-0">
+                <span class="status-badge max-w-full truncate rounded-full px-2 text-xs font-semibold leading-5"
+                      [title]="getStatusTooltip(quote)"
+                      [attr.aria-label]="getStatusTooltip(quote)"
                       [ngClass]="getStateClass(getQuoteItemState(quote))">
                   {{ getStatusLabel(quote) }}
                 </span>
               </div>
 
               <!-- Expected Fulfillment Start Date -->
-              <div class="col-span-2 text-sm text-gray-600 dark:text-gray-400">
+              <div class="col-span-2 text-sm text-[#526179]">
                 {{ quote.expectedFulfillmentStartDate | date:'dd/MM/yyyy' }}
               </div>
 
               <!-- Effective Completion Date -->
-              <div class="col-span-2 text-sm text-gray-600 dark:text-gray-400">
+              <div class="col-span-2 text-sm text-[#526179]">
                 {{ quote.effectiveQuoteCompletionDate | date:'dd/MM/yyyy' }}
               </div>
 
@@ -290,7 +323,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
                   <button
                     [disabled]="isActionDisabled(quote, 'downloadAttachment')"
                     (click)="downloadAttachment(quote)"
-                    class="flex items-center space-x-1 text-purple-600 hover:text-purple-800 disabled:text-gray-300"
+                    class="flex items-center space-x-1 text-[#1f4fbf] hover:text-[#183f99] disabled:text-gray-300"
                     title="Download attachment"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -306,7 +339,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
                 <!-- Details Button (matching Quote style) - Always visible -->
                 <button
                   (click)="viewDetails(quote)"
-                  class="px-3 py-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 border border-blue-200 dark:border-blue-700 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex items-center gap-1"
+                  class="inline-flex items-center gap-1 rounded-lg border border-[#B6CAEC] px-3 py-1.5 text-sm font-semibold text-[#1f4fbf] transition-colors hover:bg-[#EBF0F7]"
                 >
                   Details
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -318,7 +351,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
                 <button
                   *ngIf="quote.category === QUOTE_CATEGORIES.COORDINATOR && !isCoordinatorExpandable(quote)"
                   (click)="editTender(quote)"
-                  class="px-2 py-1 text-xs font-medium transition-colors rounded border text-green-600 hover:text-green-800 border-green-200 hover:bg-green-50"
+                  class="inline-flex items-center rounded-lg border border-[#B6CAEC] px-2.5 py-1.5 text-xs font-semibold text-[#1f4fbf] transition-colors hover:bg-[#EBF0F7]"
                   title="Edit tender"
                 >
                   Edit
@@ -328,7 +361,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
                 <button
                   *ngIf="quote.category === QUOTE_CATEGORIES.COORDINATOR && isCoordinatorExpandable(quote) && isExpanded(quote.id)"
                   (click)="openBroadcastModal(quote)"
-                  class="px-2 py-1 text-xs font-medium transition-colors rounded border text-fuchsia-600 hover:text-fuchsia-800 border-fuchsia-200 hover:bg-fuchsia-50"
+                  class="inline-flex items-center rounded-lg border border-[#B6CAEC] px-2.5 py-1.5 text-xs font-semibold text-[#1f4fbf] transition-colors hover:bg-[#EBF0F7]"
                   title="Broadcast message to all invited providers"
                 >
                   Broadcast
@@ -336,9 +369,9 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
 
                 <!-- Test: Start Tender (for coordinator quotes in pre-launched status) -->
                 <button
-                  *ngIf="quote.category === QUOTE_CATEGORIES.COORDINATOR && getPrimaryState(quote) === QUOTE_STATUSES.IN_PROGRESS"
+                  *ngIf="environment.TENDER_DEV_BUTTONS_OPEN_CLOSE_ENABLED && quote.category === QUOTE_CATEGORIES.COORDINATOR && getPrimaryState(quote) === QUOTE_STATUSES.IN_PROGRESS"
                   (click)="simulateStartTender(quote)"
-                  class="px-2 py-1 text-xs font-medium transition-colors rounded border text-orange-600 hover:text-orange-800 border-orange-200 hover:bg-orange-50 flex items-center gap-1"
+                  class="inline-flex items-center gap-1 rounded-lg border border-[#B6CAEC] px-2.5 py-1.5 text-xs font-semibold text-[#1f4fbf] transition-colors hover:bg-[#EBF0F7]"
                   title="[TEST] Start tender - updates status to 'launched'"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -349,9 +382,9 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
 
                 <!-- Test: Close Tender (for coordinator quotes in launched status) -->
                 <button
-                  *ngIf="quote.category === QUOTE_CATEGORIES.COORDINATOR && getPrimaryState(quote) === QUOTE_STATUSES.APPROVED"
+                  *ngIf="environment.TENDER_DEV_BUTTONS_OPEN_CLOSE_ENABLED && quote.category === QUOTE_CATEGORIES.COORDINATOR && getPrimaryState(quote) === QUOTE_STATUSES.APPROVED"
                   (click)="simulateCloseTender(quote)"
-                  class="px-2 py-1 text-xs font-medium transition-colors rounded border text-purple-600 hover:text-purple-800 border-purple-200 hover:bg-purple-50 flex items-center gap-1"
+                  class="inline-flex items-center gap-1 rounded-lg border border-[#B6CAEC] px-2.5 py-1.5 text-xs font-semibold text-[#1f4fbf] transition-colors hover:bg-[#EBF0F7]"
                   title="[TEST] Close tender - updates status to 'closed'"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -363,21 +396,21 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
             </div>
 
           <!-- Expanded Related Quotes View -->
-          <div *ngIf="isExpanded(quote.id)" class="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-600">
+          <div *ngIf="isExpanded(quote.id)" class="border-t border-[#EBECEE] bg-[#F7F9FD] px-6 py-4">
             <div class="ml-8">
-              <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Related Provider Quotes</h4>
+              <h4 class="mb-3 text-sm font-semibold text-[#324153]">Related Provider Quotes</h4>
 
               <!-- Loading State -->
               <div *ngIf="isLoadingRelatedQuotes(quote.id)" class="flex items-center justify-center py-4">
-                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Loading related quotes...</span>
+                <div class="h-6 w-6 animate-spin rounded-full border-b-2 border-[#1f4fbf]"></div>
+                <span class="ml-2 text-sm text-[#526179]">Loading related quotes...</span>
               </div>
 
               <!-- Related Quotes Table (matching Quote layout) -->
-              <div *ngIf="!isLoadingRelatedQuotes(quote.id) && getRelatedQuotes(quote.id).length > 0" class="bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600">
+              <div *ngIf="!isLoadingRelatedQuotes(quote.id) && getRelatedQuotes(quote.id).length > 0" class="overflow-hidden rounded-2xl border border-[#EBECEE] bg-white shadow-sm">
                 <!-- Header -->
-                <div class="bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-600">
-                  <div class="grid grid-cols-12 gap-4 text-xs font-medium text-gray-600 dark:text-gray-300 uppercase">
+                <div class="border-b border-[#DDE6F6] bg-[#EBF0F7] px-4 py-2">
+                  <div class="grid grid-cols-12 gap-4 text-xs font-semibold uppercase text-[#526179]">
                     <div class="col-span-4">Provider</div>
                     <div class="col-span-2">Status</div>
                     <div class="col-span-3">Attachments</div>
@@ -387,19 +420,19 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
 
                 <!-- Related Quote Rows -->
                 <div *ngFor="let relatedQuote of getRelatedQuotes(quote.id); let last = last"
-                     class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                     [class.border-b]="!last"
-                     [class.border-gray-200]="!last"
-                     [class.dark:border-gray-600]="!last">
+                     class="px-4 py-3 transition-colors hover:bg-[#EBF0F7]"
+                     [ngClass]="!last ? 'border-b border-[#EBECEE]' : ''">
                   <div class="grid grid-cols-12 gap-4 items-center text-sm">
                     <!-- Provider -->
-                    <div class="col-span-4 text-gray-900 dark:text-white font-medium">
+                    <div class="col-span-4 font-semibold text-[#0b1220]">
                       {{ getProviderName(relatedQuote) }}
                     </div>
 
                     <!-- Status -->
-                    <div class="col-span-2">
-                      <span class="status-badge px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full"
+                    <div class="col-span-2 min-w-0">
+                      <span class="status-badge max-w-full truncate rounded-full px-2 py-0.5 text-xs font-semibold leading-5"
+                            [title]="getStatusTooltip(relatedQuote)"
+                            [attr.aria-label]="getStatusTooltip(relatedQuote)"
                             [ngClass]="getStateClass(getQuoteItemState(relatedQuote))">
                         {{ getStatusLabel(relatedQuote) }}
                       </span>
@@ -410,7 +443,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
                       <button
                         *ngIf="hasAttachment(relatedQuote)"
                         (click)="downloadAttachment(relatedQuote)"
-                        class="flex items-center space-x-1 text-purple-600 hover:text-purple-800"
+                        class="flex items-center space-x-1 text-[#1f4fbf] hover:text-[#183f99]"
                         title="Download attachment"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -425,7 +458,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
                       <!-- Chat -->
                       <button
                         (click)="openChat(relatedQuote)"
-                        class="p-1 text-gray-500 hover:text-gray-700 rounded hover:bg-gray-100 transition-colors"
+                        class="rounded-lg p-1 text-[#526179] transition-colors hover:bg-[#EBF0F7] hover:text-[#1f4fbf]"
                         title="Chat"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -436,7 +469,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
                       <!-- View Details Button (matching Quote style) -->
                       <button
                         (click)="viewDetails(relatedQuote)"
-                        class="px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 border border-blue-200 rounded-md hover:bg-blue-50 transition-colors flex items-center gap-1"
+                        class="inline-flex items-center gap-1 rounded-lg border border-[#B6CAEC] px-2 py-1 text-xs font-semibold text-[#1f4fbf] transition-colors hover:bg-[#EBF0F7]"
                       >
                         Details
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -450,7 +483,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
 
               <!-- No Related Quotes -->
               <div *ngIf="!isLoadingRelatedQuotes(quote.id) && getRelatedQuotes(quote.id).length === 0"
-                   class="text-center py-6 text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                   class="rounded-2xl border border-[#EBECEE] bg-white py-6 text-center text-sm text-[#526179]">
                 <svg class="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -462,6 +495,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
         </ng-container>
       </div>
     </div>
+    </div>
 
     <!-- Delete Confirmation Dialog -->
     <app-confirm-dialog
@@ -469,7 +503,7 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
       title="Delete Quote"
       [message]="deleteConfirmMessage"
       confirmText="Delete"
-      confirmButtonClass="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+      confirmButtonClass="inline-flex h-10 items-center rounded-lg border border-[#F4C7C7] bg-white px-4 text-sm font-semibold text-[#B42318] transition-colors hover:bg-[#FFF1F1] focus:outline-none focus:ring-2 focus:ring-[#F4C7C7] disabled:cursor-not-allowed disabled:opacity-50"
       (confirm)="deleteQuote()"
       (cancel)="showDeleteConfirm = false"
     ></app-confirm-dialog>
@@ -486,10 +520,10 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
     ></app-confirm-dialog>
 
     <!-- State Update Modal -->
-    <div *ngIf="showStateUpdate" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div *ngIf="showStateUpdate" class="fixed inset-0 z-50 h-full w-full overflow-y-auto bg-[#0b1220]/45 px-4 py-8">
+      <div class="relative mx-auto mt-12 w-full max-w-md rounded-2xl border border-[#EBECEE] bg-white p-6 shadow-[0_20px_50px_rgba(11,18,32,0.24)]">
         <div class="mt-3">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Update Quote State</h3>
+          <h3 class="mb-4 text-lg font-bold text-[#0b1220]">Update Quote State</h3>
           <div class="space-y-3">
             <div *ngFor="let state of availableStates" class="flex items-center">
               <input
@@ -497,24 +531,24 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
                 [(ngModel)]="selectedState"
                 [value]="state"
                 type="radio"
-                class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                class="h-4 w-4 border-[#B6CAEC] text-[#1f4fbf] focus:ring-[#B6CAEC]"
               >
-              <label [for]="'state-' + state" class="ml-3 block text-sm font-medium text-gray-700">
+              <label [for]="'state-' + state" class="ml-3 block text-sm font-semibold text-[#324153]">
                 {{ getStateDisplay(state) }}
               </label>
             </div>
           </div>
-          <div class="mt-6 flex justify-end space-x-3">
+          <div class="mt-6 flex justify-end gap-3 border-t border-[#EBECEE] pt-4">
             <button
               (click)="showStateUpdate = false"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              class="inline-flex h-10 items-center rounded-lg border border-[#EBECEE] bg-white px-4 text-sm font-semibold text-[#324153] transition-colors hover:border-[#1f4fbf] hover:text-[#1f4fbf]"
             >
               Cancel
             </button>
             <button
               (click)="confirmStateUpdate()"
               [disabled]="!selectedState"
-              class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              class="inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] disabled:cursor-not-allowed disabled:opacity-50"
             >
               Update
             </button>
@@ -549,27 +583,27 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
     ></app-attachment-modal>
 
     <!-- Broadcast Message Modal -->
-    <div *ngIf="showBroadcastModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div *ngIf="showBroadcastModal" class="fixed inset-0 z-50 h-full w-full overflow-y-auto bg-[#0b1220]/45 px-4 py-8">
+      <div class="relative mx-auto mt-12 w-full max-w-md rounded-2xl border border-[#EBECEE] bg-white p-6 shadow-[0_20px_50px_rgba(11,18,32,0.24)]">
         <div class="mt-1">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Broadcast Message</h3>
+          <h3 class="mb-4 text-lg font-bold text-[#0b1220]">Broadcast Message</h3>
           <textarea
             [(ngModel)]="broadcastMessage"
             rows="4"
             placeholder="Type your message to all invited providers..."
-            class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            class="w-full rounded-lg border border-[#EBECEE] bg-white p-3 text-sm text-[#0b1220] outline-none transition-colors placeholder:text-[#9AA6B8] hover:border-[#1f4fbf] focus:border-[#1f4fbf] focus:ring-2 focus:ring-[#B6CAEC]"
           ></textarea>
-          <div class="mt-4 flex justify-end space-x-3">
+          <div class="mt-4 flex justify-end gap-3 border-t border-[#EBECEE] pt-4">
             <button
               (click)="closeBroadcastModal()"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              class="inline-flex h-10 items-center rounded-lg border border-[#EBECEE] bg-white px-4 text-sm font-semibold text-[#324153] transition-colors hover:border-[#1f4fbf] hover:text-[#1f4fbf]"
             >
               Cancel
             </button>
             <button
               (click)="sendBroadcastMessage()"
               [disabled]="!broadcastMessage || isBroadcastSending"
-              class="px-4 py-2 text-sm font-medium text-white bg-fuchsia-600 border border-transparent rounded-md hover:bg-fuchsia-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fuchsia-500 disabled:opacity-50"
+              class="inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {{ isBroadcastSending ? 'Sending...' : 'Send' }}
             </button>
@@ -590,51 +624,73 @@ import { QUOTE_CATEGORIES, QUOTE_STATUSES, TENDER_COORDINATOR_STATUSES_LABELS, T
   `,
   styles: [`
     .status-badge {
-      @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+      @apply inline-block overflow-hidden text-ellipsis whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold;
     }
 
     .status-pending {
-      @apply bg-yellow-100 text-yellow-800;
+      background-color: #FFF8E6;
+      border-color: #F2D28A;
+      color: #7A4D00;
     }
 
     .status-inProgress {
-      @apply bg-blue-100 text-blue-800;
+      background-color: #EBF0F7;
+      border-color: #B6CAEC;
+      color: #1f4fbf;
     }
 
     .status-approved {
-      @apply bg-green-100 text-green-800;
+      background-color: #EAF8F1;
+      border-color: #A8DDC8;
+      color: #006B4A;
     }
 
     .status-rejected {
-      @apply bg-red-100 text-red-800;
+      background-color: #FFF1F1;
+      border-color: #F4C7C7;
+      color: #B42318;
     }
 
     .status-cancelled {
-      @apply bg-gray-100 text-gray-800;
+      background-color: #F2F4F8;
+      border-color: #CBD3DF;
+      color: #324153;
     }
 
     .status-accepted {
-      @apply bg-emerald-100 text-emerald-800;
+      background-color: #EAF8F1;
+      border-color: #A8DDC8;
+      color: #006B4A;
     }
 
     .status-unknown {
-      @apply bg-gray-100 text-gray-600;
+      background-color: #F2F4F8;
+      border-color: #CBD3DF;
+      color: #526179;
     }
 
     .status-draft {
-      @apply bg-yellow-100 text-yellow-800;
+      background-color: #FFF8E6;
+      border-color: #F2D28A;
+      color: #7A4D00;
     }
 
     .status-pre-launched {
-      @apply bg-blue-100 text-blue-800;
+      background-color: #EBF0F7;
+      border-color: #B6CAEC;
+      color: #1f4fbf;
     }
 
     .status-launched {
-      @apply bg-green-100 text-green-800;
+      background-color: #EAF8F1;
+      border-color: #A8DDC8;
+      color: #006B4A;
     }
 
     .status-closed {
-      @apply bg-gray-100 text-gray-800;
+      background-color: #F2F4F8;
+      border-color: #CBD3DF;
+      color: #324153;
     }
 
     .rotate-180 {
@@ -671,9 +727,11 @@ export class TenderListComponent implements OnInit {
   readonly UI_ROLES = UI_ROLES;
   readonly QUOTE_CATEGORIES = QUOTE_CATEGORIES;
   readonly QUOTE_STATUSES = QUOTE_STATUSES;
+  readonly environment = environment;
 
   // Filtering
   statusFilter: string = '';
+  showStatusDropdown = false;
 
   // Quote Details Modal
   showQuoteDetailsModal = false;
@@ -697,7 +755,7 @@ export class TenderListComponent implements OnInit {
   genericConfirmTitle = '';
   genericConfirmMessage = '';
   genericConfirmButtonText = 'Confirm';
-  genericConfirmButtonClass = 'px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
+  genericConfirmButtonClass = 'inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:cursor-not-allowed disabled:opacity-50';
   genericConfirmCallback: (() => void) | null = null;
   isBroadcastSending = false;
 
@@ -862,13 +920,15 @@ export class TenderListComponent implements OnInit {
     };
   }
 
-  private mapTenderStateToQuoteState(tenderState: 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed'): QuoteStateType {
+  private mapTenderStateToQuoteState(tenderState: TenderStateType): QuoteStateType {
     switch (tenderState) {
-      case 'draft': return 'pending';  // draft → pending → GUI shows 'draft'
-      case 'pre-launched': return 'inProgress';  // pre-launched → inProgress → GUI shows 'pre-launched'
+      case 'draft': return 'pending';
+      case 'pre-launched': return 'inProgress';
       case 'pending': return 'pending';
-      case 'sent': return 'approved';  // sent → approved → GUI shows 'launched'
-      case 'closed': return 'accepted';  // closed → accepted → GUI shows 'closed'
+      case 'sent': return 'approved';
+      case 'closed': return 'accepted';
+      case 'cancelled': return 'cancelled';
+      case 'rejected': return 'rejected';
       default: return 'pending';
     }
   }
@@ -883,9 +943,10 @@ export class TenderListComponent implements OnInit {
   }
 
   getRoleTabClass(role: UiRole): string {
+    const base = 'inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors';
     return this.selectedRole === role
-      ? 'bg-white dark:bg-gray-600 text-indigo-600 dark:text-blue-400 shadow-sm'
-      : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-200';
+      ? `${base} bg-[#EBF0F7] text-[#1f4fbf]`
+      : `${base} text-[#526179] hover:bg-[#F7F9FD] hover:text-[#1f4fbf]`;
   }
 
   filterQuotesByStatus() {
@@ -949,6 +1010,30 @@ export class TenderListComponent implements OnInit {
     ];
   }
 
+  toggleStatusDropdown(event: Event): void {
+    event.stopPropagation();
+    this.showStatusDropdown = !this.showStatusDropdown;
+  }
+
+  closeStatusDropdown(): void {
+    this.showStatusDropdown = false;
+  }
+
+  selectStatusFilter(value: string, event?: Event): void {
+    event?.stopPropagation();
+    this.statusFilter = value;
+    this.showStatusDropdown = false;
+    this.filterQuotesByStatus();
+  }
+
+  getStatusFilterLabel(): string {
+    if (!this.statusFilter) {
+      return 'All Statuses';
+    }
+
+    return this.filterStatusOptions.find(option => option.value === this.statusFilter)?.label ?? 'All Statuses';
+  }
+
   viewDetails(quote: Quote) {
     this.selectedQuoteId = quote.id!;
     this.showQuoteDetailsModal = true;
@@ -989,16 +1074,16 @@ export class TenderListComponent implements OnInit {
     this.showCreateTenderModal = true;
   }
 
-  private mapQuoteStateToTenderState(quoteState: QuoteStateType | undefined): 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed' {
+  private mapQuoteStateToTenderState(quoteState: QuoteStateType | undefined): TenderStateType {
     if (!quoteState) return 'draft';
 
     switch (quoteState) {
-      case 'pending': return 'draft';  // pending → draft
-      case 'inProgress': return 'pre-launched';  // inProgress → pre-launched
-      case 'approved': return 'sent';  // approved → sent (launched)
-      case 'accepted':
-      case 'cancelled':
-      case 'rejected': return 'closed';
+      case 'pending': return 'draft';
+      case 'inProgress': return 'pre-launched';
+      case 'approved': return 'sent';
+      case 'accepted': return 'closed';
+      case 'cancelled': return 'cancelled';
+      case 'rejected': return 'rejected';
       default: return 'draft';
     }
   }
@@ -1021,7 +1106,7 @@ export class TenderListComponent implements OnInit {
     message: string,
     callback: () => void,
     buttonText: string = 'Confirm',
-    buttonClass: string = 'px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+    buttonClass: string = 'inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:cursor-not-allowed disabled:opacity-50'
   ) {
     this.genericConfirmTitle = title;
     this.genericConfirmMessage = message;
@@ -1110,6 +1195,7 @@ export class TenderListComponent implements OnInit {
   closeCreateTenderModal() {
     this.showCreateTenderModal = false;
     this.tenderToEdit = null;
+    this.loadQuotes();
   }
 
   onTenderCreated(tender: Tender) {
@@ -1134,7 +1220,7 @@ export class TenderListComponent implements OnInit {
       'Are you sure you want to broadcast this message to all the invited providers?',
       () => this.executeBroadcastMessage(),
       'Send',
-      'px-4 py-2 text-sm font-medium text-white bg-fuchsia-600 border border-transparent rounded-md hover:bg-fuchsia-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fuchsia-500'
+      'inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1338,7 +1424,7 @@ export class TenderListComponent implements OnInit {
         });
       },
       'Accept',
-      'px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
+      'inline-flex h-10 items-center rounded-lg bg-[#006B4A] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#00523A] focus:outline-none focus:ring-2 focus:ring-[#B8E6D1] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1368,7 +1454,7 @@ export class TenderListComponent implements OnInit {
         });
       },
       'Cancel Request',
-      'px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'
+      'inline-flex h-10 items-center rounded-lg border border-[#F4C7C7] bg-white px-4 text-sm font-semibold text-[#B42318] transition-colors hover:bg-[#FFF1F1] focus:outline-none focus:ring-2 focus:ring-[#F4C7C7] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1405,7 +1491,7 @@ export class TenderListComponent implements OnInit {
         });
       },
       'Start Tender',
-      'px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500'
+      'inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1442,7 +1528,7 @@ export class TenderListComponent implements OnInit {
         });
       },
       'Close Tender',
-      'px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500'
+      'inline-flex h-10 items-center rounded-lg bg-[#1f4fbf] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183f99] focus:outline-none focus:ring-2 focus:ring-[#B6CAEC] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1480,7 +1566,7 @@ export class TenderListComponent implements OnInit {
         });
       },
       'Accept',
-      'px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
+      'inline-flex h-10 items-center rounded-lg bg-[#006B4A] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#00523A] focus:outline-none focus:ring-2 focus:ring-[#B8E6D1] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1492,7 +1578,7 @@ export class TenderListComponent implements OnInit {
       'Are you sure you want to accept this quote? Every other quote in this tender will be Rejected.',
       () => this.executeAcceptTenderQuote(quote, shortId),
       'Accept',
-      'px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
+      'inline-flex h-10 items-center rounded-lg bg-[#006B4A] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#00523A] focus:outline-none focus:ring-2 focus:ring-[#B8E6D1] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1594,7 +1680,7 @@ export class TenderListComponent implements OnInit {
         });
       },
       'Reject',
-      'px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'
+      'inline-flex h-10 items-center rounded-lg border border-[#F4C7C7] bg-white px-4 text-sm font-semibold text-[#B42318] transition-colors hover:bg-[#FFF1F1] focus:outline-none focus:ring-2 focus:ring-[#F4C7C7] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1624,7 +1710,7 @@ export class TenderListComponent implements OnInit {
         });
       },
       'Cancel Quote',
-      'px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'
+      'inline-flex h-10 items-center rounded-lg border border-[#F4C7C7] bg-white px-4 text-sm font-semibold text-[#B42318] transition-colors hover:bg-[#FFF1F1] focus:outline-none focus:ring-2 focus:ring-[#F4C7C7] disabled:cursor-not-allowed disabled:opacity-50'
     );
   }
 
@@ -1709,6 +1795,31 @@ export class TenderListComponent implements OnInit {
       default:
         return state;
     }
+  }
+
+  getStatusTooltip(quote: Quote): string {
+    const state = this.getPrimaryState(quote);
+    const role = this.selectedRole === UI_ROLES.BUYER ? 'buyer' : 'provider';
+    const fallback = this.getStatusLabel(quote);
+    const messages = quote.category === QUOTE_CATEGORIES.COORDINATOR
+      ? COORDINATOR_STATUS_MESSAGES
+      : quote.category === QUOTE_CATEGORIES.TENDER
+        ? TENDERING_STATUS_MESSAGES
+        : null;
+    const statusInfo = messages?.[state]?.[role];
+
+    if (!statusInfo) {
+      return fallback;
+    }
+
+    const explanation = statusInfo.explanation === '...' ? '' : statusInfo.explanation;
+    const availableActions = statusInfo.availableActions === '...' ? '' : statusInfo.availableActions;
+    const tooltipParts = [
+      explanation,
+      availableActions ? `Available actions: ${availableActions}` : ''
+    ].filter(Boolean);
+
+    return tooltipParts.length > 0 ? tooltipParts.join('\n') : fallback;
   }
 
   /**
@@ -1807,25 +1918,25 @@ export class TenderListComponent implements OnInit {
   }
 
   getButtonClass(quote: Quote, actionType: string): string {
-    const baseClass = 'px-2 py-1 text-xs font-medium transition-colors rounded border';
+    const baseClass = 'inline-flex items-center rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors';
 
     if (this.isActionDisabled(quote, actionType)) {
-      return `${baseClass} text-gray-400 cursor-not-allowed border-gray-200`;
+      return `${baseClass} cursor-not-allowed border-[#EBECEE] text-[#9AA6B8]`;
     }
 
     switch (actionType) {
       case 'viewDetails':
-        return `${baseClass} text-blue-600 hover:text-blue-800 border-blue-200 hover:bg-blue-50`;
+        return `${baseClass} border-[#B6CAEC] text-[#1f4fbf] hover:bg-[#EBF0F7]`;
       default:
-        return `${baseClass} text-indigo-600 hover:text-indigo-800 border-indigo-200 hover:bg-indigo-50`;
+        return `${baseClass} border-[#B6CAEC] text-[#1f4fbf] hover:bg-[#EBF0F7]`;
     }
   }
 
   getIconButtonClass(quote: Quote, actionType: string, normalColor: string): string {
-    const baseClass = 'p-1.5 text-xs cursor-pointer rounded hover:bg-gray-100 transition-colors';
+    const baseClass = 'cursor-pointer rounded-lg p-1.5 text-xs transition-colors hover:bg-[#EBF0F7]';
 
     if (this.isActionDisabled(quote, actionType)) {
-      return `${baseClass} text-gray-400 cursor-not-allowed hover:bg-transparent`;
+      return `${baseClass} cursor-not-allowed text-[#9AA6B8] hover:bg-transparent`;
     }
 
     return `${baseClass} ${normalColor}`;

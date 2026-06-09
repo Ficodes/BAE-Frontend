@@ -6,7 +6,7 @@
 export interface Tender {
   id?: string;
   category: 'coordinator' | 'tendering';
-  state: 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed';
+  state: 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed' | 'cancelled' | 'rejected';
   responseDeadline: string;
   tenderNote?: string;
   attachment?: TenderAttachment;
@@ -33,7 +33,7 @@ export interface TenderAttachment {
 
 export interface Tender_Create {
   category: 'coordinator' | 'tendering';
-  state: 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed';
+  state: 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed' | 'cancelled' | 'rejected';
   responseDeadline: string;
   tenderNote?: string;
   attachment?: TenderAttachment;
@@ -47,10 +47,10 @@ export interface Tender_Update {
   tenderNote?: string;
   attachment?: TenderAttachment;
   selectedProviders?: string[];
-  state?: 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed';
+  state?: 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed' | 'cancelled' | 'rejected';
   external_id?: string;
   provider?: string;
 }
 
-export type TenderStateType = 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed';
+export type TenderStateType = 'draft' | 'pre-launched' | 'pending' | 'sent' | 'closed' | 'cancelled' | 'rejected';
 

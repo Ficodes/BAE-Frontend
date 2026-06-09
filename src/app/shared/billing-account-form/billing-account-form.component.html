@@ -137,10 +137,10 @@
                 </button>
                 @if(prefixCheck==true){
                     <div class="absolute bottom-12 right-0 z-20 max-h-48 w-full bg-white divide-y divide-gray-100 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white rounded-lg shadow overflow-y-auto">
-                        <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdown-phone-button">
+                        <ul #prefixList class="py-2 text-sm text-gray-700" aria-labelledby="dropdown-phone-button">
                             <li>
                                 @for(pref of prefixes;track pref.code){
-                                    <button type="button" (click)="selectPrefix(pref)" class="inline-flex w-full px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-secondary-200" role="menuitem">
+                                    <button data-cy="phoneCountries" [attr.data-country]="pref.country" type="button" (click)="selectPrefix(pref)" class="inline-flex w-full px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-secondary-200" role="menuitem">
                                         <div class="inline-flex items-center">
                                             {{pref.text}}
                                         </div>

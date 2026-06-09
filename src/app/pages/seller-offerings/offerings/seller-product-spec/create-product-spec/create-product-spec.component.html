@@ -204,7 +204,7 @@
                         </button>
                     </div>-->
                 }
-                @if ((currentStep === 1 && !BUNDLE_ENABLED) || (currentStep === 2 && BUNDLE_ENABLED)) {
+                @if (isCurrentStep('compliance')) {
                     <h3 class="font-bold text-primary-100 dark:text-primary-50 text-left ml-4">
                         {{ 'CREATE_PROD_SPEC._self_attestation' | translate }}
                     </h3>
@@ -459,8 +459,8 @@
                     }
 
                 }
-                @if ((currentStep === 2 && !BUNDLE_ENABLED) || (currentStep === 3 && BUNDLE_ENABLED)) {
-                    @if (prodChars.length === 0){
+                @if (isCurrentStep('characteristics') || isCurrentStep('dataspace')) {
+                    @if (getFilteredCharacteristicsForCurrentStep().length === 0){
                         <div class="flex justify-center w-full m-4">
                           <div class="flex w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">
                             <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -492,8 +492,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @for (prod of prodChars; track prod;) {
-                                        @if(!prod.name?.startsWith('Compliance:')){
+                                    @for (prod of getFilteredCharacteristicsForCurrentStep(); track prod.id) {
                                         <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
                                             <td [ngClass]="{
                                                 'break-all': hasLongWord(prod.name, 20),
@@ -510,7 +509,7 @@
                                             <td class="px-6 py-4 text-wrap break-all">
                                                 @for (char of prod.productSpecCharacteristicValue; track char; let last=$last) {
                                                     @if(char.value || char.value == 0){
-                                                        @if(prod.valueType === 'credentialsConfiguration' || prod.valueType === 'authorizationPolicy'){
+                                                        @if(isJsonCharacteristicType(prod.valueType)){
                                                             @if(!last){
                                                                 {{getValuePreview(char.value)}},
                                                             } @else {
@@ -546,7 +545,6 @@
                                                 </button>
                                             </td>
                                         </tr>
-                                        }
                                     }
                                 </tbody>
                             </table>
@@ -554,8 +552,8 @@
                     }
                     @if(!showCreateChar){
                         <div class="flex w-full justify-items-center justify-center">
-                            <button data-cy="btnNewCharacteristic" type="button" (click)="showCreateChar=!showCreateChar" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
-                                {{ 'CREATE_PROD_SPEC._new_char' | translate }}
+                            <button data-cy="btnNewCharacteristic" type="button" (click)="toggleCreateCharacteristicForm()" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                                {{ isDataspaceConfigurationStep() ? 'Add Dataspace Configuration' : ('CREATE_PROD_SPEC._new_char' | translate) }}
                                 <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
                                 </svg>
@@ -572,13 +570,19 @@
                                 <label class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._type' | translate }}</label>
                                 <select data-cy="charType" id="type" [(ngModel)]="charTypeSelected" [ngModelOptions]="{standalone: true}" (change)="onTypeChange($event)"
                                 class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                    <option value="string">String</option>
-                                    <option value="number">Number</option>
-                                    <option value="range">Number range</option>
-                                    <option value="boolean">Boolean</option>
-                                    @if(DATA_SPACE_ENABLED){
+                                    @if(isDataspaceConfigurationStep()){
+                                        <option value="endpointUrl">Endpoint URL</option>
+                                        <option value="upstreamAddress">Upstream Address</option>
+                                        <option value="endpointDescription">Endpoint Description</option>
+                                        <option value="targetSpecification">Target Specification</option>
+                                        <option value="serviceConfiguration">Service Configuration</option>
                                         <option value="credentialsConfiguration">Credentials Configuration</option>
                                         <option value="authorizationPolicy">Authorization Policy</option>
+                                    } @else {
+                                        <option value="string">String</option>
+                                        <option value="number">Number</option>
+                                        <option value="range">Number range</option>
+                                        <option value="boolean">Boolean</option>
                                     }
                                 </select>
                             </div>
@@ -587,7 +591,7 @@
                                 <textarea data-cy="charDescription" id="description" formControlName="description" rows="4" maxLength="500"
                                 class="mb-2 min-h-fit bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"></textarea>
                             </div>
-                            @if(charTypeSelected !== 'boolean' && charTypeSelected !== 'credentialsConfiguration' && charTypeSelected !== 'authorizationPolicy'){
+                            @if(!isDataspaceConfigurationStep() && charTypeSelected !== 'boolean' && !isJsonCharacteristicType(charTypeSelected)){
                                 <div class="col-span-2 flex align-items-middle h-fit">
                                     <label for="is-optional" class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._make_optional' | translate }}</label>
                                     <label class="inline-flex items-center me-5 cursor-pointer ml-4">
@@ -634,7 +638,7 @@
                                                     class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-full focus:ring-blue-500 focus:ring-2">
                                                     @if(charTypeSelected === 'number'){
                                                         <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-white text-wrap break-all">{{char.value}} (<i>{{char?.unitOfMeasure}}</i>)</label>
-                                                    } @else if (charTypeSelected === 'credentialsConfiguration' || charTypeSelected === 'authorizationPolicy') {
+                                                    } @else if (isJsonCharacteristicType(charTypeSelected)) {
                                                         <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-white text-wrap break-all">{{getValuePreview(char.value)}}</label>
                                                     } @else {
                                                         <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-white text-wrap break-all">{{char.value}}</label>
@@ -651,7 +655,7 @@
                                 </div>
                             }
                             <label for="values" [ngClass]="((charTypeSelected === 'range' && creatingChars.length==1) || charTypeSelected === 'boolean') ? 'hidden' : ''" class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._add_values' | translate }}</label>
-                            @if(charTypeSelected === 'string'){
+                            @if(isTextCharacteristicType(charTypeSelected)){
                                 <div class="flex flex-row items-center align-items-middle">
                                     <input data-cy="charStringValue" type="text" id="value" [(ngModel)]="stringValue"
                                     class="mr-4 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
@@ -721,7 +725,7 @@
                                         </svg>
                                     </button>
                                 </div>
-                            } @else if (charTypeSelected == "credentialsConfiguration" || charTypeSelected == "authorizationPolicy"){
+                            } @else if (isJsonCharacteristicType(charTypeSelected)){
                                 @if(creatingChars.length === 0){
                                     <div class="flex flex-col w-full">
                                         <label for="json-value" class="font-bold text-sm dark:text-white mb-2">{{ 'CREATE_PROD_SPEC._json_value' | translate }}</label>
@@ -758,7 +762,7 @@
                     </div>-->
                 }
 
-                @if ((currentStep === 3 && !BUNDLE_ENABLED) || (currentStep === 4 && BUNDLE_ENABLED)) {
+                @if (isCurrentStep('resource')) {
                     @if(loadingResourceSpec){
                         <div role="status" class="w-full h-fit flex justify-center align-middle">
                             <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -860,7 +864,7 @@
                         </button>
                     </div>-->
                 }
-                @if ((currentStep === 4 && !BUNDLE_ENABLED) || (currentStep === 5 && BUNDLE_ENABLED)) {
+                @if (isCurrentStep('service')) {
                     @if(loadingServiceSpec){
                         <div role="status" class="w-full h-fit flex justify-center align-middle">
                             <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -962,7 +966,7 @@
                         </button>
                     </div>-->
                 }
-                @if ((currentStep === 5 && !BUNDLE_ENABLED) || (currentStep === 6 && BUNDLE_ENABLED)) {
+                @if (isCurrentStep('attachments')) {
                     <div class="inline-flex">
                         <h4 class="text-lg font-bold ml-4 dark:text-white">{{ 'CREATE_PROD_SPEC._add_prod_img' | translate }}</h4>
                         <div class="ml-4 flex">
@@ -1163,7 +1167,7 @@
                         </button>
                     </div> -->
                 }
-                @if ((currentStep === 6 && !BUNDLE_ENABLED) || (currentStep === 7 && BUNDLE_ENABLED)) {
+                @if (isCurrentStep('relationships')) {
                     <div class="m-4">
                         @if (prodRelationships.length === 0){
                             <div class="flex justify-center w-full mb-4">
@@ -1358,7 +1362,7 @@
                         </button>
                     </div> -->
                 }
-                @if ((currentStep === 7 && !BUNDLE_ENABLED) || (currentStep === 8 && BUNDLE_ENABLED)) {
+                @if (isCurrentStep('summary')) {
                     <div class="m-8">
                         @if(loading){
                             <div role="status" class="w-full h-full flex justify-center align-middle">
@@ -1506,7 +1510,7 @@
                                                 <td class="px-6 py-4 text-wrap break-all">
                                                     @for (char of prod.productSpecCharacteristicValue; track char; let last = $last) {
                                                         @if(char.value || char.value == 0){
-                                                            @if(prod.valueType === 'credentialsConfiguration' || prod.valueType === 'authorizationPolicy'){
+                                                            @if(isJsonCharacteristicType(prod.valueType)){
                                                                 @if(!last){
                                                                     {{getValuePreview(char.value)}},
                                                                 } @else {
@@ -1725,7 +1729,7 @@
                         256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/>
                 </svg>
                 </button>
-                @if ((currentStep === 7 && !BUNDLE_ENABLED) || (currentStep === 8 && BUNDLE_ENABLED)) {
+                @if (isCurrentStep('summary')) {
                     <button data-cy="btnCreateProduct"
                     (click)="createProduct()"
                     [disabled]="isStepDisabled() || loading"

@@ -11,12 +11,14 @@ import {
   QueryList,
   ViewChild
 } from "@angular/core";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
+import { faChevronDown, faChevronUp } from "@fortawesome/pro-solid-svg-icons";
 import { VerticalScrollCardsDirective } from './vertical-scroll-cards-directive';
 
 @Component({
   selector: "app-vertical-scroll-cards",
   standalone: true,
-  imports: [],
+  imports: [FontAwesomeModule],
   templateUrl: "./vertical-scroll-cards.component.html",
   styleUrl: "./vertical-scroll-cards.component.css"
 })
@@ -79,6 +81,28 @@ export class VerticalScrollCardsComponent implements AfterContentInit, OnDestroy
 
   stackPaddingTop = 0;
   stackPaddingBottom = 0;
+
+  protected readonly faChevronUp = faChevronUp;
+  protected readonly faChevronDown = faChevronDown;
+
+  get canScrollUp(): boolean {
+    return this.activeIndex > 0;
+  }
+
+  get canScrollDown(): boolean {
+    const total = this.itemDirectives?.length ?? 0;
+    return this.activeIndex < total - 1;
+  }
+
+  scrollPrev(): void {
+    if (!this.canScrollUp) return;
+    this.scrollToIndex(this.activeIndex - 1, "smooth");
+  }
+
+  scrollNext(): void {
+    if (!this.canScrollDown) return;
+    this.scrollToIndex(this.activeIndex + 1, "smooth");
+  }
 
   /*
     Internal control flags

@@ -8,6 +8,56 @@
   gap: 32px;
 }
 
+.providers-steps-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  margin-top: 32px;
+  text-align: center;
+}
+
+.providers-steps-cta__title {
+  margin: 0;
+  color: #0B1528;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.providers-steps-cta__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 28px;
+  border-radius: 6px;
+  background: #2D58A7;
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.providers-steps-cta__button:hover {
+  background: #18B5D9;
+  color: #FFFFFF;
+}
+
+@media (min-width: 1024px) {
+  .providers-steps-cta {
+    margin-top: 48px;
+    gap: 24px;
+  }
+
+  .providers-steps-cta__title {
+    font-size: 30px;
+  }
+}
+
 .providers-steps-copy {
   max-width: 1120px;
 }

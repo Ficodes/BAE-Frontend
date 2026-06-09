@@ -8,6 +8,7 @@ import {TranslateService} from "@ngx-translate/core";
   providedIn: 'root'
 })
 export class ThemeService {
+  private readonly themeManagedMetaAttribute = 'data-theme-managed-meta';
   private renderer: Renderer2;
 
   private availableThemes: ThemeConfig[] = AVAILABLE_THEMES;
@@ -58,6 +59,8 @@ export class ThemeService {
       this.document.title = browserTitle;
     }
 
+    this.applyThemeMetaTags(theme);
+
     const faviconUrl = theme.assets?.faviconUrl;
     if (!faviconUrl) {
       return;
@@ -75,6 +78,41 @@ export class ThemeService {
     if (favicon) {
       this.renderer.setAttribute(favicon, 'href', normalizedFaviconUrl);
     }
+  }
+
+  private applyThemeMetaTags(theme: ThemeConfig): void {
+    const head = this.document.head;
+    if (!head) {
+      return;
+    }
+
+    head
+      .querySelectorAll(`meta[${this.themeManagedMetaAttribute}="true"]`)
+      .forEach((tag) => this.renderer.removeChild(head, tag));
+
+    if (!theme.metaTags?.length) {
+      return;
+    }
+
+    theme.metaTags.forEach((tagConfig) => {
+      if (!tagConfig.content || (!tagConfig.name && !tagConfig.property)) {
+        return;
+      }
+
+      const metaTag = this.renderer.createElement('meta');
+      this.renderer.setAttribute(metaTag, this.themeManagedMetaAttribute, 'true');
+      this.renderer.setAttribute(metaTag, 'content', tagConfig.content);
+
+      if (tagConfig.name) {
+        this.renderer.setAttribute(metaTag, 'name', tagConfig.name);
+      }
+
+      if (tagConfig.property) {
+        this.renderer.setAttribute(metaTag, 'property', tagConfig.property);
+      }
+
+      this.renderer.appendChild(head, metaTag);
+    });
   }
 
   /**

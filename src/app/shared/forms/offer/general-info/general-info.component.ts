@@ -4,12 +4,14 @@ import {SharedModule} from "../../../shared.module";
 import {MarkdownTextareaComponent} from "../../markdown-textarea/markdown-textarea.component";
 import {StatusSelectorComponent} from "../../status-selector/status-selector.component";
 import {EventMessageService} from "../../../../services/event-message.service";
+import {ApiServiceService} from "../../../../services/product-service.service";
 import {FormChangeState} from "../../../../models/interfaces";
 import {Subscription} from "rxjs";
 import {debounceTime} from "rxjs/operators";
 import { noWhitespaceValidator } from 'src/app/validators/validators';
 import {Subject} from "rxjs";
 import { takeUntil } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 
 interface GeneralInfo {
   name: string;
@@ -41,7 +43,9 @@ export class GeneralInfoComponent implements OnInit, OnDestroy {
   private isEditMode: boolean = false;
   private destroy$ = new Subject<void>();
 
-  constructor(private eventMessage: EventMessageService) {
+  disabledStatuses: string[] = [];
+
+  constructor(private eventMessage: EventMessageService, private apiService: ApiServiceService) {
     console.log('🔄 Initializing GeneralInfoComponent');
   }
 
@@ -79,15 +83,25 @@ export class GeneralInfoComponent implements OnInit, OnDestroy {
       this.formGroup.addControl('status', new FormControl<string>(this.data.lifecycleStatus));
       this.formGroup.addControl('description', new FormControl<string>(this.data.description, Validators.maxLength(100000)));
       this.formGroup.addControl('version', new FormControl<string>(this.data.version, [Validators.required,Validators.pattern('^-?[0-9]\\d*(\\.\\d*)?$'), noWhitespaceValidator]));
-      
+
       // Store original value only in edit mode
       this.originalValue = {
         name: this.data.name,
         status: this.data.lifecycleStatus,
         description: this.data.description,
-        version: this.data.version
+        version: this.data.version,
       };
       console.log('📝 Original value stored:', this.originalValue);
+
+      if (environment.LAUNCH_VALIDATION_ENABLED && this.data.id) {
+        this.apiService.checkOfferingLaunch(this.data.id).then((result) => {
+          if (!result.canBeLaunched) {
+            this.disabledStatuses = ['Launched'];
+          }
+        }).catch(() => {
+          this.disabledStatuses = ['Launched'];
+        });
+      }
     } else {
       console.log('Initializing form in create mode');
       this.formGroup.addControl('name', new FormControl<string>('', [Validators.required, Validators.maxLength(100), noWhitespaceValidator]));

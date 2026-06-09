@@ -1,24 +1,42 @@
-<div class="vertical-snap-scroll-wrapper">
-  <div class="vertical-snap-scroll-indicator" [style.left.px]="indicatorLeft"
-    [style.opacity]="indicatorVisible ? '1' : '0'" [style.transform]="'translateY(' + indicatorTop + 'px)'"
-    [style.height.px]="indicatorHeight">
+<div class="vertical-snap-scroll-outer">
+  <div class="vertical-snap-scroll-arrow-slot">
+    @if (canScrollUp) {
+    <button type="button" class="vertical-snap-scroll-arrow" (click)="scrollPrev()" aria-label="Scroll up">
+      <fa-icon [icon]="faChevronUp"></fa-icon>
+    </button>
+    }
   </div>
 
-  @if (showFade) {
-  <div class="vertical-snap-scroll-fade vertical-snap-scroll-fade-top" [style.height.px]="fadeHeight">
-  </div>
-  }
-
-  <div #scrollContainer class="vertical-snap-scroll-container" [style.height.px]="height" (wheel)="onWheel($event)"
-    (scroll)="onScroll()">
-    <div class="vertical-snap-scroll-stack" [style.gap.px]="gap" [style.paddingTop.px]="stackPaddingTop"
-      [style.paddingBottom.px]="stackPaddingBottom">
-      <ng-content></ng-content>
+  <div class="vertical-snap-scroll-wrapper">
+    <div class="vertical-snap-scroll-indicator" [style.left.px]="indicatorLeft"
+      [style.opacity]="indicatorVisible ? '1' : '0'" [style.transform]="'translateY(' + indicatorTop + 'px)'"
+      [style.height.px]="indicatorHeight">
     </div>
+
+    @if (showFade) {
+    <div class="vertical-snap-scroll-fade vertical-snap-scroll-fade-top" [style.height.px]="fadeHeight">
+    </div>
+    }
+
+    <div #scrollContainer class="vertical-snap-scroll-container" [style.height.px]="height" (wheel)="onWheel($event)"
+      (scroll)="onScroll()">
+      <div class="vertical-snap-scroll-stack" [style.gap.px]="gap" [style.paddingTop.px]="stackPaddingTop"
+        [style.paddingBottom.px]="stackPaddingBottom">
+        <ng-content></ng-content>
+      </div>
+    </div>
+
+    @if (showFade) {
+    <div class="vertical-snap-scroll-fade vertical-snap-scroll-fade-bottom" [style.height.px]="fadeHeight">
+    </div>
+    }
   </div>
 
-  @if (showFade) {
-  <div class="vertical-snap-scroll-fade vertical-snap-scroll-fade-bottom" [style.height.px]="fadeHeight">
+  <div class="vertical-snap-scroll-arrow-slot">
+    @if (canScrollDown) {
+    <button type="button" class="vertical-snap-scroll-arrow" (click)="scrollNext()" aria-label="Scroll down">
+      <fa-icon [icon]="faChevronDown"></fa-icon>
+    </button>
+    }
   </div>
-  }
 </div>

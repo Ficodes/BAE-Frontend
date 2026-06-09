@@ -39,8 +39,8 @@ export interface IDashboardStats {
   imports: [TranslateModule, ReactiveFormsModule, FeaturedComponent, NgClass, DashboardWhatsDome, DashboardHeroComponent, DashboardStatsComponent, DashboardServicesComponent, DashboardCustomersComponent, DashboardProvidersComponent, DashboardEcosystemComponent],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  customersLink = 'https://onboard.sbx.evidenceledger.eu/register-customer';
-  providersLink = "https://onboard.sbx.evidenceledger.eu/register-provider";
+  customersLink = environment.DOME_CUSTOMER_REGISTER_LINK;
+  providersLink = environment.DOME_REGISTER_LINK;
 
 
   private unSub = new Subject<void>();
@@ -185,7 +185,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
       )
       .subscribe((picked) => {
         this.productService.getProductsDetails(picked).then((data) => {
-          this.productOfferings = data as ProductOffering[];
+          this.productOfferings = (data as ProductOffering[]).filter((offering) =>
+            offering.attachment?.some(
+              (a) => a.attachmentType === 'Picture' || a.name === 'Profile Picture'
+            )
+          );
         })
       });
   }

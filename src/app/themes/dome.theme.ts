@@ -5,12 +5,13 @@ const domeHeaderLinks: NavLink[] = [
 
   {
     label: 'HEADER._forCustomers',
-    url: 'landing-page/customers'
-
+    url: '/landing-page/customers',
+    isRouterLink: true
   },
   {
     label: 'HEADER._forProviders',
-    url: 'landing-page/providers'
+    url: '/landing-page/providers',
+    isRouterLink: true
   },
   {
     id: 'dropdown-marketplace',
@@ -27,11 +28,10 @@ const domeHeaderLinks: NavLink[] = [
     }
     ]
   },
-  {
-    label: 'HEADER._resources',
-    url: 'https://knowledgebase.dome-marketplace-prd.org/'
-  },
-
+  // {
+  //   label: 'HEADER._resources',
+  //   url: 'https://knowledgebase.dome-marketplace-prd.org/'
+  // },
   {
     label: 'HEADER._blog',
     url: '/blog',
@@ -142,5 +142,12 @@ export const DOME_THEME_CONFIG: ThemeConfig = {
   dashboard: {
     showFeaturedOfferings: true,
     showPlatformBenefits: true,
-  }
+  },
+  metaTags: [
+    { property: 'og:title', content: 'DOME Marketplace - Dashboard' },
+    { property: 'og:description', content: 'The European federated ecosystem for secure and trusted Cloud and Edge service procurement.' },
+    { property: 'og:image', content: 'https://dome-marketplace.eu' },
+    { property: 'og:url', content: 'https://dome-marketplace.eu/dashboard' },
+    { property: 'og:type', content: 'website' }
+  ]
 };

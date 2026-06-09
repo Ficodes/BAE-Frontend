@@ -8,19 +8,16 @@
     <img src="assets/images/dashboard/hero.png" alt="" />
   </div>
 
-  <div class="hero-fade hero-fade-left" aria-hidden="true"></div>
-  <div class="hero-fade hero-fade-right" aria-hidden="true"></div>
-
   <div
-    class="relative z-[5] mx-auto flex h-[840px] w-full max-w-[1440px] flex-col items-center px-5 pt-[144px] pb-[80px] text-center sm:px-8 lg:px-[160px]">
+    class="relative z-[5] mx-auto flex h-full w-full max-w-[1440px] flex-col items-center px-5 pt-[96px] pb-[80px] text-center sm:px-8 lg:px-20">
 
     <h1 class="hero-title text-white">
       <span class="block">
         {{ 'DASHBOARD.hero._titleLine1Part1' | translate }}
         <span class="hero-accent">{{ 'DASHBOARD.hero._titleLine1Accent' | translate }}</span>
+        {{ 'DASHBOARD.hero._titleLine1Part2' | translate }}
       </span>
       <span class="block">{{ 'DASHBOARD.hero._titleLine2' | translate }}</span>
-      <span class="block">{{ 'DASHBOARD.hero._titleLine3' | translate }}</span>
     </h1>
 
     <p class="hero-sub mt-8">
@@ -39,30 +36,23 @@
       </a>
     </div>
 
-    <!-- <div class="hero-logos mt-8" aria-label="Partner logos">
-      <div class="hero-logo-item">
-        <img src="assets/dome_logo.PNG" alt="ENG" />
+    <div class="hero-marquee mt-[108px] sm:mt-40 lg:mt-32" aria-label="Partner logos">
+      <div class="hero-marquee__track">
+        <ul class="hero-marquee__list" role="list">
+          @for (logo of heroLogos; track logo.name) {
+          <li class="hero-marquee__item">
+            <img [src]="'assets/hero-logos/' + logo.file" [alt]="logo.name" [style.--logo-h.px]="logo.height" />
+          </li>
+          }
+        </ul>
+        <ul class="hero-marquee__list" role="list" aria-hidden="true">
+          @for (logo of heroLogos; track logo.name) {
+          <li class="hero-marquee__item">
+            <img [src]="'assets/hero-logos/' + logo.file" [alt]="''" [style.--logo-h.px]="logo.height" />
+          </li>
+          }
+        </ul>
       </div>
-
-      <div class="hero-logo-item">
-        <img src="assets/dome_logo.PNG" alt="Beia" />
-      </div>
-
-      <div class="hero-logo-item">
-        <img src="assets/dome_logo.PNG" alt="ALA/Tria" />
-      </div>
-
-      <div class="hero-logo-item">
-        <img src="assets/dome_logo.PNG" alt="activage.org" />
-      </div>
-
-      <div class="hero-logo-item hero-logo-item--cyfronet">
-        <img src="assets/dome_logo.PNG" alt="CYFRONET" />
-      </div>
-
-      <div class="hero-logo-item">
-        <img src="assets/dome_logo.PNG" alt="activage.org" />
-      </div>
-    </div> -->
+    </div>
   </div>
 </section>

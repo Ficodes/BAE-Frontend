@@ -409,7 +409,8 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
       productOrderItem: [this.pendingModifyPayload],
       relatedParty: [{ id: this.partyId, href: this.partyId, role: environment.BUYER_ROLE }],
       billingAccount: { id: this.selectedBillingAddress.id, href: this.selectedBillingAddress.id },
-      priority: '4'
+      priority: '4',
+      notificationContact: this.selectedBillingAddress.email
     };
 
     try {

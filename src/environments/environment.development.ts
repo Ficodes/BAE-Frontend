@@ -19,7 +19,8 @@ export const environment = {
   BILLING: '/billing',
   CHARGING: '/charging',
 
-  searchOrganizationsEndpoint: '/search-bck/api/searchOrganizations',
+  searchOrganizationsEndpoint: '/search-bck/api/searchOrganizations?size=1000',
+  providerCountriesUrl: 'https://raw.githubusercontent.com/DOME-Marketplace/eu-eea-countries/refs/heads/main/countries.json',
   //searchOrganizationsEndpoint: 'org-api/searchOrganizations',
 
   CUSTOMER_BILLING: '/customerBill',
@@ -102,5 +103,7 @@ export const environment = {
   AI_SEARCH_SCORE_THRESHOLD: 0.3,
   AI_SEARCH_ANSWER_MAX_ITEMS: 5,
   AI_SEARCH_PROFILE: 'dome_prod',
-  LEAR_URL: ''
+  LEAR_URL: '',
+  LAUNCH_VALIDATION_ENABLED: false,
+  TENDER_DEV_BUTTONS_OPEN_CLOSE_ENABLED: true
 };

@@ -61,6 +61,12 @@ export interface DashboardConfig {
   // Add more sections
 }
 
+export interface ThemeMetaTagConfig {
+  name?: string;
+  property?: string;
+  content: string;
+}
+
 
 export interface ThemeConfig {
   name: string; // Theme Id, ej: 'DOME', 'OCEAN'
@@ -72,5 +78,6 @@ export interface ThemeConfig {
   authUrls?: ThemeAuthUrlsConfig;
   colors?: ThemeColorsConfig;
   dashboard?: DashboardConfig;
+  metaTags?: ThemeMetaTagConfig[];
   // More theme specific propierties
 }

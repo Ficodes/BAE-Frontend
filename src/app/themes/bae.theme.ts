@@ -13,6 +13,11 @@ const baeHeaderLinks: NavLink[] = [
       { label: 'HEADER._services', url: '/search', isRouterLink: true },
       { label: 'HEADER._catalogs', url: '/catalogues', isRouterLink: true }
     ]
+  },
+  {
+    label: 'HEADER._blog',
+    url: '/blog',
+    isRouterLink: true
   }
 ];
 

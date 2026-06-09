@@ -51,9 +51,10 @@ export class BillingAccountFormComponent implements OnInit, OnDestroy {
     telephoneNumber: new FormControl('', [Validators.required, Validators.min(0)]),
     telephoneType: new FormControl('Mobile')
   });
-  prefixes: any[] = phoneNumbers;
+  prefixes: any[] = [...phoneNumbers].sort((a, b) => this.getCountryName(a.text).localeCompare(this.getCountryName(b.text)));
   countries: any[] = countries;
   phonePrefix: any = phoneNumbers[0];
+  @ViewChild('prefixList') prefixListRef!: ElementRef;
   prefixCheck: boolean = false;
   toastVisibility: boolean = false;
 
@@ -402,6 +403,22 @@ export class BillingAccountFormComponent implements OnInit, OnDestroy {
         });
       }
     }
+  }
+
+  getCountryName(text: string): string {
+    const match = text.match(/\+\d+\s+(.+)$/);
+    return match ? match[1] : text;
+  }
+
+  @HostListener('keydown', ['$event'])
+  onKeydown(event: KeyboardEvent) {
+    if (!this.prefixCheck) return;
+    const letter = event.key.toLowerCase();
+    if (!/^[a-z]$/.test(letter)) return;
+    const match = this.prefixes.find(p => this.getCountryName(p.text).toLowerCase().startsWith(letter));
+    if (!match || !this.prefixListRef) return;
+    const btn = this.prefixListRef.nativeElement.querySelector(`[data-country="${match.country}"]`);
+    if (btn) btn.scrollIntoView({ block: 'nearest' });
   }
 
   selectPrefix(pref:any) {

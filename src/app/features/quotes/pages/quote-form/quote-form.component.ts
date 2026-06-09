@@ -5,16 +5,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { QuoteService } from '../../services/quote.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { Quote } from 'src/app/models/quote.model';
-import { NotificationComponent } from 'src/app/shared/notification/notification.component';
 import { ConfirmDialogComponent } from 'src/app/shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-quote-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NotificationComponent, ConfirmDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, ConfirmDialogComponent],
   template: `
-    <app-notification></app-notification>
-
     <div class="container mx-auto px-4 py-8">
       <div class="max-w-3xl mx-auto">
         <div class="bg-white shadow-md rounded-lg p-6">
