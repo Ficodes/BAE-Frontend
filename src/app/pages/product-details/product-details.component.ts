@@ -254,18 +254,8 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     let spec = await this.api.getSearchProductSpecification(prod.productSpecification.id);
     this.prodSpec=spec;
     this.getOwner();
-    let prodPrices: any[] | undefined= prod.productOfferingPrice;
-    let prices: any[]=[];
-    if(prodPrices!== undefined){
-      for(let j=0; j < prodPrices.length; j++){
-        let price = await this.api.getSearchProductPrice(prodPrices[j].id);
-        prices.push(price);
-        console.log(price)
-        if(price.priceType == 'custom'){
-          this.checkCustom = true;
-        }
-      }
-    }
+    let prices = await this.resolveProductOfferingPrices(prod.productOfferingPrice);
+    this.checkCustom = prices.some(price => price.priceType?.toLowerCase() === 'custom');
     await this.loadUsageMetrics(prices);
 
     if(this.prodSpec.productSpecCharacteristic != undefined) {
@@ -506,6 +496,29 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
   isCustom() {
     return this.checkCustom;
+  }
+
+  private async resolveProductOfferingPrices(prodPrices: any[] | undefined): Promise<any[]> {
+    if (!prodPrices) {
+      return [];
+    }
+
+    const prices: any[] = [];
+    for (const price of prodPrices) {
+      prices.push(this.hasLoadedPriceDetails(price) ? price : await this.api.getSearchProductPrice(price.id));
+    }
+
+    return prices;
+  }
+
+  private hasLoadedPriceDetails(price: any): boolean {
+    return !!(
+      price?.priceType ||
+      price?.price ||
+      price?.unitOfMeasure ||
+      price?.recurringChargePeriodType ||
+      price?.bundledPopRelationship
+    );
   }
 
   ngAfterViewChecked() {

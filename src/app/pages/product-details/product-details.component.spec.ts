@@ -36,6 +36,7 @@ describe('ProductDetailsComponent', () => {
       'getProductById',
       'getProductSpecification',
       'getProductPrice',
+      'getSearchProductPrice',
       'getOfferingPrice',
       'getServiceSpec',
       'getResourceSpec',
@@ -452,6 +453,31 @@ describe('ProductDetailsComponent', () => {
     ] as any[]);
 
     expect(component.usageMetrics).toEqual([]);
+  });
+
+  it('resolveProductOfferingPrices should reuse already loaded price objects', async () => {
+    const loadedPrice = {
+      id: 'federationRef::price-1',
+      priceType: 'custom',
+      price: { value: 10, unit: 'EUR' },
+    };
+
+    const result = await (component as any).resolveProductOfferingPrices([loadedPrice]);
+
+    expect(result).toEqual([loadedPrice]);
+    expect(apiSpy.getSearchProductPrice).not.toHaveBeenCalled();
+  });
+
+  it('resolveProductOfferingPrices should fetch unresolved price references through federation API', async () => {
+    apiSpy.getSearchProductPrice.and.resolveTo({
+      id: 'federationRef::price-1',
+      priceType: 'custom',
+    } as any);
+
+    const result = await (component as any).resolveProductOfferingPrices([{ id: 'federationRef::price-1' }]);
+
+    expect(apiSpy.getSearchProductPrice).toHaveBeenCalledWith('federationRef::price-1');
+    expect(result).toEqual([{ id: 'federationRef::price-1', priceType: 'custom' } as any]);
   });
 
   it('hasLongWord and normalizeName should handle edge cases', () => {
