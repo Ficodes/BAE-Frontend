@@ -27,7 +27,10 @@ export interface Tender {
 export interface TenderAttachment {
   name: string;
   mimeType: string;
-  content: string; // Base64 encoded content
+  content?: string;
+  url?: string;
+  href?: string;
+  path?: string;
   size?: number;
 }
 

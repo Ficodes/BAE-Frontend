@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Quote, Quote_Create, Quote_Update, QuoteStateType } from 'src/app/models/quote.model';
+import { AttachmentRefOrValue, Quote, Quote_Create, Quote_Update, QuoteStateType } from 'src/app/models/quote.model';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -253,12 +253,11 @@ export class QuoteService {
    * Download attachment from quote
    */
   downloadAttachment(quote: Quote): void {
-    // Find the first attachment in any quote item
-    let attachment = null;
+    let attachment: AttachmentRefOrValue | null = null;
     if (Array.isArray(quote.quoteItem)) {
       for (const item of quote.quoteItem) {
         if (item.attachment && item.attachment.length > 0) {
-          attachment = item.attachment[0]; // Get first attachment
+          attachment = item.attachment[0];
           break;
         }
       }
@@ -268,46 +267,51 @@ export class QuoteService {
       throw new Error('No attachment found for this quote.');
     }
 
-    if (!attachment.content) {
-      throw new Error('Attachment content not found or not embedded.');
+    const downloadUrl = this.getAttachmentDownloadUrl(attachment);
+    if (!downloadUrl) {
+      throw new Error('Attachment link not available for this attachment.');
     }
 
-    try {
-      // Decode BASE64 content
-      const binaryString = atob(attachment.content);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
+    const shortQuoteId = quote.id?.length && quote.id.length > 8 ? quote.id.slice(-8) : quote.id || 'unknown';
+    const filename = attachment.name || `quote-${shortQuoteId}-attachment.pdf`;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
 
-      // Create blob with PDF mime type
-      const blob = new Blob([bytes], { type: 'application/pdf' });
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-      // Create download URL
-      const url = URL.createObjectURL(blob);
+    console.log(`Started attachment download: ${filename}`);
+  }
 
-      // Create temporary download link
-      const link = document.createElement('a');
-      link.href = url;
-
-      // Generate filename
-      const shortQuoteId = quote.id?.length && quote.id.length > 8 ? quote.id.slice(-8) : quote.id || 'unknown';
-      const filename = attachment.name || `quote-${shortQuoteId}-attachment.pdf`;
-      link.download = filename;
-
-      // Trigger download
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // Clean up object URL
-      URL.revokeObjectURL(url);
-
-      console.log(`Downloaded attachment: ${filename}`);
-    } catch (decodeError) {
-      console.error('Error decoding BASE64 content:', decodeError);
-      throw new Error('Error decoding PDF content. The file may be corrupted.');
+  getAttachmentDownloadUrl(attachment: AttachmentRefOrValue): string | null {
+    const candidates = [attachment.url, attachment.href, attachment.path, attachment.content];
+    const directLink = candidates.find((candidate): candidate is string => this.isDownloadableAttachmentLink(candidate));
+    if (directLink) {
+      return directLink;
     }
+
+    const documentSpecificationId = candidates.find((candidate): candidate is string => this.isDocumentSpecificationReference(candidate));
+    if (documentSpecificationId) {
+      return `${this.apiUrl}/documentSpecification/${encodeURIComponent(documentSpecificationId.trim())}/attachment`;
+    }
+
+    return null;
+  }
+
+  private isDownloadableAttachmentLink(value?: string): value is string {
+    const trimmedValue = value?.trim();
+    return Boolean(
+      trimmedValue &&
+      (/^https?:\/\//i.test(trimmedValue) || trimmedValue.startsWith('/') || trimmedValue.startsWith('blob:'))
+    );
+  }
+
+  private isDocumentSpecificationReference(value?: string): value is string {
+    return /^urn:ngsi-ld:(document-specification|documentspecification):/i.test(value?.trim() || '');
   }
 
   /**
@@ -347,4 +351,4 @@ export class QuoteService {
   updateQuote(id: string, quote: Partial<Quote>): Observable<Quote> {
     return this.patchQuote(id, quote as Quote_Update);
   }
-} 
+}

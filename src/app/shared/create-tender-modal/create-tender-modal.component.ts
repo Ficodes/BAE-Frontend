@@ -891,14 +891,16 @@ export class CreateTenderModalComponent implements OnInit, OnChanges {
       this.existingAttachment = {
         name: attachment.name || fallbackFile?.name || 'attachment.pdf',
         mimeType: attachment.mimeType || fallbackFile?.type || 'application/pdf',
-        content: attachment.content || '',
+        content: attachment.content,
+        url: attachment.url,
+        href: attachment.href,
+        path: attachment.path,
         size: attachment.size?.amount ?? fallbackFile?.size
       };
     } else if (fallbackFile) {
       this.existingAttachment = {
         name: fallbackFile.name,
         mimeType: fallbackFile.type || 'application/pdf',
-        content: '',
         size: fallbackFile.size
       };
     }

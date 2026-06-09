@@ -111,6 +111,31 @@ describe('TenderListComponent', () => {
     expect(badge.textContent?.trim()).toBe('Tender Closed');
   });
 
+  it('uses the neutral palette for closed tender badges', () => {
+    fixture.detectChanges();
+
+    component.selectedRole = UI_ROLES.BUYER;
+    component.loading = false;
+    component.error = null;
+    component.filteredQuotes = [
+      {
+        id: 'quote-1',
+        category: QUOTE_CATEGORIES.COORDINATOR,
+        description: 'Tender with closed state',
+        quoteItem: [{ state: QUOTE_STATUSES.ACCEPTED }],
+      } as Quote,
+    ];
+
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('.status-badge') as HTMLElement;
+    const computedStyle = getComputedStyle(badge);
+
+    expect(computedStyle.backgroundColor).toBe('rgb(242, 244, 248)');
+    expect(computedStyle.borderColor).toBe('rgb(203, 211, 223)');
+    expect(computedStyle.color).toBe('rgb(50, 65, 83)');
+  });
+
   it('adds status explanations to tender badges for mouseover', () => {
     fixture.detectChanges();
 

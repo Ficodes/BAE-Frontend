@@ -886,6 +886,9 @@ export class TenderListComponent implements OnInit {
         name: tender.attachment.name,
         mimeType: tender.attachment.mimeType,
         content: tender.attachment.content,
+        url: tender.attachment.url,
+        href: tender.attachment.href,
+        path: tender.attachment.path,
         size: tender.attachment.size ? { amount: tender.attachment.size, units: 'bytes' } : undefined
       }];
     }
@@ -1049,7 +1052,10 @@ export class TenderListComponent implements OnInit {
         attachment = {
           name: att.name || 'attachment.pdf',
           mimeType: att.mimeType || 'application/pdf',
-          content: att.content || '',
+          content: att.content,
+          url: att.url,
+          href: att.href,
+          path: att.path,
           size: att.size?.amount
         };
       }

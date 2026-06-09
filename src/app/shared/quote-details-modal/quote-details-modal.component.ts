@@ -714,6 +714,11 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
 
   getStatusBadgeClass(): string {
     const state = this.getPrimaryState();
+
+    if (this.getQuoteCategory() === QUOTE_CATEGORIES.COORDINATOR && state === QUOTE_STATUSES.ACCEPTED) {
+      return 'border border-[#CBD3DF] bg-[#F2F4F8] text-[#324153]';
+    }
+
     const classes: Record<string, string> = {
       [QUOTE_STATUSES.PENDING]: 'border border-[#F2D28A] bg-[#FFF8E6] text-[#7A4D00]',
       [QUOTE_STATUSES.IN_PROGRESS]: 'border border-[#B6CAEC] bg-[#EBF0F7] text-[#1f4fbf]',
