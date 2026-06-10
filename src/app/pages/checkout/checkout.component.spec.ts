@@ -29,10 +29,12 @@ describe('CheckoutComponent', () => {
   let routerSpy: jasmine.SpyObj<Router>;
   let messages$: Subject<any>;
   let paramMapGetSpy: jasmine.Spy;
+  let federationEnabled: boolean;
 
   const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
 
   beforeEach(async () => {
+    federationEnabled = environment.FEDERATION_ENABLED;
     localStorageSpy = jasmine.createSpyObj<LocalStorageService>('LocalStorageService', ['getObject']);
     accountSpy = jasmine.createSpyObj<AccountServiceService>('AccountServiceService', ['getBillingAccount']);
     orderServiceSpy = jasmine.createSpyObj<ProductOrderService>('ProductOrderService', ['postProductOrder']);
@@ -108,6 +110,7 @@ describe('CheckoutComponent', () => {
   });
 
   afterEach(() => {
+    environment.FEDERATION_ENABLED = federationEnabled;
     messages$.complete();
   });
 
@@ -269,6 +272,30 @@ describe('CheckoutComponent', () => {
     expect(component.selectedBillingAddress.id).toBe('ba-1');
     expect(component.validBillAddr).toBeTrue();
     expect(component.preferred).toBeFalse();
+  });
+
+  it('getBilling should pass the checkout product offering as target when federation is enabled', async () => {
+    environment.FEDERATION_ENABLED = true;
+    component.items = [{ id: 'urn:ngsi-ld:product-offering:fed-1', name: 'Federated offer', options: { pricing: [] } }] as any;
+    (component as any).updateBillingAccountTarget();
+    accountSpy.getBillingAccount.and.resolveTo([]);
+
+    await component.getBilling();
+
+    expect(accountSpy.getBillingAccount).toHaveBeenCalledWith('urn:ngsi-ld:product-offering:fed-1');
+    expect(component.billingAccountTarget).toBe('urn:ngsi-ld:product-offering:fed-1');
+  });
+
+  it('getBilling should not pass a target when federation is disabled', async () => {
+    environment.FEDERATION_ENABLED = false;
+    component.items = [{ id: 'urn:ngsi-ld:product-offering:local-1', name: 'Local offer', options: { pricing: [] } }] as any;
+    (component as any).updateBillingAccountTarget();
+    accountSpy.getBillingAccount.and.resolveTo([]);
+
+    await component.getBilling();
+
+    expect(accountSpy.getBillingAccount).toHaveBeenCalledWith(undefined);
+    expect(component.billingAccountTarget).toBeUndefined();
   });
 
   it('deleteProduct should remove item, emit event and refresh cart', async () => {

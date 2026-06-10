@@ -39,6 +39,7 @@ export class BillingAccountFormComponent implements OnInit, OnDestroy {
 
   @Input() billAcc: billingAccountCart | undefined;
   @Input() preferred: boolean | undefined;
+  @Input() target: string | undefined;
 
   billingForm = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.maxLength(250)]),
@@ -281,7 +282,7 @@ export class BillingAccountFormComponent implements OnInit, OnDestroy {
         relatedParty: [this.partyInfo],
         state: "Defined"
       }
-      this.accountService.postBillingAccount(billacc).subscribe({
+      this.accountService.postBillingAccount(billacc, this.target).subscribe({
         next: data => {
           this.eventMessage.emitBillAccChange(true);
           this.resetBillingForm();
@@ -382,7 +383,7 @@ export class BillingAccountFormComponent implements OnInit, OnDestroy {
           relatedParty: [this.partyInfo],
           state: "Defined"
         }
-        this.accountService.updateBillingAccount(this.billAcc.id, bill_body).subscribe({
+        this.accountService.updateBillingAccount(this.billAcc.id, bill_body, this.target).subscribe({
           next: data => {
             this.eventMessage.emitBillAccChange(false);
             this.resetBillingForm();

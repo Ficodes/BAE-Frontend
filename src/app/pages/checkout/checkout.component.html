@@ -62,11 +62,11 @@
           @if (billingAddresses.length > 0) {
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3" role="none">
               @for(baddr of billingAddresses; track baddr.id; let pos = $index) {
-                <app-billing-address [data]="baddr" [position]="pos" (selectedEvent)="onSelected($event)" (deletedEvent)="onDeleted($event)"></app-billing-address>
+                <app-billing-address [data]="baddr" [position]="pos" [target]="billingAccountTarget" (selectedEvent)="onSelected($event)" (deletedEvent)="onDeleted($event)"></app-billing-address>
               }
             </div>
           } @else {
-            <app-billing-account-form [preferred]="true"></app-billing-account-form>
+            <app-billing-account-form [preferred]="true" [target]="billingAccountTarget"></app-billing-account-form>
             <!--
               <button class="inline-flex items-center justify-center shrink-0 font-semibold leading-none rounded outline-none transition duration-300 ease-in-out focus:outline-0 focus:shadow focus:ring-1 focus:ring-accent-700 bg-primary-50 text-white border border-transparent hover:bg-primary-100 px-5 py-0 h-12 w-full col-span-2">
                 Add Billing Address
@@ -238,7 +238,7 @@
 
       <!-- Modal body -->
       <div class="max-h-[80vh] overflow-y-auto p-4">
-        <app-billing-account-form [preferred]="preferred"></app-billing-account-form>
+        <app-billing-account-form [preferred]="preferred" [target]="billingAccountTarget"></app-billing-account-form>
       </div>
 
     </div>

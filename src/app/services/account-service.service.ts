@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { lastValueFrom, map } from 'rxjs';
 import { Category, LoginInfo } from '../models/interfaces';
@@ -17,29 +17,33 @@ export class AccountServiceService {
 
   constructor(private http: HttpClient,private localStorage: LocalStorageService) { }
 
-  getBillingAccount(){
+  private buildTargetOptions(target?: string) {
+    return target ? { params: new HttpParams().set('target', target) } : {};
+  }
+
+  getBillingAccount(target?: string){
     let url = `${AccountServiceService.BASE_URL}${AccountServiceService.API_ACCOUNT}/billingAccount/`;
-    return lastValueFrom(this.http.get<any[]>(url));
+    return lastValueFrom(this.http.get<any[]>(url, this.buildTargetOptions(target)));
   }
 
-  getBillingAccountById(id:any){
+  getBillingAccountById(id:any, target?: string){
     let url = `${AccountServiceService.BASE_URL}${AccountServiceService.API_ACCOUNT}/billingAccount/${id}`;
-    return lastValueFrom(this.http.get<any>(url));
+    return lastValueFrom(this.http.get<any>(url, this.buildTargetOptions(target)));
   }
 
-  postBillingAccount(item:any){
+  postBillingAccount(item:any, target?: string){
     let url = `${AccountServiceService.BASE_URL}${AccountServiceService.API_ACCOUNT}/billingAccount/`;
-    return this.http.post<any>(url, item);
+    return this.http.post<any>(url, item, this.buildTargetOptions(target));
   }
 
-  updateBillingAccount(id:any,item:any){
+  updateBillingAccount(id:any,item:any, target?: string){
     let url = `${AccountServiceService.BASE_URL}${AccountServiceService.API_ACCOUNT}/billingAccount/${id}`;
-    return this.http.patch<any>(url, item);
+    return this.http.patch<any>(url, item, this.buildTargetOptions(target));
   }
 
-  deleteBillingAccount(id:any){
+  deleteBillingAccount(id:any, target?: string){
     let url = `${AccountServiceService.BASE_URL}${AccountServiceService.API_ACCOUNT}/billingAccount/${id}`;
-    return this.http.delete<any>(url);
+    return this.http.delete<any>(url, this.buildTargetOptions(target));
   }
 
   getUserInfo(partyId:any){

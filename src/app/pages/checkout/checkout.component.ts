@@ -54,6 +54,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   providerId:any = null;
   loadingItems:boolean=false;
   orderNote: string = '';
+  billingAccountTarget: string | undefined;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -94,6 +95,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
             await this.getProviderInfo();
             this.groupItemsByOwner(this.providerId);
           }
+          this.updateBillingAccountTarget();
           this.cdr.detectChanges();
           this.getTotalPrice();
           this.loadingItems=false;
@@ -110,6 +112,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
             await this.getProviderInfo();
             this.groupItemsByOwner(this.providerId);
           }
+          this.updateBillingAccountTarget();
           this.cdr.detectChanges();
           this.getTotalPrice();
           this.loadingItems=false;
@@ -400,6 +403,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         this.groupItemsByOwner(this.providerId);
         this.loadingItems=false;
       }
+      this.updateBillingAccountTarget();
       this.cdr.detectChanges();
       this.getTotalPrice();
       console.log('------------------')
@@ -429,13 +433,17 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     console.log(itemsForOwner);
     this.items = itemsForOwner; // replace with only this owner's items
   }
+
+  private updateBillingAccountTarget() {
+    this.billingAccountTarget = environment.FEDERATION_ENABLED ? this.items[0]?.id : undefined;
+  }
   
 
   async getBilling() {
     this.selectedBillingAddress=null;
     let isBillSelected = false;
     this.billingAddresses = [];
-    let data = await this.account.getBillingAccount();
+    let data = await this.account.getBillingAccount(this.billingAccountTarget);
     //this.account.getBillingAccount().then(data => {
       for (let i = 0; i < data.length; i++) {
         isBillSelected = false;
@@ -620,6 +628,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         this.groupItemsByOwner(this.providerId);
         this.loadingItems=false;
       }
+      this.updateBillingAccountTarget();
       this.cdr.detectChanges();
       this.getTotalPrice();
       console.log('------------------')

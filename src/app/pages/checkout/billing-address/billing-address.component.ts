@@ -16,6 +16,7 @@ import { takeUntil } from 'rxjs/operators';
 })
 export class BillingAddressComponent implements OnDestroy {
   @Input() position: number = 0;
+  @Input() target: string | undefined;
   @Input() data: billingAccountCart = {
     id: '',
     href: '',

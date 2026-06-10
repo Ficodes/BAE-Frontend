@@ -48,6 +48,22 @@ describe('AccountServiceService', () => {
     await expectAsync(promise).toBeResolvedTo(responseBody);
   });
 
+  it('getBillingAccount should include target query parameter when provided', async () => {
+    const target = 'urn:ngsi-ld:product-offering:fed-1';
+    const responseBody = [{ id: 'ba-1' }];
+
+    const promise = service.getBillingAccount(target);
+    const req = httpMock.expectOne(request =>
+      request.url === `${environment.BASE_URL}${environment.ACCOUNT}/billingAccount/` &&
+      request.params.get('target') === target
+    );
+
+    expect(req.request.method).toBe('GET');
+    req.flush(responseBody);
+
+    await expectAsync(promise).toBeResolvedTo(responseBody);
+  });
+
   it('getBillingAccountById should perform GET on billingAccount by id', async () => {
     const id = 'ba-123';
     const responseBody = { id };
@@ -75,6 +91,24 @@ describe('AccountServiceService', () => {
     req.flush(responseBody);
   });
 
+  it('postBillingAccount should include target query parameter when provided', () => {
+    const target = 'urn:ngsi-ld:product-offering:fed-1';
+    const payload = { name: 'Billing A' };
+    const responseBody = { id: 'new-id' };
+
+    service.postBillingAccount(payload, target).subscribe((response) => {
+      expect(response).toEqual(responseBody);
+    });
+
+    const req = httpMock.expectOne(request =>
+      request.url === `${environment.BASE_URL}${environment.ACCOUNT}/billingAccount/` &&
+      request.params.get('target') === target
+    );
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(payload);
+    req.flush(responseBody);
+  });
+
   it('updateBillingAccount should perform PATCH with payload', () => {
     const id = 'ba-123';
     const payload = { name: 'Updated billing' };
@@ -85,6 +119,25 @@ describe('AccountServiceService', () => {
     });
 
     const req = httpMock.expectOne(`${environment.BASE_URL}${environment.ACCOUNT}/billingAccount/${id}`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual(payload);
+    req.flush(responseBody);
+  });
+
+  it('updateBillingAccount should include target query parameter when provided', () => {
+    const id = 'ba-123';
+    const target = 'urn:ngsi-ld:product-offering:fed-1';
+    const payload = { name: 'Updated billing' };
+    const responseBody = { id, ...payload };
+
+    service.updateBillingAccount(id, payload, target).subscribe((response) => {
+      expect(response).toEqual(responseBody);
+    });
+
+    const req = httpMock.expectOne(request =>
+      request.url === `${environment.BASE_URL}${environment.ACCOUNT}/billingAccount/${id}` &&
+      request.params.get('target') === target
+    );
     expect(req.request.method).toBe('PATCH');
     expect(req.request.body).toEqual(payload);
     req.flush(responseBody);
