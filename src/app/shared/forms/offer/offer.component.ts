@@ -1,30 +1,29 @@
-import {Component, Input, OnInit, OnDestroy} from '@angular/core';
-import {FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
-import {GeneralInfoComponent} from "./general-info/general-info.component";
-import {TranslateModule} from "@ngx-translate/core";
-import {ProdSpecComponent} from "./prod-spec/prod-spec.component";
-import {NgClass, NgIf} from "@angular/common";
-import {ApiServiceService} from "../../../services/product-service.service";
-import {CategoryComponent} from "./category/category.component";
-import {LicenseComponent} from "./license/license.component";
-import {PricePlansComponent} from "./price-plans/price-plans.component";
-import {CatalogueComponent} from "./catalogue/catalogue.component";
-import {ProcurementModeComponent} from "./procurement-mode/procurement-mode.component"
-import {ReplicationVisibilityComponent} from "./replication-visibility/replication-visibility.component"
-import {OfferSummaryComponent} from "./offer-summary/offer-summary.component"
-import { lastValueFrom } from 'rxjs';
-import {components} from "src/app/models/product-catalog";
-import {EventMessageService} from "src/app/services/event-message.service";
-import {FormChangeState, PricePlanChangeState} from "../../../models/interfaces";
-import {Subscription} from "rxjs";
+import { NgClass } from "@angular/common";
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import { TranslateModule } from "@ngx-translate/core";
 import * as moment from 'moment';
-import { certifications } from 'src/app/models/certification-standards.const';
-import {Subject} from "rxjs";
+import { lastValueFrom, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { components } from "src/app/models/product-catalog";
+import { EventMessageService } from "src/app/services/event-message.service";
+import { environment } from '../../../../environments/environment';
+import { FormChangeState, PricePlanChangeState } from "../../../models/interfaces";
+import { ApiServiceService } from "../../../services/product-service.service";
+import { CatalogueComponent } from "./catalogue/catalogue.component";
+import { CategoryComponent } from "./category/category.component";
+import { EdcContractDefinitionComponent } from "./edc-contract-definition/edc-contract-definition.component";
+import { GeneralInfoComponent } from "./general-info/general-info.component";
+import { LicenseComponent } from "./license/license.component";
+import { OfferSummaryComponent } from "./offer-summary/offer-summary.component";
+import { PricePlansComponent } from "./price-plans/price-plans.component";
+import { ProcurementModeComponent } from "./procurement-mode/procurement-mode.component";
+import { ProdSpecComponent } from "./prod-spec/prod-spec.component";
+import { ReplicationVisibilityComponent } from "./replication-visibility/replication-visibility.component";
 
 type ProductOffering_Create = components["schemas"]["ProductOffering_Create"];
 type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
- 
+
 @Component({
   selector: 'app-offer-form',
   standalone: true,
@@ -40,12 +39,13 @@ type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
     ProcurementModeComponent,
     ReplicationVisibilityComponent,
     OfferSummaryComponent,
-    NgClass
+    NgClass,
+    EdcContractDefinitionComponent
   ],
   templateUrl: './offer.component.html',
   styleUrl: './offer.component.css'
 })
-export class OfferComponent implements OnInit, OnDestroy{
+export class OfferComponent implements OnInit, OnDestroy {
 
   @Input() formType: 'create' | 'update' = 'create';
   @Input() offer: any = {};
@@ -60,6 +60,7 @@ export class OfferComponent implements OnInit, OnDestroy{
     'Catalogue',
     'Category',
     'License',
+    'Contract Definition',
     'Price Plans',
     'Procurement Mode',
     //'Replication & Visibility',
@@ -67,15 +68,15 @@ export class OfferComponent implements OnInit, OnDestroy{
   ];
   isFormValid = false;
   selectedProdSpec: any;
-  pricePlans:any = [];
-  errorMessage:any='';
-  showError:boolean=false;
-  loading:boolean=false;
-  bundleChecked:boolean=false;
-  offersBundle:any[]=[];
-  loadingData:boolean=false;
+  pricePlans: any = [];
+  errorMessage: any = '';
+  showError: boolean = false;
+  loading: boolean = false;
+  bundleChecked: boolean = false;
+  offersBundle: any[] = [];
+  loadingData: boolean = false;
 
-  offerToCreate:ProductOffering_Create | undefined;
+  offerToCreate: ProductOffering_Create | undefined;
 
   private formChanges: { [key: string]: FormChangeState } = {};
   private formSubscription: Subscription | null = null;
@@ -83,8 +84,8 @@ export class OfferComponent implements OnInit, OnDestroy{
   hasChanges: boolean = false;
 
   constructor(private api: ApiServiceService,
-              private eventMessage: EventMessageService,
-              private fb: FormBuilder) {
+    private eventMessage: EventMessageService,
+    private fb: FormBuilder) {
 
     this.productOfferForm = this.fb.group({
       generalInfo: this.fb.group({}),
@@ -92,6 +93,7 @@ export class OfferComponent implements OnInit, OnDestroy{
       catalogue: new FormControl(null, [Validators.required]),
       category: new FormControl([]),
       license: this.fb.group({}),
+      edcContractDefinition: this.fb.group({}),
       pricePlans: new FormControl([]),
       procurementMode: this.fb.group({}),
       replicationMode: this.fb.group({})
@@ -99,26 +101,26 @@ export class OfferComponent implements OnInit, OnDestroy{
 
     // Subscribe to form validation changes
     this.productOfferForm.statusChanges
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(status => {
-      if(!this.productOfferForm.controls['generalInfo'].valid || !this.productOfferForm.get('procurementMode')?.valid){
-        this.isFormValid = false
-      } else {
-        this.isFormValid = true
-      }
-    });
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(status => {
+        if (!this.productOfferForm.controls['generalInfo'].valid || !this.productOfferForm.get('procurementMode')?.valid) {
+          this.isFormValid = false
+        } else {
+          this.isFormValid = true
+        }
+      });
 
     // Subscribe to subform changes
     this.formSubscription = this.eventMessage.messages$
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(message => {
-      console.log('subform changed-----')
-      if (message.type === 'SubformChange') {
-        const changeState = message.value as FormChangeState;
-        console.log('Received subform change:', changeState);
-        this.handleSubformChange(changeState);
-      }
-    });
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(message => {
+        console.log('subform changed-----')
+        if (message.type === 'SubformChange') {
+          const changeState = message.value as FormChangeState;
+          console.log('Received subform change:', changeState);
+          this.handleSubformChange(changeState);
+        }
+      });
   }
 
   handleSubformChange(change: FormChangeState) {
@@ -146,10 +148,10 @@ export class OfferComponent implements OnInit, OnDestroy{
         return; // No permitir avanzar si el paso actual no es válido
       }
     }
-    
+
     this.currentStep = index;
-    if(this.currentStep>this.highestStep){
-      this.highestStep=this.currentStep
+    if (this.currentStep > this.highestStep) {
+      this.highestStep = this.currentStep
     }
   }
 
@@ -165,9 +167,11 @@ export class OfferComponent implements OnInit, OnDestroy{
         return true; // Las categorías no son obligatorias
       case 4: // License
         return this.productOfferForm.get('license')?.valid || false;
-      case 5: // Price Plans
+      case 5: // contractDefinition
+        return this.productOfferForm.get('edcContractDefinition')?.valid || false
+      case 6: // Price Plans
         return true;
-      case 6: // Procurement Mode
+      case 7: // Procurement Mode
         return this.productOfferForm.get('procurementMode')?.valid || false;
       /*case 7: // Replication & Visibility
         return this.productOfferForm.get('replicationMode')?.valid || false;*/
@@ -177,27 +181,27 @@ export class OfferComponent implements OnInit, OnDestroy{
   }
 
   canNavigate(index: number) {
-    if(this.formType == 'create'){
-      return (this.productOfferForm.get('generalInfo')?.valid &&  (index <= this.currentStep)) || (this.productOfferForm.get('generalInfo')?.valid &&  (index <= this.highestStep));
+    if (this.formType == 'create') {
+      return (this.productOfferForm.get('generalInfo')?.valid && (index <= this.currentStep)) || (this.productOfferForm.get('generalInfo')?.valid && (index <= this.highestStep));
     } else {
       //return this.productOfferForm.get('generalInfo')?.valid
       return this.isFormValid
     }
-  }  
+  }
 
   handleStepClick(index: number): void {
     if (this.canNavigate(index)) {
       this.goToStep(index);
     }
   }
-  
+
 
   submitForm() {
     if (this.formType === 'update') {
       this.eventMessage.emitUpdateOffer(true);
       console.log('🔄 Starting offer update process...');
       console.log('📝 Current form changes:', this.formChanges);
-      
+
       // Aquí irá la lógica de actualización
       // Por ahora solo mostramos los cambios
       this.updateOffer();
@@ -209,20 +213,21 @@ export class OfferComponent implements OnInit, OnDestroy{
 
   async ngOnInit() {
     if (this.formType === 'update' && this.offer) {
-      this.loadingData=true;
+      this.loadingData = true;
       this.steps = [
         'General Info',
         'Product Specification',
         //'Catalogue',
         'Category',
         'License',
+        'Contract Definition',
         'Price Plans',
         'Procurement Mode',
         //'Replication & Visibility',
         'Summary'
       ];
       await this.loadOfferData();
-      this.loadingData=false;
+      this.loadingData = false;
     }
 
   }
@@ -240,33 +245,33 @@ export class OfferComponent implements OnInit, OnDestroy{
     }
 
     //CATEGORIES
-    if(this.offer.category){
+    if (this.offer.category) {
       this.productOfferForm.patchValue({
         category: this.offer.category || null // Cargar si existe, o dejar en null
       });
     }
 
     //LICENSE
-    if(this.offer.productOfferingTerm){
+    if (this.offer.productOfferingTerm) {
       console.log('Found productOfferingTerm:', this.offer.productOfferingTerm);
-      
+
       // Mantener el primer término (licencia) incluso si está vacío
       //const licenseTerm = this.offer.productOfferingTerm[0];
       const licenseTerm = this.offer.productOfferingTerm.find(
         (element: { name: string; }) => element.name === 'License'
       );
-      
+
       // Filtrar el resto de términos
 
       /*const otherTerms = this.offer.productOfferingTerm.filter(
         (term: any) => term.name !== 'License'
       ) ?? [];
-    
-      
+
+
       // Reconstruir el array con el término de licencia en la posición 0
       this.offer.productOfferingTerm = [licenseTerm, ...otherTerms];*/
 
-      if(licenseTerm){
+      if (licenseTerm) {
         this.productOfferForm.patchValue({
           license: {
             treatment: 'License',
@@ -279,14 +284,14 @@ export class OfferComponent implements OnInit, OnDestroy{
             treatment: 'License',
             description: ''
           }
-        });        
+        });
       }
 
       //PROCUREMENT
       const procurementTerm = this.offer.productOfferingTerm.find(
         (element: { name: string; }) => element.name === 'procurement'
       );
-      if(procurementTerm){
+      if (procurementTerm) {
         const procurementValue = {
           id: procurementTerm.description,
           name: procurementTerm.description
@@ -303,6 +308,18 @@ export class OfferComponent implements OnInit, OnDestroy{
           }
         });
       }
+
+      // EDC Contract Definition
+      const contractDefinition = this.offer.productOfferingTerm.find(
+        (element: { name: string; }) => element.name === 'edc:contractDefinition'
+      ) || { name: 'edc:contractDefinition' };
+      this.productOfferForm.patchValue(({
+        contractDefinition: {
+          name: contractDefinition.name,
+          accessPolicy: contractDefinition.accessPolicy ? JSON.stringify(contractDefinition.accessPolicy) : '',
+          contractPolicy: contractDefinition.contractPolicy ? JSON.stringify(contractDefinition.contractPolicy) : ''
+        }
+      }))
       /*console.log('Checking procurement terms...');
       this.offer.productOfferingTerm.forEach((term: any) => {
         console.log('Checking term:', term);
@@ -323,40 +340,40 @@ export class OfferComponent implements OnInit, OnDestroy{
 
     // Price Plans
     if (Array.isArray(this.offer.productOfferingPrice) && this.offer.productOfferingPrice.length > 0) {
-     for (let pop of this.offer.productOfferingPrice) {
-      let relatedPrices:any[] = [];
-       const pricePlan = await this.api.getOfferingPrice(pop.id);
-       console.log('-- price plan ----')
-       console.log(pricePlan)
-       let configProfileCheck = false;
-       if(pricePlan?.prodSpecCharValueUse && pricePlan?.prodSpecCharValueUse.length > 0){
-        configProfileCheck=true
-       } else {
-        configProfileCheck=false
-       }
+      for (let pop of this.offer.productOfferingPrice) {
+        let relatedPrices: any[] = [];
+        const pricePlan = await this.api.getOfferingPrice(pop.id);
+        console.log('-- price plan ----')
+        console.log(pricePlan)
+        let configProfileCheck = false;
+        if (pricePlan?.prodSpecCharValueUse && pricePlan?.prodSpecCharValueUse.length > 0) {
+          configProfileCheck = true
+        } else {
+          configProfileCheck = false
+        }
 
-       let priceInfo: any = {
-        id: pricePlan.id,
-        name: pricePlan.name,
-        description: pricePlan.description,
-        lifecycleStatus: pricePlan.lifecycleStatus,
-        paymentOnline: pricePlan?.paymentOnline ?? !!pricePlan?.bundledPopRelationship,
-        productProfile: configProfileCheck ? this.mapProductProfile(pricePlan?.prodSpecCharValueUse || []) : [],     
-      }
-      
-      //Now every pricePlan is set as bundle even with only one price component
-      if(pricePlan.bundledPopRelationship){
-        for(let i=0;i<pricePlan.bundledPopRelationship.length;i++){
-          let data = await this.api.getOfferingPrice(pricePlan.bundledPopRelationship[i].id)
-            let priceComp:any = {
-              id:data.id,
-              href:data.href,
-              name:data?.name,
-              description:data?.description,
-              isBundle:data?.isBundle,
-              priceType:data?.priceType,
-              lastUpdate:data?.lastUpdate,
-              lifecycleStatus:data?.lifecycleStatus,
+        let priceInfo: any = {
+          id: pricePlan.id,
+          name: pricePlan.name,
+          description: pricePlan.description,
+          lifecycleStatus: pricePlan.lifecycleStatus,
+          paymentOnline: pricePlan?.paymentOnline ?? !!pricePlan?.bundledPopRelationship,
+          productProfile: configProfileCheck ? this.mapProductProfile(pricePlan?.prodSpecCharValueUse || []) : [],
+        }
+
+        //Now every pricePlan is set as bundle even with only one price component
+        if (pricePlan.bundledPopRelationship) {
+          for (let i = 0; i < pricePlan.bundledPopRelationship.length; i++) {
+            let data = await this.api.getOfferingPrice(pricePlan.bundledPopRelationship[i].id)
+            let priceComp: any = {
+              id: data.id,
+              href: data.href,
+              name: data?.name,
+              description: data?.description,
+              isBundle: data?.isBundle,
+              priceType: data?.priceType,
+              lastUpdate: data?.lastUpdate,
+              lifecycleStatus: data?.lifecycleStatus,
               paymentOnline: data?.paymentOnline ?? !!data?.bundledPopRelationship,
               selectedCharacteristic: data?.prodSpecCharValueUse || null,
               currency: data?.price?.unit || 'EUR',
@@ -366,43 +383,43 @@ export class OfferComponent implements OnInit, OnDestroy{
               price: data?.price?.value,
               validFor: data?.validFor || null,
             }
-            
-            if(data?.price?.unit){
-              priceComp.currency=data?.price?.unit
+
+            if (data?.price?.unit) {
+              priceComp.currency = data?.price?.unit
             }
-  
-            if(data?.popRelationship){
+
+            if (data?.popRelationship) {
               let alter = await this.api.getOfferingPrice(data?.popRelationship[0].id)
               console.log('----- alter')
               console.log(alter)
-              if(alter.percentage){
-                priceComp.discountValue=alter?.percentage
-                priceComp.discountUnit='percentage'
-              }else{
-                priceComp.discountValue=alter?.price?.value
-                priceComp.discountUnit='fixed'
-              }            
-              priceComp.discountDuration = alter?.unitOfMeasure?.amount            
-              priceComp.discountDurationUnit = alter?.unitOfMeasure?.units            
+              if (alter.percentage) {
+                priceComp.discountValue = alter?.percentage
+                priceComp.discountUnit = 'percentage'
+              } else {
+                priceComp.discountValue = alter?.price?.value
+                priceComp.discountUnit = 'fixed'
+              }
+              priceComp.discountDuration = alter?.unitOfMeasure?.amount
+              priceComp.discountDurationUnit = alter?.unitOfMeasure?.units
               //priceComp.discountDurationUnit=alter?.
               //priceComp.discountDuration=this.calculateDiscountDuration(alter?.validFor,alter?.)
             }
             relatedPrices.push(priceComp)
+          }
         }
+
+        priceInfo.priceComponents = relatedPrices;
+        console.log(priceInfo)
+        //}
+
+        this.pricePlans.push(priceInfo);
+        console.log(this.pricePlans)
       }
+      console.log('Price Plans existentes: ', this.pricePlans);
 
-      priceInfo.priceComponents=relatedPrices;
-      console.log(priceInfo)
-      //}
-
-      this.pricePlans.push(priceInfo);
-      console.log(this.pricePlans)
-     }
-     console.log('Price Plans existentes: ', this.pricePlans);
-
-    this.productOfferForm.patchValue({
-      pricePlans: this.pricePlans // Cargar si existe, o dejar en null
-    });
+      this.productOfferForm.patchValue({
+        pricePlans: this.pricePlans // Cargar si existe, o dejar en null
+      });
     }
   }
 
@@ -443,13 +460,13 @@ export class OfferComponent implements OnInit, OnDestroy{
         units: component.discountDurationUnit
       }
     };
-  
+
     if (component.discountUnit === 'percentage') {
       priceAlter.percentage = component.discountValue;
     } else {
       priceAlter.price = { value: component.discountValue, unit: currency };
     }
-  
+
     return await lastValueFrom(this.api.postOfferingPrice(priceAlter));
   }
 
@@ -480,7 +497,7 @@ export class OfferComponent implements OnInit, OnDestroy{
       console.log(component.newValue)
       priceComp.unitOfMeasure = {
         amount: 1,
-        units: component.usageUnit ?? component.newValue.usageUnit      
+        units: component.usageUnit ?? component.newValue.usageUnit
       }
       priceComp['@baseType'] = "ProductOfferingPrice";
       priceComp['@schemaLocation'] = "https://raw.githubusercontent.com/laraminones/tmf-new-schemas/main/UsageSpecId.json";
@@ -530,9 +547,9 @@ export class OfferComponent implements OnInit, OnDestroy{
 
     if (component.newValue.priceType === 'usage') {
       console.log(component.newValue)
-      priceComp.unitOfMeasure = { 
+      priceComp.unitOfMeasure = {
         amount: 1,
-        units: component.newValue.usageUnit     
+        units: component.newValue.usageUnit
       };
 
       (priceComp as any).usageSpecId = component.newValue.usageSpecId;
@@ -550,24 +567,24 @@ export class OfferComponent implements OnInit, OnDestroy{
     }
 
     if (component.newValue.discountValue != null) {
-      let discountMock:any = {
+      let discountMock: any = {
         discountValue: component.newValue.discountValue
       }
-      if(component.newValue.discountUnit){
-        discountMock.discountUnit=component.newValue.discountUnit
+      if (component.newValue.discountUnit) {
+        discountMock.discountUnit = component.newValue.discountUnit
       }
-      if(component.newValue.discountDuration){
-        discountMock.discountDuration=component.newValue.discountDuration
+      if (component.newValue.discountDuration) {
+        discountMock.discountDuration = component.newValue.discountDuration
       }
-      if(component.newValue.discountDurationUnit){
-        discountMock.discountDurationUnit=component.newValue.discountDurationUnit
+      if (component.newValue.discountDurationUnit) {
+        discountMock.discountDurationUnit = component.newValue.discountDurationUnit
       }
       const discount = await this.createPriceAlteration(discountMock, currency);
       priceComp.popRelationship = [{ id: discount.id, href: discount.id, name: discount.name }];
     }
     console.log('update price comp')
     console.log(priceComp)
-    const updated = await lastValueFrom(this.api.updateOfferingPrice(priceComp,component.id));
+    const updated = await lastValueFrom(this.api.updateOfferingPrice(priceComp, component.id));
     return { id: updated.id, href: updated.id, name: updated.name };
   }
 
@@ -580,13 +597,13 @@ export class OfferComponent implements OnInit, OnDestroy{
       bundledPopRelationship: compRel
     };
 
-    if(plan?.priceType){
-      if(plan?.priceType == 'custom'){
-        price.priceType='custom'
+    if (plan?.priceType) {
+      if (plan?.priceType == 'custom') {
+        price.priceType = 'custom'
       }
-    } else if(plan?.newValue?.priceType){
-      if(plan?.newValue?.priceType == 'custom'){
-        price.priceType='custom'
+    } else if (plan?.newValue?.priceType) {
+      if (plan?.newValue?.priceType == 'custom') {
+        price.priceType = 'custom'
       }
     }
 
@@ -597,10 +614,10 @@ export class OfferComponent implements OnInit, OnDestroy{
           .filter((v: any) => v.isDefault)
       }));
     }
-    
 
 
-    if(plan?.newValue?.prodSpecCharValueUse){
+
+    if (plan?.newValue?.prodSpecCharValueUse) {
       price.prodSpecCharValueUse = plan?.newValue?.prodSpecCharValueUse.map((item: any) => ({
         ...item,
         productSpecCharacteristicValue: item.productSpecCharacteristicValue
@@ -614,7 +631,7 @@ export class OfferComponent implements OnInit, OnDestroy{
       price.unitOfMeasure = plan.usageUnit;
     }
 
-    if(plan?.newValue?.usageUnit){
+    if (plan?.newValue?.usageUnit) {
       price.unitOfMeasure = plan?.newValue?.usageUnit;
     }
 
@@ -627,26 +644,26 @@ export class OfferComponent implements OnInit, OnDestroy{
     console.log(plan)
     console.log(plan.id)
     console.log(compRel)
-    let price : ProductOfferingPrice = {
+    let price: ProductOfferingPrice = {
       name: plan.newValue.name,
       isBundle: true,
       bundledPopRelationship: compRel
     }
-    if(modifiedFields.includes('description')){
+    if (modifiedFields.includes('description')) {
       price.description = plan.newValue.description
     }
-    if(modifiedFields.includes('prodSpecCharValueUse') && plan.newValue.prodSpecCharValueUse != null){
+    if (modifiedFields.includes('prodSpecCharValueUse') && plan.newValue.prodSpecCharValueUse != null) {
       price.prodSpecCharValueUse = plan.newValue.prodSpecCharValueUse.map((item: any) => ({
         ...item,
         productSpecCharacteristicValue: item.productSpecCharacteristicValue.filter((v: any) => v.isDefault)
       }));
     }
-    let updatedPrice =await lastValueFrom(this.api.updateOfferingPrice(price,plan.id))
+    let updatedPrice = await lastValueFrom(this.api.updateOfferingPrice(price, plan.id))
     return updatedPrice;
   }
 
   async createOffer() {
-    this.loading=true;
+    this.loading = true;
     const plans = this.productOfferForm.value.pricePlans;
 
     if (plans.length === 0) {
@@ -724,6 +741,16 @@ export class OfferComponent implements OnInit, OnDestroy{
       ]
     };
 
+    const contractDefinition = formValue.edcContractDefinition;
+
+    if (contractDefinition.accessPolicy || contractDefinition.contractPolicy) {
+      offer.productOfferingTerm.push({
+        name: contractDefinition.name,
+        contractPolicy: contractDefinition.contractPolicy ? JSON.parse(contractDefinition.contractPolicy) : '',
+        accessPolicy: contractDefinition.accessPolicy ? JSON.parse(contractDefinition.accessPolicy) : '',
+        '@schemaLocation': environment.EDC_CONTRACT_DEFINITION_SCHEMA
+      })
+    }
     if (!this.bundleChecked && this.formType === 'create') {
       offer.productSpecification = {
         id: formValue.prodSpec.id,
@@ -741,13 +768,13 @@ export class OfferComponent implements OnInit, OnDestroy{
       next: (data) => {
         console.log('product offer created:');
         console.log(data);
-        this.loading=false;
+        this.loading = false;
         this.goBack();
       },
       error: (error) => {
         console.error('Error during offer save/update:', error);
         this.errorMessage = error?.error?.error ? 'Error: ' + error.error.error : 'An error occurred while saving the offer!';
-        this.loading=false;
+        this.loading = false;
         this.showError = true;
         setTimeout(() => (this.showError = false), 3000);
       }
@@ -766,10 +793,10 @@ export class OfferComponent implements OnInit, OnDestroy{
       month: 'months',
       year: 'years',
     };
-  
+
     // Validate the unit and map to Moment.js DurationConstructor
     const validUnit = unitMapping[unit.toLowerCase()];
-    
+
     if (validUnit) {
       return moment().add(duration, validUnit).toISOString();
     } else {
@@ -780,15 +807,15 @@ export class OfferComponent implements OnInit, OnDestroy{
   calculateDiscountDuration(validFor: { startDateTime: string, endDateTime: string }, unit: 'days' | 'hours' | 'months') {
     const start = moment(validFor.startDateTime);
     const end = moment(validFor.endDateTime);
-    
+
     // Calculate the difference based on the given unit
     const discountDuration = end.diff(start, unit);
-  
+
     return discountDuration;
   }
 
   async updateOffer() {
-    this.loading=true;
+    this.loading = true;
     console.log('🔄 Starting offer update process...');
     console.log('📝 Current form changes:', this.formChanges);
 
@@ -860,50 +887,50 @@ export class OfferComponent implements OnInit, OnDestroy{
           }));
           console.log('Cambio en el plan de precios')
           console.log(basePayload.productOfferingPrice)
-          console.log((change as PricePlanChangeState).modifiedPricePlans)          
+          console.log((change as PricePlanChangeState).modifiedPricePlans)
           let pricePlanChangeInfo = (change as PricePlanChangeState).modifiedPricePlans;
-          for(let i=0;i< pricePlanChangeInfo.length; i++){
-            let finalPriceComps:any[]=[];
-            if(pricePlanChangeInfo[i].priceComponents.added.length>0){
+          for (let i = 0; i < pricePlanChangeInfo.length; i++) {
+            let finalPriceComps: any[] = [];
+            if (pricePlanChangeInfo[i].priceComponents.added.length > 0) {
               //Crear price comp
-              for(let j=0;j< pricePlanChangeInfo[i].priceComponents.added.length; j++){
+              for (let j = 0; j < pricePlanChangeInfo[i].priceComponents.added.length; j++) {
                 //finalPriceComps.push(this.createPriceComponent(pricePlanChangeInfo[i].priceComponents.added[j],change.currentValue.currency))
-                let compCreated = await this.createPriceComponent(pricePlanChangeInfo[i].priceComponents.added[j],pricePlanChangeInfo[i]?.newValue.currency)
+                let compCreated = await this.createPriceComponent(pricePlanChangeInfo[i].priceComponents.added[j], pricePlanChangeInfo[i]?.newValue.currency)
                 finalPriceComps.push(compCreated)
-              } 
+              }
               console.log('The following price comps has been created:')
               console.log(finalPriceComps)
             }
-            if(pricePlanChangeInfo[i].priceComponents.modified.length>0){
+            if (pricePlanChangeInfo[i].priceComponents.modified.length > 0) {
               //Modificar price comp
-              for(let j=0; j < pricePlanChangeInfo[i].priceComponents.modified.length ;j++){
+              for (let j = 0; j < pricePlanChangeInfo[i].priceComponents.modified.length; j++) {
                 //Revisar que en el caso de actualizar un componente que tenga el mismo id que el price plan (que antes no fuese bundle) ahora hay que crear el componente
                 console.log('antes del check')
                 console.log(pricePlanChangeInfo[i])
                 console.log(pricePlanChangeInfo[i]?.oldValue.isBundle)
-                console.log((!pricePlanChangeInfo[i]?.oldValue.isBundle && pricePlanChangeInfo[i].priceComponents.added.length>0))
+                console.log((!pricePlanChangeInfo[i]?.oldValue.isBundle && pricePlanChangeInfo[i].priceComponents.added.length > 0))
                 console.log(pricePlanChangeInfo[i].priceComponents.modified[j].id == pricePlanChangeInfo[i].id)
-                if((pricePlanChangeInfo[i].priceComponents.modified[j].id == pricePlanChangeInfo[i].id) && (!pricePlanChangeInfo[i]?.oldValue.isBundle && pricePlanChangeInfo[i].priceComponents.added.length>0)){
+                if ((pricePlanChangeInfo[i].priceComponents.modified[j].id == pricePlanChangeInfo[i].id) && (!pricePlanChangeInfo[i]?.oldValue.isBundle && pricePlanChangeInfo[i].priceComponents.added.length > 0)) {
                   console.log('Si entra en el check')
-                  let compUpdated = await this.createPriceComponent(pricePlanChangeInfo[i].priceComponents.modified[j],pricePlanChangeInfo[i]?.newValue.currency)
+                  let compUpdated = await this.createPriceComponent(pricePlanChangeInfo[i].priceComponents.modified[j], pricePlanChangeInfo[i]?.newValue.currency)
                   finalPriceComps.push(compUpdated)
-                } else if(pricePlanChangeInfo[i].priceComponents.modified[j].id != pricePlanChangeInfo[i].id){
-                  let compUpdated = await this.updatePriceComponent(pricePlanChangeInfo[i].priceComponents.modified[j],pricePlanChangeInfo[i]?.newValue.currency)
+                } else if (pricePlanChangeInfo[i].priceComponents.modified[j].id != pricePlanChangeInfo[i].id) {
+                  let compUpdated = await this.updatePriceComponent(pricePlanChangeInfo[i].priceComponents.modified[j], pricePlanChangeInfo[i]?.newValue.currency)
                   finalPriceComps.push(compUpdated)
-                } 
-                
+                }
+
                 console.log('The following price comp has been updated:')
                 console.log(pricePlanChangeInfo[i].priceComponents.modified[j])
               }
             }
             //Modificar el plan
             if (!pricePlanChangeInfo[i].id.startsWith('temp-id')) {
-              let updatedPricePlan = await this.updatePricePlan(pricePlanChangeInfo[i],finalPriceComps,pricePlanChangeInfo[i].modifiedFields);
-            
+              let updatedPricePlan = await this.updatePricePlan(pricePlanChangeInfo[i], finalPriceComps, pricePlanChangeInfo[i].modifiedFields);
+
               console.log('Modified price plan')
               console.log(updatedPricePlan)
             } else {
-              let createdPricePlan = await this.createBundledPricePlan(pricePlanChangeInfo[i],finalPriceComps);
+              let createdPricePlan = await this.createBundledPricePlan(pricePlanChangeInfo[i], finalPriceComps);
               const created = await lastValueFrom(this.api.postOfferingPrice(createdPricePlan));
               let index = basePayload.productOfferingPrice.findIndex(
                 (plan: any) => plan.id === pricePlanChangeInfo[i].id
@@ -959,12 +986,12 @@ export class OfferComponent implements OnInit, OnDestroy{
           description: basePayload.productOfferingTerm[0].description
         }
       }
-      
+
       // Filtrar el resto de términos
       const otherTerms = this.offer.productOfferingTerm.filter(
         (term: any) => term.name !== 'License'
       ) ?? [];
-      
+
       // Reconstruir el array con el término de licencia en la posición 0
       basePayload.productOfferingTerm = [licenseTerm, ...otherTerms];
     }*/
@@ -975,12 +1002,12 @@ export class OfferComponent implements OnInit, OnDestroy{
       // Llamar a la API para actualizar la oferta
       await lastValueFrom(this.api.updateProductOffering(basePayload, this.offer.id));
       console.log('✅ Offer updated successfully');
-      this.loading=false;
+      this.loading = false;
       this.goBack();
     } catch (error: any) {
       console.error('❌ Error updating offer:', error);
       this.errorMessage = error?.error?.error ? 'Error: ' + error.error.error : 'An error occurred while updating the offer!';
-      this.loading=false;
+      this.loading = false;
       this.showError = true;
       setTimeout(() => (this.showError = false), 3000);
     }

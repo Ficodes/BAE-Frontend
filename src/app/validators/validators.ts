@@ -33,3 +33,14 @@ export function noWhitespaceValidator(control: AbstractControl): ValidationError
   const isValid = !isWhitespace;
   return isValid ? null : { whitespace: true };
 }
+
+export function jsonValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (!value || value.trim() === '') return null;
+  try {
+    JSON.parse(value);
+    return null;
+  } catch {
+    return { invalidJson: true };
+  }
+}
