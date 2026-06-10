@@ -8,8 +8,8 @@ describe('PricePlanMetricsService', () => {
   let apiSpy: jasmine.SpyObj<ApiServiceService>;
 
   beforeEach(() => {
-    apiSpy = jasmine.createSpyObj<ApiServiceService>('ApiServiceService', ['getOfferingPrice']);
-    apiSpy.getOfferingPrice.and.resolveTo(null);
+    apiSpy = jasmine.createSpyObj<ApiServiceService>('ApiServiceService', ['getSearchProductPrice', 'getOfferingPrice']);
+    apiSpy.getSearchProductPrice.and.resolveTo(null);
 
     TestBed.configureTestingModule({
       providers: [
@@ -47,7 +47,7 @@ describe('PricePlanMetricsService', () => {
   });
 
   it('should filter bundled usage metrics based on matching string/number/boolean characteristic values', async () => {
-    apiSpy.getOfferingPrice.and.callFake(async (id: string) => {
+    apiSpy.getSearchProductPrice.and.callFake(async (id: string) => {
       if (id === 'cpu') {
         return {
           id: 'cpu',
@@ -92,10 +92,13 @@ describe('PricePlanMetricsService', () => {
         value: 0,
       },
     ]);
+    expect(apiSpy.getSearchProductPrice).toHaveBeenCalledWith('cpu');
+    expect(apiSpy.getSearchProductPrice).toHaveBeenCalledWith('ram');
+    expect(apiSpy.getOfferingPrice).not.toHaveBeenCalled();
   });
 
   it('should match range constraints using valueFrom/valueTo boundaries', async () => {
-    apiSpy.getOfferingPrice.and.resolveTo({
+    apiSpy.getSearchProductPrice.and.resolveTo({
       id: 'storage',
       priceType: 'usage',
       usageSpecId: 'u-storage',
@@ -122,7 +125,7 @@ describe('PricePlanMetricsService', () => {
   });
 
   it('should not apply usage metric when characteristic ids do not match', async () => {
-    apiSpy.getOfferingPrice.and.resolveTo({
+    apiSpy.getSearchProductPrice.and.resolveTo({
       id: 'usage-optional',
       priceType: 'usage',
       usageSpecId: 'u-optional',

@@ -139,8 +139,8 @@ export class CartDrawerComponent implements OnInit, OnDestroy {
   async getProviderInfo(){
     for(let i=0; i < this.items.length; i++){
       try {  
-        let offer = await this.api.getProductById(this.items[i].id);      
-        let product = await this.api.getProductSpecification(offer.productSpecification.id)
+        let offer = await this.api.getSearchProductById(this.items[i].id);
+        let product = await this.api.getSearchProductSpecification(offer.productSpecification.id)
         this.items[i]['relatedParty']=product.relatedParty
       } catch (error) {
         console.log('--- not found?')

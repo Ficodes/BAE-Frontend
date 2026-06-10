@@ -84,7 +84,7 @@ export class PricePlanMetricsService {
         continue;
       }
       try {
-        const component = await this.api.getOfferingPrice(relationship.id);
+        const component = await this.api.getSearchProductPrice(relationship.id);
         if (component) {
           resolvedComponents.push(component);
         }
