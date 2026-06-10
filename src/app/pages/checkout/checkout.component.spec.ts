@@ -49,6 +49,8 @@ describe('CheckoutComponent', () => {
     apiServiceSpy = jasmine.createSpyObj<ApiServiceService>('ApiServiceService', [
       'getProductById',
       'getProductSpecification',
+      'getSearchProductById',
+      'getSearchProductSpecification',
       'getOfferingPrice',
     ]);
     routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate']);
@@ -77,6 +79,8 @@ describe('CheckoutComponent', () => {
     cartServiceSpy.removeItemShoppingCart.and.resolveTo();
     cartServiceSpy.addItemShoppingCart.and.resolveTo();
     paymentServiceSpy.completePayment.and.returnValue(of({ status: 200 } as any));
+    apiServiceSpy.getSearchProductById.and.resolveTo({ productSpecification: { id: 'spec-1' } } as any);
+    apiServiceSpy.getSearchProductSpecification.and.resolveTo({ relatedParty: [] } as any);
     apiServiceSpy.getOfferingPrice.and.resolveTo({});
 
     await TestBed.configureTestingModule({
@@ -199,6 +203,24 @@ describe('CheckoutComponent', () => {
     component.groupItemsByOwner('seller-b');
 
     expect(component.items).toEqual([{ id: 'two', relatedParty: [{ role: environment.SELLER_ROLE, id: 'seller-b' }] } as any]);
+  });
+
+  it('getProviderInfo should use federation-aware catalog methods', async () => {
+    component.items = [{ id: 'urn:ngsi-ld:product-offering:federated-1' }] as any;
+    apiServiceSpy.getSearchProductById.and.resolveTo({
+      productSpecification: { id: 'urn:ngsi-ld:product-specification:federated-1' },
+    } as any);
+    apiServiceSpy.getSearchProductSpecification.and.resolveTo({
+      relatedParty: [{ role: environment.SELLER_ROLE, id: 'seller-1' }],
+    } as any);
+
+    await component.getProviderInfo();
+
+    expect(apiServiceSpy.getSearchProductById).toHaveBeenCalledWith('urn:ngsi-ld:product-offering:federated-1');
+    expect(apiServiceSpy.getSearchProductSpecification).toHaveBeenCalledWith('urn:ngsi-ld:product-specification:federated-1');
+    expect(apiServiceSpy.getProductById).not.toHaveBeenCalled();
+    expect(apiServiceSpy.getProductSpecification).not.toHaveBeenCalled();
+    expect(component.items[0].relatedParty).toEqual([{ role: environment.SELLER_ROLE, id: 'seller-1' }]);
   });
 
   it('initCheckoutData should set contact and relatedParty from login and load cart', async () => {
