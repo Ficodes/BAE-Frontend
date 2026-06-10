@@ -1,0 +1,30 @@
+<!--@if (treatmentControl) {
+  <label for="prod-name" class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._treatment' | translate }}</label>
+  <input data-cy="treatment" id="prod-name" type="text" [formControl]="treatmentControl" maxLength="100"
+         class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"/>
+}-->
+@if (accessControl) {
+<label class="font-bold text-lg col-span-2 dark:text-white">{{ 'Access Policy' | translate }}</label>
+<textarea [formControl]="accessControl" rows="10"
+  class="mb-2 min-h-fit bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-mono"
+  [class.border-red-500]="accessControl.invalid && accessControl.touched"
+  placeholder='{"example": "Enter your JSON here"}'></textarea>
+@if (accessControl.hasError('invalidJson') && accessControl.touched) {
+<p class="mt-1 text-sm text-red-500">{{ 'Invalid JSON' | translate }}</p>
+}
+}
+
+@if (contractControl) {
+<label class="font-bold text-lg col-span-2 dark:text-white">{{ 'Contract Policy' | translate }}</label>
+<textarea [formControl]="contractControl" rows="10"
+  class="mb-2 min-h-fit bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-mono"
+  [class.border-red-500]="contractControl.invalid && contractControl.touched"
+  placeholder='{"example": "Enter your JSON here"}'></textarea>
+@if (contractControl.hasError('invalidJson') && contractControl.touched) {
+<p class="mt-1 text-sm text-red-500">{{ 'Invalid JSON' | translate }}</p>
+}
+}
+
+@if (formGroup.hasError('policiesRequired') && (accessControl?.touched || contractControl?.touched)) {
+<p class="mt-1 text-sm text-red-500">{{ 'Both Access Policy and Contract Policy are required if either is filled' | translate }}</p>
+}
