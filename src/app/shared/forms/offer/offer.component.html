@@ -30,19 +30,19 @@
       class="flex items-start w-full text-sm font-medium text-center text-gray-500 dark:text-gray-400">
       @for (step of steps; track i; let i = $index) {
       <li (click)="handleStepClick(i)" [class.cursor-not-allowed]="!canNavigate(i)" [class.opacity-50]="!canNavigate(i)"
-        [class.text-primary-100]="currentStep === i" class="flex-1 cursor-pointer">
+        [class.text-primary-100]="currentStep.id === step.id" class="flex-1 cursor-pointer">
         <span
           class="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 mx-auto border-2 border-primary-100 dark:border-primary-50 shrink-0 rounded-full"
-          [class.bg-primary-100]="currentStep === i" [class.text-white]="currentStep === i">
+          [class.bg-primary-100]="currentStep.id === step.id" [class.text-white]="currentStep.id === step.id">
           {{ i + 1 }}
         </span>
-        <span class="md:block mt-2 hidden">{{ step }}</span>
+        <span class="md:block mt-2 hidden">{{ step.label }}</span>
       </li>
       }
     </ol>
 
     <h3 class="block md:hidden mt-2 text-center text-2xl text-primary-100 dark:text-white pb-4">{{
-      this.steps[currentStep] }}</h3>
+      currentStep.label }}</h3>
     @if(loading){
     <div role="status" class="w-full h-full flex justify-center align-middle">
       <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400"
@@ -61,87 +61,50 @@
     <div class="md:p-8">
 
       <!-- Step Forms -->
-      @if (currentStep === 0) {
-      <app-general-info-form [data]="offer" [formType]="formType" [form]="productOfferForm.controls['generalInfo']"
-        (formChange)="handleSubformChange($event)">
-      </app-general-info-form>
-      } @else if (currentStep === 1) {
-      <app-prod-spec-form formControlName="prodSpec" [data]="offer" [partyId]="partyId" [formType]="formType"
-        (formChange)="handleSubformChange($event)">
-      </app-prod-spec-form>
-      } @else if (currentStep === 2) {
-      @if(this.formType=='update'){
-      <app-category-form formControlName="category" [data]="offer" [formType]="formType"
-        (formChange)="handleSubformChange($event)">
-      </app-category-form>
-      }@else{
-      <app-catalogue formControlName="catalogue" [partyId]="partyId"></app-catalogue>
-      }
-      } @else if (currentStep === 3){
-      @if(this.formType=='update'){
-      <app-license-form [data]="offer" [formType]="formType" [form]="productOfferForm.controls['license']"
-        (formChange)="handleSubformChange($event)">
-      </app-license-form>
-      }@else{
-      <app-category-form formControlName="category" [data]="offer" [formType]="formType"
-        (formChange)="handleSubformChange($event)">
-      </app-category-form>
-      }
-      } @else if (currentStep === 4){
-      @if(this.formType=='update'){
-      <app-edc-contract-definition-form [data]="offer" [formType]="formType"
-        [form]="productOfferForm.controls['edcContractDefinition']" (formChange)="handleSubformChange($event)">
-      </app-edc-contract-definition-form>
-      }@else{
-      <app-license-form [data]="offer" [formType]="formType" [form]="productOfferForm.controls['license']"
-        (formChange)="handleSubformChange($event)">
-      </app-license-form>
-      }
-      } @else if (currentStep === 5) {
-      @if(this.formType=='update'){
-      <app-price-plans-form [form]="productOfferForm" [prodSpec]="productOfferForm.get('prodSpec')?.value"
-        [custom]="false" (formChange)="handleSubformChange($event)">
-      </app-price-plans-form>
-      }@else{
-      <app-edc-contract-definition-form [data]="offer" [formType]="formType"
-        [form]="productOfferForm.controls['edcContractDefinition']" (formChange)="handleSubformChange($event)">
-      </app-edc-contract-definition-form>
-      }
-      } @else if (currentStep === 6) {
-      @if(this.formType=='update'){
-      <app-procurement-mode [data]="offer" [form]="productOfferForm.controls['procurementMode']" [formType]="formType"
-        (formChange)="handleSubformChange($event)">
-      </app-procurement-mode>
-      }@else{
-      <app-price-plans-form [form]="productOfferForm" [prodSpec]="productOfferForm.get('prodSpec')?.value"
-        [custom]="false" (formChange)="handleSubformChange($event)">
-      </app-price-plans-form>
-      }
-      } @else if (currentStep === 7) {
-      @if(this.formType=='update'){
-      <!--<app-replication-visibility></app-replication-visibility>-->
-      <app-offer-summary [productOfferForm]="productOfferForm"></app-offer-summary>
-      }@else{
-      <!--<app-replication-visibility></app-replication-visibility>-->
-      <app-procurement-mode [data]="offer" [formType]="formType" [form]="productOfferForm.controls['procurementMode']"
-        (formChange)="handleSubformChange($event)">
-      </app-procurement-mode>
-      }
-      } @else if(currentStep === 8) {
-      <!--@if(this.formType=='update'){
-            <app-offer-summary [productOfferForm]="productOfferForm"></app-offer-summary>
-          }@else{
-            <app-replication-visibility></app-replication-visibility>
-          }-->
-      <app-offer-summary [productOfferForm]="productOfferForm"></app-offer-summary>
+      @switch (currentStep.id) {
+        @case (OfferStep.GENERAL_INFO) {
+          <app-general-info-form [data]="offer" [formType]="formType" [form]="productOfferForm.controls['generalInfo']"
+            (formChange)="handleSubformChange($event)" />
+        }
+        @case (OfferStep.PROD_SPEC) {
+          <app-prod-spec-form formControlName="prodSpec" [data]="offer" [partyId]="partyId" [formType]="formType"
+            (formChange)="handleSubformChange($event)" />
+        }
+        @case (OfferStep.CATALOGUE) {
+          <app-catalogue formControlName="catalogue" [partyId]="partyId" />
+        }
+        @case (OfferStep.CATEGORY) {
+          <app-category-form formControlName="category" [data]="offer" [formType]="formType"
+            (formChange)="handleSubformChange($event)" />
+        }
+        @case (OfferStep.LICENSE) {
+          <app-license-form [data]="offer" [formType]="formType" [form]="productOfferForm.controls['license']"
+            (formChange)="handleSubformChange($event)" />
+        }
+        @case (OfferStep.CONTRACT_DEFINITION) {
+          <app-edc-contract-definition-form [data]="offer" [formType]="formType"
+            [form]="productOfferForm.controls['edcContractDefinition']" (formChange)="handleSubformChange($event)" />
+        }
+        @case (OfferStep.PRICE) {
+          <app-price-plans-form [form]="productOfferForm" [prodSpec]="productOfferForm.get('prodSpec')?.value"
+            [custom]="false" (formChange)="handleSubformChange($event)" />
+        }
+        @case (OfferStep.PROCUREMENT) {
+          <app-procurement-mode [data]="offer" [formType]="formType" [form]="productOfferForm.controls['procurementMode']"
+            (formChange)="handleSubformChange($event)" />
+        }
+        @case (OfferStep.SUMMARY) {
+          <app-offer-summary [productOfferForm]="productOfferForm" />
+        }
       }
     </div>
     }
     <!-- Navigation Buttons -->
     <div class="flex justify-end mt-6 space-x-4">
-      <button data-cy="offerPrevious" (click)="goToStep(currentStep - 1)" [disabled]="currentStep === 0" [ngClass]="{
-                'text-gray-500 dark:text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white': currentStep !== 0,
-                'text-gray-300 dark:text-gray-600 cursor-not-allowed': currentStep === 0
+      <button data-cy="offerPrevious" (click)="goToStep(currentStepIdx - 1)" [disabled]="currentStepIdx === 0"
+        [ngClass]="{
+                'text-gray-500 dark:text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white': currentStepIdx !== 0,
+                'text-gray-300 dark:text-gray-600 cursor-not-allowed': currentStepIdx === 0
               }"
         class="px-4 py-2 flex items-center justify-center text-base font-medium rounded-lg  bg-white border border-gray-300 dark:bg-gray-800 dark:border-gray-700 ">
         <svg class="min-w-4 w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
@@ -151,11 +114,11 @@
         {{ 'CREATE_OFFER._previous' | translate }}
       </button>
 
-      <button data-cy="offerNext" (click)="goToStep(currentStep + 1)"
-        [disabled]="currentStep === steps.length - 1 || (formType === 'create' && !validateCurrentStep()) || !canNavigate(currentStep)"
+      <button data-cy="offerNext" (click)="goToStep(currentStepIdx + 1)"
+        [disabled]="currentStepIdx === steps.length - 1 || (formType === 'create' && !validateCurrentStep()) || !canNavigate(currentStepIdx)"
         [ngClass]="{
-                'hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white': currentStep !== steps.length - 1 && (formType !== 'create' || validateCurrentStep() || canNavigate(currentStep)),
-                'cursor-not-allowed opacity-50': currentStep === steps.length - 1 || (formType === 'create' && !validateCurrentStep() || !canNavigate(currentStep))
+                'hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white': currentStepIdx !== steps.length - 1 && (formType !== 'create' || validateCurrentStep() || canNavigate(currentStepIdx)),
+                'cursor-not-allowed opacity-50': currentStepIdx === steps.length - 1 || (formType === 'create' && !validateCurrentStep() || !canNavigate(currentStepIdx))
               }"
         class="px-4 py-2 flex items-center justify-center text-base font-medium rounded-lg text-gray-500 bg-white border border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400">
         {{ 'CREATE_OFFER._next_step' | translate }}
@@ -164,7 +127,7 @@
                 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z" />
         </svg>
       </button>
-      @if(formType === 'create' && currentStep === 7 || formType === 'update'){
+      @if(formType === 'create' && currentStep.id === 'summary' || formType === 'update'){
       <button data-cy="offerFinish" (click)="submitForm()" [disabled]="!isFormValid|| loading"
         [ngClass]="loading || (formType === 'update' && !isFormValid) ? 'opacity-50' : 'hover:bg-primary-50'"
         class="px-4 py-2 text-base font-medium text-white rounded-lg bg-primary-100">
