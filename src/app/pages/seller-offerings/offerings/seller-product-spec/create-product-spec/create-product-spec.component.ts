@@ -1,6 +1,5 @@
 import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import { initFlowbite } from 'flowbite';
 import * as moment from 'moment';
 import { FileSystemDirectoryEntry, FileSystemFileEntry, NgxFileDropEntry } from 'ngx-file-drop';
@@ -13,7 +12,6 @@ import { AttachmentServiceService } from "src/app/services/attachment-service.se
 import { EventMessageService } from "src/app/services/event-message.service";
 import { LocalStorageService } from "src/app/services/local-storage.service";
 import { PaginationService } from 'src/app/services/pagination.service';
-import { ApiServiceService } from 'src/app/services/product-service.service';
 import { ProductSpecServiceService } from 'src/app/services/product-spec-service.service';
 import { ResourceSpecServiceService } from 'src/app/services/resource-spec-service.service';
 import { ServiceSpecServiceService } from 'src/app/services/service-spec-service.service';
@@ -206,17 +204,10 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   rangeUnit: string = '';
   jsonValue: string = '';
   readonly dataSpaceCharacteristicTypes: string[] = [
-    'endpointUrl',
-    'upstreamAddress',
-    'endpointDescription',
-    'targetSpecification',
-    'serviceConfiguration',
     'credentialsConfiguration',
     'authorizationPolicy'
   ];
   readonly dataSpaceJsonCharacteristicTypes: string[] = [
-    'targetSpecification',
-    'serviceConfiguration',
     'credentialsConfiguration',
     'authorizationPolicy'
   ];
@@ -224,14 +215,15 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   filenameRegex = /^[A-Za-z0-9_.-]+$/;
   private destroy$ = new Subject<void>();
 
+  get dspEnable(): boolean {
+    return environment.DSP_ENABLED && this.DATA_SPACE_ENABLED;
+  }
+
   constructor(
-    private router: Router,
-    private api: ApiServiceService,
     private prodSpecService: ProductSpecServiceService,
     private cdr: ChangeDetectorRef,
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
-    private elementRef: ElementRef,
     private attachmentService: AttachmentServiceService,
     private servSpecService: ServiceSpecServiceService,
     private resSpecService: ResourceSpecServiceService,
@@ -720,7 +712,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   toggleCreateCharacteristicForm() {
     this.showCreateChar = !this.showCreateChar;
     if (this.showCreateChar) {
-      this.charTypeSelected = this.getInitialCharacteristicTypeForCurrentStep();
+      this.charTypeSelected = this.dataSpaceCharacteristicTypes[0];
       this.creatingChars = [];
       this.isOptional = false;
       this.optionalDftTrue = false;
@@ -1186,7 +1178,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
   getInitialCharacteristicTypeForCurrentStep(): string {
     if (this.isDataspaceConfigurationStep()) {
-      return this.dataSpaceCharacteristicTypes[0];
+      return 'credentialsConfiguration';
     }
     return 'string';
   }
@@ -1758,12 +1750,13 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (this.currentStep.id === 'general') {
-      // VERIFY dsp compatible enabled
+    if (this.currentStep.id === 'general' && this.dspEnable) {
       if (this.generalForm.value.dspCompatible) {
-        this.addDspConfigStep()
+        this.addStepAfter({ label: 'DSP Config', id: 'dsp_config' }, 'characteristics');
+        this.removeStep('dataspace')
       } else {
-        this.removeDspConfigStep();
+        this.removeStep('dsp_config');
+        this.addStepAfter({ label: 'Dataspace Configuration', id: 'dataspace' }, 'characteristics')
       }
     }
 
@@ -1856,24 +1849,24 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     return name?.replace(/compliance:/i, '').trim() ?? '';
   }
 
-  private addDspConfigStep(): void {
-    const alreadyAdded = this.steps.some(s => s.id === 'dsp_config');
+  private addStepAfter(step: Step, stepAfter?: ProductSpecFormStep): void {
+    if (!stepAfter) { this.steps.push(step) }
+    const alreadyAdded = this.steps.some(s => s.id === step.id);
     if (alreadyAdded) return;
-    // TODO: change to service
-    const serviceIdx = this.steps.findIndex(s => s.id === 'bundle');
+    const serviceIdx = this.steps.findIndex(s => s.id === stepAfter);
     this.steps = [
       ...this.steps.slice(0, serviceIdx + 1),
-      { label: 'DSP Config', id: 'dsp_config' },
+      step,
       ...this.steps.slice(serviceIdx + 1),
     ];
   }
 
-  private removeDspConfigStep(): void {
-    const idx = this.steps.findIndex(s => s.id === 'dsp_config');
+  private removeStep(step: ProductSpecFormStep): void {
+    const idx = this.steps.findIndex(s => s.id === step);
     if (idx === -1) return;
     if (this.currentStepIdx >= idx) this.currentStepIdx = idx - 1;
     if (this.highestStepIdx >= idx) this.highestStepIdx = idx - 1;
-    this.steps = this.steps.filter(s => s.id !== 'dsp_config');
+    this.steps = this.steps.filter(s => s.id !== step);
   }
 
 }

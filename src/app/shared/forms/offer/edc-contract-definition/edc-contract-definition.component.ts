@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from "@angular/forms";
 import { TranslateModule } from "@ngx-translate/core";
 import { Subject } from "rxjs";
 import { takeUntil } from 'rxjs/operators';
@@ -17,6 +17,7 @@ interface EdcContractDefinition {
   selector: 'app-edc-contract-definition-form',
   standalone: true,
   imports: [
+    FormsModule,
     ReactiveFormsModule,
     TranslateModule
   ],
@@ -46,25 +47,20 @@ export class EdcContractDefinitionComponent implements OnInit, OnDestroy {
             const dirtyFields = this.getDirtyFields(currentValue);
 
             if (dirtyFields.length > 0) {
-              const changeState: FormChangeState = {
+              this.formChange.emit({
                 subformType: 'contractDefinition',
                 isDirty: true,
                 dirtyFields,
                 originalValue: this.originalValue,
                 currentValue
-              };
-
-              console.log('🚀 Emitting final change state:', changeState);
-              this.formChange.emit(changeState);
-            } else {
-              console.log('📝 No real changes detected, skipping emission');
+              });
             }
           }
         }
       })
   }
 
-  freeLicenseSelected: boolean = false;
+  dspCompatible = false;
   private originalValue: EdcContractDefinition | null = null;
   private hasBeenModified: boolean = false;
   private isEditMode: boolean = false;
@@ -74,7 +70,6 @@ export class EdcContractDefinitionComponent implements OnInit, OnDestroy {
   }
 
   get accessControl(): FormControl | null {
-
     const control = this.formGroup.get('accessPolicy');
     return control instanceof FormControl ? control : null;
   }
@@ -84,36 +79,47 @@ export class EdcContractDefinitionComponent implements OnInit, OnDestroy {
     return control instanceof FormControl ? control : null;
   }
 
+  onDspCompatibleChange(checked: boolean): void {
+    this.updatePolicyValidators(checked);
+  }
+
+  private updatePolicyValidators(checked: boolean): void {
+    const validators = checked ? [Validators.required, jsonValidator] : [jsonValidator];
+    this.accessControl?.setValidators(validators);
+    this.accessControl?.updateValueAndValidity({ emitEvent: false });
+    this.contractControl?.setValidators(validators);
+    this.contractControl?.updateValueAndValidity({ emitEvent: false });
+    if (!checked) {
+      this.accessControl?.reset('', { emitEvent: false });
+      this.contractControl?.reset('', { emitEvent: false });
+    }
+  }
+
   ngOnInit() {
-    console.log('🔄 Initializing LicenseComponent');
-    console.log('📝 Initializing form in', this.formType, 'mode');
     this.isEditMode = this.formType === 'update';
     let contractDefinition = null;
     if (this.isEditMode && this.data) {
-      console.log('📝 Data received:', this.data);
-
       if (this.data.productOfferingTerm && Array.isArray(this.data.productOfferingTerm)) {
         contractDefinition = this.data.productOfferingTerm?.find((element: { name: any; }) => element.name == 'edc:contractDefinition')
         if (contractDefinition) {
           this.formGroup.addControl('name', new FormControl<string>('edc:contractDefinition'));
           this.formGroup.addControl('accessPolicy', new FormControl<string>(contractDefinition.accessPolicy, [Validators.required, jsonValidator]));
           this.formGroup.addControl('contractPolicy', new FormControl<string>(contractDefinition.contractPolicy, [Validators.required, jsonValidator]));
-
-          // Store original value only in edit mode
           this.originalValue = {
             name: contractDefinition.name,
             accessPolicy: contractDefinition.accessPolicy,
             contractPolicy: contractDefinition.contractPolicy
           };
-          console.log('📝 Original value stored:', this.originalValue);
         }
       }
     }
     if (!contractDefinition) {
       this.formGroup.addControl('name', new FormControl<string>('edc:contractDefinition'));
-      this.formGroup.addControl('accessPolicy', new FormControl<string>('', [Validators.required, jsonValidator]));
-      this.formGroup.addControl('contractPolicy', new FormControl<string>('', [Validators.required, jsonValidator]));
+      this.formGroup.addControl('accessPolicy', new FormControl<string>('', [jsonValidator]));
+      this.formGroup.addControl('contractPolicy', new FormControl<string>('', [jsonValidator]));
     }
+
+    this.updatePolicyValidators(this.dspCompatible);
 
     // Subscribe to form changes only in edit mode
     if (this.isEditMode) {
@@ -126,33 +132,22 @@ export class EdcContractDefinitionComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    console.log('🗑️ Destroying LicenseComponent');
-
     if (this.isEditMode && this.hasBeenModified && this.originalValue) {
       const currentValue: EdcContractDefinition = {
         name: 'edc:contractDefinition',
         accessPolicy: this.accessControl?.value || '',
         contractPolicy: this.contractControl?.value || ''
       };
-
       const dirtyFields = this.getDirtyFields(currentValue);
-
       if (dirtyFields.length > 0) {
-        const changeState: FormChangeState = {
-          subformType: 'license',
+        this.formChange.emit({
+          subformType: 'contractDefinition',
           isDirty: true,
           dirtyFields,
           originalValue: this.originalValue,
           currentValue
-        };
-
-        console.log('🚀 Emitting final change state:', changeState);
-        this.formChange.emit(changeState);
-      } else {
-        console.log('📝 No real changes detected, skipping emission');
+        });
       }
-    } else if (!this.isEditMode) {
-      console.log('📝 Not in edit mode, skipping change detection');
     }
     this.destroy$.next();
     this.destroy$.complete();

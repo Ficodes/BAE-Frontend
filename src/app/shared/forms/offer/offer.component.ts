@@ -7,6 +7,7 @@ import { lastValueFrom, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { components } from "src/app/models/product-catalog";
 import { EventMessageService } from "src/app/services/event-message.service";
+import { v4 as uuidv4 } from 'uuid';
 import { environment } from '../../../../environments/environment';
 import { FormChangeState, PricePlanChangeState } from "../../../models/interfaces";
 import { ApiServiceService } from "../../../services/product-service.service";
@@ -104,6 +105,10 @@ export class OfferComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   hasChanges: boolean = false;
 
+  get dspEnable(): boolean {
+    return environment.DSP_ENABLED && environment.DATA_SPACE_ENABLED
+  }
+
   constructor(private api: ApiServiceService,
     private eventMessage: EventMessageService,
     private fb: FormBuilder) {
@@ -171,7 +176,7 @@ export class OfferComponent implements OnInit, OnDestroy {
 
     if (this.currentStep.id === 'prod_spec') {
       // VERIFY EDC compatible and enable if so
-      if (this.isdEdcCompatible()) {
+      if (this.isdEdcCompatible() && this.dspEnable) {
         this.enableContractDefinitionStep()
       } else {
         this.disableContractDefinitionStep();
@@ -257,7 +262,7 @@ export class OfferComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     if (this.formType === 'update' && this.offer) {
       this.loadingData = true;
-      this.steps = this.steps.filter(step => step.id === 'catalogue');
+      this.steps = this.steps.filter(step => step.id !== 'catalogue');
       await this.loadOfferData();
       this.loadingData = false;
     }
@@ -453,6 +458,10 @@ export class OfferComponent implements OnInit, OnDestroy {
       this.productOfferForm.patchValue({
         pricePlans: this.pricePlans // Cargar si existe, o dejar en null
       });
+    }
+
+    if (this.offer.externalId && this.isdEdcCompatible() && this.dspEnable) {
+      this.enableContractDefinitionStep()
     }
   }
 
@@ -774,7 +783,7 @@ export class OfferComponent implements OnInit, OnDestroy {
       ]
     };
 
-    if (environment.DSP_ENABLED && this.isdEdcCompatible()) {
+    if (this.dspEnable && this.isdEdcCompatible()) {
       const contractDefinition = formValue.edcContractDefinition;
       offer.productOfferingTerm.push({
         name: contractDefinition.name,
@@ -782,6 +791,8 @@ export class OfferComponent implements OnInit, OnDestroy {
         accessPolicy: contractDefinition.accessPolicy ? JSON.parse(contractDefinition.accessPolicy) : '',
         '@schemaLocation': environment.DSP_CONTRACT_DEFINITION_SCHEMA
       })
+      offer.externalId = uuidv4()
+      offer['@schemaLocation'] = environment.DSP_SCHEMA
     }
     if (!this.bundleChecked && this.formType === 'create') {
       offer.productSpecification = {
@@ -1047,8 +1058,7 @@ export class OfferComponent implements OnInit, OnDestroy {
 
   private isdEdcCompatible() {
 
-    const prodSpec = this.productOfferForm.controls['prod']
-    return true;
+    const prodSpec = this.productOfferForm.controls['prodSpec'].value
     return prodSpec && (prodSpec as any).externalId;
   }
 }
