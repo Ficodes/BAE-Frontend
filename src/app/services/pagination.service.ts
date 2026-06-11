@@ -563,8 +563,8 @@ export class PaginationService {
         const items = await Promise.all(order.productOrderItem.map(async (productOrderItem:any) => {
           try {
             console.log('Soy un productOrderItem???????: ', productOrderItem);
-            const offer = await this.api.getProductById(productOrderItem.productOffering.id);
-            const spec = await this.api.getProductSpecification(offer.productSpecification.id);
+            const offer = await this.api.getSearchProductById(productOrderItem.productOffering.id);
+            const spec = await this.api.getSearchProductSpecification(offer.productSpecification.id);
 
             if (!offer.productOfferingPrice || offer.productOfferingPrice.length === 0) {
               return {
@@ -596,7 +596,7 @@ export class PaginationService {
             };
 
             if(offer.productOfferingPrice?.[0]) {
-              const prodprice = await this.api.getProductPrice(offer.productOfferingPrice[0].id);
+              const prodprice = await this.api.getSearchProductPrice(offer.productOfferingPrice[0].id);
               result['productOfferingPrice'] = prodprice
               if(prodprice.priceType) result['priceType'] = prodprice.priceType;
             }

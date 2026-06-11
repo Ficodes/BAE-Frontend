@@ -18,6 +18,11 @@ export class ProductOrderService {
 
   constructor(private http: HttpClient,private localStorage: LocalStorageService) { }
 
+  private getProductOrderQueryBasePath(): string {
+    const federationPrefix = environment.FEDERATION_ENABLED ? '/federation' : '';
+    return `${ProductOrderService.BASE_URL}${federationPrefix}${ProductOrderService.API_ORDERING}`;
+  }
+
   private buildTargetOptions(target?: string) {
     return target
       ? { observe: 'response' as const, params: new HttpParams().set('target', target) }
@@ -32,7 +37,7 @@ export class ProductOrderService {
 
   getProductOrders(partyId:any,page:any,filters:any[],role:any,actionFilters:string[]=[]){
     console.log('getProductOrders');
-    let url = `${ProductOrderService.BASE_URL}${ProductOrderService.API_ORDERING}/productOrder?limit=${ProductOrderService.ORDER_LIMIT}&offset=${page}&relatedParty.id=${partyId}&relatedParty.role=${role}`;
+    let url = `${this.getProductOrderQueryBasePath()}/productOrder?limit=${ProductOrderService.ORDER_LIMIT}&offset=${page}&relatedParty.id=${partyId}&relatedParty.role=${role}`;
 
     //let url = `${ProductOrderService.BASE_URL}${ProductOrderService.API_ORDERING}/productOrder?limit=${ProductOrderService.ORDER_LIMIT}&offset=${page}&relatedParty.id=${partyId}&relatedParty.role=Seller`;
     let status=''
