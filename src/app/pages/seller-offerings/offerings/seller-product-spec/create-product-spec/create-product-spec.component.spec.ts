@@ -1,18 +1,18 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { of, Subject, throwError } from 'rxjs';
 
-import { CreateProductSpecComponent } from './create-product-spec.component';
+import { AttachmentServiceService } from 'src/app/services/attachment-service.service';
+import { EventMessageService } from 'src/app/services/event-message.service';
+import { LocalStorageService } from 'src/app/services/local-storage.service';
+import { PaginationService } from 'src/app/services/pagination.service';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { ProductSpecServiceService } from 'src/app/services/product-spec-service.service';
-import { LocalStorageService } from 'src/app/services/local-storage.service';
-import { EventMessageService } from 'src/app/services/event-message.service';
-import { AttachmentServiceService } from 'src/app/services/attachment-service.service';
-import { ServiceSpecServiceService } from 'src/app/services/service-spec-service.service';
 import { ResourceSpecServiceService } from 'src/app/services/resource-spec-service.service';
-import { PaginationService } from 'src/app/services/pagination.service';
+import { ServiceSpecServiceService } from 'src/app/services/service-spec-service.service';
+import { CreateProductSpecComponent } from './create-product-spec.component';
 
 class SyncFileReaderMock {
   onload: ((event: any) => void) | null = null;
@@ -1199,7 +1199,7 @@ describe('CreateProductSpecComponent', () => {
   it('goToStep should call dependent loaders for non-bundle flow', () => {
     component.BUNDLE_ENABLED = false;
     component.currentStep = 0;
-    component.highestStep = 0;
+    component.highestStepIdx = 0;
     spyOn(component, 'validateCurrentStep').and.returnValue(true);
     const refreshSpy = spyOn(component, 'refreshChars');
     const resSpy = spyOn(component, 'getResSpecs');
@@ -1218,7 +1218,7 @@ describe('CreateProductSpecComponent', () => {
     expect(relSpy).toHaveBeenCalledWith(false);
     component.goToStep(7);
     expect(finishSpy).toHaveBeenCalled();
-    expect(component.highestStep).toBe(7);
+    expect(component.highestStepIdx).toBe(7);
     expect(refreshSpy).toHaveBeenCalled();
   });
 
@@ -1276,11 +1276,11 @@ describe('CreateProductSpecComponent', () => {
 
   it('canNavigate and handleStepClick should honor navigation constraints', () => {
     component.currentStep = 0;
-    component.highestStep = 0;
+    component.highestStepIdx = 0;
     component.generalForm.patchValue({ name: '', brand: '', version: '' });
     expect(component.canNavigate(0)).toBeFalse();
     component.generalForm.patchValue({ name: 'A', brand: 'B', version: '1.0' });
-    component.highestStep = 2;
+    component.highestStepIdx = 2;
     expect(component.canNavigate(2)).toBeTrue();
 
     const goSpy = spyOn(component, 'goToStep');

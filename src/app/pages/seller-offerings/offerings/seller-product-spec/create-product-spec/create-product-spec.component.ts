@@ -1,25 +1,25 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import {components} from "src/app/models/product-catalog";
-import { environment } from 'src/environments/environment';
-import { ApiServiceService } from 'src/app/services/product-service.service';
-import { ProductSpecServiceService } from 'src/app/services/product-spec-service.service';
-import {LocalStorageService} from "src/app/services/local-storage.service";
-import {EventMessageService} from "src/app/services/event-message.service";
-import {AttachmentServiceService} from "src/app/services/attachment-service.service";
-import { ServiceSpecServiceService } from 'src/app/services/service-spec-service.service';
-import { ResourceSpecServiceService } from 'src/app/services/resource-spec-service.service';
-import { PaginationService } from 'src/app/services/pagination.service';
-import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
-import { FormGroup, FormControl, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { NgxFileDropEntry, FileSystemFileEntry, FileSystemDirectoryEntry } from 'ngx-file-drop';
-import { certifications } from 'src/app/models/certification-standards.const'
 import * as moment from 'moment';
-import { v4 as uuidv4 } from 'uuid';
-import { noWhitespaceValidator } from 'src/app/validators/validators';
+import { FileSystemDirectoryEntry, FileSystemFileEntry, NgxFileDropEntry } from 'ngx-file-drop';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { certifications } from 'src/app/models/certification-standards.const';
+import { LoginInfo } from 'src/app/models/interfaces';
+import { components } from "src/app/models/product-catalog";
+import { AttachmentServiceService } from "src/app/services/attachment-service.service";
+import { EventMessageService } from "src/app/services/event-message.service";
+import { LocalStorageService } from "src/app/services/local-storage.service";
+import { PaginationService } from 'src/app/services/pagination.service';
+import { ApiServiceService } from 'src/app/services/product-service.service';
+import { ProductSpecServiceService } from 'src/app/services/product-spec-service.service';
+import { ResourceSpecServiceService } from 'src/app/services/resource-spec-service.service';
+import { ServiceSpecServiceService } from 'src/app/services/service-spec-service.service';
+import { jsonValidator, noWhitespaceValidator } from 'src/app/validators/validators';
+import { environment } from 'src/environments/environment';
+import { v4 as uuidv4 } from 'uuid';
 
 type CharacteristicValueSpecification = components["schemas"]["CharacteristicValueSpecification"];
 type ProductSpecification_Create = components["schemas"]["ProductSpecification_Create"];
@@ -29,7 +29,12 @@ type ServiceSpecificationRef = components["schemas"]["ServiceSpecificationRef"];
 type ResourceSpecificationRef = components["schemas"]["ResourceSpecificationRef"];
 type ProductSpecificationRelationship = components["schemas"]["ProductSpecificationRelationship"];
 type AttachmentRefOrValue = components["schemas"]["AttachmentRefOrValue"];
-type ProductSpecFormStep = 'general' | 'bundle' | 'compliance' | 'characteristics' | 'dataspace' | 'resource' | 'service' | 'attachments' | 'relationships' | 'summary';
+type ProductSpecFormStep = 'general' | 'bundle' | 'compliance' | 'characteristics' | 'dataspace' | 'resource' | 'service' | 'attachments' | 'relationships' | 'summary' | 'dsp_config';
+
+interface Step {
+  label: string;
+  id: ProductSpecFormStep;
+}
 
 @Component({
   selector: 'create-product-spec',
@@ -42,50 +47,67 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   PROD_SPEC_LIMIT: number = environment.PROD_SPEC_LIMIT;
   SERV_SPEC_LIMIT: number = environment.SERV_SPEC_LIMIT;
   RES_SPEC_LIMIT: number = environment.RES_SPEC_LIMIT;
-  BUNDLE_ENABLED: boolean= environment.BUNDLE_ENABLED;
+  BUNDLE_ENABLED: boolean = environment.BUNDLE_ENABLED;
   DATA_SPACE_ENABLED: boolean = environment.DATA_SPACE_ENABLED;
-  MAX_FILE_SIZE: number=environment.MAX_FILE_SIZE;
+  MAX_FILE_SIZE: number = environment.MAX_FILE_SIZE;
 
   //CONTROL VARIABLES:
-  showGeneral:boolean=true;
-  showBundle:boolean=false;
-  showCompliance:boolean=false;
-  showChars:boolean=false;
-  showResource:boolean=false;
-  showService:boolean=false;
-  showAttach:boolean=false;
-  showRelationships:boolean=false;
-  showSummary:boolean=false;
+  showGeneral: boolean = true;
+  showBundle: boolean = false;
+  showCompliance: boolean = false;
+  showChars: boolean = false;
+  showResource: boolean = false;
+  showService: boolean = false;
+  showAttach: boolean = false;
+  showRelationships: boolean = false;
+  showSummary: boolean = false;
 
   //Check if step was done
-  generalDone:boolean=false;
-  bundleDone:boolean=false;
-  complianceDone:boolean=false;
-  charsDone:boolean=false;
-  resourceDone:boolean=false;
-  serviceDone:boolean=false;
-  attachDone:boolean=false;
-  relationshipDone:boolean=false;
-  finishDone:boolean=false;
+  generalDone: boolean = false;
+  bundleDone: boolean = false;
+  complianceDone: boolean = false;
+  charsDone: boolean = false;
+  resourceDone: boolean = false;
+  serviceDone: boolean = false;
+  attachDone: boolean = false;
+  relationshipDone: boolean = false;
+  finishDone: boolean = false;
 
-  stepsElements:string[]=['general-info','bundle','compliance','chars','resource','service','attach','relationships','summary'];
-  stepsCircles:string[]=['general-circle','bundle-circle','compliance-circle','chars-circle','resource-circle','service-circle','attach-circle','relationships-circle','summary-circle'];
-  currentStep = 0;
-  highestStep = 0;
-  steps:any[] = [];
+  stepsElements: string[] = ['general-info', 'bundle', 'compliance', 'chars', 'resource', 'service', 'attach', 'relationships', 'summary'];
+  stepsCircles: string[] = ['general-circle', 'bundle-circle', 'compliance-circle', 'chars-circle', 'resource-circle', 'service-circle', 'attach-circle', 'relationships-circle', 'summary-circle'];
 
-  showPreview:boolean=false;
-  showEmoji:boolean=false;
-  description:string='';
-  partyId:any='';
+  currentStepIdx = 0;
+  get currentStep(): Step { return this.steps[this.currentStepIdx]; }
+  highestStepIdx = 0;
+
+  steps: Step[] = [];
+
+  showPreview: boolean = false;
+  showEmoji: boolean = false;
+  description: string = '';
+  partyId: any = '';
 
   //PRODUCT GENERAL INFO:
   generalForm = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.maxLength(100), noWhitespaceValidator]),
     brand: new FormControl('', [Validators.required, noWhitespaceValidator]),
-    version: new FormControl('0.1', [Validators.required,Validators.pattern('^-?[0-9]\\d*(\\.\\d*)?$'), noWhitespaceValidator]),
+    version: new FormControl('0.1', [Validators.required, Validators.pattern('^-?[0-9]\\d*(\\.\\d*)?$'), noWhitespaceValidator]),
     number: new FormControl(''),
     description: new FormControl('', Validators.maxLength(100000)),
+    dspCompatible: new FormControl(false),
+  });
+
+  //DSP CONFIG INFO:
+  newEndpointUrl: string = '';
+  newEndpointDescription: string = '';
+  newEndpointName: string = '';
+  endpointUrls: { url: string; description: string, name: string }[] = [];
+  dspConfigForm = new FormGroup({
+    upstreamAddress: new FormControl('', [Validators.required]),
+    targetSpecification: new FormControl('', [Validators.required, jsonValidator]),
+    serviceConfiguration: new FormControl('', [Validators.required, jsonValidator]),
+    credentialsConfig: new FormControl('', [Validators.required, jsonValidator]),
+    policyConfig: new FormControl('', [Validators.required, jsonValidator]),
   });
 
   //CHARS INFO
@@ -93,87 +115,87 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     name: new FormControl('', [Validators.required, Validators.maxLength(100), noWhitespaceValidator]),
     description: new FormControl('', [Validators.maxLength(500)])
   });
-  charTypeSelected:string='string';
-  booleanDefaultTrue:boolean=true;
+  charTypeSelected: string = 'string';
+  booleanDefaultTrue: boolean = true;
 
-  isOptional:boolean=false;
-  optionalDftTrue:boolean=false;
-  prodChars:ProductSpecificationCharacteristic[]=[];
-  finishChars:ProductSpecificationCharacteristic[]=[];
-  creatingChars:CharacteristicValueSpecification[]=[];
-  showCreateChar:boolean=false;
+  isOptional: boolean = false;
+  optionalDftTrue: boolean = false;
+  prodChars: ProductSpecificationCharacteristic[] = [];
+  finishChars: ProductSpecificationCharacteristic[] = [];
+  creatingChars: CharacteristicValueSpecification[] = [];
+  showCreateChar: boolean = false;
 
   //BUNDLE INFO:
-  bundleChecked:boolean=false;
-  bundlePage=0;
-  bundlePageCheck:boolean=false;
-  loadingBundle:boolean=false;
-  loadingBundle_more:boolean=false;
-  prodSpecs:any[]=[];
-  nextProdSpecs:any[]=[];
+  bundleChecked: boolean = false;
+  bundlePage = 0;
+  bundlePageCheck: boolean = false;
+  loadingBundle: boolean = false;
+  loadingBundle_more: boolean = false;
+  prodSpecs: any[] = [];
+  nextProdSpecs: any[] = [];
   //final selected products inside bundle
-  prodSpecsBundle:BundledProductSpecification[]=[];
+  prodSpecsBundle: BundledProductSpecification[] = [];
 
   //COMPLIANCE PROFILE INFO:
-  buttonISOClicked:boolean=false;
-  availableISOS:any[]=[];
-  selectedISOS:any[]=[];
-  additionalISOS:any[]=[];
-  selectedISO:any;
-  showUploadFile:boolean=false;
-  disableCompNext:boolean=true;
-  selfAtt:any;
-  showUploadAtt:boolean=false;
-  isoToCreate:string='';
-  showCert:boolean=false;
+  buttonISOClicked: boolean = false;
+  availableISOS: any[] = [];
+  selectedISOS: any[] = [];
+  additionalISOS: any[] = [];
+  selectedISO: any;
+  showUploadFile: boolean = false;
+  disableCompNext: boolean = true;
+  selfAtt: any;
+  showUploadAtt: boolean = false;
+  isoToCreate: string = '';
+  showCert: boolean = false;
 
   //SERVICE INFO:
-  serviceSpecPage=0;
-  serviceSpecPageCheck:boolean=false;
-  loadingServiceSpec:boolean=false;
-  loadingServiceSpec_more:boolean=false;
-  serviceSpecs:any[]=[];
-  nextServiceSpecs:any[]=[];
-  selectedServiceSpecs:ServiceSpecificationRef[]=[];
+  serviceSpecPage = 0;
+  serviceSpecPageCheck: boolean = false;
+  loadingServiceSpec: boolean = false;
+  loadingServiceSpec_more: boolean = false;
+  serviceSpecs: any[] = [];
+  nextServiceSpecs: any[] = [];
+  selectedServiceSpecs: ServiceSpecificationRef[] = [];
 
   //RESOURCE INFO:
-  resourceSpecPage=0;
-  resourceSpecPageCheck:boolean=false;
-  loadingResourceSpec:boolean=false;
-  loadingResourceSpec_more:boolean=false;
-  resourceSpecs:any[]=[];
-  nextResourceSpecs:any[]=[];
-  selectedResourceSpecs:ResourceSpecificationRef[]=[];
+  resourceSpecPage = 0;
+  resourceSpecPageCheck: boolean = false;
+  loadingResourceSpec: boolean = false;
+  loadingResourceSpec_more: boolean = false;
+  resourceSpecs: any[] = [];
+  nextResourceSpecs: any[] = [];
+  selectedResourceSpecs: ResourceSpecificationRef[] = [];
 
   //RELATIONSHIPS INFO:
-  prodRelationships:any[]=[];
-  relToCreate:any;
-  showCreateRel:boolean=false;
-  prodSpecRelPage=0;
-  prodSpecRelPageCheck:boolean=false;
-  loadingprodSpecRel:boolean=false;
-  loadingprodSpecRel_more:boolean=false;
-  prodSpecRels:any[]=[];
-  nextProdSpecRels:any[]=[];
-  selectedProdSpec:any={id:''};
-  selectedRelType:any='migration';
+  prodRelationships: any[] = [];
+  relToCreate: any;
+  showCreateRel: boolean = false;
+  prodSpecRelPage = 0;
+  prodSpecRelPageCheck: boolean = false;
+  loadingprodSpecRel: boolean = false;
+  loadingprodSpecRel_more: boolean = false;
+  prodSpecRels: any[] = [];
+  nextProdSpecRels: any[] = [];
+  selectedProdSpec: any = { id: '' };
+  selectedRelType: any = 'migration';
 
   //ATTACHMENT INFO
-  showImgPreview:boolean=false;
-  showNewAtt:boolean=false;
-  imgPreview:any='';
-  prodAttachments:AttachmentRefOrValue[]=[];
-  attachToCreate:AttachmentRefOrValue={url:'',attachmentType:''};
+  showImgPreview: boolean = false;
+  showNewAtt: boolean = false;
+  imgPreview: any = '';
+  prodAttachments: AttachmentRefOrValue[] = [];
+  attachToCreate: AttachmentRefOrValue = { url: '', attachmentType: '' };
   attFileName = new FormControl('', [Validators.required, Validators.pattern('[a-zA-Z0-9 _.-]*')]);
   certFileName = new FormControl('', [Validators.required, Validators.pattern('[a-zA-Z0-9 _.-]*')]);
   attImageName = new FormControl('', [Validators.required, Validators.pattern('^https?:\\/\\/.*\\.(?:png|jpg|jpeg|gif|bmp|webp)$')])
 
   //FINAL PRODUCT USING API CALL STRUCTURE
-  productSpecToCreate:ProductSpecification_Create | undefined;
+  productSpecToCreate: ProductSpecification_Create | undefined;
 
-  errorMessage:any='';
-  showError:boolean=false;
-  loading:boolean=false;
+  errorMessage: any = '';
+  showError: boolean = false;
+  loading: boolean = false;
 
   //CHARS
   stringValue: string = '';
@@ -215,26 +237,26 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     private resSpecService: ResourceSpecServiceService,
     private paginationService: PaginationService
   ) {
-    for(let i=0; i<certifications.length; i++){
+    for (let i = 0; i < certifications.length; i++) {
       this.availableISOS.push(certifications[i])
     }
     this.eventMessage.messages$
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(ev => {
-      if(ev.type === 'ChangedSession') {
-        this.initPartyInfo();
-      }
-    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(ev => {
+        if (ev.type === 'ChangedSession') {
+          this.initPartyInfo();
+        }
+      })
   }
 
   @HostListener('document:click')
   onClick() {
-    if(this.showEmoji==true){
-      this.showEmoji=false;
+    if (this.showEmoji == true) {
+      this.showEmoji = false;
       this.cdr.detectChanges();
     }
-    if(this.showUploadFile==true){
-      this.showUploadFile=false;
+    if (this.showUploadFile == true) {
+      this.showUploadFile = false;
       this.cdr.detectChanges();
     }
   }
@@ -252,15 +274,15 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     this.initPartyInfo();
   }
 
-  ngOnDestroy(){
+  ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  initPartyInfo(){
+  initPartyInfo() {
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
-    if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
-      if(aux.logged_as==aux.id){
+    if (JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix()) - 4) > 0)) {
+      if (aux.logged_as == aux.id) {
         this.partyId = aux.partyId;
       } else {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as)
@@ -273,84 +295,84 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     this.eventMessage.emitSellerProductSpec(true);
   }
 
-  togglePreview(){
-    if(this.generalForm.value.description){
-      this.description=this.generalForm.value.description;
+  togglePreview() {
+    if (this.generalForm.value.description) {
+      this.description = this.generalForm.value.description;
     } else {
-      this.description=''
+      this.description = ''
     }
   }
 
-  toggleGeneral(){
-    this.selectStep('general-info','general-circle');
-    this.showBundle=false;
-    this.showGeneral=true;
-    this.showCompliance=false;
-    this.showChars=false;
-    this.showResource=false;
-    this.showService=false;
-    this.showAttach=false;
-    this.showRelationships=false;
-    this.showSummary=false;
-    this.showPreview=false;
+  toggleGeneral() {
+    this.selectStep('general-info', 'general-circle');
+    this.showBundle = false;
+    this.showGeneral = true;
+    this.showCompliance = false;
+    this.showChars = false;
+    this.showResource = false;
+    this.showService = false;
+    this.showAttach = false;
+    this.showRelationships = false;
+    this.showSummary = false;
+    this.showPreview = false;
     this.refreshChars();
   }
 
-  toggleBundle(){
-    this.selectStep('bundle','bundle-circle');
-    this.showBundle=true;
-    this.showGeneral=false;
-    this.showCompliance=false;
-    this.showChars=false;
-    this.showResource=false;
-    this.showService=false;
-    this.showAttach=false;
-    this.showRelationships=false;
-    this.showSummary=false;
-    this.showPreview=false;
+  toggleBundle() {
+    this.selectStep('bundle', 'bundle-circle');
+    this.showBundle = true;
+    this.showGeneral = false;
+    this.showCompliance = false;
+    this.showChars = false;
+    this.showResource = false;
+    this.showService = false;
+    this.showAttach = false;
+    this.showRelationships = false;
+    this.showSummary = false;
+    this.showPreview = false;
     this.refreshChars();
   }
 
-  toggleBundleCheck(){
-    this.prodSpecs=[];
-    this.bundlePage=0;
-    this.bundleChecked=!this.bundleChecked;
-    if(this.bundleChecked==true){
-      this.loadingBundle=true;
+  toggleBundleCheck() {
+    this.prodSpecs = [];
+    this.bundlePage = 0;
+    this.bundleChecked = !this.bundleChecked;
+    if (this.bundleChecked == true) {
+      this.loadingBundle = true;
       this.getProdSpecs(false);
     } else {
-      this.prodSpecsBundle=[];
+      this.prodSpecsBundle = [];
     }
   }
 
-  async getProdSpecs(next:boolean){
-    if(next==false){
-      this.loadingBundle=true;
+  async getProdSpecs(next: boolean) {
+    if (next == false) {
+      this.loadingBundle = true;
     }
 
     let options = {
-      "filters": ['Active','Launched'],
+      "filters": ['Active', 'Launched'],
       "partyId": this.partyId,
       //"sort": undefined,
       //"isBundle": false
     }
 
-    this.paginationService.getItemsPaginated(this.bundlePage, this.PROD_SPEC_LIMIT, next, this.prodSpecs,this.nextProdSpecs, options,
+    this.paginationService.getItemsPaginated(this.bundlePage, this.PROD_SPEC_LIMIT, next, this.prodSpecs, this.nextProdSpecs, options,
       this.prodSpecService.getProdSpecByUser.bind(this.prodSpecService)).then(data => {
-      this.bundlePageCheck=data.page_check;
-      this.prodSpecs=data.items;
-      this.nextProdSpecs=data.nextItems;
-      this.bundlePage=data.page;
-      this.loadingBundle=false;
-      this.loadingBundle_more=false;
-    })
+        this.bundlePageCheck = data.page_check;
+        this.prodSpecs = data.items;
+        this.nextProdSpecs = data.nextItems;
+        this.bundlePage = data.page;
+        this.loadingBundle = false;
+        this.loadingBundle_more = false;
+      })
   }
 
-  async nextBundle(){
+  async nextBundle() {
     await this.getProdSpecs(true);
   }
 
-  addProdToBundle(prod:any){
+  addProdToBundle(prod: any) {
     const index = this.prodSpecsBundle.findIndex(item => item.id === prod.id);
     if (index !== -1) {
       console.log('eliminar')
@@ -368,7 +390,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     console.log(this.prodSpecsBundle)
   }
 
-  isProdInBundle(prod:any){
+  isProdInBundle(prod: any) {
     const index = this.prodSpecsBundle.findIndex(item => item.id === prod.id);
     if (index !== -1) {
       return true
@@ -377,43 +399,43 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleCompliance(){
-    this.selectStep('compliance','compliance-circle');
-    this.showBundle=false;
-    this.showGeneral=false;
-    this.showCompliance=true;
-    this.showChars=false;
-    this.showResource=false;
-    this.showService=false;
-    this.showAttach=false;
-    this.showRelationships=false;
-    this.showSummary=false;
-    this.showPreview=false;
+  toggleCompliance() {
+    this.selectStep('compliance', 'compliance-circle');
+    this.showBundle = false;
+    this.showGeneral = false;
+    this.showCompliance = true;
+    this.showChars = false;
+    this.showResource = false;
+    this.showService = false;
+    this.showAttach = false;
+    this.showRelationships = false;
+    this.showSummary = false;
+    this.showPreview = false;
     this.refreshChars();
   }
 
-  addISO(iso:any){
+  addISO(iso: any) {
     const index = this.availableISOS.findIndex(item => item.name === iso.name);
     if (index !== -1) {
       console.log('seleccionar')
       this.availableISOS.splice(index, 1);
-      this.selectedISOS.push({name: 'Compliance:'+iso.name, url: '', mandatory: iso.mandatory, domesupported: iso.domesupported});
+      this.selectedISOS.push({ name: 'Compliance:' + iso.name, url: '', mandatory: iso.mandatory, domesupported: iso.domesupported });
     }
-    this.buttonISOClicked=!this.buttonISOClicked;
+    this.buttonISOClicked = !this.buttonISOClicked;
     this.cdr.detectChanges();
     console.log(this.availableISOS)
     console.log(this.selectedISOS)
   }
 
-  removeISO(iso:any){
+  removeISO(iso: any) {
     const cleanedName = iso.name
-    .replace('Compliance:', '')
-    .trim();
+      .replace('Compliance:', '')
+      .trim();
     const index = this.selectedISOS.findIndex(item => item.name === iso.name);
     if (index !== -1) {
       console.log('seleccionar')
       this.selectedISOS.splice(index, 1);
-      this.availableISOS.push({name: cleanedName, mandatory: iso.mandatory, domesupported: iso.domesupported});
+      this.availableISOS.push({ name: cleanedName, mandatory: iso.mandatory, domesupported: iso.domesupported });
 
       //if (iso.name in this.verifiedISO) {
       //  delete this.verifiedISO[iso.name]
@@ -423,7 +445,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     console.log(this.prodSpecsBundle)
   }
 
-  removeCert(iso:any){
+  removeCert(iso: any) {
     const index = this.additionalISOS.findIndex(item => item.name === iso.name);
     if (index !== -1) {
       console.log('eliminar additional cert')
@@ -433,7 +455,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  removeSelfAtt(){
+  removeSelfAtt() {
     console.log('remove self att')
     console.log(this.selfAtt)
     const index = this.finishChars.findIndex(item => item.name === this.selfAtt.name);
@@ -442,16 +464,16 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       console.log('seleccionar')
       this.finishChars.splice(index, 1);
     }
-    this.selfAtt='';
+    this.selfAtt = '';
     this.cdr.detectChanges();
     console.log(this.finishChars)
   }
 
-  checkValidISOS():boolean{
+  checkValidISOS(): boolean {
     let invalid = this.selectedISOS.find((p => {
       return p.url === ''
     }));
-    if(invalid){
+    if (invalid) {
       return true;
     } else {
       return false;
@@ -467,7 +489,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     return !!selfAttestationValue;
   }
 
-  public dropped(files: NgxFileDropEntry[],sel:any) {
+  public dropped(files: NgxFileDropEntry[], sel: any) {
     this.files = files;
     for (const droppedFile of files) {
 
@@ -483,157 +505,157 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
               const base64String: string = e.target.result.split(',')[1];
               console.log('BASE 64....')
               console.log(base64String); // You can use this base64 string as needed
-              let prod_name='';
-              if(this.generalForm.value.name!=null){
-                prod_name=this.generalForm.value.name.replaceAll(/\s/g,'')+'_';
+              let prod_name = '';
+              if (this.generalForm.value.name != null) {
+                prod_name = this.generalForm.value.name.replaceAll(/\s/g, '') + '_';
               }
               let fileBody = {
                 content: {
-                  name: uuidv4()+'_'+file.name,
+                  name: uuidv4() + '_' + file.name,
                   data: base64String
                 },
                 contentType: file.type,
                 isPublic: true
               }
-              if(!this.isValidFilename(fileBody.content.name)){
-                this.errorMessage='File names can only include alphabetical characters (A-Z, a-z) and a limited set of symbols, such as underscores (_), hyphens (-), and periods (.)';
+              if (!this.isValidFilename(fileBody.content.name)) {
+                this.errorMessage = 'File names can only include alphabetical characters (A-Z, a-z) and a limited set of symbols, such as underscores (_), hyphens (-), and periods (.)';
                 console.error('There was an error while uploading file!');
-                this.showError=true;
+                this.showError = true;
                 setTimeout(() => {
                   this.showError = false;
                 }, 3000);
                 return;
               }
               //IF FILES ARE HIGHER THAN 3MB THROW AN ERROR
-              if(file.size>this.MAX_FILE_SIZE){
-                this.errorMessage='File size must be under 3MB.';
+              if (file.size > this.MAX_FILE_SIZE) {
+                this.errorMessage = 'File size must be under 3MB.';
                 console.error('There was an error while uploading file!');
-                this.showError=true;
+                this.showError = true;
                 setTimeout(() => {
                   this.showError = false;
                 }, 3000);
                 return;
               }
-              if(this.isCurrentStep('compliance') && !this.showUploadAtt){
+              if (this.currentStep.id === 'compliance' && !this.showUploadAtt) {
                 const index = this.selectedISOS.findIndex(item => item.name === sel.name);
                 this.attachmentService.uploadFile(fileBody).subscribe({
                   next: data => {
-                    if(index!==-1){
-                      this.selectedISOS[index].url=data.content;
+                    if (index !== -1) {
+                      this.selectedISOS[index].url = data.content;
                       //this.selectedISOS[index].attachmentType=file.type;
-                      this.showUploadFile=false;
+                      this.showUploadFile = false;
                       this.cdr.detectChanges();
                       console.log('uploaded')
                     } else {
-                      this.isoToCreate=data.content;
+                      this.isoToCreate = data.content;
                     }
                   },
                   error: error => {
-                      console.error('There was an error while uploading the file!', error);
-                      if(error.error.error){
-                        console.log(error)
-                        this.errorMessage='Error: '+error.error.error;
-                      } else {
-                        this.errorMessage='There was an error while uploading the file!';
-                      }
-                      if (error.status === 413) {
-                        this.errorMessage='File size too large! Must be under 3MB.';
-                      }
-                      this.showError=true;
-                      setTimeout(() => {
-                        this.showError = false;
-                      }, 3000);
+                    console.error('There was an error while uploading the file!', error);
+                    if (error.error.error) {
+                      console.log(error)
+                      this.errorMessage = 'Error: ' + error.error.error;
+                    } else {
+                      this.errorMessage = 'There was an error while uploading the file!';
+                    }
+                    if (error.status === 413) {
+                      this.errorMessage = 'File size too large! Must be under 3MB.';
+                    }
+                    this.showError = true;
+                    setTimeout(() => {
+                      this.showError = false;
+                    }, 3000);
                   }
                 });
               }
-              if(this.isCurrentStep('compliance') && this.showUploadAtt){
+              if (this.currentStep.id === 'compliance' && this.showUploadAtt) {
                 const index = this.finishChars.findIndex(item => item.name === this.selfAtt.name);
                 this.attachmentService.uploadFile(fileBody).subscribe({
                   next: data => {
-                      console.log(data)
-                      if (index !== -1) {
-                        this.selfAtt.productSpecCharacteristicValue=[{
+                    console.log(data)
+                    if (index !== -1) {
+                      this.selfAtt.productSpecCharacteristicValue = [{
+                        isDefault: true,
+                        value: data.content
+                      }];
+                      this.finishChars[index] = this.selfAtt;
+                    } else {
+                      this.selfAtt = {
+                        id: 'urn:ngsi-ld:characteristic:' + uuidv4(),
+                        name: 'Compliance:SelfAtt',
+                        productSpecCharacteristicValue: [{
                           isDefault: true,
                           value: data.content
-                        }];
-                        this.finishChars[index] = this.selfAtt;
-                      } else {
-                        this.selfAtt = {
-                          id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
-                          name: 'Compliance:SelfAtt',
-                          productSpecCharacteristicValue: [{
-                            isDefault: true,
-                            value: data.content
-                          }]
-                        }
-                        this.finishChars.push(this.selfAtt)
+                        }]
                       }
-                      this.showUploadFile=false;
-                      this.showUploadAtt=false;
-                      this.cdr.detectChanges();
-                      console.log('uploaded')
+                      this.finishChars.push(this.selfAtt)
+                    }
+                    this.showUploadFile = false;
+                    this.showUploadAtt = false;
+                    this.cdr.detectChanges();
+                    console.log('uploaded')
                   },
                   error: error => {
-                      console.error('There was an error while uploading the file!', error);
-                      if(error.error.error){
-                        console.log(error)
-                        this.errorMessage='Error: '+error.error.error;
-                      } else {
-                        this.errorMessage='There was an error while uploading the file!';
-                      }
-                      if (error.status === 413) {
-                        this.errorMessage='File size too large! Must be under 3MB.';
-                      }
-                      this.showError=true;
-                      setTimeout(() => {
-                        this.showError = false;
-                      }, 3000);
+                    console.error('There was an error while uploading the file!', error);
+                    if (error.error.error) {
+                      console.log(error)
+                      this.errorMessage = 'Error: ' + error.error.error;
+                    } else {
+                      this.errorMessage = 'There was an error while uploading the file!';
+                    }
+                    if (error.status === 413) {
+                      this.errorMessage = 'File size too large! Must be under 3MB.';
+                    }
+                    this.showError = true;
+                    setTimeout(() => {
+                      this.showError = false;
+                    }, 3000);
                   }
                 });
               }
-              if(this.isCurrentStep('attachments')){
+              if (this.currentStep.id === 'attachments') {
                 console.log(file)
                 this.attachmentService.uploadFile(fileBody).subscribe({
                   next: data => {
-                      console.log(data)
-                      if(sel=='img'){
-                        if(file.type.startsWith("image")){
-                          this.showImgPreview=true;
-                          this.imgPreview=data.content;
-                          this.prodAttachments.push({
-                            name: 'Profile Picture',
-                            url: this.imgPreview,
-                            attachmentType: file.type
-                          })
-                        } else {
-                          this.errorMessage='File must have a valid image format!';
-                          this.showError=true;
-                          setTimeout(() => {
-                            this.showError = false;
-                          }, 3000);
-                        }
+                    console.log(data)
+                    if (sel == 'img') {
+                      if (file.type.startsWith("image")) {
+                        this.showImgPreview = true;
+                        this.imgPreview = data.content;
+                        this.prodAttachments.push({
+                          name: 'Profile Picture',
+                          url: this.imgPreview,
+                          attachmentType: file.type
+                        })
                       } else {
-                        this.attachToCreate={url:data.content,attachmentType:file.type};
+                        this.errorMessage = 'File must have a valid image format!';
+                        this.showError = true;
+                        setTimeout(() => {
+                          this.showError = false;
+                        }, 3000);
                       }
+                    } else {
+                      this.attachToCreate = { url: data.content, attachmentType: file.type };
+                    }
 
-                      this.cdr.detectChanges();
-                      console.log('uploaded')
+                    this.cdr.detectChanges();
+                    console.log('uploaded')
                   },
                   error: error => {
-                      console.error('There was an error while uploading!', error);
-                      if(error.error.error){
-                        console.log(error)
-                        this.errorMessage='Error: '+error.error.error;
-                      } else {
-                        this.errorMessage='There was an error while uploading the file!';
-                      }
-                      if (error.status === 413) {
-                        this.errorMessage='File size too large! Must be under 3MB.';
-                      }
-                      this.showError=true;
-                      setTimeout(() => {
-                        this.showError = false;
-                      }, 3000);
+                    console.error('There was an error while uploading!', error);
+                    if (error.error.error) {
+                      console.log(error)
+                      this.errorMessage = 'Error: ' + error.error.error;
+                    } else {
+                      this.errorMessage = 'There was an error while uploading the file!';
+                    }
+                    if (error.status === 413) {
+                      this.errorMessage = 'File size too large! Must be under 3MB.';
+                    }
+                    this.showError = true;
+                    setTimeout(() => {
+                      this.showError = false;
+                    }, 3000);
                   }
                 });
               }
@@ -654,48 +676,48 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     return this.filenameRegex.test(filename);
   }
 
-  public fileOver(event: any){
+  public fileOver(event: any) {
     console.log(event);
   }
 
-  public fileLeave(event: any){
+  public fileLeave(event: any) {
     console.log('leave')
     console.log(event);
   }
 
-  toggleUploadSelfAtt(){
-    this.showUploadFile=true;
-    this.showUploadAtt=true;
+  toggleUploadSelfAtt() {
+    this.showUploadFile = true;
+    this.showUploadAtt = true;
   }
 
-  toggleUploadFile(sel:any){
-    this.showUploadFile=true;
-    this.selectedISO=sel;
+  toggleUploadFile(sel: any) {
+    this.showUploadFile = true;
+    this.selectedISO = sel;
   }
 
-  uploadFile(){
+  uploadFile() {
     console.log('uploading...')
   }
 
-  toggleChars(){
-    this.selectStep('chars','chars-circle');
-    this.showBundle=false;
-    this.showGeneral=false;
-    this.showCompliance=false;
-    this.showChars=true;
-    this.showResource=false;
-    this.showService=false;
-    this.showAttach=false;
-    this.showRelationships=false;
-    this.showSummary=false;
+  toggleChars() {
+    this.selectStep('chars', 'chars-circle');
+    this.showBundle = false;
+    this.showGeneral = false;
+    this.showCompliance = false;
+    this.showChars = true;
+    this.showResource = false;
+    this.showService = false;
+    this.showAttach = false;
+    this.showRelationships = false;
+    this.showSummary = false;
 
-    this.showCreateChar=false;
-    this.charTypeSelected='string';
-    this.showPreview=false;
+    this.showCreateChar = false;
+    this.charTypeSelected = 'string';
+    this.showPreview = false;
     this.refreshChars();
   }
 
-  toggleCreateCharacteristicForm(){
+  toggleCreateCharacteristicForm() {
     this.showCreateChar = !this.showCreateChar;
     if (this.showCreateChar) {
       this.charTypeSelected = this.getInitialCharacteristicTypeForCurrentStep();
@@ -709,53 +731,53 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleResource(){
-    this.loadingResourceSpec=true;
-    this.resourceSpecs=[];
-    this.resourceSpecPage=0;
+  toggleResource() {
+    this.loadingResourceSpec = true;
+    this.resourceSpecs = [];
+    this.resourceSpecPage = 0;
     this.getResSpecs(false);
-    this.selectStep('resource','resource-circle');
-    this.showBundle=false;
-    this.showGeneral=false;
-    this.showCompliance=false;
-    this.showChars=false;
-    this.showResource=true;
-    this.showService=false;
-    this.showAttach=false;
-    this.showRelationships=false;
-    this.showSummary=false;
-    this.showPreview=false;
+    this.selectStep('resource', 'resource-circle');
+    this.showBundle = false;
+    this.showGeneral = false;
+    this.showCompliance = false;
+    this.showChars = false;
+    this.showResource = true;
+    this.showService = false;
+    this.showAttach = false;
+    this.showRelationships = false;
+    this.showSummary = false;
+    this.showPreview = false;
     this.refreshChars();
   }
 
-  async getResSpecs(next:boolean){
-    if(next==false){
-      this.loadingResourceSpec=true;
+  async getResSpecs(next: boolean) {
+    if (next == false) {
+      this.loadingResourceSpec = true;
     }
 
     let options = {
-      "filters": ['Active','Launched'],
+      "filters": ['Active', 'Launched'],
       "partyId": this.partyId,
       //"sort": undefined,
       //"isBundle": false
     }
 
-    this.paginationService.getItemsPaginated(this.resourceSpecPage, this.RES_SPEC_LIMIT, next, this.resourceSpecs,this.nextResourceSpecs, options,
+    this.paginationService.getItemsPaginated(this.resourceSpecPage, this.RES_SPEC_LIMIT, next, this.resourceSpecs, this.nextResourceSpecs, options,
       this.resSpecService.getResourceSpecByUser.bind(this.resSpecService)).then(data => {
-      this.resourceSpecPageCheck=data.page_check;
-      this.resourceSpecs=data.items;
-      this.nextResourceSpecs=data.nextItems;
-      this.resourceSpecPage=data.page;
-      this.loadingResourceSpec=false;
-      this.loadingResourceSpec_more=false;
-    })
+        this.resourceSpecPageCheck = data.page_check;
+        this.resourceSpecs = data.items;
+        this.nextResourceSpecs = data.nextItems;
+        this.resourceSpecPage = data.page;
+        this.loadingResourceSpec = false;
+        this.loadingResourceSpec_more = false;
+      })
   }
 
-  async nextRes(){
+  async nextRes() {
     await this.getResSpecs(true);
   }
 
-  addResToSelected(res:any){
+  addResToSelected(res: any) {
     const index = this.selectedResourceSpecs.findIndex(item => item.id === res.id);
     if (index !== -1) {
       console.log('eliminar')
@@ -772,7 +794,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     console.log(this.selectedResourceSpecs)
   }
 
-  isResSelected(res:any){
+  isResSelected(res: any) {
     const index = this.selectedResourceSpecs.findIndex(item => item.id === res.id);
     if (index !== -1) {
       return true
@@ -781,53 +803,53 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleService(){
-    this.loadingServiceSpec=true;
-    this.serviceSpecs=[];
-    this.serviceSpecPage=0;
+  toggleService() {
+    this.loadingServiceSpec = true;
+    this.serviceSpecs = [];
+    this.serviceSpecPage = 0;
     this.getServSpecs(false);
-    this.selectStep('service','service-circle');
-    this.showBundle=false;
-    this.showGeneral=false;
-    this.showCompliance=false;
-    this.showChars=false;
-    this.showResource=false;
-    this.showService=true;
-    this.showAttach=false;
-    this.showRelationships=false;
-    this.showSummary=false;
-    this.showPreview=false;
+    this.selectStep('service', 'service-circle');
+    this.showBundle = false;
+    this.showGeneral = false;
+    this.showCompliance = false;
+    this.showChars = false;
+    this.showResource = false;
+    this.showService = true;
+    this.showAttach = false;
+    this.showRelationships = false;
+    this.showSummary = false;
+    this.showPreview = false;
     this.refreshChars();
   }
 
-  async getServSpecs(next:boolean){
-    if(next==false){
-      this.loadingServiceSpec=true;
+  async getServSpecs(next: boolean) {
+    if (next == false) {
+      this.loadingServiceSpec = true;
     }
 
     let options = {
-      "filters": ['Active','Launched'],
+      "filters": ['Active', 'Launched'],
       "partyId": this.partyId,
       //"sort": undefined,
       //"isBundle": false
     }
 
-    this.paginationService.getItemsPaginated(this.serviceSpecPage, this.SERV_SPEC_LIMIT, next, this.serviceSpecs,this.nextServiceSpecs, options,
+    this.paginationService.getItemsPaginated(this.serviceSpecPage, this.SERV_SPEC_LIMIT, next, this.serviceSpecs, this.nextServiceSpecs, options,
       this.servSpecService.getServiceSpecByUser.bind(this.servSpecService)).then(data => {
-      this.serviceSpecPageCheck=data.page_check;
-      this.serviceSpecs=data.items;
-      this.nextServiceSpecs=data.nextItems;
-      this.serviceSpecPage=data.page;
-      this.loadingServiceSpec=false;
-      this.loadingServiceSpec_more=false;
-    })
+        this.serviceSpecPageCheck = data.page_check;
+        this.serviceSpecs = data.items;
+        this.nextServiceSpecs = data.nextItems;
+        this.serviceSpecPage = data.page;
+        this.loadingServiceSpec = false;
+        this.loadingServiceSpec_more = false;
+      })
   }
 
-  async nextServ(){
+  async nextServ() {
     await this.getServSpecs(true);
   }
 
-  addServToSelected(serv:any){
+  addServToSelected(serv: any) {
     const index = this.selectedServiceSpecs.findIndex(item => item.id === serv.id);
     if (index !== -1) {
       console.log('eliminar')
@@ -844,7 +866,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     console.log(this.selectedServiceSpecs)
   }
 
-  isServSelected(serv:any){
+  isServSelected(serv: any) {
     const index = this.selectedServiceSpecs.findIndex(item => item.id === serv.id);
     if (index !== -1) {
       return true
@@ -853,38 +875,38 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleAttach(){
-    this.selectStep('attach','attach-circle');
-    this.showBundle=false;
-    this.showGeneral=false;
-    this.showCompliance=false;
-    this.showChars=false;
-    this.showResource=false;
-    this.showService=false;
-    this.showAttach=true;
-    this.showRelationships=false;
-    this.showSummary=false;
-    this.showPreview=false;
+  toggleAttach() {
+    this.selectStep('attach', 'attach-circle');
+    this.showBundle = false;
+    this.showGeneral = false;
+    this.showCompliance = false;
+    this.showChars = false;
+    this.showResource = false;
+    this.showService = false;
+    this.showAttach = true;
+    this.showRelationships = false;
+    this.showSummary = false;
+    this.showPreview = false;
     setTimeout(() => {
       initFlowbite();
     }, 100);
     this.refreshChars();
   }
 
-  removeImg(){
-    this.showImgPreview=false;
+  removeImg() {
+    this.showImgPreview = false;
     const index = this.prodAttachments.findIndex(item => item.url === this.imgPreview);
     if (index !== -1) {
       console.log('eliminar')
       this.prodAttachments.splice(index, 1);
     }
-    this.imgPreview='';
+    this.imgPreview = '';
     this.cdr.detectChanges();
   }
 
-  saveImgFromURL(){
-    this.showImgPreview=true;
-    this.imgPreview=this.imgURL.nativeElement.value;
+  saveImgFromURL() {
+    this.showImgPreview = true;
+    this.imgPreview = this.imgURL.nativeElement.value;
     this.prodAttachments.push({
       name: 'Profile Picture',
       url: this.imgPreview,
@@ -894,13 +916,13 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  removeAtt(att:any){
+  removeAtt(att: any) {
     const index = this.prodAttachments.findIndex(item => item.url === att.url);
     if (index !== -1) {
       console.log('eliminar')
-      if(this.prodAttachments[index].name=='Profile Picture'){
-        this.showImgPreview=false;
-        this.imgPreview='';
+      if (this.prodAttachments[index].name == 'Profile Picture') {
+        this.showImgPreview = false;
+        this.imgPreview = '';
         this.cdr.detectChanges();
       }
       this.prodAttachments.splice(index, 1);
@@ -908,70 +930,70 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  saveAtt(){
+  saveAtt() {
     console.log('saving')
     this.prodAttachments.push({
       name: this.attachName.nativeElement.value,
       url: this.attachToCreate.url,
       attachmentType: this.attachToCreate.attachmentType
     })
-    this.attachName.nativeElement.value='';
-    this.attachToCreate={url:'',attachmentType:''};
-    this.showNewAtt=false;
+    this.attachName.nativeElement.value = '';
+    this.attachToCreate = { url: '', attachmentType: '' };
+    this.showNewAtt = false;
     this.attFileName.reset();
   }
 
-  clearAtt(){
-    this.attachToCreate={url:'',attachmentType:''};
+  clearAtt() {
+    this.attachToCreate = { url: '', attachmentType: '' };
   }
 
-  saveAdditionalCert(){
+  saveAdditionalCert() {
     console.log('saving')
     this.additionalISOS.push({
-      name: 'Compliance:'+this.certificationName.nativeElement.value,
+      name: 'Compliance:' + this.certificationName.nativeElement.value,
       url: this.isoToCreate
     })
-    this.certificationName.nativeElement.value='';
-    this.isoToCreate='';
+    this.certificationName.nativeElement.value = '';
+    this.isoToCreate = '';
     this.certFileName.reset();
-    this.showCert=false;
+    this.showCert = false;
   }
 
-  clearAdditionalCert(urlonly:boolean){
-    if(!urlonly){
-      this.certificationName.nativeElement.value='';
+  clearAdditionalCert(urlonly: boolean) {
+    if (!urlonly) {
+      this.certificationName.nativeElement.value = '';
       this.certFileName.reset();
     }
-    this.isoToCreate='';
+    this.isoToCreate = '';
   }
 
-  toggleRelationship(){
-    this.prodSpecRels=[];
-    this.prodSpecRelPage=0;
-    this.showCreateRel=false;
-    this.loadingprodSpecRel=true;
+  toggleRelationship() {
+    this.prodSpecRels = [];
+    this.prodSpecRelPage = 0;
+    this.showCreateRel = false;
+    this.loadingprodSpecRel = true;
     this.getProdSpecsRel(false);
-    this.selectStep('relationships','relationships-circle');
-    this.showBundle=false;
-    this.showGeneral=false;
-    this.showCompliance=false;
-    this.showChars=false;
-    this.showResource=false;
-    this.showService=false;
-    this.showAttach=false;
-    this.showRelationships=true;
-    this.showSummary=false;
-    this.showPreview=false;
+    this.selectStep('relationships', 'relationships-circle');
+    this.showBundle = false;
+    this.showGeneral = false;
+    this.showCompliance = false;
+    this.showChars = false;
+    this.showResource = false;
+    this.showService = false;
+    this.showAttach = false;
+    this.showRelationships = true;
+    this.showSummary = false;
+    this.showPreview = false;
     this.refreshChars();
   }
 
-  async getProdSpecsRel(next:boolean){
-    if(next==false){
-      this.loadingprodSpecRel=true;
+  async getProdSpecsRel(next: boolean) {
+    if (next == false) {
+      this.loadingprodSpecRel = true;
     }
 
     let options = {
-      "filters": ['Active','Launched'],
+      "filters": ['Active', 'Launched'],
       "partyId": this.partyId,
       //"sort": undefined,
       //"isBundle": false
@@ -979,41 +1001,41 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
     this.paginationService.getItemsPaginated(this.prodSpecRelPage, this.PROD_SPEC_LIMIT, next, this.prodSpecRels, this.nextProdSpecRels, options,
       this.prodSpecService.getProdSpecByUser.bind(this.prodSpecService)).then(data => {
-      this.prodSpecRelPageCheck=data.page_check;
-      this.prodSpecRels=data.items;
-      this.nextProdSpecRels=data.nextItems;
-      this.prodSpecRelPage=data.page;
-      this.loadingprodSpecRel=false;
-      this.loadingprodSpecRel_more=false;
-    })
+        this.prodSpecRelPageCheck = data.page_check;
+        this.prodSpecRels = data.items;
+        this.nextProdSpecRels = data.nextItems;
+        this.prodSpecRelPage = data.page;
+        this.loadingprodSpecRel = false;
+        this.loadingprodSpecRel_more = false;
+      })
   }
 
-  selectRelationship(rel:any){
-    this.selectedProdSpec=rel;
+  selectRelationship(rel: any) {
+    this.selectedProdSpec = rel;
   }
 
-  async nextProdSpecsRel(){
+  async nextProdSpecsRel() {
     await this.getProdSpecsRel(true);
   }
 
   onRelChange(event: any) {
     console.log('relation type changed')
-    this.selectedRelType=event.target.value
+    this.selectedRelType = event.target.value
   }
 
-  saveRel(){
-    this.showCreateRel=false;
+  saveRel() {
+    this.showCreateRel = false;
     this.prodRelationships.push({
       id: this.selectedProdSpec.id,
       href: this.selectedProdSpec.href,
       relationshipType: this.selectedRelType,
       productSpec: this.selectedProdSpec
     });
-    this.selectedRelType='migration';
+    this.selectedRelType = 'migration';
     console.log(this.prodRelationships)
   }
 
-  deleteRel(rel:any){
+  deleteRel(rel: any) {
     const index = this.prodRelationships.findIndex(item => item.id === rel.id);
     if (index !== -1) {
       console.log('eliminar')
@@ -1022,90 +1044,90 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  refreshChars(){
-    this.stringValue= '';
+  refreshChars() {
+    this.stringValue = '';
     this.numberValue = '';
     this.numberUnit = '';
     this.fromValue = '';
     this.toValue = '';
     this.rangeUnit = '';
     this.jsonValue = '';
-    this.charTypeSelected=this.getInitialCharacteristicTypeForCurrentStep();
-    this.booleanDefaultTrue=true;
-    this.isOptional=false;
-    this.optionalDftTrue=false;
-    this.creatingChars=[];
+    this.charTypeSelected = this.getInitialCharacteristicTypeForCurrentStep();
+    this.booleanDefaultTrue = true;
+    this.isOptional = false;
+    this.optionalDftTrue = false;
+    this.creatingChars = [];
   }
 
-  setBooleanDefaultValues(){
-    this.creatingChars=[
+  setBooleanDefaultValues() {
+    this.creatingChars = [
       {
-        isDefault:this.booleanDefaultTrue,
-        value:true as any
+        isDefault: this.booleanDefaultTrue,
+        value: true as any
       },
       {
-        isDefault:!this.booleanDefaultTrue,
-        value:false as any
+        isDefault: !this.booleanDefaultTrue,
+        value: false as any
       }
     ];
   }
 
-  onBooleanDefaultChange(){
-    if(this.charTypeSelected == 'boolean'){
+  onBooleanDefaultChange() {
+    if (this.charTypeSelected == 'boolean') {
       this.setBooleanDefaultValues();
     }
   }
 
-  removeClass(elem: HTMLElement, cls:string) {
+  removeClass(elem: HTMLElement, cls: string) {
     var str = " " + elem.className + " ";
     elem.className = str.replace(" " + cls + " ", " ").replace(/^\s+|\s+$/g, "");
   }
 
-  addClass(elem: HTMLElement, cls:string) {
-      elem.className += (" " + cls);
+  addClass(elem: HTMLElement, cls: string) {
+    elem.className += (" " + cls);
   }
 
-  unselectMenu(elem:HTMLElement | null,cls:string){
-    if(elem != null){
-      if(elem.className.match(cls)){
-        this.removeClass(elem,cls)
+  unselectMenu(elem: HTMLElement | null, cls: string) {
+    if (elem != null) {
+      if (elem.className.match(cls)) {
+        this.removeClass(elem, cls)
       } else {
         console.log('already unselected')
       }
     }
   }
 
-  selectMenu(elem:HTMLElement| null,cls:string){
-    if(elem != null){
-      if(elem.className.match(cls)){
+  selectMenu(elem: HTMLElement | null, cls: string) {
+    if (elem != null) {
+      if (elem.className.match(cls)) {
         console.log('already selected')
       } else {
-        this.addClass(elem,cls)
+        this.addClass(elem, cls)
       }
     }
   }
 
   //STEPS CSS EFFECTS:
-  selectStep(step:string,stepCircle:string){
+  selectStep(step: string, stepCircle: string) {
     const index = this.stepsElements.findIndex(item => item === step);
     if (index !== -1) {
       this.stepsElements.splice(index, 1);
-      this.selectMenu(document.getElementById(step),'text-primary-100 dark:text-primary-50')
-      this.unselectMenu(document.getElementById(step),'text-gray-500')
-      for(let i=0; i<this.stepsElements.length;i++){
-        this.unselectMenu(document.getElementById(this.stepsElements[i]),'text-primary-100 dark:text-primary-50')
-        this.selectMenu(document.getElementById(this.stepsElements[i]),'text-gray-500')
+      this.selectMenu(document.getElementById(step), 'text-primary-100 dark:text-primary-50')
+      this.unselectMenu(document.getElementById(step), 'text-gray-500')
+      for (let i = 0; i < this.stepsElements.length; i++) {
+        this.unselectMenu(document.getElementById(this.stepsElements[i]), 'text-primary-100 dark:text-primary-50')
+        this.selectMenu(document.getElementById(this.stepsElements[i]), 'text-gray-500')
       }
       this.stepsElements.push(step);
     }
     const circleIndex = this.stepsCircles.findIndex(item => item === stepCircle);
     if (index !== -1) {
       this.stepsCircles.splice(circleIndex, 1);
-      this.selectMenu(document.getElementById(stepCircle),'border-primary-100 dark:border-primary-50')
-      this.unselectMenu(document.getElementById(stepCircle),'border-gray-400');
-      for(let i=0; i<this.stepsCircles.length;i++){
-        this.unselectMenu(document.getElementById(this.stepsCircles[i]),'border-primary-100 dark:border-primary-50')
-        this.selectMenu(document.getElementById(this.stepsCircles[i]),'border-gray-400');
+      this.selectMenu(document.getElementById(stepCircle), 'border-primary-100 dark:border-primary-50')
+      this.unselectMenu(document.getElementById(stepCircle), 'border-gray-400');
+      for (let i = 0; i < this.stepsCircles.length; i++) {
+        this.unselectMenu(document.getElementById(this.stepsCircles[i]), 'border-primary-100 dark:border-primary-50')
+        this.selectMenu(document.getElementById(this.stepsCircles[i]), 'border-gray-400');
       }
       this.stepsCircles.push(stepCircle);
     }
@@ -1121,14 +1143,14 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     this.toValue = '';
     this.rangeUnit = '';
     this.jsonValue = '';
-    this.isOptional=false;
-    this.optionalDftTrue=false;
-    if(this.charTypeSelected == 'boolean'){
-      this.booleanDefaultTrue=true;
+    this.isOptional = false;
+    this.optionalDftTrue = false;
+    if (this.charTypeSelected == 'boolean') {
+      this.booleanDefaultTrue = true;
       this.setBooleanDefaultValues();
     } else {
-      this.booleanDefaultTrue=true;
-      this.creatingChars=[];
+      this.booleanDefaultTrue = true;
+      this.creatingChars = [];
     }
   }
 
@@ -1147,11 +1169,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   isDataspaceConfigurationStep(): boolean {
-    return this.isCurrentStep('dataspace');
-  }
-
-  isDefaultCharacteristicsStep(): boolean {
-    return this.isCurrentStep('characteristics');
+    return this.currentStep.id === 'dataspace';
   }
 
   isTextCharacteristicType(type: string | undefined): boolean {
@@ -1173,64 +1191,23 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     return 'string';
   }
 
-  private getFormSteps(): string[] {
-    const steps: string[] = ['General Info'];
+  private getFormSteps(): Step[] {
+
+    const steps: Step[] = [{ label: 'General Info', id: 'general' }];
     if (this.BUNDLE_ENABLED) {
-      steps.push('Bundle');
+      steps.push({ label: 'Bundle', id: 'bundle' });
     }
-    steps.push('Compliance profile');
-    steps.push('Characteristics');
+    steps.push({ label: 'Compliance profile', id: 'compliance' });
+    steps.push({ label: 'Characteristics', id: 'characteristics' });
     if (this.DATA_SPACE_ENABLED) {
-      steps.push('Dataspace Configuration');
+      steps.push({ label: 'Dataspace Configuration', id: 'dataspace' });
     }
-    steps.push('Resource specifications');
-    steps.push('Service specifications');
-    steps.push('Attachments');
-    steps.push('Relationships');
-    steps.push('Summary');
+    steps.push({ label: 'Resource specifications', id: 'resource' });
+    steps.push({ label: 'Service specifications', id: 'service' });
+    steps.push({ label: 'Attachments', id: 'attachments' });
+    steps.push({ label: 'Relationships', id: 'relationships' });
+    steps.push({ label: 'Summary', id: 'summary' });
     return steps;
-  }
-
-  private getStepIndex(step: ProductSpecFormStep): number {
-    const bundleOffset = this.BUNDLE_ENABLED ? 1 : 0;
-    const complianceIndex = 1 + bundleOffset;
-    const characteristicsIndex = complianceIndex + 1;
-    const dataspaceIndex = this.DATA_SPACE_ENABLED ? characteristicsIndex + 1 : -1;
-    const resourceIndex = characteristicsIndex + (this.DATA_SPACE_ENABLED ? 2 : 1);
-    const serviceIndex = resourceIndex + 1;
-    const attachmentsIndex = serviceIndex + 1;
-    const relationshipsIndex = attachmentsIndex + 1;
-    const summaryIndex = relationshipsIndex + 1;
-
-    switch (step) {
-      case 'general':
-        return 0;
-      case 'bundle':
-        return this.BUNDLE_ENABLED ? 1 : -1;
-      case 'compliance':
-        return complianceIndex;
-      case 'characteristics':
-        return characteristicsIndex;
-      case 'dataspace':
-        return dataspaceIndex;
-      case 'resource':
-        return resourceIndex;
-      case 'service':
-        return serviceIndex;
-      case 'attachments':
-        return attachmentsIndex;
-      case 'relationships':
-        return relationshipsIndex;
-      case 'summary':
-        return summaryIndex;
-      default:
-        return -1;
-    }
-  }
-
-  isCurrentStep(step: ProductSpecFormStep): boolean {
-    const index = this.getStepIndex(step);
-    return index >= 0 && this.currentStep === index;
   }
 
   private getSchemaLocationForType(type: string): string | null {
@@ -1243,39 +1220,39 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  addCharValue(){
-    if(this.isTextCharacteristicType(this.charTypeSelected)){
+  addCharValue() {
+    if (this.isTextCharacteristicType(this.charTypeSelected)) {
       console.log('string')
-      if(this.creatingChars.length==0){
+      if (this.creatingChars.length == 0) {
         this.creatingChars.push({
-          isDefault:true,
-          value:this.stringValue as any
+          isDefault: true,
+          value: this.stringValue as any
         })
-      } else{
+      } else {
         this.creatingChars.push({
-          isDefault:false,
-          value:this.stringValue as any
+          isDefault: false,
+          value: this.stringValue as any
         })
       }
-      this.stringValue='';
-    } else if (this.charTypeSelected == 'number'){
+      this.stringValue = '';
+    } else if (this.charTypeSelected == 'number') {
       console.log('number')
-      if(this.creatingChars.length==0){
+      if (this.creatingChars.length == 0) {
         this.creatingChars.push({
-          isDefault:true,
-          value:this.numberValue as any,
-          unitOfMeasure:this.numberUnit
+          isDefault: true,
+          value: this.numberValue as any,
+          unitOfMeasure: this.numberUnit
         })
-      } else{
+      } else {
         this.creatingChars.push({
-          isDefault:false,
-          value:this.numberValue as any,
-          unitOfMeasure:this.numberUnit
+          isDefault: false,
+          value: this.numberValue as any,
+          unitOfMeasure: this.numberUnit
         })
       }
-      this.numberUnit='';
-      this.numberValue='';
-    }else if(this.charTypeSelected == 'range'){
+      this.numberUnit = '';
+      this.numberValue = '';
+    } else if (this.charTypeSelected == 'range') {
       console.log('range')
       // Validate that fromValue < toValue
       const fromVal = Number(this.fromValue);
@@ -1284,29 +1261,30 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
         console.log('range validation error: valueFrom >= valueTo')
         this.errorMessage = 'Invalid range: "From" value must be less than "To" value';
         this.showError = true;
-        setTimeout(() => {this.showError = false}, 3000);
+        setTimeout(() => { this.showError = false }, 3000);
         return;
       }
 
-      if(this.creatingChars.length==0){
+      if (this.creatingChars.length == 0) {
         this.creatingChars.push({
-          isDefault:true,
-          valueFrom:this.fromValue as any,
-          valueTo:this.toValue as any,
-          unitOfMeasure:this.rangeUnit
+          isDefault: true,
+          valueFrom: this.fromValue as any,
+          valueTo: this.toValue as any,
+          unitOfMeasure: this.rangeUnit
         })
-      } else{
+      } else {
         this.creatingChars.push({
-          isDefault:false,
-          valueFrom:this.fromValue as any,
-          valueTo:this.toValue as any,
-          unitOfMeasure:this.rangeUnit})
+          isDefault: false,
+          valueFrom: this.fromValue as any,
+          valueTo: this.toValue as any,
+          unitOfMeasure: this.rangeUnit
+        })
       }
     } else if (this.isJsonCharacteristicType(this.charTypeSelected)) {
       if (this.creatingChars.length > 0) {
         this.errorMessage = 'Only one JSON value is allowed';
         this.showError = true;
-        setTimeout(() => {this.showError = false}, 3000);
+        setTimeout(() => { this.showError = false }, 3000);
         return;
       }
       try {
@@ -1319,10 +1297,10 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       } catch (error) {
         this.errorMessage = 'Invalid JSON format';
         this.showError = true;
-        setTimeout(() => {this.showError = false}, 3000);
+        setTimeout(() => { this.showError = false }, 3000);
         return;
       }
-    } else if (this.charTypeSelected == 'boolean'){
+    } else if (this.charTypeSelected == 'boolean') {
       console.log('boolean values are fixed')
       return;
     } else {
@@ -1330,8 +1308,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     }
   }
 
-  removeCharValue(char:any,idx:any){
-    if(this.charTypeSelected == 'boolean'){
+  removeCharValue(char: any, idx: any) {
+    if (this.charTypeSelected == 'boolean') {
       return;
     }
     console.log(this.creatingChars)
@@ -1339,26 +1317,26 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     console.log(this.creatingChars)
   }
 
-  selectDefaultChar(char:any,idx:any){
-    for(let i=0;i<this.creatingChars.length;i++){
-      if(i==idx){
-        this.creatingChars[i].isDefault=true;
+  selectDefaultChar(char: any, idx: any) {
+    for (let i = 0; i < this.creatingChars.length; i++) {
+      if (i == idx) {
+        this.creatingChars[i].isDefault = true;
       } else {
-        this.creatingChars[i].isDefault=false;
+        this.creatingChars[i].isDefault = false;
       }
     }
   }
 
-  saveChar(){
-    if(this.charsForm.value.name!=null){
+  saveChar() {
+    if (this.charsForm.value.name != null) {
 
       // In showFinish() only takes the first ocurrence in name for sending to proxy
       // I validate the duplication here to prevent confusion in client when suddenly a characteristic with the same name dissapeared
-      if (this.prodChars.find((char)=> char.name === this.charsForm.value.name)){
+      if (this.prodChars.find((char) => char.name === this.charsForm.value.name)) {
         console.log('name duplicated error')
         this.errorMessage = 'Cannot save duplicated name in characteristics';
         this.showError = true;
-        setTimeout(() => {this.showError = false}, 3000);
+        setTimeout(() => { this.showError = false }, 3000);
         return
       }
 
@@ -1381,9 +1359,9 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       this.prodChars.push(characteristic);
 
       // Create the X - enabled characteristic
-      if(this.isOptional && this.charTypeSelected !== 'boolean' && !this.isJsonCharacteristicType(this.charTypeSelected)){
+      if (this.isOptional && this.charTypeSelected !== 'boolean' && !this.isJsonCharacteristicType(this.charTypeSelected)) {
         this.prodChars.push({
-          id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
+          id: 'urn:ngsi-ld:characteristic:' + uuidv4(),
           name: this.charsForm.value.name + ' - enabled',
           description: 'Optional toggle for ' + this.charsForm.value.name,
           productSpecCharacteristicValue: [
@@ -1393,7 +1371,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
             },
             {
               isDefault: !this.optionalDftTrue,
-              value:false as any
+              value: false as any
             }
           ]
         })
@@ -1401,16 +1379,16 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     }
 
     this.charsForm.reset();
-    this.creatingChars=[];
-    this.showCreateChar=false;
-    this.charTypeSelected='string';
-    this.isOptional=false;
-    this.optionalDftTrue=false;
+    this.creatingChars = [];
+    this.showCreateChar = false;
+    this.charTypeSelected = 'string';
+    this.isOptional = false;
+    this.optionalDftTrue = false;
     this.refreshChars();
     this.cdr.detectChanges();
   }
 
-  deleteChar(char:any){
+  deleteChar(char: any) {
     const index = this.prodChars.findIndex(item => item.id === char.id);
     if (index !== -1) {
       console.log('eliminar')
@@ -1418,8 +1396,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     }
 
     // If deleting a main characteristic, also delete its "- enabled" variant if it exists
-    if(!char.name.endsWith('- enabled')){
-      const relatedEnabledIndex = this.prodChars.findIndex(item => item.name === char.name+' - enabled');
+    if (!char.name.endsWith('- enabled')) {
+      const relatedEnabledIndex = this.prodChars.findIndex(item => item.name === char.name + ' - enabled');
       if (relatedEnabledIndex !== -1) {
         console.log('eliminar related enabled')
         this.prodChars.splice(relatedEnabledIndex, 1);
@@ -1434,18 +1412,18 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     return value.trim().length === 0;
   }
 
-  showFinish(){
-    this.relationshipDone=true;
-    this.finishDone=true;
+  showFinish() {
+    this.relationshipDone = true;
+    this.finishDone = true;
     this.finishChars = [];
     console.log('--- set product data')
     console.log(this.prodChars)
-    for(let i=0; i< this.prodChars.length; i++){
+    for (let i = 0; i < this.prodChars.length; i++) {
       const index = this.finishChars.findIndex(item => item.name === this.prodChars[i].name);
       if (index == -1) {
         const cleanedName = this.prodChars[i]?.name
-        ?.replace('Compliance:', '')
-        .trim();
+          ?.replace('Compliance:', '')
+          .trim();
 
         const checkIso = this.availableISOS.findIndex(
           item => item.name === cleanedName
@@ -1457,10 +1435,10 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
             const checkAdditional = this.additionalISOS.findIndex(
               item => item.name === cleanedName
             );
-            if(checkAdditional != -1){
+            if (checkAdditional != -1) {
               this.finishChars.push(this.prodChars[i])
             }
-            if(!this.prodChars[i].name?.startsWith('Compliance:')){
+            if (!this.prodChars[i].name?.startsWith('Compliance:')) {
               this.finishChars.push(this.prodChars[i])
             }
           } else {
@@ -1473,11 +1451,11 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       }
     }
     // Load compliance profile
-    for(let i = 0; i < this.selectedISOS.length; i++){
+    for (let i = 0; i < this.selectedISOS.length; i++) {
       const index = this.finishChars.findIndex(item => item.name === this.selectedISOS[i].name);
       if (index == -1) {
         this.finishChars.push({
-          id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
+          id: 'urn:ngsi-ld:characteristic:' + uuidv4(),
           name: this.selectedISOS[i].name,
           productSpecCharacteristicValue: [{
             isDefault: true,
@@ -1487,7 +1465,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       }
     }
 
-    for(let i=0; i<this.additionalISOS.length;i++){
+    for (let i = 0; i < this.additionalISOS.length; i++) {
       console.log('- finish chars antes')
       console.log(this.finishChars)
       console.log('añadiendo additional a finish chars')
@@ -1495,7 +1473,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       const index = this.finishChars.findIndex(item => item.name === this.additionalISOS[i].name);
       if (index == -1) {
         this.finishChars.push({
-          id: 'urn:ngsi-ld:characteristic:'+uuidv4(),
+          id: 'urn:ngsi-ld:characteristic:' + uuidv4(),
           name: this.additionalISOS[i].name,
           productSpecCharacteristicValue: [{
             isDefault: true,
@@ -1534,7 +1512,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     }
 
     let rels = [];
-    for(let i=0; i<this.prodRelationships.length;i++){
+    for (let i = 0; i < this.prodRelationships.length; i++) {
       rels.push({
         id: this.prodRelationships[i].id,
         href: this.prodRelationships[i].href,
@@ -1544,8 +1522,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     }
     console.log('rels')
     console.log(rels)
-    if(this.generalForm.value.name!=null && this.generalForm.value.version!=null && this.generalForm.value.brand!=null){
-      this.productSpecToCreate={
+    if (this.generalForm.value.name != null && this.generalForm.value.version != null && this.generalForm.value.brand != null) {
+      this.productSpecToCreate = {
         name: this.generalForm.value.name,
         description: this.generalForm.value.description != null ? this.generalForm.value.description : '',
         version: this.generalForm.value.version,
@@ -1559,50 +1537,110 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
         attachment: this.prodAttachments,
         relatedParty: [
           {
-              id: this.partyId,
-              //href: "http://proxy.docker:8004/party/individual/urn:ngsi-ld:individual:803ee97b-1671-4526-ba3f-74681b22ccf3",
-              role: environment.SELLER_ROLE,
-              "@referredType": ''
+            id: this.partyId,
+            //href: "http://proxy.docker:8004/party/individual/urn:ngsi-ld:individual:803ee97b-1671-4526-ba3f-74681b22ccf3",
+            role: environment.SELLER_ROLE,
+            "@referredType": ''
           }
         ],
         resourceSpecification: this.selectedResourceSpecs,
         serviceSpecification: this.selectedServiceSpecs
       }
     }
+    if (this.generalForm.value.dspCompatible) {
+      this.productSpecToCreate!.productSpecCharacteristic = this.productSpecToCreate?.productSpecCharacteristic || [];
+      (this.productSpecToCreate! as any).externalId = uuidv4();
+      this.productSpecToCreate!['@schemaLocation'] = environment.DSP_SCHEMA;
+      this.endpointUrls.forEach(endpoint => {
+        this.productSpecToCreate!.productSpecCharacteristic!.push({
+          id: uuidv4(),
+          description: endpoint.description,
+          valueType: 'endpointUrl',
+          name: endpoint.name,
+          productSpecCharacteristicValue: [
+            { value: endpoint.url! as any, isDefault: true }
+          ]
+        })
+      })
+      this.productSpecToCreate!.productSpecCharacteristic!.push(
+        {
+          id: "upstreamAddress",
+          name: "Address of the upstream serving the data",
+          valueType: "upstreamAddress",
+          productSpecCharacteristicValue: [
+            { value: this.dspConfigForm.value.upstreamAddress! as any, isDefault: true }
+          ]
+        },
+        {
+          id: "targetSpecification",
+          name: "Detailed specification of the ODRL target. Allows to over services via OID4VC",
+          valueType: "targetSpecification",
+          productSpecCharacteristicValue: [
+            { value: JSON.parse(this.dspConfigForm.value.targetSpecification!), isDefault: true }
+          ]
+        },
+        {
+          id: "serviceConfiguration",
+          name: "Service config to be used in the credentials config service when provisioning transfers through OID4VC",
+          valueType: "serviceConfiguration",
+          productSpecCharacteristicValue: [
+            { value: JSON.parse(this.dspConfigForm.value.serviceConfiguration!), isDefault: true }
+          ]
+        },
+        {
+          id: "credentialsConfig",
+          name: "Credentials Config",
+          valueType: "credentialsConfig",
+          "@schemaLocation": "https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/main/schemas/credentials/credentialConfigCharacteristic.json",
+          productSpecCharacteristicValue: [
+            { value: JSON.parse(this.dspConfigForm.value.credentialsConfig!), isDefault: true }
+          ]
+        },
+        {
+          id: "policyConfig",
+          name: "Policy for creation of K8S clusters.",
+          valueType: "authorizationPolicy",
+          "@schemaLocation": "https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/policy-support/schemas/odrl/policyCharacteristic.json",
+          productSpecCharacteristicValue: [
+            { value: JSON.parse(this.dspConfigForm.value.policyConfig!), isDefault: true }
+          ]
+        },
+      )
+    }
     console.log('PRODUCTO A CREAR:')
     console.log(this.productSpecToCreate)
     console.log(this.imgPreview)
-    this.selectStep('summary','summary-circle');
-    this.showBundle=false;
-    this.showGeneral=false;
-    this.showCompliance=false;
-    this.showChars=false;
-    this.showResource=false;
-    this.showService=false;
-    this.showAttach=false;
-    this.showRelationships=false;
-    this.showSummary=true;
-    this.showPreview=false;
+    this.selectStep('summary', 'summary-circle');
+    this.showBundle = false;
+    this.showGeneral = false;
+    this.showCompliance = false;
+    this.showChars = false;
+    this.showResource = false;
+    this.showService = false;
+    this.showAttach = false;
+    this.showRelationships = false;
+    this.showSummary = true;
+    this.showPreview = false;
     this.refreshChars();
   }
 
-  createProduct(){
-    this.loading=true;
+  createProduct() {
+    this.loading = true;
     this.prodSpecService.postProdSpec(this.productSpecToCreate).subscribe({
       next: data => {
-        this.loading=false;
+        this.loading = false;
         this.goBack();
       },
       error: error => {
         console.error('There was an error while creating!', error);
-        if(error.error.error){
+        if (error.error.error) {
           console.log(error)
-          this.errorMessage='Error: '+error.error.error;
+          this.errorMessage = 'Error: ' + error.error.error;
         } else {
-          this.errorMessage='There was an error while creating the product!';
+          this.errorMessage = 'There was an error while creating the product!';
         }
-        this.loading=false;
-        this.showError=true;
+        this.loading = false;
+        this.showError = true;
         setTimeout(() => {
           this.showError = false;
         }, 3000);
@@ -1625,58 +1663,58 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     });
   }
 
-  addList(){
+  addList() {
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n- First item\n- Second item'
     });
   }
 
-  addOrderedList(){
+  addOrderedList() {
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n1. First item\n2. Second item'
     });
   }
 
-  addCode(){
+  addCode() {
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n`code`'
     });
   }
 
-  addCodeBlock(){
+  addCodeBlock() {
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n```\ncode\n```'
     });
   }
 
-  addBlockquote(){
+  addBlockquote() {
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n> blockquote'
     });
   }
 
-  addLink(){
+  addLink() {
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + ' [title](https://www.example.com) '
     });
   }
 
-  addTable(){
+  addTable() {
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n| Syntax | Description |\n| ----------- | ----------- |\n| Header | Title |\n| Paragraph | Text |'
     });
   }
 
-  addEmoji(event:any){
+  addEmoji(event: any) {
     console.log(event)
-    this.showEmoji=false;
+    this.showEmoji = false;
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + event.emoji.native
@@ -1684,7 +1722,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   hasLongWord(str: string | undefined, threshold = 20) {
-    if(str){
+    if (str) {
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
@@ -1712,7 +1750,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
   goToStep(index: number) {
     // Solo validar en modo creación
-    if (index > this.currentStep) {
+    if (index > this.currentStepIdx) {
       // Validar el paso actual
       const currentStepValid = this.validateCurrentStep();
       if (!currentStepValid) {
@@ -1720,66 +1758,92 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.currentStep = index;
-    if(this.currentStep>this.highestStep){
-      this.highestStep=this.currentStep
+    if (this.currentStep.id === 'general') {
+      // VERIFY dsp compatible enabled
+      if (this.generalForm.value.dspCompatible) {
+        this.addDspConfigStep()
+      } else {
+        this.removeDspConfigStep();
+      }
+    }
+
+    this.currentStepIdx = index;
+    if (this.currentStepIdx > this.highestStepIdx) {
+      this.highestStepIdx = index
     }
     this.refreshChars();
-    if (this.isCurrentStep('compliance')) {
+    if (this.currentStep.id === 'compliance') {
       setTimeout(() => {
         initFlowbite();
       }, 100);
     }
     //Resource
-    if(this.isCurrentStep('resource')){
+    if (this.currentStep.id === 'resource') {
       this.getResSpecs(false);
     }
     //Service
-    if(this.isCurrentStep('service')){
+    if (this.currentStep.id === 'service') {
       this.getServSpecs(false);
     }
     //Attachment
-    if(this.isCurrentStep('attachments')){
+    if (this.currentStep.id === 'attachments') {
       setTimeout(() => {
         initFlowbite();
       }, 100);
     }
     //rels
-    if(this.isCurrentStep('relationships')){
+    if (this.currentStep.id === 'relationships') {
       this.getProdSpecsRel(false);
     }
     //finish
-    if(this.isCurrentStep('summary')){
+    if (this.currentStep.id === 'summary') {
       this.showFinish();
     }
   }
 
   validateCurrentStep(): boolean {
-    switch (this.currentStep) {
-      case 0: // General Info
+    switch (this.currentStep.id) {
+      case 'general':
         return this.generalForm?.valid || false;
+      case 'dsp_config':
+        return this.endpointUrls.length > 0 && this.dspConfigForm.valid;
       default:
         return true;
     }
   }
 
   isStepDisabled(): boolean {
-    switch (this.currentStep) {
-      case 0: // General Info
+    switch (this.currentStep.id) {
+      case 'general':
         return !this.generalForm?.valid || false;
+      case 'bundle':
+        return this.prodSpecsBundle.length < 2 && this.bundleChecked;
+      case 'compliance':
+        return this.checkValidISOS();
+      case 'dsp_config':
+        return this.endpointUrls.length === 0;
       default:
-        if (this.BUNDLE_ENABLED && this.currentStep === this.getStepIndex('bundle')) {
-          return this.prodSpecsBundle.length<2 && this.bundleChecked;
-        }
-        if (this.currentStep === this.getStepIndex('compliance')) {
-          return this.checkValidISOS();
-        }
         return false;
     }
   }
 
+  addEndpointUrl(): void {
+    const url = this.newEndpointUrl.trim();
+    const description = this.newEndpointDescription.trim();
+    const name = this.newEndpointName.trim();
+    if (!url || !description || !name) return;
+    this.endpointUrls = [...this.endpointUrls, { url, description, name }];
+    this.newEndpointUrl = '';
+    this.newEndpointDescription = '';
+    this.newEndpointName = '';
+  }
+
+  removeEndpointUrl(idx: number): void {
+    this.endpointUrls = this.endpointUrls.filter((_, i) => i !== idx);
+  }
+
   canNavigate(index: number) {
-      return (this.generalForm?.valid &&  (index <= this.currentStep)) || (this.generalForm?.valid &&  (index <= this.highestStep));
+    return (this.generalForm?.valid && (index <= this.currentStepIdx)) || (this.generalForm?.valid && (index <= this.highestStepIdx));
   }
 
   handleStepClick(index: number): void {
@@ -1790,6 +1854,26 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
 
   normalizeName(name?: string): string {
     return name?.replace(/compliance:/i, '').trim() ?? '';
+  }
+
+  private addDspConfigStep(): void {
+    const alreadyAdded = this.steps.some(s => s.id === 'dsp_config');
+    if (alreadyAdded) return;
+    // TODO: change to service
+    const serviceIdx = this.steps.findIndex(s => s.id === 'bundle');
+    this.steps = [
+      ...this.steps.slice(0, serviceIdx + 1),
+      { label: 'DSP Config', id: 'dsp_config' },
+      ...this.steps.slice(serviceIdx + 1),
+    ];
+  }
+
+  private removeDspConfigStep(): void {
+    const idx = this.steps.findIndex(s => s.id === 'dsp_config');
+    if (idx === -1) return;
+    if (this.currentStepIdx >= idx) this.currentStepIdx = idx - 1;
+    if (this.highestStepIdx >= idx) this.highestStepIdx = idx - 1;
+    this.steps = this.steps.filter(s => s.id !== 'dsp_config');
   }
 
 }
