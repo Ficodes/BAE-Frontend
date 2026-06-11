@@ -80,16 +80,17 @@
 
           </div>
 
-
-          <div class="col-span-2 flex items-center h-fit">
-            <label for="dsp-compatible" class="font-bold text-lg dark:text-white">DSP Compatible</label>
-            <label class="inline-flex items-center me-5 cursor-pointer ml-4">
-              <input type="checkbox" id="dsp-compatible" formControlName="dspCompatible" class="sr-only peer">
-              <div
-                class="relative w-11 h-6 bg-gray-400 dark:bg-gray-700 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-100 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-100">
-              </div>
-            </label>
-          </div>
+          @if(dspEnable) {
+            <div class="col-span-2 flex items-center h-fit">
+              <label for="dsp-compatible" class="font-bold text-lg dark:text-white">DSP Compatible</label>
+              <label class="inline-flex items-center me-5 cursor-pointer ml-4">
+                <input type="checkbox" id="dsp-compatible" formControlName="dspCompatible" class="sr-only peer">
+                <div
+                  class="relative w-11 h-6 bg-gray-400 dark:bg-gray-700 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-100 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-100">
+                </div>
+              </label>
+            </div>
+          }
           <label for="prod-name" class="font-bold text-lg col-span-2 dark:text-white">{{
             'CREATE_PROD_SPEC._product_description' | translate }}</label>
           <app-markdown-textarea class="col-span-2" formControlName="description"></app-markdown-textarea>
@@ -686,11 +687,6 @@
               (change)="onTypeChange($event)"
               class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
               @if(isDataspaceConfigurationStep()){
-              <!-- <option value="endpointUrl">Endpoint URL</option>
-              <option value="upstreamAddress">Upstream Address</option>
-              <option value="endpointDescription">Endpoint Description</option>
-              <option value="targetSpecification">Target Specification</option>
-              <option value="serviceConfiguration">Service Configuration</option> -->
               <option value="credentialsConfiguration">Credentials Configuration</option>
               <option value="authorizationPolicy">Authorization Policy</option>
               } @else {

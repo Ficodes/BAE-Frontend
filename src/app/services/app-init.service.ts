@@ -55,11 +55,10 @@ export class AppInitService {
           environment.AI_SEARCH_API_KEY = aiConfig.aiApiKey ?? config.aiApiKey ?? '';
           environment.AI_SEARCH_API_URL = aiConfig.aiApiUrl ?? config.aiApiUrl ?? '';
           environment.AI_SEARCH_PROFILE = aiConfig.aiSearchProfile ?? config.aiSearchProfile ?? '';
-          environment.DSP_ENABLED = config.edc?.enabled || environment.DSP_ENABLED
-          environment.DSP_CONTRACT_DEFINITION_SCHEMA = config.edc?.contractDefinitionSchema || environment.DSP_CONTRACT_DEFINITION_SCHEMA
-          environment.DSP_SCHEMA = config.edc?.schema || environment.DSP_SCHEMA
+          environment.DSP_ENABLED = config.dspEnabled || environment.DSP_ENABLED
+          environment.DSP_CONTRACT_DEFINITION_SCHEMA = config.dspContractDefinitionSchema || environment.DSP_CONTRACT_DEFINITION_SCHEMA
+          environment.DSP_SCHEMA = config.dspSchema || environment.DSP_SCHEMA
           applyRuntimeSearchFiltersConfig(config);
-
           resolve(config);
         }),
         error: (error) => {
