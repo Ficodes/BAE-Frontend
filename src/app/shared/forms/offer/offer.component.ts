@@ -341,7 +341,7 @@ export class OfferComponent implements OnInit, OnDestroy {
       }
 
       // EDC Contract Definition
-      if (environment.EDC_ENABLED) {
+      if (environment.DSP_ENABLED) {
         const contractDefinition = this.offer.productOfferingTerm.find(
           (element: { name: string; }) => element.name === 'edc:contractDefinition'
         ) || { name: 'edc:contractDefinition' };
@@ -774,13 +774,13 @@ export class OfferComponent implements OnInit, OnDestroy {
       ]
     };
 
-    if (environment.EDC_ENABLED && this.isdEdcCompatible()) {
+    if (environment.DSP_ENABLED && this.isdEdcCompatible()) {
       const contractDefinition = formValue.edcContractDefinition;
       offer.productOfferingTerm.push({
         name: contractDefinition.name,
         contractPolicy: contractDefinition.contractPolicy ? JSON.parse(contractDefinition.contractPolicy) : '',
         accessPolicy: contractDefinition.accessPolicy ? JSON.parse(contractDefinition.accessPolicy) : '',
-        '@schemaLocation': environment.EDC_CONTRACT_DEFINITION_SCHEMA
+        '@schemaLocation': environment.DSP_CONTRACT_DEFINITION_SCHEMA
       })
     }
     if (!this.bundleChecked && this.formType === 'create') {
