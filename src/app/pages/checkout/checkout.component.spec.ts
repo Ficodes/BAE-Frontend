@@ -32,6 +32,10 @@ describe('CheckoutComponent', () => {
   let federationEnabled: boolean;
 
   const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
+  const federatedId = (id: string) => `federationRef::${btoa(JSON.stringify({
+    sourceEndpoint: 'http://host.docker.internal:8633',
+    id,
+  }))}`;
 
   beforeEach(async () => {
     federationEnabled = environment.FEDERATION_ENABLED;
@@ -194,6 +198,43 @@ describe('CheckoutComponent', () => {
     expect(result.note[0].text).toBe('Urgent order');
   });
 
+  it('createProductPayload should decode federated offering and price ids only when federation is enabled', () => {
+    environment.FEDERATION_ENABLED = true;
+    const offeringId = federatedId('urn:ngsi-ld:product-offering:local-1');
+    const priceId = federatedId('urn:ngsi-ld:product-offering-price:local-1');
+
+    const result = (component as any).createProductPayload({
+      id: offeringId,
+      options: {
+        pricing: [{ id: priceId }],
+        characteristics: [{ name: 'size', value: 1 }],
+      },
+    });
+
+    expect(result.id).toBe('urn:ngsi-ld:product-offering:local-1');
+    expect(result.productOffering.id).toBe('urn:ngsi-ld:product-offering:local-1');
+    expect(result.productOffering.href).toBe('urn:ngsi-ld:product-offering:local-1');
+    expect(result.itemTotalPrice[0].productOfferingPrice.id).toBe('urn:ngsi-ld:product-offering-price:local-1');
+    expect(result.itemTotalPrice[0].productOfferingPrice.href).toBe('urn:ngsi-ld:product-offering-price:local-1');
+  });
+
+  it('createProductPayload should keep federated ids unchanged when federation is disabled', () => {
+    environment.FEDERATION_ENABLED = false;
+    const offeringId = federatedId('urn:ngsi-ld:product-offering:local-1');
+    const priceId = federatedId('urn:ngsi-ld:product-offering-price:local-1');
+
+    const result = (component as any).createProductPayload({
+      id: offeringId,
+      options: {
+        pricing: [{ id: priceId }],
+        characteristics: [],
+      },
+    });
+
+    expect(result.productOffering.id).toBe(offeringId);
+    expect(result.itemTotalPrice[0].productOfferingPrice.id).toBe(priceId);
+  });
+
   it('groupItemsByOwner should keep only items from selected seller', () => {
     component.items = [
       { id: 'one', relatedParty: [{ role: environment.SELLER_ROLE, id: 'seller-a' }] },
@@ -352,6 +393,32 @@ describe('CheckoutComponent', () => {
     expect((component as any).emptyShoppingCart).toHaveBeenCalled();
     expect(component.goToInventory).toHaveBeenCalled();
     expect(component.loading_purchase).toBeFalse();
+  });
+
+  it('orderProduct should send local ids in body and federated offering id as target when federation is enabled', async () => {
+    environment.FEDERATION_ENABLED = true;
+    spyOn((component as any).cdr, 'detectChanges');
+    orderServiceSpy.postProductOrder.and.returnValue(
+      of(new HttpResponse({ headers: new HttpHeaders() })) as any,
+    );
+    spyOn<any>(component, 'emptyShoppingCart').and.resolveTo();
+    spyOn(component, 'goToInventory');
+
+    const offeringId = federatedId('urn:ngsi-ld:product-offering:local-1');
+    const priceId = federatedId('urn:ngsi-ld:product-offering-price:local-1');
+    component.items = [
+      { id: offeringId, options: { pricing: [{ id: priceId }], characteristics: [{ name: 'size', value: 1 }] } },
+    ] as any;
+    component.relatedParty = 'party-1';
+    component.selectedBillingAddress = { id: 'ba-1', email: 'bill@example.com' } as any;
+
+    await component.orderProduct();
+
+    const [postedOrder, target] = orderServiceSpy.postProductOrder.calls.mostRecent().args;
+    expect(target).toBe(offeringId);
+    expect(postedOrder.productOrderItem[0].id).toBe('urn:ngsi-ld:product-offering:local-1');
+    expect(postedOrder.productOrderItem[0].productOffering.id).toBe('urn:ngsi-ld:product-offering:local-1');
+    expect(postedOrder.productOrderItem[0].itemTotalPrice[0].productOfferingPrice.id).toBe('urn:ngsi-ld:product-offering-price:local-1');
   });
 
   it('orderProduct should surface API error message', async () => {

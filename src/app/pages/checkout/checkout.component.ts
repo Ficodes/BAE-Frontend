@@ -213,7 +213,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       console.log('--- order ---');
       console.log(productOrder);
 
-      const response = await firstValueFrom(this.orderService.postProductOrder(productOrder));
+      const response = await firstValueFrom(this.orderService.postProductOrder(productOrder, this.getProductOrderTarget()));
       const redirectUrl = response.headers.get('X-Redirect-URL');
 
       console.log(response.headers)
@@ -239,28 +239,48 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   private createProductPayload(item: any) {
+    const productOfferingId = this.toLocalIdForFederatedWrite(item.id);
     let itemTotalPrice: any = [];
     if (item.options.pricing.length > 0) {
+      const productOfferingPriceId = this.toLocalIdForFederatedWrite(item.options.pricing[0].id);
       itemTotalPrice = [{
         productOfferingPrice: {
-          id: item.options.pricing[0].id,
-          href: item.options.pricing[0].id
+          id: productOfferingPriceId,
+          href: productOfferingPriceId
         }
       }]
     }
 
     return {
-      id: item.id,
+      id: productOfferingId,
       action: 'add',
       productOffering: {
-        id: item.id,
-        href: item.id
+        id: productOfferingId,
+        href: productOfferingId
       },
       itemTotalPrice: itemTotalPrice,
       product: {
         productCharacteristic: item.options.characteristics
       }
     };
+  }
+
+  private getProductOrderTarget(): string | undefined {
+    return environment.FEDERATION_ENABLED ? this.items[0]?.id : undefined;
+  }
+
+  private toLocalIdForFederatedWrite(id: any): any {
+    if (!environment.FEDERATION_ENABLED || typeof id !== 'string' || !id.startsWith('federationRef::')) {
+      return id;
+    }
+
+    try {
+      const federationRef = JSON.parse(atob(id.replace('federationRef::', '')));
+      return federationRef?.id ?? id;
+    } catch (error) {
+      console.error('Error decoding federated id for product order creation', error);
+      return id;
+    }
   }
 
   private createProductOrder(products: any[]) {

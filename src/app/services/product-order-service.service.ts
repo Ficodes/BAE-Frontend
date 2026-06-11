@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { lastValueFrom, map } from 'rxjs';
 import { Category, LoginInfo } from '../models/interfaces';
@@ -18,10 +18,16 @@ export class ProductOrderService {
 
   constructor(private http: HttpClient,private localStorage: LocalStorageService) { }
 
-  postProductOrder(prod:any){
+  private buildTargetOptions(target?: string) {
+    return target
+      ? { observe: 'response' as const, params: new HttpParams().set('target', target) }
+      : { observe: 'response' as const };
+  }
+
+  postProductOrder(prod:any, target?: string){
     //POST - El item va en el body de la petición
     let url = `${ProductOrderService.BASE_URL}${ProductOrderService.API_ORDERING}/productOrder`;
-    return this.http.post<any>(url, prod, { observe: 'response' });
+    return this.http.post<any>(url, prod, this.buildTargetOptions(target));
   }
 
   getProductOrders(partyId:any,page:any,filters:any[],role:any,actionFilters:string[]=[]){
