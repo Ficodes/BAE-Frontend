@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn } from "@angular/forms";
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { TranslateModule } from "@ngx-translate/core";
 import { Subject } from "rxjs";
 import { takeUntil } from 'rxjs/operators';
@@ -96,9 +96,8 @@ export class EdcContractDefinitionComponent implements OnInit, OnDestroy {
         contractDefinition = this.data.productOfferingTerm?.find((element: { name: any; }) => element.name == 'edc:contractDefinition')
         if (contractDefinition) {
           this.formGroup.addControl('name', new FormControl<string>('edc:contractDefinition'));
-          this.formGroup.addControl('accessPolicy', new FormControl<string>(contractDefinition.accessPolicy, jsonValidator));
-          this.formGroup.addControl('contractPolicy', new FormControl<string>(contractDefinition.contractPolicy, jsonValidator));
-          this.formGroup.addValidators(this.edcPoliciesRequiredValidator);
+          this.formGroup.addControl('accessPolicy', new FormControl<string>(contractDefinition.accessPolicy, [Validators.required, jsonValidator]));
+          this.formGroup.addControl('contractPolicy', new FormControl<string>(contractDefinition.contractPolicy, [Validators.required, jsonValidator]));
 
           // Store original value only in edit mode
           this.originalValue = {
@@ -112,9 +111,8 @@ export class EdcContractDefinitionComponent implements OnInit, OnDestroy {
     }
     if (!contractDefinition) {
       this.formGroup.addControl('name', new FormControl<string>('edc:contractDefinition'));
-      this.formGroup.addControl('accessPolicy', new FormControl<string>('', jsonValidator));
-      this.formGroup.addControl('contractPolicy', new FormControl<string>('', jsonValidator));
-      this.formGroup.addValidators(this.edcPoliciesRequiredValidator);
+      this.formGroup.addControl('accessPolicy', new FormControl<string>('', [Validators.required, jsonValidator]));
+      this.formGroup.addControl('contractPolicy', new FormControl<string>('', [Validators.required, jsonValidator]));
     }
 
     // Subscribe to form changes only in edit mode
@@ -179,15 +177,4 @@ export class EdcContractDefinitionComponent implements OnInit, OnDestroy {
 
     return dirtyFields;
   }
-  private edcPoliciesRequiredValidator: ValidatorFn = (form: AbstractControl): ValidationErrors | null => {
-    const access = form.get('accessPolicy')?.value?.trim() || '';
-    const contract = form.get('contractPolicy')?.value?.trim() || '';
-    const eitherFilled = access !== '' || contract !== '';
-    if (eitherFilled && (access === '' || contract === '')) {
-      return { policiesRequired: true };
-    }
-    return null;
-  };
-
-
 }
