@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, forkJoin, map, of } from 'rxjs';
+import { EMPTY, Observable, catchError, expand, forkJoin, map, of, reduce } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { FilterOptions } from '../models/filter-options.model';
 import {
@@ -94,17 +94,28 @@ export class ProviderService {
 
 
   getProvidersForTenderNew(filters: SearchOrganizationsFilters): Observable<Provider[]> {
-    const url = this.buildBackendUrl(environment.searchOrganizationsEndpoint);
+    const PAGE_SIZE = 10;
+    // Strip any ?size=N the endpoint URL may already have (e.g. the ?size=1000 k8s workaround)
+    const baseUrl = this.buildBackendUrl(environment.searchOrganizationsEndpoint).split('?')[0];
 
-    return this.http.post<any>(url, filters).pipe(
-      map((response) => {
-        if (Array.isArray(response)) return response as Provider[];
-        if (response?.data && Array.isArray(response.data)) return response.data as Provider[];
-        return [];
-      })
-      // No catchError here — callers must handle HTTP errors themselves so they can
-      // distinguish a genuine empty search result from a failed request.
+    const fetchPage = (offset: number): Observable<{ items: Provider[]; offset: number }> =>
+      this.http.post<any>(`${baseUrl}?size=${PAGE_SIZE}&offset=${offset}`, filters).pipe(
+        map(response => {
+          const items: Provider[] = Array.isArray(response) ? response as Provider[] :
+            (response?.data && Array.isArray(response.data) ? response.data as Provider[] : []);
+          return { items, offset };
+        })
+      );
+
+    // Fetch pages sequentially until a page returns fewer items than PAGE_SIZE
+    return fetchPage(0).pipe(
+      expand(({ items, offset }) =>
+        items.length < PAGE_SIZE ? EMPTY : fetchPage(offset + PAGE_SIZE)
+      ),
+      reduce((acc: Provider[], { items }) => acc.concat(items), [])
     );
+    // No catchError here — callers must handle HTTP errors themselves so they can
+    // distinguish a genuine empty search result from a failed request.
   }
 
   getProviderCountryOptions(locale = 'en'): Observable<ProviderCountryOption[]> {
