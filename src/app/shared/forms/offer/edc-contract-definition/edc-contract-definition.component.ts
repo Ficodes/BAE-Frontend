@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from "@angular/forms";
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { TranslateModule } from "@ngx-translate/core";
 import { Subject } from "rxjs";
 import { takeUntil } from 'rxjs/operators';
@@ -11,13 +11,13 @@ interface EdcContractDefinition {
   name: 'edc:contractDefinition';
   accessPolicy: string;
   contractPolicy: string;
+  dspCompatible: boolean
 }
 
 @Component({
   selector: 'app-edc-contract-definition-form',
   standalone: true,
   imports: [
-    FormsModule,
     ReactiveFormsModule,
     TranslateModule
   ],
@@ -42,6 +42,7 @@ export class EdcContractDefinitionComponent implements OnInit, OnDestroy {
               name: 'edc:contractDefinition',
               accessPolicy: this.accessControl?.value || '',
               contractPolicy: this.contractControl?.value || '',
+              dspCompatible: this.dspCompatible,
             };
 
             const dirtyFields = this.getDirtyFields(currentValue);
@@ -60,13 +61,20 @@ export class EdcContractDefinitionComponent implements OnInit, OnDestroy {
       })
   }
 
-  dspCompatible = false;
   private originalValue: EdcContractDefinition | null = null;
   private hasBeenModified: boolean = false;
   private isEditMode: boolean = false;
 
   get formGroup(): FormGroup {
     return this.form as FormGroup;
+  }
+
+  get dspCompatible(): boolean {
+    return !!this.formGroup.get('dspCompatible')?.value;
+  }
+
+  get dspCompatibleControl(): FormControl {
+    return this.formGroup.get('dspCompatible') as FormControl;
   }
 
   get accessControl(): FormControl | null {
@@ -77,10 +85,6 @@ export class EdcContractDefinitionComponent implements OnInit, OnDestroy {
   get contractControl(): FormControl | null {
     const control = this.formGroup.get('contractPolicy');
     return control instanceof FormControl ? control : null;
-  }
-
-  onDspCompatibleChange(checked: boolean): void {
-    this.updatePolicyValidators(checked);
   }
 
   private updatePolicyValidators(checked: boolean): void {
@@ -97,37 +101,48 @@ export class EdcContractDefinitionComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.isEditMode = this.formType === 'update';
-    let contractDefinition = null;
-    if (this.isEditMode && this.data) {
-      if (this.data.productOfferingTerm && Array.isArray(this.data.productOfferingTerm)) {
-        contractDefinition = this.data.productOfferingTerm?.find((element: { name: any; }) => element.name == 'edc:contractDefinition')
-        if (contractDefinition) {
-          this.formGroup.addControl('name', new FormControl<string>('edc:contractDefinition'));
-          this.formGroup.addControl('accessPolicy', new FormControl<string>(contractDefinition.accessPolicy, [Validators.required, jsonValidator]));
-          this.formGroup.addControl('contractPolicy', new FormControl<string>(contractDefinition.contractPolicy, [Validators.required, jsonValidator]));
-          this.originalValue = {
-            name: contractDefinition.name,
-            accessPolicy: contractDefinition.accessPolicy,
-            contractPolicy: contractDefinition.contractPolicy
-          };
-        }
+    const alreadyInitialized = this.formGroup.contains('accessPolicy');
+
+    if (!alreadyInitialized) {
+      let contractDefinition = null;
+      if (this.isEditMode && this.data?.productOfferingTerm && Array.isArray(this.data.productOfferingTerm)) {
+        contractDefinition = this.data.productOfferingTerm.find((el: { name: any }) => el.name === 'edc:contractDefinition');
       }
-    }
-    if (!contractDefinition) {
-      this.formGroup.addControl('name', new FormControl<string>('edc:contractDefinition'));
-      this.formGroup.addControl('accessPolicy', new FormControl<string>('', [jsonValidator]));
-      this.formGroup.addControl('contractPolicy', new FormControl<string>('', [jsonValidator]));
+
+      if (contractDefinition) {
+        this.formGroup.addControl('dspCompatible', new FormControl(true));
+        this.formGroup.addControl('name', new FormControl<string>('edc:contractDefinition'));
+        this.formGroup.addControl('accessPolicy', new FormControl<string>(this.jsonToString(contractDefinition.accessPolicy), [Validators.required, jsonValidator]));
+        this.formGroup.addControl('contractPolicy', new FormControl<string>(this.jsonToString(contractDefinition.contractPolicy), [Validators.required, jsonValidator]));
+        this.originalValue = {
+          name: contractDefinition.name,
+          accessPolicy: contractDefinition.accessPolicy,
+          contractPolicy: contractDefinition.contractPolicy,
+          dspCompatible: true
+        };
+      } else {
+        this.formGroup.addControl('dspCompatible', new FormControl(false));
+        this.formGroup.addControl('name', new FormControl<string>('edc:contractDefinition'));
+        this.formGroup.addControl('accessPolicy', new FormControl<string>('', [jsonValidator]));
+        this.formGroup.addControl('contractPolicy', new FormControl<string>('', [jsonValidator]));
+      }
     }
 
     this.updatePolicyValidators(this.dspCompatible);
 
-    // Subscribe to form changes only in edit mode
+    this.dspCompatibleControl.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(checked => {
+        this.updatePolicyValidators(!!checked);
+        if (checked && !this.originalValue) {
+          this.originalValue = { name: 'edc:contractDefinition', accessPolicy: '', contractPolicy: '', dspCompatible: false };
+        }
+      });
+
     if (this.isEditMode) {
       this.formGroup.valueChanges
         .pipe(takeUntil(this.destroy$))
-        .subscribe(() => {
-          this.hasBeenModified = true;
-        });
+        .subscribe(() => { this.hasBeenModified = true; });
     }
   }
 
@@ -136,7 +151,8 @@ export class EdcContractDefinitionComponent implements OnInit, OnDestroy {
       const currentValue: EdcContractDefinition = {
         name: 'edc:contractDefinition',
         accessPolicy: this.accessControl?.value || '',
-        contractPolicy: this.contractControl?.value || ''
+        contractPolicy: this.contractControl?.value || '',
+        dspCompatible: this.dspCompatible
       };
       const dirtyFields = this.getDirtyFields(currentValue);
       if (dirtyFields.length > 0) {
@@ -171,5 +187,14 @@ export class EdcContractDefinitionComponent implements OnInit, OnDestroy {
     }
 
     return dirtyFields;
+  }
+
+  private jsonToString(json: any) {
+    try {
+      return JSON.stringify(json, null, 2);
+    } catch (err) {
+      console.error(`Unable to stringify json: ${json}`, err)
+      return '';
+    }
   }
 }
