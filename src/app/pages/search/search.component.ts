@@ -506,11 +506,10 @@ export class SearchComponent implements OnInit, OnDestroy {
       "keywords": this.keywords,
       "filters": filters
     }
-    // Ordering is disabled until the backend supports sorting search results.
-    // const sortParam = this.getSortParam();
-    // if (sortParam !== undefined) {
-    //   options.sort = sortParam;
-    // }
+    const sortParam = this.getSortParam();
+    if (sortParam !== undefined) {
+      options.sort = sortParam;
+    }
 
     try {
       const data = await this.paginationService.getItemsPaginated(
