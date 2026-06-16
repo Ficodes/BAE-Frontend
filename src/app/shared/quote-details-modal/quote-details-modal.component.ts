@@ -985,13 +985,18 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
   acceptProposal() {
     if (!this.quote?.id || this.isProcessing) return;
 
-    this.confirmDialogTitle = 'Accept Quote Proposal';
-    this.confirmDialogMessage = 'Are you sure you want to accept this quote proposal?';
+    const isTender = this.getQuoteCategory() === QUOTE_CATEGORIES.TENDER;
+
+    this.confirmDialogTitle = isTender ? 'Accept Tender Offer' : 'Accept Quote Proposal';
+    this.confirmDialogMessage = isTender
+      ? 'Are you sure you want to accept this offer? All other provider offers in this tender will be rejected.'
+      : 'Are you sure you want to accept this quote proposal?';
     this.confirmDialogButtonText = 'Accept';
     this.confirmDialogButtonClass = 'inline-flex h-10 items-center rounded-lg bg-[#006B4A] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#00533A] focus:outline-none focus:ring-2 focus:ring-[#A8DDC8] disabled:cursor-not-allowed disabled:opacity-50';
     this.confirmDialogCallback = () => {
       this.isProcessing = true;
       const quoteId = this.quote!.id!;
+      const externalId = this.quote!.externalId;
 
       this.quoteService.updateQuoteStatus(quoteId, QUOTE_STATUSES.ACCEPTED).pipe(
         switchMap((updatedQuote) => {
@@ -1000,9 +1005,44 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
         })
       ).subscribe({
         next: () => {
-          this.isProcessing = false;
-          this.notificationService.showSuccess('Quote proposal accepted');
-          this.quoteUpdated.emit(this.quote!);
+          if (isTender && externalId) {
+            this.quoteService.getTenderingQuotesByExternalId(this.currentUserId, externalId, API_ROLES.BUYER).subscribe({
+              next: (siblings) => {
+                const toReject = siblings.filter(s => {
+                  if (s.id === quoteId) return false;
+                  const state = s.quoteItem?.[0]?.state ?? s.state;
+                  return state !== QUOTE_STATUSES.ACCEPTED && state !== QUOTE_STATUSES.CANCELLED && state !== QUOTE_STATUSES.REJECTED;
+                });
+                if (toReject.length > 0) {
+                  forkJoin(toReject.map(s => this.quoteService.updateQuoteStatus(s.id!, QUOTE_STATUSES.REJECTED))).subscribe({
+                    next: () => {
+                      this.isProcessing = false;
+                      this.notificationService.showSuccess(`Offer accepted. ${toReject.length} other offer(s) have been rejected.`);
+                      this.quoteUpdated.emit(this.quote!);
+                    },
+                    error: () => {
+                      this.isProcessing = false;
+                      this.notificationService.showSuccess('Offer accepted, but failed to reject other offers.');
+                      this.quoteUpdated.emit(this.quote!);
+                    }
+                  });
+                } else {
+                  this.isProcessing = false;
+                  this.notificationService.showSuccess('Offer accepted.');
+                  this.quoteUpdated.emit(this.quote!);
+                }
+              },
+              error: () => {
+                this.isProcessing = false;
+                this.notificationService.showSuccess('Offer accepted, but failed to fetch other offers to reject.');
+                this.quoteUpdated.emit(this.quote!);
+              }
+            });
+          } else {
+            this.isProcessing = false;
+            this.notificationService.showSuccess('Quote proposal accepted');
+            this.quoteUpdated.emit(this.quote!);
+          }
         },
         error: (error) => {
           this.isProcessing = false;
