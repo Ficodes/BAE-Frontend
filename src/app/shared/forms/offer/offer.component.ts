@@ -129,7 +129,7 @@ export class OfferComponent implements OnInit, OnDestroy {
     this.productOfferForm.statusChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(status => {
-        if (!this.productOfferForm.controls['generalInfo'].valid || !this.productOfferForm.get('procurementMode')?.valid) {
+        if (!this.productOfferForm.controls['generalInfo'].valid || !this.productOfferForm.get('procurementMode')?.valid || !this.productOfferForm.get('edcContractDefinition')?.valid) {
           this.isFormValid = false
         } else {
           this.isFormValid = true
@@ -1003,6 +1003,28 @@ export class OfferComponent implements OnInit, OnDestroy {
             basePayload.pricingLogicAlgorithm = [];
           }
           break;
+
+        case 'contractDefinition': {
+          if (change.currentValue.dspCompatible) {
+            const edcTerm = basePayload.productOfferingTerm.find((term: any) => term.name === 'edc:contractDefinition');
+            if (edcTerm) {
+              edcTerm.accessPolicy = JSON.parse(change.currentValue.accessPolicy);
+              edcTerm.contractPolicy = JSON.parse(change.currentValue.contractPolicy);
+            } else {
+              basePayload.productOfferingTerm.push({
+                name: change.currentValue.name,
+                contractPolicy: change.currentValue.contractPolicy ? JSON.parse(change.currentValue.contractPolicy) : '',
+                accessPolicy: change.currentValue.accessPolicy ? JSON.parse(change.currentValue.accessPolicy) : '',
+                '@schemaLocation': environment.DSP_CONTRACT_DEFINITION_SCHEMA
+              })
+            }
+          } else {
+            basePayload.productOfferingTerm = basePayload.productOfferingTerm.filter(
+              (term: any) => term.name !== 'edc:contractDefinition'
+            );
+          }
+          break;
+        }
 
         case 'replication':
           // Actualizar configuración de replicación
