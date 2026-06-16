@@ -366,21 +366,23 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
 
     //CHARS
     if (this.prod.productSpecCharacteristic) {
-      this.prod.productSpecCharacteristic
-        .filter((char: any) => !DSP_CHARS.includes(char.valueType))
-        .forEach((char: any) => {
-          const index = this.selectedISOS.findIndex(item => item.name === char.name);
-          if (index == -1) {
-            this.prodChars.push({
-              id: char.id ? char.id : 'urn:ngsi-ld:characteristic:' + uuidv4(),
-              name: char.name,
-              description: char.description ? char.description : '',
-              valueType: char.valueType,
-              '@schemaLocation': char['@schemaLocation'],
-              productSpecCharacteristicValue: char.productSpecCharacteristicValue
-            });
-          }
-        });
+      let chars = this.prod.productSpecCharacteristic;
+      if (this.prod.externalId) {
+        chars = chars.filter((char: any) => !DSP_CHARS.includes(char.valueType));
+      }
+      chars.forEach((char: any) => {
+        const index = this.selectedISOS.findIndex(item => item.name === char.name);
+        if (index == -1) {
+          this.prodChars.push({
+            id: char.id ? char.id : 'urn:ngsi-ld:characteristic:' + uuidv4(),
+            name: char.name,
+            description: char.description ? char.description : '',
+            valueType: char.valueType,
+            '@schemaLocation': char['@schemaLocation'],
+            productSpecCharacteristicValue: char.productSpecCharacteristicValue
+          });
+        }
+      });
     }
 
     //RESOURCE
@@ -1487,6 +1489,26 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
           valueTo: this.toValue as any,
           unitOfMeasure: this.rangeUnit
         })
+      }
+    } else if (this.isDataSpaceCharacteristicType(this.charTypeSelected)) {
+      if (this.creatingChars.length > 0) {
+        this.errorMessage = 'Only one JSON value is allowed';
+        this.showError = true;
+        setTimeout(() => { this.showError = false }, 3000);
+        return;
+      }
+      try {
+        const parsedJson = JSON.parse(this.jsonValue);
+        this.creatingChars.push({
+          isDefault: true,
+          value: parsedJson as any
+        });
+        this.jsonValue = '';
+      } catch (error) {
+        this.errorMessage = 'Invalid JSON format';
+        this.showError = true;
+        setTimeout(() => { this.showError = false }, 3000);
+        return;
       }
     } else if (this.charTypeSelected == 'boolean') {
       console.log('boolean values are fixed')
