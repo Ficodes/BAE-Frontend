@@ -68,6 +68,9 @@
                             <th scope="col" class="px-6 py-3">
                                 {{ 'PROFILE._medium_type' | translate }}
                             </th>
+                            <th scope="col" class="px-6 py-3">
+                                {{ 'PROFILE._contact_title' | translate }}
+                            </th>
                             <th scope="col" class="px-6 py-3 hidden md:table-cell">
                                 {{ 'PROFILE._info' | translate }}
                             </th>
@@ -78,6 +81,9 @@
                             <tr class="border-b border-gray-300 dark:border-gray-700">
                                 <td class="px-6 py-4">
                                     {{medium.mediumType}}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{medium.characteristic?.contactType || medium.mediumType}}
                                 </td>
                                 <td class="px-6 py-4 hidden md:table-cell">
                                     @if(medium.mediumType == 'Email'){

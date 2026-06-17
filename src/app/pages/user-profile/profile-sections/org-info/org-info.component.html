@@ -288,6 +288,9 @@
                         <th scope="col" class="px-6 py-3">
                             {{ 'PROFILE._medium_type' | translate }}
                         </th>
+                        <th scope="col" class="px-6 py-3">
+                            {{ 'PROFILE._contact_title' | translate }}
+                        </th>
                         <th scope="col" class="px-6 py-3 hidden md:table-cell">
                             {{ 'PROFILE._info' | translate }}
                         </th>
@@ -304,13 +307,16 @@
                             <td class="px-6 py-4">
                                 {{medium.mediumType}}
                             </td>
+                            <td class="px-6 py-4">
+                                {{ getMediumContactType(medium) }}
+                            </td>
                             <td class="px-6 py-4 hidden md:table-cell">
                                 @if(medium.mediumType == 'Email'){
                                     {{medium.characteristic.emailAddress}}
                                 } @else if(medium.mediumType == 'PostalAddress') {
                                     {{medium.characteristic.street1}}, {{medium.characteristic.postCode}} ({{medium.characteristic.city}}) {{medium.characteristic.stateOrProvince}}, {{medium.characteristic.country}}
                                 } @else {
-                                    ({{medium.characteristic.contactType}}) {{medium.characteristic.phoneNumber}}
+                                    {{medium.characteristic.phoneNumber}}
                                 }
                             </td>
                             @if(!isReadOnly){
@@ -356,6 +362,12 @@
         </div>
 
         <form class="grid h-full grid-cols-2 gap-5 m-4" [formGroup]="mediumForm">
+            <div class="col-span-2">
+                <label for="contactTitle" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._contact_title' | translate }}</label>
+                <input id="contactTitle" formControlName="contactTitle" name="contactTitle" type="text"
+                class="mb-2 bg-gray-50 text-gray-900 dark:bg-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                [ngClass]="(mediumForm.get('contactTitle')?.invalid == true && mediumForm.value.contactTitle!='') || (mediumForm.get('contactTitle')?.touched == true && mediumForm.value.contactTitle=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'">
+            </div>
             @if(emailSelected){
                 <div class="col-span-2">
                     <label class="font-bold text-lg dark:text-white">{{ 'PROFILE._email' | translate }}</label>
@@ -395,18 +407,7 @@
                     [ngClass]="(mediumForm.get('street')?.invalid == true && mediumForm.value.street!='') || (mediumForm.get('street')?.touched && mediumForm.value.street=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"></textarea>
                 </div>   
             } @else {
-                <div class="col-span-2 lg:col-span-1">
-                    <label for="phoneType" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._phone_type' | translate }}</label>
-                    <select id="phoneType" formControlName="telephoneType"
-                    class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                        <option value="Mobile">Mobile</option>
-                        <option value="Landline">Landline</option>
-                        <option value="Office">Office</option>
-                        <option value="Home">Home</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div class="col-span-2 lg:col-span-1">
+                <div class="col-span-2">
                     <label for="phoneNumber" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._phone' | translate }}</label>
                     <div class="w-full">
                         <div class="relative flex items-center">
@@ -484,6 +485,12 @@
             </div>-->
 
             <form class="grid h-full grid-cols-2 gap-5 m-4" [formGroup]="mediumForm">
+                <div class="col-span-2">
+                    <label for="editContactTitle" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._contact_title' | translate }}</label>
+                    <input id="editContactTitle" formControlName="contactTitle" name="editContactTitle" type="text"
+                    class="mb-2 bg-gray-50 text-gray-900 dark:bg-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    [ngClass]="(mediumForm.get('contactTitle')?.invalid == true && mediumForm.value.contactTitle!='') || (mediumForm.get('contactTitle')?.touched == true && mediumForm.value.contactTitle=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'">
+                </div>
                 @if(selectedMedium.mediumType=='Email'){
                     <div class="col-span-2">
                         <label class="font-bold text-lg dark:text-white">Email</label>
@@ -518,18 +525,7 @@
                         class="mb-2 min-h-fit bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" rows="4"></textarea>
                     </div>   
                 } @else {
-                    <div class="col-span-2 lg:col-span-1">
-                        <label for="phoneType" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._phone_type' | translate }}</label>
-                        <select id="phoneType" formControlName="telephoneType"
-                        class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                            <option value="Mobile">Mobile</option>
-                            <option value="Landline">Landline</option>
-                            <option value="Office">Office</option>
-                            <option value="Home">Home</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div class="col-span-2 lg:col-span-1">
+                    <div class="col-span-2">
                         <label for="phoneNumber" class="mb-3 block text-sm font-semibold leading-none text-body-dark dark:text-white">{{ 'PROFILE._phone' | translate }}</label>
                         <div class="w-full">
                             <div class="relative flex items-center">
@@ -561,7 +557,7 @@
                 }
             </form>
             <div class="flex w-full justify-items-center justify-center m-2 p-2">
-                <button type="button" (click)="editMedium()" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                <button type="button" (click)="editMedium()" [disabled]="mediumForm.get('contactTitle')?.invalid" [ngClass]="mediumForm.get('contactTitle')?.invalid ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                     {{ 'PROFILE._save' | translate }}
                     <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M11 16h2m6.707-9.293-2.414-2.414A1 1 0 0 0 16.586 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.414a1 1 0 0 0-.293-.707ZM16 20v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v6h8ZM9 4h6v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4Z"/>
@@ -587,6 +583,9 @@
             }
             @if(this.mediumForm.get('email')?.invalid == true){
                 <div class="block ms-3 text-sm font-normal">{{ 'PROFILE._invalid_email' | translate }}</div>
+            }
+            @if(this.mediumForm.get('contactTitle')?.invalid == true){
+                <div class="block ms-3 text-sm font-normal">{{ 'PROFILE._invalid_contact_title' | translate }}</div>
             }
         </div>
         <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-warning" aria-label="Close">

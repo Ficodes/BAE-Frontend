@@ -46,6 +46,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
     contractManagementScopes: new FormControl(''),
   });
   mediumForm = new FormGroup({
+    contactTitle: new FormControl('', [Validators.required, Validators.maxLength(250)]),
     email: new FormControl('', [Validators.required, Validators.email, Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$'), Validators.maxLength(320)]),
     country: new FormControl('', Validators.maxLength(250)),
     city: new FormControl('', Validators.maxLength(250)),
@@ -239,7 +240,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
           mediumType: 'Email',
           preferred: this.contactmediums[i].preferred,
           characteristic: {
-            contactType: this.contactmediums[i].characteristic.contactType,
+            contactType: this.getMediumContactType(this.contactmediums[i], 'Email'),
             emailAddress: this.contactmediums[i].characteristic.emailAddress
           }
         })
@@ -248,7 +249,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
           mediumType: this.contactmediums[i].mediumType,
           preferred: this.contactmediums[i].preferred,
           characteristic: {
-            contactType: 'PostalAddress',
+            contactType: this.getMediumContactType(this.contactmediums[i], 'PostalAddress'),
             city: this.contactmediums[i].characteristic.city,
             country: this.contactmediums[i].characteristic.country,
             postCode: this.contactmediums[i].characteristic.postCode,
@@ -261,7 +262,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
           mediumType: this.contactmediums[i].mediumType,
           preferred: this.contactmediums[i].preferred,
           characteristic: {
-            contactType: this.contactmediums[i].characteristic.contactType,
+            contactType: this.getMediumContactType(this.contactmediums[i], 'Phone'),
             phoneNumber: this.contactmediums[i].characteristic.phoneNumber
           }
         })          
@@ -318,7 +319,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
             mediumType: profile.contactMedium[i].mediumType,
             preferred: profile.contactMedium[i].preferred,
             characteristic: {
-              contactType: 'PostalAddress',
+              contactType: profile.contactMedium[i].characteristic?.contactType,
               city: profile.contactMedium[i].characteristic.city,
               country: profile.contactMedium[i].characteristic.country,
               postCode: profile.contactMedium[i].characteristic.postCode,
@@ -386,6 +387,26 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
     return '';
   }
 
+  getMediumContactType(medium: any, fallback: string = ''): string {
+    const contactType = medium?.characteristic?.contactType;
+
+    if (typeof contactType === 'string' && contactType.trim() !== '') {
+      return contactType.trim();
+    }
+
+    return fallback;
+  }
+
+  private getContactTitle(defaultTitle: string): string {
+    const contactTitle = this.mediumForm.value.contactTitle;
+
+    if (typeof contactTitle === 'string' && contactTitle.trim() !== '') {
+      return contactTitle.trim();
+    }
+
+    return defaultTitle;
+  }
+
   saveMedium(){
     if(this.phoneSelected){
         try{
@@ -426,7 +447,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
           mediumType: 'Email',
           preferred: false,
           characteristic: {
-            contactType: 'Email',
+            contactType: this.getContactTitle('Email'),
             emailAddress: this.mediumForm.value.email
           }
         })
@@ -436,7 +457,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
           mediumType: 'PostalAddress',
           preferred: false,
           characteristic: {
-            contactType: 'PostalAddress',
+            contactType: this.getContactTitle('PostalAddress'),
             city: this.mediumForm.value.city,
             country: this.mediumForm.value.country,
             postCode: this.mediumForm.value.postCode,
@@ -450,7 +471,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
           mediumType: 'TelephoneNumber',
           preferred: false,
           characteristic: {
-            contactType: this.mediumForm.value.telephoneType,
+            contactType: this.getContactTitle('Phone'),
             phoneNumber: this.phonePrefix.code + this.mediumForm.value.telephoneNumber
           }
         })
@@ -470,6 +491,13 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
 
     const index = this.contactmediums.findIndex(item => item.id === this.selectedMedium.id);
       if (index !== -1) {
+        if (this.mediumForm.get('contactTitle')?.invalid) {
+          this.toastVisibility = true;
+          setTimeout(() => {
+            this.toastVisibility = false
+          }, 2000);
+          return;
+        }
         if(this.selectedMedium.mediumType=='Email'){
           if (this.mediumForm.get('email')?.invalid) {
             this.toastVisibility = true;
@@ -481,9 +509,9 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
           this.contactmediums[index]={
             id: this.contactmediums[index].id,
             mediumType: 'Email',
-            preferred: false,
+            preferred: this.contactmediums[index].preferred,
             characteristic: {
-              contactType: 'Email',
+              contactType: this.getContactTitle('Email'),
               emailAddress: this.mediumForm.value.email
             }
           }
@@ -503,9 +531,9 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
           this.contactmediums[index]={
             id: this.contactmediums[index].id,
             mediumType: 'PostalAddress',
-            preferred: false,
+            preferred: this.contactmediums[index].preferred,
             characteristic: {
-              contactType: 'PostalAddress',
+              contactType: this.getContactTitle('PostalAddress'),
               city: this.mediumForm.value.city,
               country: this.mediumForm.value.country,
               postCode: this.mediumForm.value.postCode,
@@ -541,9 +569,9 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
           this.contactmediums[index]={
             id: this.contactmediums[index].id,
             mediumType: 'TelephoneNumber',
-            preferred: false,
+            preferred: this.contactmediums[index].preferred,
             characteristic: {
-              contactType: this.mediumForm.value.telephoneType,
+              contactType: this.getContactTitle('Phone'),
               phoneNumber: this.phonePrefix.code + this.mediumForm.value.telephoneNumber
             }
           }
@@ -555,6 +583,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
 
   showEdit(medium:any){
     this.selectedMedium=medium;
+    this.mediumForm.controls['contactTitle'].setValue(this.getMediumContactType(this.selectedMedium));
     if(this.selectedMedium.mediumType=='Email'){
       this.selectedMediumType='email';
       this.mediumForm.controls['email'].setValue(this.selectedMedium.characteristic.emailAddress);
