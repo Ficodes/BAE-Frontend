@@ -188,35 +188,37 @@
                 {{ visibleProducts.length }} results
               }
             </span>
-            <div class="flex items-center gap-1.5 text-[16px]">
-              <span class="text-[#526179]">Sort by:</span>
-              <div class="relative">
-                <button (click)="toggleSortDropdown($event)" class="flex items-center gap-1 font-semibold text-[#1f4fbf]">
-                  {{ sortLabel }}
-                  <svg class="h-4 w-4 transition-transform" [ngClass]="showSortDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                  </svg>
-                </button>
-                @if (showSortDropdown) {
-                  <div (click)="$event.stopPropagation()" class="absolute top-full left-0 mt-2 z-50 w-[200px] rounded-xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] overflow-hidden">
-                    <div class="p-2 flex flex-col gap-1">
-                      @for (opt of sortOptions; track opt.value) {
-                        <button (click)="selectSort(opt.value, $event)"
-                          [ngClass]="sortOption === opt.value ? 'bg-[#DDE6F6] text-[#1f4fbf]' : 'hover:bg-[#EBF0F7] text-[#0b1220]'"
-                          class="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-[14px] transition-colors">
-                          <span>{{ opt.label }}</span>
-                          @if (sortOption === opt.value) {
-                            <svg class="h-4 w-4 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                            </svg>
-                          }
-                        </button>
-                      }
+            @if (searchEnabled) {
+              <div class="flex items-center gap-1.5 text-[16px]">
+                <span class="text-[#526179]">Sort by:</span>
+                <div class="relative">
+                  <button (click)="toggleSortDropdown($event)" class="flex items-center gap-1 font-semibold text-[#1f4fbf]">
+                    {{ sortLabel }}
+                    <svg class="h-4 w-4 transition-transform" [ngClass]="showSortDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </button>
+                  @if (showSortDropdown) {
+                    <div (click)="$event.stopPropagation()" class="absolute top-full left-0 mt-2 z-50 w-[200px] rounded-xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] overflow-hidden">
+                      <div class="p-2 flex flex-col gap-1">
+                        @for (opt of sortOptions; track opt.value) {
+                          <button (click)="selectSort(opt.value, $event)"
+                            [ngClass]="sortOption === opt.value ? 'bg-[#DDE6F6] text-[#1f4fbf]' : 'hover:bg-[#EBF0F7] text-[#0b1220]'"
+                            class="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-[14px] transition-colors">
+                            <span>{{ opt.label }}</span>
+                            @if (sortOption === opt.value) {
+                              <svg class="h-4 w-4 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                              </svg>
+                            }
+                          </button>
+                        }
+                      </div>
                     </div>
-                  </div>
-                }
+                  }
+                </div>
               </div>
-            </div>
+            }
           </div>
           <div class="flex items-center gap-4">
             <div class="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-white p-1">
