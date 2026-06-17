@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
 type HeroLogo = { name: string; file: string; height: number };
@@ -9,12 +10,9 @@ type HeroLogo = { name: string; file: string; height: number };
   templateUrl: './dashboard-hero.component.html',
   styleUrl: './dashboard-hero.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslateModule]
+  imports: [TranslateModule, RouterLink]
 })
 export class DashboardHeroComponent {
-  providersLink = input.required<string>();
-  customersLink = input.required<string>();
-
   heroLogos: HeroLogo[] = [
     { name: 'Team Dev', file: 'Team Dev.svg', height: 52 },
     { name: 'Elliot Cloud', file: 'Elliot Cloud.svg', height: 27 },

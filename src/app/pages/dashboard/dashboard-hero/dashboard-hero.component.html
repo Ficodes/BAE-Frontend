@@ -27,11 +27,11 @@
     </p>
 
     <div class="hero-actions mt-8 flex w-full max-w-[548px] flex-col gap-4 sm:flex-row sm:gap-6">
-      <a [href]="customersLink()" target="_blank" rel="noopener noreferrer" class="hero-btn hero-btn--primary">
+      <a routerLink="/landing-page/customers" class="hero-btn hero-btn--primary">
         {{ 'DASHBOARD.hero._customerCta' | translate }}
       </a>
 
-      <a [href]="providersLink()" target="_blank" rel="noopener noreferrer" class="hero-btn hero-btn--secondary">
+      <a routerLink="/landing-page/providers" class="hero-btn hero-btn--secondary">
         {{ 'DASHBOARD.hero._providerCta' | translate }}
       </a>
     </div>
