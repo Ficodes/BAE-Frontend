@@ -1,11 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
-import { Observable, map, forkJoin } from 'rxjs';
+import { Observable, forkJoin, map, of, throwError } from 'rxjs';
 import { AttachmentRefOrValue, Quote, Quote_Create, Quote_Update, QuoteStateType } from 'src/app/models/quote.model';
 import { Tender, TenderStateType } from 'src/app/models/tender.model';
 import { ApiRole, API_ROLES } from 'src/app/models/roles.constants';
 import { QUOTE_STATUSES, QUOTE_CATEGORIES } from 'src/app/models/quote.constants';
 import { environment } from '../../../../environments/environment';
+
+interface DocumentSpecificationResponse {
+  name?: string;
+  attachment?: AttachmentRefOrValue[];
+}
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +29,15 @@ export class QuoteService {
     return `${environment.BASE_URL}${quoteApi}`;
   }
 
+  private get documentApiUrl(): string {
+    const documentApi = environment.documentApi;
+    const baseUrl = documentApi.startsWith('http://') || documentApi.startsWith('https://')
+      ? documentApi
+      : `${environment.BASE_URL}${documentApi}`;
+
+    return baseUrl.replace(/\/$/, '');
+  }
+
   // Get HTTP headers with Bearer token for quote API calls
   private get httpOptions() {
     return {
@@ -33,9 +47,7 @@ export class QuoteService {
     };
   }
 
-  constructor(private http: HttpClient) {
-    console.log('🔍 [DEBUG] QuoteService constructor - BASE_URL:', environment.BASE_URL);
-  }
+  constructor(private http: HttpClient) {}
 
   // TMF 648 Quote Management API methods
   
@@ -288,30 +300,75 @@ export class QuoteService {
   /**
    * Download attachment from quote
    */
-  downloadAttachment(quote: Quote): void {
-    let attachment: AttachmentRefOrValue | null = null;
-    if (Array.isArray(quote.quoteItem)) {
-      for (const item of quote.quoteItem) {
-        if (item.attachment && item.attachment.length > 0) {
-          attachment = item.attachment[0];
-          break;
+  downloadAttachment(quote: Quote): Observable<void> {
+    const attachment = this.getFirstQuoteAttachment(quote);
+
+    if (!attachment) {
+      return throwError(() => new Error('No attachment found for this quote.'));
+    }
+
+    const filename = this.getQuoteAttachmentFilename(quote, attachment);
+    const downloadUrl = this.getAttachmentDownloadUrl(attachment);
+    if (downloadUrl) {
+      this.startAttachmentDownload(downloadUrl, filename);
+      console.log(`Started attachment download: ${filename}`);
+      return of(void 0);
+    }
+
+    const documentSpecificationId = this.getDocumentSpecificationId(attachment);
+    if (!documentSpecificationId) {
+      return throwError(() => new Error('Attachment link not available for this attachment.'));
+    }
+
+    return this.http.get<DocumentSpecificationResponse>(
+      this.getDocumentSpecificationUrl(documentSpecificationId),
+      this.httpOptions
+    ).pipe(
+      map(documentSpecification => {
+        const documentAttachment = documentSpecification.attachment?.[0];
+        if (!documentAttachment?.content) {
+          throw new Error('Document attachment content not found.');
         }
+
+        const documentFilename = documentAttachment.name || documentSpecification.name || filename;
+        const mimeType = documentAttachment.mimeType || attachment.mimeType || 'application/octet-stream';
+        this.downloadBase64Attachment(documentAttachment.content, mimeType, documentFilename);
+        console.log(`Downloaded document attachment: ${documentFilename}`);
+      })
+    );
+  }
+
+  getAttachmentDownloadUrl(attachment: AttachmentRefOrValue): string | null {
+    const candidates = [attachment.url, attachment.href, attachment.path, attachment.content];
+    return candidates.find((candidate): candidate is string => this.isDownloadableAttachmentLink(candidate)) || null;
+  }
+
+  getDocumentSpecificationUrl(documentSpecificationId: string): string {
+    return `${this.documentApiUrl}/documentSpecification/${encodeURIComponent(documentSpecificationId.trim())}`;
+  }
+
+  private getFirstQuoteAttachment(quote: Quote): AttachmentRefOrValue | null {
+    if (!Array.isArray(quote.quoteItem)) {
+      return null;
+    }
+
+    for (const item of quote.quoteItem) {
+      if (item.attachment && item.attachment.length > 0) {
+        return item.attachment[0];
       }
     }
 
-    if (!attachment) {
-      throw new Error('No attachment found for this quote.');
-    }
+    return null;
+  }
 
-    const downloadUrl = this.getAttachmentDownloadUrl(attachment);
-    if (!downloadUrl) {
-      throw new Error('Attachment link not available for this attachment.');
-    }
-
+  private getQuoteAttachmentFilename(quote: Quote, attachment: AttachmentRefOrValue): string {
     const shortQuoteId = quote.id?.length && quote.id.length > 8 ? quote.id.slice(-8) : quote.id || 'unknown';
-    const filename = attachment.name || `quote-${shortQuoteId}-attachment.pdf`;
+    return attachment.name || `quote-${shortQuoteId}-attachment.pdf`;
+  }
+
+  private startAttachmentDownload(url: string, filename: string): void {
     const link = document.createElement('a');
-    link.href = downloadUrl;
+    link.href = url;
     link.download = filename;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
@@ -319,23 +376,28 @@ export class QuoteService {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    console.log(`Started attachment download: ${filename}`);
   }
 
-  getAttachmentDownloadUrl(attachment: AttachmentRefOrValue): string | null {
-    const candidates = [attachment.url, attachment.href, attachment.path, attachment.content];
-    const directLink = candidates.find((candidate): candidate is string => this.isDownloadableAttachmentLink(candidate));
-    if (directLink) {
-      return directLink;
+  private downloadBase64Attachment(encodedContent: string, mimeType: string, filename: string): void {
+    const base64Content = encodedContent.includes(',')
+      ? encodedContent.substring(encodedContent.indexOf(',') + 1)
+      : encodedContent;
+    const binaryString = atob(base64Content);
+    const bytes = new Uint8Array(binaryString.length);
+
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
     }
 
-    const documentSpecificationId = candidates.find((candidate): candidate is string => this.isDocumentSpecificationReference(candidate));
-    if (documentSpecificationId) {
-      return `${this.apiUrl}/documentSpecification/${encodeURIComponent(documentSpecificationId.trim())}/attachment`;
-    }
+    const blob = new Blob([bytes], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    this.startAttachmentDownload(url, filename);
+    URL.revokeObjectURL(url);
+  }
 
-    return null;
+  private getDocumentSpecificationId(attachment: AttachmentRefOrValue): string | null {
+    const candidates = [attachment.content, attachment.id, attachment.href];
+    return candidates.find((candidate): candidate is string => this.isDocumentSpecificationReference(candidate)) || null;
   }
 
   private isDownloadableAttachmentLink(value?: string): value is string {
@@ -402,13 +464,7 @@ export class QuoteService {
       customerIdRef
     };
     
-    const fullUrl = `${this.apiUrl}/tendering/createCoordinatorQuote`;
-    console.log('🔍 [DEBUG] QuoteService.createCoordinatorQuote:');
-    console.log('🔍 [DEBUG]   this.apiUrl:', this.apiUrl);
-    console.log('🔍 [DEBUG]   Full URL being called:', fullUrl);
-    console.log('🔍 [DEBUG]   environment.quoteApi:', environment.quoteApi);
-    
-    return this.http.post<Quote>(fullUrl, payload, this.httpOptions).pipe(
+    return this.http.post<Quote>(`${this.apiUrl}/tendering/createCoordinatorQuote`, payload, this.httpOptions).pipe(
       map(quote => this.mapQuoteToTender(quote))
     );
   }

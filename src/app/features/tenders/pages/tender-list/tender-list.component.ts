@@ -1355,13 +1355,13 @@ export class TenderListComponent implements OnInit {
   }
 
   downloadAttachment(quote: Quote) {
-    try {
-      this.quoteService.downloadAttachment(quote);
-      this.notificationService.showSuccess('Download started');
-    } catch (error: any) {
-      console.error('Error downloading attachment:', error);
-      this.notificationService.showError(error.message || 'Error downloading attachment');
-    }
+    this.quoteService.downloadAttachment(quote).subscribe({
+      next: () => this.notificationService.showSuccess('Download started'),
+      error: (error: any) => {
+        console.error('Error downloading attachment:', error);
+        this.notificationService.showError(error.message || 'Error downloading attachment');
+      }
+    });
   }
 
   /**
@@ -1376,20 +1376,19 @@ export class TenderListComponent implements OnInit {
 
     this.quoteService.getQuoteById(coordinatorId).subscribe({
       next: (coordinator: Quote) => {
-        try {
-          // Reuse download logic by wrapping the attachment into a Quote-like structure
-          if (!coordinator.quoteItem || coordinator.quoteItem.length === 0 ||
-              !coordinator.quoteItem[0].attachment || coordinator.quoteItem[0].attachment.length === 0) {
-            this.notificationService.showError(`No buyer's request attachment found on coordinator quote.`);
-            return;
-          }
-          // Use existing helper that handles both Tender and Quote types
-          this.quoteService.downloadAttachment(coordinator);
-          this.notificationService.showSuccess(`Download started`);
-        } catch (err: any) {
-          console.error('Error downloading buyer request:', err);
-          this.notificationService.showError(err.message || 'Error downloading buyer request');
+        if (!coordinator.quoteItem || coordinator.quoteItem.length === 0 ||
+            !coordinator.quoteItem[0].attachment || coordinator.quoteItem[0].attachment.length === 0) {
+          this.notificationService.showError(`No buyer's request attachment found on coordinator quote.`);
+          return;
         }
+
+        this.quoteService.downloadAttachment(coordinator).subscribe({
+          next: () => this.notificationService.showSuccess(`Download started`),
+          error: (err: any) => {
+            console.error('Error downloading buyer request:', err);
+            this.notificationService.showError(err.message || 'Error downloading buyer request');
+          }
+        });
       },
       error: (error: Error) => {
         console.error('Failed to fetch coordinator quote for download:', error);

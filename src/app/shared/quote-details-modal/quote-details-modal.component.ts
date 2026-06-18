@@ -881,22 +881,18 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
 
   downloadAttachment() {
     if (!this.quote) return;
-    try {
-      this.quoteService.downloadAttachment(this.quote);
-      this.notificationService.showSuccess('Download started');
-    } catch (error: any) {
-      this.notificationService.showError(error.message || 'Error downloading attachment');
-    }
+    this.quoteService.downloadAttachment(this.quote).subscribe({
+      next: () => this.notificationService.showSuccess('Download started'),
+      error: (error: any) => this.notificationService.showError(error.message || 'Error downloading attachment')
+    });
   }
 
   downloadCoordinatorAttachment() {
     if (!this.coordinatorQuote) return;
-    try {
-      this.quoteService.downloadAttachment(this.coordinatorQuote);
-      this.notificationService.showSuccess('Download started');
-    } catch (error: any) {
-      this.notificationService.showError(error.message || 'Error downloading customer request');
-    }
+    this.quoteService.downloadAttachment(this.coordinatorQuote).subscribe({
+      next: () => this.notificationService.showSuccess('Download started'),
+      error: (error: any) => this.notificationService.showError(error.message || 'Error downloading customer request')
+    });
   }
 
   onFileSelected(event: Event) {

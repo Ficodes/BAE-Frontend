@@ -751,13 +751,13 @@ export class QuoteListComponent implements OnInit {
   }
 
   downloadAttachment(quote: Quote) {
-    try {
-      this.quoteService.downloadAttachment(quote);
-      this.notificationService.showSuccess('Download started');
-    } catch (error: any) {
-      console.error('Error downloading attachment:', error);
-      this.notificationService.showError(error.message || 'Error downloading attachment');
-    }
+    this.quoteService.downloadAttachment(quote).subscribe({
+      next: () => this.notificationService.showSuccess('Download started'),
+      error: (error: any) => {
+        console.error('Error downloading attachment:', error);
+        this.notificationService.showError(error.message || 'Error downloading attachment');
+      }
+    });
   }
 
   addAttachment(quote: Quote) {
@@ -1160,4 +1160,4 @@ export class QuoteListComponent implements OnInit {
   canUpdateState(state: QuoteStateType | undefined): boolean {
     return state !== QUOTE_STATUSES.CANCELLED && state !== QUOTE_STATUSES.ACCEPTED;
   }
-} 
+}

@@ -74,6 +74,7 @@ export const environment = {
   MAX_FILE_SIZE: 3145728,
   providerThemeName: 'default',
   quoteApi: 'http://localhost:8080/quoteManagement',
+  documentApi: '/document/v4',
   quoteEndpoints: {
     createQuote: '/createQuote',
     listAllQuotes: '/listAllQuotes',
