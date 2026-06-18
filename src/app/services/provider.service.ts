@@ -94,23 +94,30 @@ export class ProviderService {
 
 
   getProvidersForTenderNew(filters: SearchOrganizationsFilters): Observable<Provider[]> {
-    const PAGE_SIZE = 10;
+    // search-bck is a Spring Data (Pageable) backend: it paginates with `page` (a
+    // 0-indexed page number) + `size`. It IGNORES `offset`/`from` — verified against
+    // DEV — which is why the previous offset-based loop re-fetched page 0 forever.
+    const PAGE_SIZE = 100;
+    // Hard safety cap so a backend regression (e.g. paging silently breaking again)
+    // can never storm the cluster. 100 pages * 100 = 10k providers, far beyond any real list.
+    const MAX_PAGES = 100;
     // Strip any ?size=N the endpoint URL may already have (e.g. the ?size=1000 k8s workaround)
     const baseUrl = this.buildBackendUrl(environment.searchOrganizationsEndpoint).split('?')[0];
 
-    const fetchPage = (offset: number): Observable<{ items: Provider[]; offset: number }> =>
-      this.http.post<any>(`${baseUrl}?size=${PAGE_SIZE}&offset=${offset}`, filters).pipe(
+    const fetchPage = (page: number): Observable<{ items: Provider[]; page: number }> =>
+      this.http.post<any>(`${baseUrl}?page=${page}&size=${PAGE_SIZE}`, filters).pipe(
         map(response => {
           const items: Provider[] = Array.isArray(response) ? response as Provider[] :
             (response?.data && Array.isArray(response.data) ? response.data as Provider[] : []);
-          return { items, offset };
+          return { items, page };
         })
       );
 
-    // Fetch pages sequentially until a page returns fewer items than PAGE_SIZE
+    // Walk pages until one comes back shorter than a full page (the last page), or the
+    // safety cap is reached, then flatten everything into a single Provider[].
     return fetchPage(0).pipe(
-      expand(({ items, offset }) =>
-        items.length < PAGE_SIZE ? EMPTY : fetchPage(offset + PAGE_SIZE)
+      expand(({ items, page }) =>
+        items.length < PAGE_SIZE || page + 1 >= MAX_PAGES ? EMPTY : fetchPage(page + 1)
       ),
       reduce((acc: Provider[], { items }) => acc.concat(items), [])
     );
