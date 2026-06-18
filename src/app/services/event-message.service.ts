@@ -11,8 +11,9 @@ export interface EventMessage {
   'AdminCategories' | 'CreateCategory' | 'UpdateCategory' | 'ShowCartToast' | 'HideCartToast' | 'CloseContact' | 'OpenServiceDetails' | 'OpenResourceDetails' | 'OpenProductInvDetails' |
   'SavePricePlan' | 'UpdatePricePlan' | 'ToggleEditPrice' | 'ToggleNewPrice' |
   'SubformChange' | 'CloseFeedback' | 'UpdateOffer' | 'CloseQuoteRequest' | 'UpdateUsageSpec' | 'UsageSpecList' | 'CreateUsageSpec' | 'AiSearchFacets' | 'AiSearchCleared' |
-  'FiltersCommitted';
+  'FiltersCommitted' | 'SpecCreated' | 'LeaveOfferEditorRequest';
   text?: string,
+  toastType?: 'success' | 'error',
   value?: object | boolean | FormChangeState | PricePlanChangeState
 }
 
@@ -90,6 +91,10 @@ export class EventMessageService {
     this.eventMessageSubject.next({ type: 'SellerResourceSpec', value: show });
   }
 
+  emitSpecCreated(text: string, toastType: 'success' | 'error' = 'success'){
+    this.eventMessageSubject.next({ type: 'SpecCreated', text: text, toastType: toastType });
+  }
+
   emitSellerCreateResourceSpec(show:boolean){
     this.eventMessageSubject.next({ type: 'SellerCreateResourceSpec', value: show });
   }
@@ -112,6 +117,10 @@ export class EventMessageService {
 
   emitSellerCreateCustomOffer(offer:any, partyId?:string){
     this.eventMessageSubject.next({type: 'SellerCreateCustomOffer', value: {offer, partyId}})
+  }
+
+  emitLeaveOfferEditorRequest(){
+    this.eventMessageSubject.next({ type: 'LeaveOfferEditorRequest' });
   }
 
   emitSellerCatalog(show:boolean){    

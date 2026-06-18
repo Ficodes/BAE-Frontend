@@ -62,26 +62,30 @@
         </div>
       </div>
 
-      <div class="relative hidden lg:block rounded-2xl bg-[#EBECEE] aspect-[2/1] overflow-hidden">
-        <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
-        <img class="relative z-10 h-full w-full object-contain" src="{{getProductImage()}}" alt="Product image">
+      <div class="hidden lg:block relative rounded-2xl bg-[#EBECEE] aspect-[2/1] overflow-hidden">
+        @if(isPreview){
+          <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
+          <img class="relative z-10 h-full w-full object-contain p-3" src="{{getProductImage()}}" alt="Product image">
+        } @else {
+          <img class="h-full w-full object-cover" src="{{getProductImage()}}" alt="Product image">
+        }
       </div>
-      <div class="relative lg:hidden rounded-2xl bg-[#EBECEE] aspect-[2/1] overflow-hidden">
-        <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
-        <img class="relative z-10 h-full w-full object-contain" src="{{getProductImage()}}" alt="Product image">
+      <div class="lg:hidden relative rounded-2xl bg-[#EBECEE] aspect-[2/1] overflow-hidden">
+        @if(isPreview){
+          <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
+          <img class="relative z-10 h-full w-full object-contain p-3" src="{{getProductImage()}}" alt="Product image">
+        } @else {
+          <img class="h-full w-full object-cover" src="{{getProductImage()}}" alt="Product image">
+        }
       </div>
     </div>
 
-    <div id="tabs-container" class="sticky top-[88px] z-20 bg-white pt-2 shadow-[0_4px_8px_-4px_rgba(11,18,32,0.08)]">
+    <div id="tabs-container" class="sticky z-20 bg-white pt-2 shadow-[0_4px_8px_-4px_rgba(11,18,32,0.08)]" [ngClass]="isPreview ? 'top-0' : 'top-[88px]'">
       <div class="flex items-center justify-between rounded-[16px] bg-[#EBECEE] p-1 overflow-hidden">
         <div class="flex w-full gap-1">
           <button (click)="activeTab='overview'" [ngClass]="tabClass('overview')"
             class="flex-1 py-1 px-2 text-[16px] leading-[24px] tracking-[0.5px] text-center rounded-[12px] transition-colors">
             Overview
-          </button>
-          <button (click)="activeTab='features'" [ngClass]="tabClass('features')"
-            class="flex-1 py-1 px-2 text-[16px] leading-[24px] tracking-[0.5px] text-center rounded-[12px] transition-colors">
-            Features
           </button>
           <button (click)="activeTab='pricing'" [ngClass]="tabClass('pricing')"
             class="flex-1 py-1 px-2 text-[16px] leading-[24px] tracking-[0.5px] text-center rounded-[12px] transition-colors">
@@ -205,13 +209,102 @@
           </div>
         </div>
 
-        @if(prodSpec.description){
+        @if(specOverview){
         <div class="mb-8">
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">How does it work?</h2>
-          <markdown [ngClass]="{
-              'break-all': hasLongWord(prodSpec.description, 20),
-              'break-words': !hasLongWord(prodSpec.description, 20)
-            }" class="text-[16px] leading-[26px] text-[#0B1528]" [data]="prodSpec.description"></markdown>
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">Description</h2>
+          <div [ngClass]="descMoreOpen ? '' : 'line-clamp-[8]'" class="overflow-hidden">
+            <markdown [ngClass]="{
+                'break-all': hasLongWord(specOverview, 20),
+                'break-words': !hasLongWord(specOverview, 20)
+              }" class="text-[16px] leading-[26px] text-[#0B1528]" [data]="specOverview"></markdown>
+          </div>
+          @if(isLongText(specOverview)){
+            <button (click)="descMoreOpen=!descMoreOpen" class="mt-3 inline-flex items-center gap-1 text-[14px] font-semibold text-[#1f4fbf] hover:underline">
+              {{ descMoreOpen ? 'Read less' : 'Read more' }}
+              <svg class="w-4 h-4 transition-transform" [class.rotate-180]="descMoreOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+          }
+        </div>
+        }
+
+        @if(howItWorks){
+        <div class="mb-8">
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">How it works</h2>
+          <div [ngClass]="howItWorksMoreOpen ? '' : 'line-clamp-[8]'" class="overflow-hidden">
+            <markdown [ngClass]="{
+                'break-all': hasLongWord(howItWorks, 20),
+                'break-words': !hasLongWord(howItWorks, 20)
+              }" class="text-[16px] leading-[26px] text-[#0B1528]" [data]="howItWorks"></markdown>
+          </div>
+          @if(isLongText(howItWorks)){
+            <button (click)="howItWorksMoreOpen=!howItWorksMoreOpen" class="mt-3 inline-flex items-center gap-1 text-[14px] font-semibold text-[#1f4fbf] hover:underline">
+              {{ howItWorksMoreOpen ? 'Read less' : 'Read more' }}
+              <svg class="w-4 h-4 transition-transform" [class.rotate-180]="howItWorksMoreOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+          }
+        </div>
+        }
+
+        @if(keyFeatures.length > 0){
+        <div class="mb-10">
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-6">Key Features</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            @for(feat of keyFeatures; track feat){
+              <div class="kf-card relative isolate overflow-hidden flex flex-row items-start gap-6 p-6 bg-white border border-[#DDE6F6] rounded-2xl">
+                <span class="kf-watermark" aria-hidden="true"></span>
+                @if(resolveIcon(feat.icon)){
+                  <div class="relative z-[1] shrink-0 w-10 h-10 flex items-center justify-center text-[32px] leading-none text-[#2D58A7]">
+                    <fa-icon [icon]="resolveIcon(feat.icon)!"></fa-icon>
+                  </div>
+                }
+                <div class="relative z-[2] min-w-0 flex flex-col gap-2">
+                  <h3 [ngClass]="{'break-all': hasLongWord(feat.name, 20), 'break-words': !hasLongWord(feat.name, 20)}" class="text-[20px] leading-[24px] font-semibold text-[#0B1528] line-clamp-1">{{feat.name}}</h3>
+                  @if(feat.description){
+                    <p [ngClass]="{'break-all': hasLongWord(feat.description, 20), 'break-words': !hasLongWord(feat.description, 20)}" class="text-[16px] leading-[24px] text-[#324153] line-clamp-2">{{feat.description}}</p>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+        }
+
+        @if(businessBenefits.length > 0){
+        <div class="mb-10">
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-6">Business Benefits</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            @for(benefit of businessBenefits; track benefit){
+              <div class="flex flex-col items-start gap-4 px-6 py-4 bg-[#EBF0F7] rounded-2xl">
+                <div class="flex items-center justify-center w-14 h-14 p-3 bg-[#DDE6F6] rounded-2xl text-[#2D58A7]">
+                  <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-3.497 1.307A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549 4.49 4.49 0 0 1-3.498-1.306 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 2.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 0 1 1.307-3.497 4.49 4.49 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <h3 [ngClass]="{'break-all': hasLongWord(benefit.name, 20), 'break-words': !hasLongWord(benefit.name, 20)}" class="text-[20px] leading-[24px] font-semibold text-[#0B1528]">{{benefit.name}}</h3>
+                  @if(benefit.description){
+                    <p [ngClass]="{'break-all': hasLongWord(benefit.description, 20), 'break-words': !hasLongWord(benefit.description, 20)}" class="text-[16px] leading-[24px] text-[#324153]">{{benefit.description}}</p>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+        }
+
+        @if(useCases.length > 0){
+        <div class="mb-10">
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-6">Use Cases</h2>
+          <div class="flex flex-col gap-4">
+            @for(uc of useCases; track uc){
+              <div class="rounded-2xl bg-white border border-[#EBECEE] p-6">
+                <h3 [ngClass]="{'break-all': hasLongWord(uc.name, 20), 'break-words': !hasLongWord(uc.name, 20)}" class="text-[18px] font-bold text-[#14274A] mb-2">{{uc.name}}</h3>
+                @if(uc.description){
+                  <p [ngClass]="{'break-all': hasLongWord(uc.description, 20), 'break-words': !hasLongWord(uc.description, 20)}" class="text-[16px] leading-[24px] text-[#526179]">{{uc.description}}</p>
+                }
+              </div>
+            }
+          </div>
         </div>
         }
 
@@ -263,66 +356,31 @@
           </div>
         }
 
-      </div>
-      }
-
-      @if (activeTab === 'features') {
-      @if(prodSpec.productSpecCharacteristic != undefined && prodChars.length>0) {
-        <div id="chars-container">
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._product_chars' | translate }}</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            @for (char of prodChars; track char.id; let idx = $index) {
-              <div class="relative rounded-2xl bg-white border border-[#EBECEE] p-6">
-                <h3 [ngClass]="{'break-all': hasLongWord(char.name, 20), 'break-words': !hasLongWord(char.name, 20)}"
-                  class="text-[18px] font-bold text-[#14274A] mb-2 break-words pr-20">{{char.name}}</h3>
-                @if (char.description) {
-                  <markdown [ngClass]="{'break-all': hasLongWord(char.description, 20), 'break-words': !hasLongWord(char.description, 20)}"
-                    class="text-[13px] text-[#526179] mb-3" [data]="char.description"></markdown>
-                }
-                @if (isOptionalCharacteristic(char)) {
-                  <span class="absolute top-4 right-4 inline-flex items-center rounded-md bg-[#eef2fb] px-2 py-1 text-xs font-medium text-[#1f4fbf]">Optional</span>
-                }
-                <div class="mt-3">
-                  @if (isBooleanCharacteristic(char)) {
-                    <div class="flex items-center gap-2">
-                      <span class="text-sm font-medium text-[#526179]">Default</span>
-                      <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium"
-                        [ngClass]="getBooleanDefaultValue(char) ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700'">
-                        {{ getBooleanDefaultValue(char) ? 'Enabled' : 'Disabled' }}
-                      </span>
-                    </div>
-                  } @else {
-                    @for (val of char?.productSpecCharacteristicValue; track val.value) {
-                      <div class="flex items-center gap-2 mb-1">
-                        <div class="h-4 w-4 shrink-0 rounded-full border" [ngClass]="val?.isDefault ? 'bg-[#1f4fbf] border-[#1f4fbf]' : 'border-gray-300 bg-white'">
-                          @if(val?.isDefault) {
-                            <svg class="h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                            </svg>
-                          }
-                        </div>
-                        @if(val.value !== undefined && val.value !== null){
-                          <span [title]="getCharacteristicValueLabel(val)" class="text-sm text-[#526179] break-all">{{ getCharacteristicValuePreview(val) }}</span>
-                        } @else {
-                          <span [title]="getCharacteristicRangeLabel(val)" class="text-sm text-[#526179] break-all">{{ getCharacteristicRangePreview(val) }}</span>
-                        }
-                      </div>
-                    }
-                  }
+        @if(faqs.length > 0){
+        <div class="mb-10">
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-6">FAQs</h2>
+          <div class="flex flex-col gap-4">
+            @for(faq of faqs; track $index){
+              <article class="faq-card" [class.faq-card--open]="isFaqOpen($index)">
+                <button type="button" class="faq-question" (click)="toggleFaq($index)" [attr.aria-expanded]="isFaqOpen($index)">
+                  <span class="faq-question__title" [ngClass]="{'break-all': hasLongWord(faq.question, 20), 'break-words': !hasLongWord(faq.question, 20)}">{{ faq.question }}</span>
+                  <span class="faq-icon" [class.faq-icon--open]="isFaqOpen($index)">
+                    <fa-icon [icon]="isFaqOpen($index) ? faMinus : faPlus"></fa-icon>
+                  </span>
+                </button>
+                <div class="faq-answer" [class.faq-answer--open]="isFaqOpen($index)">
+                  <div class="faq-answer__inner">
+                    <div class="faq-divider"></div>
+                    <div class="faq-answer__content" [ngClass]="{'break-all': hasLongWord(faq.answer, 20), 'break-words': !hasLongWord(faq.answer, 20)}">{{ faq.answer }}</div>
+                  </div>
                 </div>
-              </div>
-            } @empty {
-              <div class="col-span-3 text-center py-8 text-[#526179]">
-                {{ 'PRODUCT_DETAILS._no_chars' | translate }}
-              </div>
+              </article>
             }
           </div>
         </div>
-      } @else {
-        <div class="text-center py-12 text-[#526179]">
-          No features available for this product.
-        </div>
-      }
+        }
+
+      </div>
       }
 
       @if (activeTab === 'pricing') {

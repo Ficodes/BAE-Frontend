@@ -34,6 +34,20 @@ type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
 })
 export class CreateOfferComponent implements OnInit, OnDestroy {
 
+  showPreviewModal: boolean = false;
+  previewProductOff: any = null;
+  previewTab: 'details' | 'card' = 'details';
+
+  onPreviewRequested(productOff: any): void {
+    this.previewProductOff = productOff;
+    this.previewTab = 'details';
+    this.showPreviewModal = true;
+  }
+
+  closePreviewModal(): void {
+    this.showPreviewModal = false;
+  }
+
   //PAGE SIZES:
   PROD_SPEC_LIMIT: number = environment.PROD_SPEC_LIMIT;
   PRODUCT_LIMIT: number = environment.PRODUCT_LIMIT;

@@ -1,37 +1,59 @@
-<p class="mb-3 text-gray-500 dark:text-gray-400">Define which parts of the procurement/activation process will be performed automatically and which ones will be performed manually by the provider</p>
-
-<div class="flex flex-col gap-4">
-  <div class="flex flex-col gap-2">
-    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+<div class="flex flex-col gap-5">
+  <div class="w-full md:w-1/2">
+    <label for="procurement" class="block text-sm font-semibold text-gray-900 mb-2">
       {{ 'FORMS.PROCUREMENT_MODE._title' | translate }}
     </label>
-    <div [formGroup]="formGroup">
-      <select data-cy="procurement" formControlName="mode" class="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-        @for (mode of procurementModes; track mode.id) {
-          <option [value]="mode.id">{{ mode.name }}</option>
-        }
-      </select>
+    <div class="relative">
+      <button data-cy="procurement" id="procurement" type="button"
+        (click)="showProcurementDropdown = !showProcurementDropdown"
+        class="flex items-center justify-between w-full p-3 bg-white border border-gray-300 rounded-lg text-sm text-left text-gray-900 focus:ring-primary-100 focus:border-primary-100">
+        <span class="truncate">{{ selectedProcurementName }}</span>
+        <svg class="w-5 h-5 text-gray-500 shrink-0 transition-transform" [class.rotate-180]="showProcurementDropdown"
+          xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+        </svg>
+      </button>
+
+      @if(showProcurementDropdown){
+        <div class="fixed inset-0 z-10" (click)="showProcurementDropdown = false"></div>
+        <ul class="absolute left-0 right-0 top-full mt-1 z-20 bg-white rounded-lg py-1 overflow-hidden"
+          style="border: 1px solid #EBECEE; box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);">
+          @for(mode of procurementModes; track mode.id){
+            <li>
+              <button type="button" [attr.data-cy]="'procurement-' + mode.id" (click)="selectProcurementMode(mode.id)"
+                class="flex items-center w-full text-left px-4 h-14 text-base text-[#131B25] hover:bg-[#DDE6F6] transition-colors"
+                [style.background-color]="procurementMode === mode.id ? '#DDE6F6' : null">
+                {{ mode.name }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
     </div>
   </div>
-</div>
 
-@if (extBillingEnabledControl) {
-  <div class="mt-4 flex items-center gap-3">
-    <label class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._ext_billing' | translate }}</label>
-    <input data-cy="extBillingToggle" type="checkbox" [formControl]="extBillingEnabledControl"
-           class="w-4 h-4 text-primary-100 bg-gray-100 border-gray-300 rounded focus:ring-primary-100 dark:focus:ring-primary-50 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"/>
-  </div>
-}
-@if (extBillingEnabledControl?.value && plaSpecIdControl) {
-  <label for="plaSpecId" class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._pla_spec_id' | translate }}</label>
-  <input data-cy="plaSpecId" id="plaSpecId" type="url" [formControl]="plaSpecIdControl"
-         class="bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-         [class.border-red-500]="plaSpecIdControl.invalid && plaSpecIdControl.touched"
-         placeholder="https://external-billing-engine.example.com"/>
-  @if (plaSpecIdControl.invalid && plaSpecIdControl.touched) {
-    <p class="text-red-500 text-sm mt-1 mb-2">{{ 'CREATE_OFFER._pla_spec_id_required' | translate }}</p>
+  @if (extBillingEnabledControl) {
+    <div class="flex items-center gap-3">
+      <input data-cy="extBillingToggle" id="extBilling" type="checkbox" [formControl]="extBillingEnabledControl"
+        class="w-4 h-4 text-primary-100 bg-white border-gray-300 rounded focus:ring-primary-100"/>
+      <label for="extBilling" class="text-sm font-semibold text-gray-900">{{ 'CREATE_OFFER._ext_billing' | translate }}</label>
+    </div>
   }
-}
+
+  @if (extBillingEnabledControl?.value && plaSpecIdControl) {
+    <div>
+      <label for="plaSpecId" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pla_spec_id' | translate }}</label>
+      <input data-cy="plaSpecId" id="plaSpecId" type="url" [formControl]="plaSpecIdControl"
+        class="bg-white border text-gray-900 text-sm rounded-lg block w-full p-3 focus:ring-primary-100 focus:border-primary-100"
+        [class.border-gray-300]="!(plaSpecIdControl.invalid && plaSpecIdControl.touched)"
+        [class.border-red-500]="plaSpecIdControl.invalid && plaSpecIdControl.touched"
+        placeholder="https://external-billing-engine.example.com"/>
+      @if (plaSpecIdControl.invalid && plaSpecIdControl.touched) {
+        <p class="mt-1 text-xs text-red-600">{{ 'CREATE_OFFER._pla_spec_id_required' | translate }}</p>
+      }
+    </div>
+  }
+</div>
 
 @if(showProcurementError){
   <div

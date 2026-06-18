@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
@@ -34,7 +34,15 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
   loading_more: boolean = false;
   page_check:boolean = true;
   filter:any=undefined;
-  status:any[]=['Active','Launched'];
+  status:any[]=['Active'];
+  selectedTab: string = 'Draft';
+  tabStatusMap: { [k: string]: string[] } = {
+    Draft: ['Active'],
+    Validated: ['Launched'],
+    Deleted: ['Retired', 'Obsolete']
+  };
+  statusCounts: { [k: string]: number } = { Draft: 0, Validated: 0, Deleted: 0 };
+  openMenuIdx: number | null = null;
   partyId:any;
   sort:any=undefined;
   private destroy$ = new Subject<void>();
@@ -78,10 +86,10 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
     }
 
     this.getServSpecs(false);
+    this.loadStatusCounts();
     let input = document.querySelector('[type=search]')
     if(input!=undefined){
       input.addEventListener('input', e => {
-        // Easy way to get the value of the element who trigger the current `e` event
         console.log(`Input updated`)
         if(this.searchField.value==''){
           this.filter=undefined;
@@ -108,22 +116,26 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
     if(next==false){
       this.loading=true;
     }
-    
+
     let options = {
       "filters": this.status,
       "partyId": this.partyId,
       "sort": this.sort
     }
-    
+
     this.paginationService.getItemsPaginated(this.page, this.SERV_SPEC_LIMIT, next, this.servSpecs,this.nextServSpecs, options,
       this.servSpecService.getServiceSpecByUser.bind(this.servSpecService)).then(data => {
-      this.page_check=data.page_check;      
+      this.page_check=data.page_check;
       this.servSpecs=data.items;
       this.nextServSpecs=data.nextItems;
       this.page=data.page;
       this.loading=false;
       this.loading_more=false;
     })
+  }
+
+  async next(){
+    await this.getServSpecs(true);
   }
 
   filterInventoryByKeywords(){
@@ -134,18 +146,115 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
     const index = this.status.findIndex(item => item === filter);
     if (index !== -1) {
       this.status.splice(index, 1);
-      console.log('elimina filtro')
-      console.log(this.status)
     } else {
-      console.log('añade filtro')
-      console.log(this.status)
       this.status.push(filter)
     }
     this.getServSpecs(false);
   }
 
-  async next(){
-    await this.getServSpecs(true);
+  selectTab(tab: string) {
+    if (tab === this.selectedTab) return;
+    this.selectedTab = tab;
+    this.status = [...this.tabStatusMap[tab]];
+    this.page = 0;
+    this.getServSpecs(false);
+  }
+
+  async loadStatusCounts() {
+    try {
+      const all: any[] = [];
+      let offset = 0;
+      while (offset < 10000) {
+        const page = await this.servSpecService.getServiceSpecByUser(offset, [], this.partyId, undefined);
+        const items = Array.isArray(page) ? page : [];
+        all.push(...items);
+        if (items.length < this.SERV_SPEC_LIMIT) break;
+        offset += this.SERV_SPEC_LIMIT;
+      }
+      const counts: { [k: string]: number } = {};
+      for (const tab of Object.keys(this.tabStatusMap)) counts[tab] = 0;
+      for (const item of all) {
+        const status = item?.lifecycleStatus;
+        for (const tab of Object.keys(this.tabStatusMap)) {
+          if (this.tabStatusMap[tab].includes(status)) { counts[tab]++; break; }
+        }
+      }
+      this.statusCounts = counts;
+    } catch {
+    }
+    this.cdr.detectChanges();
+  }
+
+  toggleMenu(idx: number, event: Event){
+    event.stopPropagation();
+    this.openMenuIdx = this.openMenuIdx === idx ? null : idx;
+  }
+
+  @HostListener('document:click')
+  onDocClick(){
+    if(this.openMenuIdx !== null){
+      this.openMenuIdx = null;
+      this.cdr.detectChanges();
+    }
+  }
+
+  rowStatusBadge(serv: any): { text: string, bg: string, color: string } {
+    const hasChars = (serv?.specCharacteristic && serv.specCharacteristic.length > 0);
+    if(serv?.lifecycleStatus === 'Launched'){
+      return { text: 'Validated', bg: '#BBF7D0', color: '#052E16' };
+    }
+    if(serv?.lifecycleStatus === 'Retired' || serv?.lifecycleStatus === 'Obsolete'){
+      return { text: 'Deleted', bg: '#FEE2E2', color: '#991B1B' };
+    }
+    if(hasChars){
+      return { text: 'Ready to be validated', bg: '#DCFCE7', color: '#166534' };
+    }
+    return { text: 'Not completed', bg: '#FEF3C7', color: '#92400E' };
+  }
+
+  validateServ(serv: any){
+    if(!serv?.id) return;
+    this.servSpecService.updateServSpec({ lifecycleStatus: 'Launched' }, serv.id).subscribe({
+      next: () => {
+        this.openMenuIdx = null;
+        this.eventMessage.emitSpecCreated('Service specification successfully validated');
+        this.getServSpecs(false);
+        this.loadStatusCounts();
+      },
+      error: () => {
+        this.openMenuIdx = null;
+      }
+    });
+  }
+
+  deleteServ(serv: any){
+    if(!serv?.id) return;
+    this.openMenuIdx = null;
+    const onSuccess = () => {
+      this.eventMessage.emitSpecCreated('Service specification deleted');
+      this.getServSpecs(false);
+      this.loadStatusCounts();
+    };
+    const onError = (err: any) => {
+      console.error('Service spec delete failed', err);
+      this.eventMessage.emitSpecCreated('Could not delete this service specification.', 'error');
+    };
+    if(serv.lifecycleStatus === 'Active'){
+      this.servSpecService.updateServSpec({ lifecycleStatus: 'Launched' }, serv.id).subscribe({
+        next: () => {
+          this.servSpecService.updateServSpec({ lifecycleStatus: 'Retired' }, serv.id).subscribe({
+            next: onSuccess,
+            error: onError
+          });
+        },
+        error: onError
+      });
+    } else {
+      this.servSpecService.updateServSpec({ lifecycleStatus: 'Retired' }, serv.id).subscribe({
+        next: onSuccess,
+        error: onError
+      });
+    }
   }
 
   onSortChange(event: any) {
@@ -162,6 +271,6 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
-    }   
+    }
   }
 }
