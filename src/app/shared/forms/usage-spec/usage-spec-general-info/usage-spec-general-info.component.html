@@ -1,10 +1,19 @@
-@if (nameControl) {
-    <label for="prod-name" class="font-bold text-lg dark:text-white">{{ 'USAGE_SPECS._name' | translate }}</label>
-    <input data-cy="usageSpecName" id="prod-name" type="text" [formControl]="nameControl" maxLength="100"
-           class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"/>
+<h2 class="text-2xl font-bold text-gray-900 mb-1">{{ 'USAGE_SPECS._general_info' | translate }}</h2>
+<p class="text-sm text-gray-500 mb-6">{{ 'USAGE_SPECS._general_info_desc' | translate }}</p>
+
+<div class="flex flex-col gap-5">
+  @if (nameControl) {
+    <div>
+      <label for="prod-name" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'USAGE_SPECS._name' | translate }} <span class="text-red-500">*</span></label>
+      <input data-cy="usageSpecName" id="prod-name" type="text" [formControl]="nameControl" maxLength="100"
+        placeholder="{{ 'USAGE_SPECS._name_placeholder' | translate }}"
+        class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3"/>
+    </div>
   }
   @if (descControl) {
-    <label class="font-bold text-lg col-span-2 dark:text-white">{{ 'USAGE_SPECS._description' | translate }}</label>
-    <app-markdown-textarea data-cy="usageSpecDescription" [formControl]="descControl"></app-markdown-textarea>
+    <div>
+      <label class="block text-sm font-semibold text-gray-900 mb-2">{{ 'USAGE_SPECS._description' | translate }}</label>
+      <app-markdown-textarea data-cy="usageSpecDescription" [formControl]="descControl"></app-markdown-textarea>
+    </div>
   }
-  
+</div>

@@ -32,6 +32,20 @@ type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
 export class UpdateOfferComponent implements OnInit, OnDestroy {
   @Input() offer: any;
 
+  showPreviewModal: boolean = false;
+  previewProductOff: any = null;
+  previewTab: 'details' | 'card' = 'details';
+
+  onPreviewRequested(productOff: any): void {
+    this.previewProductOff = productOff;
+    this.previewTab = 'details';
+    this.showPreviewModal = true;
+  }
+
+  closePreviewModal(): void {
+    this.showPreviewModal = false;
+  }
+
   //PAGE SIZES:
   PROD_SPEC_LIMIT: number = environment.PROD_SPEC_LIMIT;
   PRODUCT_LIMIT: number = environment.PRODUCT_LIMIT;
@@ -318,7 +332,7 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
     }
 
     //LICENSE
-    if(this.offer.productOfferingTerm){
+    if(Array.isArray(this.offer.productOfferingTerm) && this.offer.productOfferingTerm.length > 0){
       this.freeLicenseSelected=false;
       this.licenseForm.controls['treatment'].setValue(this.offer.productOfferingTerm[0].name);
       this.licenseForm.controls['description'].setValue(this.offer.productOfferingTerm[0].description);

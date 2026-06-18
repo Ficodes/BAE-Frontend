@@ -387,6 +387,11 @@ export class ApiServiceService {
     return this.http.patch<any>(url, prod);
   }
 
+  deleteProductOffering(id: any) {
+    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering/${id}`;
+    return this.http.delete<any>(url);
+  }
+
   postSLA(sla: any) {
     //POST - El item va en el body de la petición
     let url = `${ApiServiceService.BASE_URL}/SLAManagement/sla`;

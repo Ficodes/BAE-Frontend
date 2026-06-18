@@ -1,194 +1,1271 @@
-<div class="bg-secondary-50 dark:bg-secondary-100 border border-secondary-50 dark:border-gray-800 mt-4 p-4 md:p-8 rounded-lg w-full">
-  @if(formType === 'update'){
-    <h2 class="text-3xl font-bold text-primary-100 dark:text-white pb-4">
-      {{ 'UPDATE_OFFER._update' | translate }}
-    </h2>
+<div class="flex flex-col gap-4 -mx-2 pt-6">
+  @if(loadingData){
+    <div role="status" class="w-full h-full flex justify-center align-middle py-24">
+      <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin fill-primary-100" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+      </svg>
+      <span class="sr-only">Loading...</span>
+    </div>
   } @else {
-    <h2 class="text-3xl font-bold text-primary-100 dark:text-white pb-4">
-      {{ 'CREATE_OFFER._create' | translate }}
-    </h2>
-  }
-
-@if(loadingData){
-    <div role="status" class="w-full h-full flex justify-center align-middle">
-        <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+    <div class="flex items-center justify-between">
+      <h1 class="text-3xl font-extrabold text-gray-900">
+        {{ (formType === 'update' ? 'UPDATE_OFFER._update' : 'CREATE_OFFER._new') | translate }}
+      </h1>
+      <button type="button" (click)="emitPreview()" class="inline-flex items-center gap-2 text-sm font-semibold text-primary-100 hover:text-primary-50">
+        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
         </svg>
-        <span class="sr-only">Loading...</span>
-      </div>
-} @else {
-  <!-- Stepper -->
-  <form [formGroup]="productOfferForm">
-    <ol data-cy="offerSteps" class="flex items-start w-full text-sm font-medium text-center text-gray-500 dark:text-gray-400">
-      @for (step of steps; track i; let i = $index) {
-        <li 
-            (click)="handleStepClick(i)"
-            [class.cursor-not-allowed]="!canNavigate(i)"
-            [class.opacity-50]="!canNavigate(i)"          
-            [class.text-primary-100]="currentStep === i"
-            class="flex-1 cursor-pointer">
-          <span class="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 mx-auto border-2 border-primary-100 dark:border-primary-50 shrink-0 rounded-full"
-                [class.bg-primary-100]="currentStep === i"
-                [class.text-white]="currentStep === i">
-            {{ i + 1 }}
-          </span>
-          <span class="md:block mt-2 hidden">{{ step }}</span>
-        </li>
-      }
-    </ol>
+        {{ 'CREATE_OFFER._preview' | translate }}
+      </button>
+    </div>
 
-    <h3 class="block md:hidden mt-2 text-center text-2xl text-primary-100 dark:text-white pb-4">{{ this.steps[currentStep] }}</h3>
-    @if(loading){
-      <div role="status" class="w-full h-full flex justify-center align-middle">
-          <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <form [formGroup]="productOfferForm" class="flex gap-6 items-start">
+      <ol data-cy="offerSteps" class="w-64 shrink-0 flex flex-col gap-1 bg-transparent">
+        @for (step of steps; track i; let i = $index; let last = $last) {
+          <li class="relative">
+            <button type="button" (click)="handleStepClick(i)"
+              [disabled]="!canNavigate(i)"
+              [class.cursor-not-allowed]="!canNavigate(i)"
+              class="w-full flex items-center gap-3 py-3 pl-3 pr-2 rounded-lg text-left">
+              <span class="relative flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold shrink-0"
+                [ngClass]="stepCircleClasses(i)">
+                @if(stepShowsComplete(i)){
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                  </svg>
+                } @else if(stepHasWarning(i)){
+                  <span class="text-base font-bold leading-none">!</span>
+                } @else {
+                  {{ i + 1 }}
+                }
+              </span>
+              <span class="text-base font-semibold" [ngClass]="stepLabelClasses(i)">{{ step }}</span>
+            </button>
+            @if(!last){
+              <div class="absolute left-[27px] top-[44px] bottom-[-4px] w-px bg-gray-200"></div>
+            }
+          </li>
+        }
+      </ol>
+
+      <div class="flex-1 min-w-0 flex flex-col gap-4">
+      <div class="bg-white rounded-2xl border border-[#EBECEE] shadow-sm p-6 min-h-[calc(100vh-280px)]">
+        @if(loading){
+          <div role="status" class="w-full h-full flex justify-center align-middle py-24">
+            <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin fill-primary-100" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
               <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
-          </svg>
-          <span class="sr-only">Loading...</span>
+            </svg>
+            <span class="sr-only">Loading...</span>
           </div>
-    } @else {
+        } @else {
+          @if (currentStep === 0) {
+            <div class="flex flex-col gap-5" [formGroup]="generalInfoFormGroup">
+              <div>
+                <h2 class="dome-heading-6">{{ 'CREATE_OFFER._step1_title' | translate }}</h2>
+                <p class="dome-body-small mt-2">{{ 'CREATE_OFFER._step1_subtitle' | translate }}</p>
+              </div>
 
-    <div class="md:p-8">
+              <div>
+                <label for="offerName" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._name' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+                <input data-cy="offerName" id="offerName" type="text" formControlName="name" maxLength="100"
+                  placeholder="{{ 'CREATE_OFFER._name_placeholder' | translate }}"
+                  class="bg-white border text-gray-900 text-sm rounded-lg block w-full p-3 focus:ring-primary-100 focus:border-primary-100"
+                  [class.border-gray-300]="!(shouldShowRequiredErrors() && !generalInfoFormGroup.get('name')?.value)"
+                  [class.border-red-500]="shouldShowRequiredErrors() && !generalInfoFormGroup.get('name')?.value"/>
+                @if(shouldShowRequiredErrors() && !generalInfoFormGroup.get('name')?.value){
+                  <p class="mt-1 text-xs text-red-600">{{ 'CREATE_OFFER._mandatory_field' | translate }}</p>
+                }
+              </div>
 
-        <!-- Step Forms -->
-        @if (currentStep === 0) {
-          <app-general-info-form 
-            [data]="offer" 
-            [formType]="formType" 
-            [form]="productOfferForm.controls['generalInfo']"
-            (formChange)="handleSubformChange($event)">
-          </app-general-info-form>
-        } @else if (currentStep === 1) {
-          <app-prod-spec-form formControlName="prodSpec"
-                              [data]="offer"
-                              [partyId]="partyId"
-                              [formType]="formType"
-                              (formChange)="handleSubformChange($event)">
-          </app-prod-spec-form>
-        } @else if (currentStep === 2) {
-          @if(this.formType=='update'){
-            <app-category-form formControlName="category" 
-                            [data]="offer" 
-                            [formType]="formType"
-                            (formChange)="handleSubformChange($event)">
-            </app-category-form>
-          }@else{
-            <app-catalogue formControlName="catalogue" [partyId]="partyId"></app-catalogue>
-          }        
-        } @else if (currentStep === 3){
-          @if(this.formType=='update'){
-            <app-license-form [data]="offer" 
-                            [formType]="formType" 
-                            [form]="productOfferForm.controls['license']"
-                            (formChange)="handleSubformChange($event)">
-            </app-license-form>
-          }@else{
-            <app-category-form formControlName="category" 
-                            [data]="offer" 
-                            [formType]="formType"
-                            (formChange)="handleSubformChange($event)">
-            </app-category-form>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="prodSpecSelect" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._product_specifications' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+                  @if(loadingProdSpecs){
+                    <div class="text-sm text-gray-500 p-3">{{ 'CREATE_OFFER._loading' | translate }}</div>
+                  } @else {
+                    <select id="prodSpecSelect"
+                      [value]="selectedProdSpecId"
+                      (change)="onProdSpecChange($event)"
+                      class="block w-full p-3 bg-white border text-sm text-gray-900 rounded-lg focus:ring-primary-100 focus:border-primary-100"
+                      [class.border-gray-300]="!(shouldShowRequiredErrors() && !selectedProdSpecId)"
+                      [class.border-red-500]="shouldShowRequiredErrors() && !selectedProdSpecId">
+                      <option value="" [selected]="!selectedProdSpecId">{{ 'CREATE_OFFER._select' | translate }}</option>
+                      @for(ps of availableProdSpecs; track ps.id){
+                        <option [value]="ps.id" [selected]="ps.id === selectedProdSpecId">{{ ps.name }}</option>
+                      }
+                    </select>
+                    @if(shouldShowRequiredErrors() && !selectedProdSpecId){
+                      <p class="mt-1 text-xs text-red-600">{{ 'CREATE_OFFER._mandatory_field' | translate }}</p>
+                    }
+                  }
+                </div>
+
+                <div>
+                  <label for="marketSector" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._market_sector' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+                  @if(loadingSectors){
+                    <div class="text-sm text-gray-500 p-3">{{ 'CREATE_OFFER._loading' | translate }}</div>
+                  } @else {
+                    <select id="marketSector"
+                      [value]="selectedSectorId"
+                      (change)="onSectorChange($event)"
+                      class="block w-full p-3 bg-white border text-sm text-gray-900 rounded-lg focus:ring-primary-100 focus:border-primary-100"
+                      [class.border-gray-300]="!(shouldShowRequiredErrors() && !selectedSectorId)"
+                      [class.border-red-500]="shouldShowRequiredErrors() && !selectedSectorId">
+                      <option value="" [selected]="!selectedSectorId">{{ 'CREATE_OFFER._select' | translate }}</option>
+                      @for(s of availableSectors; track s.id){
+                        <option [value]="s.id" [selected]="s.id === selectedSectorId">{{ s.name }}</option>
+                      }
+                    </select>
+                    @if(shouldShowRequiredErrors() && !selectedSectorId){
+                      <p class="mt-1 text-xs text-red-600">{{ 'CREATE_OFFER._mandatory_field' | translate }}</p>
+                    }
+                  }
+                </div>
+              </div>
+
+              <div>
+                <label for="offerOverview" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._product_overview' | translate }}</label>
+                <textarea data-cy="offerOverview" id="offerOverview" formControlName="description" rows="6" maxLength="300"
+                  placeholder="{{ 'CREATE_OFFER._overview_placeholder' | translate }}"
+                  class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3 resize-none"></textarea>
+                <p class="mt-1 text-xs text-gray-500">{{ (generalInfoFormGroup.get('description')?.value?.length || 0) }}/300</p>
+              </div>
+            </div>
+          } @else if (currentStep === 1) {
+            <div class="flex flex-col gap-5">
+              <div>
+                <h2 class="dome-heading-6">{{ 'CREATE_OFFER._category' | translate }}</h2>
+                <p class="dome-body-small mt-2">{{ 'CREATE_OFFER._step2_subtitle' | translate }}</p>
+              </div>
+
+              @if(loadingCategories){
+                <div class="text-sm text-gray-500 p-3">{{ 'CREATE_OFFER._loading' | translate }}</div>
+              } @else {
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label for="rootCategorySelect" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._category' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+                    <select id="rootCategorySelect"
+                      [value]="selectedRootCategoryId"
+                      (change)="onRootCategoryChange($event)"
+                      class="block w-full p-3 bg-white border rounded-lg text-sm text-gray-900 focus:ring-primary-100 focus:border-primary-100"
+                      [class.border-gray-300]="!(shouldShowRequiredErrors() && !selectedRootCategoryId)"
+                      [class.border-red-500]="shouldShowRequiredErrors() && !selectedRootCategoryId">
+                      <option value="" [selected]="!selectedRootCategoryId">{{ 'CREATE_OFFER._select' | translate }}</option>
+                      @for(c of availableRootCategories; track c.id){
+                        <option [value]="c.id" [selected]="c.id === selectedRootCategoryId">{{ c.name }}</option>
+                      }
+                    </select>
+                    @if(shouldShowRequiredErrors() && !selectedRootCategoryId){
+                      <p class="mt-1 text-xs text-red-600">{{ 'CREATE_OFFER._mandatory_field' | translate }}</p>
+                    }
+                  </div>
+                  <div>
+                    <label for="subcategorySelect" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._subcategory' | translate }}</label>
+                    <select id="subcategorySelect"
+                      [value]="selectedSubcategoryId"
+                      [disabled]="!selectedRootCategoryId || !availableSubcategories.length"
+                      (change)="onSubcategoryChange($event)"
+                      class="block w-full p-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-primary-100 focus:border-primary-100 disabled:bg-gray-100 disabled:cursor-not-allowed">
+                      <option value="" [selected]="!selectedSubcategoryId">{{ 'CREATE_OFFER._select' | translate }}</option>
+                      @for(c of availableSubcategories; track c.id){
+                        <option [value]="c.id" [selected]="c.id === selectedSubcategoryId">{{ c.name }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+              }
+
+              <div class="flex flex-col gap-1">
+                <label class="block text-sm font-semibold text-gray-900">{{ 'CREATE_OFFER._tags' | translate }}</label>
+                <div class="tag-input-box flex flex-row flex-wrap items-center gap-2 bg-white border border-gray-300 rounded-lg p-3 cursor-text focus-within:ring-1 focus-within:ring-primary-100 focus-within:border-primary-100">
+                  @for(tag of offerTags; track tag; let i = $index){
+                    <span class="tag-chip inline-flex items-center gap-2"
+                          style="background: #DDE6F6; border-radius: 8px; padding: 4px 8px;">
+                      <span style="font-family:'Blinker',sans-serif; font-weight:600; font-size:12px; line-height:16px; letter-spacing:0.5px; color:#131B25; white-space:nowrap;">{{ tag }}</span>
+                      <button type="button" (click)="removeTag(i); $event.stopPropagation()" class="flex items-center shrink-0">
+                        <svg class="w-4 h-4" style="color:#111827;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                        </svg>
+                      </button>
+                    </span>
+                  }
+                  @if(offerTags.length < 5){
+                    <input type="text" data-cy="tagInput"
+                      [value]="tagInputValue"
+                      (input)="onTagInput($event)"
+                      (keydown)="addTag($event)"
+                      maxlength="20"
+                      placeholder="{{ offerTags.length === 0 ? ('CREATE_OFFER._tags_placeholder' | translate) : '' }}"
+                      class="flex-1 border-none outline-none ring-0 shadow-none bg-transparent text-sm text-gray-900 focus:outline-none focus:ring-0 focus:shadow-none"
+                      style="min-width: 140px;"/>
+                  }
+                </div>
+                <p class="text-xs" style="color:#4C5A6B;">{{ offerTags.length }}/5 {{ 'CREATE_OFFER._tags_hint' | translate }}</p>
+              </div>
+
+              <div class="flex items-start gap-3 p-4 rounded-lg" style="background-color: #EFF6FF; border: 1px solid #DDE6F6;">
+                <svg class="w-5 h-5 text-primary-100 mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                <div class="text-sm">
+                  <p class="font-semibold text-primary-100">{{ 'CREATE_OFFER._cant_find_cat_title' | translate }}</p>
+                  <p class="text-gray-700 mt-0.5" [innerHTML]="'CREATE_OFFER._cant_find_cat_text' | translate"></p>
+                </div>
+              </div>
+            </div>
+          } @else if (currentStep === 2) {
+            <div class="flex flex-col gap-5" [formGroup]="licenseFormGroup">
+              <div>
+                <h2 class="dome-heading-6">{{ 'CREATE_OFFER._terms_conditions' | translate }}</h2>
+                <p class="dome-body-small mt-2">{{ 'CREATE_OFFER._step3_subtitle' | translate }}</p>
+              </div>
+
+              <div>
+                <label for="tcText" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._terms_conditions' | translate }}</label>
+                <textarea data-cy="tcText" id="tcText" formControlName="description" rows="8"
+                  placeholder="{{ 'CREATE_OFFER._tc_placeholder' | translate }}"
+                  class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3 resize-none"></textarea>
+              </div>
+
+              <div>
+                <p class="text-sm text-gray-700 mb-2">{{ 'CREATE_OFFER._or_upload_documents' | translate }}</p>
+                <label for="tcFileUpload" class="dashed-pane rounded-2xl flex flex-col items-center justify-center px-6 py-10 text-center cursor-pointer hover:bg-gray-50">
+                  <svg class="w-10 h-10 text-primary-100 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15M9 12l3-3m0 0l3 3m-3-3v12"/>
+                  </svg>
+                  <p class="text-sm text-gray-700 font-medium">{{ 'CREATE_OFFER._drop_or_browse' | translate }} <span class="text-primary-100 underline">{{ 'CREATE_OFFER._browse_files' | translate }}</span></p>
+                  <p class="text-xs text-gray-500 mt-2">{{ 'CREATE_OFFER._accepted_formats' | translate }}</p>
+                  <input id="tcFileUpload" type="file" class="hidden" accept=".pdf,.doc,.docx" multiple (change)="onTCFileSelected($event)"/>
+                </label>
+                @if(tcAttachments.length > 0){
+                  <ul class="mt-3 space-y-2">
+                    @for(file of tcAttachments; track file.name; let i = $index){
+                      <li class="flex items-center justify-between gap-2 px-3 py-2 bg-secondary-50/40 rounded-lg text-sm">
+                        <span class="truncate text-gray-700">{{ file.name }}</span>
+                        <button type="button" (click)="removeTCFile(i)" class="text-gray-500 hover:text-red-600">
+                          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                          </svg>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            </div>
+          } @else if (currentStep === 3) {
+            @if(pricePlanFormMode === 'form' && pricePlanFormType === 'tailored'){
+              <form [formGroup]="tailoredPricePlanForm" class="flex flex-col gap-5">
+                <button type="button" (click)="cancelTailoredPricePlanForm()"
+                  class="inline-flex items-center gap-2 dome-heading-6 w-fit">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+                  </svg>
+                  {{ 'CREATE_OFFER._add_price_plan' | translate }}
+                </button>
+
+                <div>
+                  <label for="ppName" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pp_col_name' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+                  <input data-cy="ppName" id="ppName" type="text" formControlName="name" maxlength="100"
+                    placeholder="{{ 'CREATE_OFFER._pp_form_name_placeholder' | translate }}"
+                    class="bg-white border text-gray-900 text-sm rounded-lg block w-full p-3 focus:ring-primary-100 focus:border-primary-100"
+                    [class.border-gray-300]="!(tailoredPricePlanForm.get('name')?.touched && tailoredPricePlanForm.get('name')?.invalid)"
+                    [class.border-red-500]="tailoredPricePlanForm.get('name')?.touched && tailoredPricePlanForm.get('name')?.invalid"/>
+                  @if(tailoredPricePlanForm.get('name')?.touched && tailoredPricePlanForm.get('name')?.invalid){
+                    <p class="mt-1 text-xs text-red-600">{{ 'CREATE_OFFER._mandatory_field' | translate }}</p>
+                  }
+                </div>
+
+                <div>
+                  <label for="ppDescription" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pp_col_description' | translate }}</label>
+                  <textarea data-cy="ppDescription" id="ppDescription" formControlName="description" rows="6" maxlength="300"
+                    placeholder="{{ 'CREATE_OFFER._pp_form_description_placeholder' | translate }}"
+                    class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3 resize-none"></textarea>
+                  <p class="mt-1 text-xs text-gray-500">{{ (tailoredPricePlanForm.get('description')?.value?.length || 0) }}/300</p>
+                </div>
+              </form>
+            } @else if(pricePlanFormMode === 'form' && (pricePlanFormType === 'standard' || pricePlanFormType === 'flex')){
+              <form [formGroup]="paidPricePlanForm" class="flex flex-col gap-6">
+                <button type="button" (click)="cancelPaidPricePlanForm()"
+                  class="inline-flex items-center gap-2 dome-heading-6 w-fit">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+                  </svg>
+                  {{ 'CREATE_OFFER._add_price_plan' | translate }}
+                </button>
+
+                <div>
+                  <label for="paidName" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pp_col_name' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+                  <input data-cy="paidName" id="paidName" type="text" formControlName="name" maxlength="100"
+                    placeholder="{{ 'CREATE_OFFER._pp_form_name_placeholder' | translate }}"
+                    class="bg-white border text-gray-900 text-sm rounded-lg block w-full p-3 focus:ring-primary-100 focus:border-primary-100"
+                    [class.border-gray-300]="!(paidPricePlanForm.get('name')?.touched && paidPricePlanForm.get('name')?.invalid)"
+                    [class.border-red-500]="paidPricePlanForm.get('name')?.touched && paidPricePlanForm.get('name')?.invalid"/>
+                  @if(paidPricePlanForm.get('name')?.touched && paidPricePlanForm.get('name')?.invalid){
+                    <p class="mt-1 text-xs text-red-600">{{ 'CREATE_OFFER._mandatory_field' | translate }}</p>
+                  }
+                </div>
+
+                <div>
+                  <label for="paidDescription" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pp_col_description' | translate }}</label>
+                  <textarea data-cy="paidDescription" id="paidDescription" formControlName="description" rows="6" maxlength="300"
+                    placeholder="{{ 'CREATE_OFFER._pp_form_description_placeholder' | translate }}"
+                    class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3 resize-none"></textarea>
+                  <p class="mt-1 text-xs text-gray-500">{{ (paidPricePlanForm.get('description')?.value?.length || 0) }}/300</p>
+                </div>
+
+                @if(pricePlanFormType !== 'flex'){
+                <div class="flex flex-col gap-3">
+                  <div class="flex items-center justify-between">
+                    <h3 class="dome-heading-6">{{ 'CREATE_OFFER._configuration_profile' | translate }}</h3>
+                    @if(hasConfiguredProfile()){
+                      <button data-cy="editConfigProfile" type="button" (click)="openConfigProfileModal()"
+                        class="inline-flex items-center gap-2 text-sm font-semibold text-primary-100 hover:text-primary-50">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/>
+                        </svg>
+                        {{ 'CREATE_OFFER._edit_configuration_profile' | translate }}
+                      </button>
+                    }
+                  </div>
+                  @if(!hasConfiguredProfile()){
+                    <div class="dashed-pane rounded-2xl flex flex-col items-center justify-center px-6 py-10 text-center">
+                      <div class="w-[72px] h-[72px] rounded-full flex items-center justify-center mb-5 p-4" style="background-color: #DDE6F6;">
+                        <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#2D58A7">
+                          <path fill-rule="evenodd" clip-rule="evenodd" d="M3.375 3C2.339 3 1.5 3.84 1.5 4.875v.75c0 1.036.84 1.875 1.875 1.875h17.25c1.035 0 1.875-.84 1.875-1.875v-.75C22.5 3.839 21.66 3 20.625 3H3.375z"/>
+                          <path fill-rule="evenodd" clip-rule="evenodd" d="M3.087 9l.54 9.176A3 3 0 006.62 21h10.757a3 3 0 002.995-2.824L20.913 9H3.087zm6.133 2.845a.75.75 0 011.06 0l1.72 1.72 1.72-1.72a.75.75 0 111.06 1.06l-1.72 1.72 1.72 1.72a.75.75 0 11-1.06 1.06L12 15.685l-1.72 1.72a.75.75 0 11-1.06-1.06l1.72-1.72-1.72-1.72a.75.75 0 010-1.06z"/>
+                        </svg>
+                      </div>
+                      <p class="dome-heading-6">{{ 'CREATE_OFFER._no_configurations_yet' | translate }}</p>
+                      <p class="dome-body-small mt-2">{{ 'CREATE_OFFER._no_price_plans_yet_subtitle' | translate }}</p>
+                      <button type="button" (click)="openConfigProfileModal()"
+                        class="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-100 rounded-lg border border-primary-100 hover:bg-primary-50/10">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                        </svg>
+                        {{ 'CREATE_OFFER._set_configuration_profile' | translate }}
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="border border-gray-200 rounded-lg overflow-hidden">
+                      <table class="w-full text-left">
+                        <thead class="bg-gray-50">
+                          <tr>
+                            <th scope="col" class="px-6 py-3 dome-heading-6" style="font-size: 16px;">{{ 'CREATE_OFFER._config_col_option' | translate }}</th>
+                            <th scope="col" class="px-6 py-3 dome-heading-6" style="font-size: 16px;">{{ 'CREATE_OFFER._config_col_value' | translate }}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for(sv of paidProductProfile.controls; track $index; let last = $last){
+                            <tr [style.border-top]="'1px solid #EBECEE'">
+                              <td class="px-6 py-4 dome-body-small">{{ sv.value.name }}</td>
+                              <td class="px-6 py-4 dome-body-small">{{ sv.value.selectedValue }}</td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  }
+                </div>
+                }
+
+                <div class="flex flex-col gap-3">
+                  <h3 class="dome-heading-6">{{ 'CREATE_OFFER._price_components' | translate }}</h3>
+                  <p class="dome-body-small">{{ 'CREATE_OFFER._price_components_currency_hint' | translate }}</p>
+                  <div>
+                    <label for="paidCurrency" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._currency' | translate }}</label>
+                    <select id="paidCurrency" formControlName="currency"
+                      class="block w-full p-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-primary-100 focus:border-primary-100">
+                      @for(opt of currencyOptions; track opt.code){
+                        <option [value]="opt.code">{{ opt.label }}</option>
+                      }
+                    </select>
+                  </div>
+                  @if(paidPriceComponents.length === 0){
+                    <div class="dashed-pane rounded-2xl flex flex-col items-center justify-center px-6 py-10 text-center">
+                      <div class="w-[72px] h-[72px] rounded-full flex items-center justify-center mb-5 p-4" style="background-color: #DDE6F6;">
+                        <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#2D58A7">
+                          <path fill-rule="evenodd" clip-rule="evenodd" d="M3.375 3C2.339 3 1.5 3.84 1.5 4.875v.75c0 1.036.84 1.875 1.875 1.875h17.25c1.035 0 1.875-.84 1.875-1.875v-.75C22.5 3.839 21.66 3 20.625 3H3.375z"/>
+                          <path fill-rule="evenodd" clip-rule="evenodd" d="M3.087 9l.54 9.176A3 3 0 006.62 21h10.757a3 3 0 002.995-2.824L20.913 9H3.087zm6.133 2.845a.75.75 0 011.06 0l1.72 1.72 1.72-1.72a.75.75 0 111.06 1.06l-1.72 1.72 1.72 1.72a.75.75 0 11-1.06 1.06L12 15.685l-1.72 1.72a.75.75 0 11-1.06-1.06l1.72-1.72-1.72-1.72a.75.75 0 010-1.06z"/>
+                        </svg>
+                      </div>
+                      <p class="dome-heading-6">{{ 'CREATE_OFFER._no_price_components_yet' | translate }}</p>
+                      <p class="dome-body-small mt-2">{{ 'CREATE_OFFER._no_price_plans_yet_subtitle' | translate }}</p>
+                      <button data-cy="addPriceComponent" type="button" (click)="openAddPriceComponentModal()"
+                        class="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-100 rounded-lg border border-primary-100 hover:bg-primary-50/10">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                        </svg>
+                        {{ 'CREATE_OFFER._add_price_component' | translate }}
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="flex justify-end">
+                      <button data-cy="addPriceComponent" type="button" (click)="openAddPriceComponentModal()"
+                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-100 rounded-lg border border-primary-100 hover:bg-primary-50/10">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                        </svg>
+                        {{ 'CREATE_OFFER._add_price_component' | translate }}
+                      </button>
+                    </div>
+                    <div class="rounded-2xl overflow-visible" style="border: 1px solid #D8DADE;">
+                      <table class="w-full text-left border-collapse">
+                        <thead>
+                          <tr style="background: #EBF0F7;">
+                            <th scope="col" class="px-4 py-4 text-base font-semibold text-[#324153] rounded-tl-2xl">{{ 'CREATE_OFFER._pp_col_name' | translate }}</th>
+                            <th scope="col" class="px-4 py-4 text-base font-semibold text-[#324153]">{{ 'CREATE_OFFER._pc_col_price_type' | translate }}</th>
+                            <th scope="col" class="px-4 py-4 text-base font-semibold text-[#324153]">{{ 'CREATE_OFFER._pc_recurring_period' | translate }}</th>
+                            <th scope="col" class="px-4 py-4 text-base font-semibold text-[#324153]">{{ 'CREATE_OFFER._pc_col_price' | translate }}</th>
+                            <th scope="col" class="px-4 py-4 text-base font-semibold text-[#324153]">{{ 'CREATE_OFFER._pp_col_discount' | translate }}</th>
+                            <th scope="col" class="px-4 py-4 text-base font-semibold text-[#324153] text-center rounded-tr-2xl">{{ 'CREATE_OFFER._pp_col_action' | translate }}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for(comp of paidPriceComponents; track comp.id; let i = $index){
+                            <tr style="border-top: 1px solid #EBECEE;">
+                              <td class="px-4 py-4 text-base text-[#324153]">{{ comp.name }}</td>
+                              @if(comp.tiers?.length){
+                                <td class="px-4 py-4"></td>
+                                <td class="px-4 py-4"></td>
+                                <td class="px-4 py-4"></td>
+                                <td class="px-4 py-4"></td>
+                              } @else {
+                                <td class="px-4 py-4 text-base text-[#324153]">{{ priceTypeLabelKey(comp.priceType) | translate }}</td>
+                                <td class="px-4 py-4 text-base text-[#324153]">{{ componentPeriodKey(comp) ? ((componentPeriodKey(comp) | translate) | lowercase) : '-' }}</td>
+                                <td class="px-4 py-4 text-base text-[#324153]">{{ comp.price }} {{ currencySymbol }}</td>
+                                <td class="px-4 py-4 text-base text-[#324153]">{{ comp.discountValue != null ? discountLabel(comp) : '-' }}</td>
+                              }
+                              <td class="px-4 py-4 text-center relative">
+                                <button type="button" (click)="togglePriceCompMenu(i); $event.stopPropagation()"
+                                  class="p-1 rounded hover:bg-gray-100 text-primary-100"
+                                  [attr.aria-label]="'CREATE_OFFER._pp_col_action' | translate">
+                                  <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="5" cy="12" r="1.75"/>
+                                    <circle cx="12" cy="12" r="1.75"/>
+                                    <circle cx="19" cy="12" r="1.75"/>
+                                  </svg>
+                                </button>
+                                @if(openPriceCompMenuIndex === i){
+                                  <div class="absolute right-2 z-10 mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-lg py-1 text-left">
+                                    <button type="button" (click)="editPriceComponent(comp, i)"
+                                      class="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                      <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+                                      {{ 'CREATE_OFFER._pp_edit' | translate }}
+                                    </button>
+                                    <button type="button" (click)="removePriceComponent(i)"
+                                      class="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-50">
+                                      <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                                      {{ 'CREATE_OFFER._pp_delete' | translate }}
+                                    </button>
+                                  </div>
+                                }
+                              </td>
+                            </tr>
+                            @if(comp.tiers?.length){
+                              @for(tier of comp.tiers.slice().reverse(); track tier; let ri = $index){
+                                <tr style="border-top: 1px solid #EBECEE;">
+                                  <td class="pl-10 pr-4 py-4 text-sm text-[#324153]">{{ tier.name || (('CREATE_OFFER._pc_tier' | translate) + ' ' + (comp.tiers.length - ri)) }}</td>
+                                  <td class="px-4 py-4 text-sm text-[#324153]">{{ priceTypeLabelKey(tier.priceType) | translate }}</td>
+                                  <td class="px-4 py-4 text-sm text-[#324153]">{{ tier.discountValue != null && periodLabelKey(tier.discountDurationUnit) ? ((periodLabelKey(tier.discountDurationUnit) | translate) | lowercase) : '-' }}</td>
+                                  <td class="px-4 py-4 text-sm text-[#324153]">{{ tierFinalPrice(tier) | number:'1.2-2' }} {{ currencySymbol }}</td>
+                                  <td class="px-4 py-4 text-sm text-[#324153]">{{ tier.discountValue != null ? discountLabel(tier) : '-' }}</td>
+                                  <td class="px-4 py-4"></td>
+                                </tr>
+                              }
+                            }
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  }
+                </div>
+              </form>
+            } @else {
+              <div class="flex flex-col gap-5">
+                <div>
+                  <h2 class="dome-heading-6">{{ 'CREATE_OFFER._price_plans' | translate }}</h2>
+                  <p class="dome-body-small mt-2">{{ 'CREATE_OFFER._step4_subtitle' | translate }}</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  @for(tier of priceTiers; track tier.id){
+                    <button type="button" (click)="selectPriceTier(tier.id)"
+                      class="plan-card text-left rounded-2xl border p-6"
+                      [class.bg-white]="selectedPriceTier !== tier.id"
+                      [class.border-gray-200]="selectedPriceTier !== tier.id"
+                      [style.background-color]="selectedPriceTier === tier.id ? '#ECFEFF' : null"
+                      [style.border-color]="selectedPriceTier === tier.id ? '#06B6D4' : null"
+                      [style.box-shadow]="selectedPriceTier === tier.id ? '0px 4px 24px rgba(0, 84, 98, 0.2)' : null">
+                      <h3 class="dome-heading-6 mb-3">{{ tier.titleKey | translate }}</h3>
+                      <p class="dome-body-small">{{ tier.descKey | translate }}</p>
+                    </button>
+                  }
+                </div>
+
+                @if(selectedPriceTier === 'tailored' || selectedPriceTier === 'online'){
+                  <div class="flex flex-col gap-4 mt-4">
+                    <div class="flex items-start justify-between gap-4">
+                      <div>
+                        <h3 class="dome-heading-6">
+                          {{ (selectedPriceTier === 'tailored' ? 'CREATE_OFFER._tailored_price_plans' : 'CREATE_OFFER._online_paid_price_plans') | translate }}
+                        </h3>
+                        <p class="dome-body-small mt-2">
+                          {{ (selectedPriceTier === 'tailored' ? 'CREATE_OFFER._tailored_price_plans_hint' : 'CREATE_OFFER._online_paid_price_plans_hint') | translate }}
+                        </p>
+                      </div>
+                      <button data-cy="addPricePlan" type="button"
+                        (click)="selectedPriceTier === 'tailored' ? openAddTailoredPricePlan() : openSelectPlanTypeModal()"
+                        class="shrink-0 inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-100 rounded-lg border border-primary-100 hover:bg-primary-50/10">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                        </svg>
+                        {{ 'CREATE_OFFER._add_price_plan' | translate }}
+                      </button>
+                    </div>
+
+                    @if(currentTierPricePlans.length === 0){
+                      <div class="dashed-pane rounded-2xl flex flex-col items-center justify-center px-6 py-12 text-center">
+                        <div class="w-[72px] h-[72px] rounded-full flex items-center justify-center mb-5 p-4" style="background-color: #DDE6F6;">
+                          <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#2D58A7">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M3.375 3C2.339 3 1.5 3.84 1.5 4.875v.75c0 1.036.84 1.875 1.875 1.875h17.25c1.035 0 1.875-.84 1.875-1.875v-.75C22.5 3.839 21.66 3 20.625 3H3.375z"/>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M3.087 9l.54 9.176A3 3 0 006.62 21h10.757a3 3 0 002.995-2.824L20.913 9H3.087zm6.133 2.845a.75.75 0 011.06 0l1.72 1.72 1.72-1.72a.75.75 0 111.06 1.06l-1.72 1.72 1.72 1.72a.75.75 0 11-1.06 1.06L12 15.685l-1.72 1.72a.75.75 0 11-1.06-1.06l1.72-1.72-1.72-1.72a.75.75 0 010-1.06z"/>
+                          </svg>
+                        </div>
+                        <p class="dome-heading-6">{{ 'CREATE_OFFER._no_price_plans_yet' | translate }}</p>
+                        <p class="dome-body-small mt-2">{{ 'CREATE_OFFER._no_price_plans_yet_subtitle' | translate }}</p>
+                        <button type="button"
+                          (click)="selectedPriceTier === 'tailored' ? openAddTailoredPricePlan() : openSelectPlanTypeModal()"
+                          class="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-100 rounded-lg border border-primary-100 hover:bg-primary-50/10">
+                          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                          </svg>
+                          {{ 'CREATE_OFFER._add_price_plan' | translate }}
+                        </button>
+                      </div>
+                    } @else {
+                      <div class="border border-gray-200 rounded-lg overflow-visible">
+                        <table class="w-full text-sm text-left text-gray-700">
+                          <thead class="text-xs uppercase text-gray-600 bg-gray-50">
+                            <tr>
+                              <th scope="col" class="px-4 py-3 font-semibold">{{ 'CREATE_OFFER._pp_col_name' | translate }}</th>
+                              <th scope="col" class="px-4 py-3 font-semibold">{{ 'CREATE_OFFER._pp_col_description' | translate }}</th>
+                              <th scope="col" class="px-4 py-3 font-semibold">{{ 'CREATE_OFFER._pp_col_online_payment' | translate }}</th>
+                              <th scope="col" class="px-4 py-3 font-semibold text-right">{{ 'CREATE_OFFER._pp_col_action' | translate }}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for(plan of currentTierPricePlans; track plan.id; let i = $index){
+                              <tr class="border-t border-gray-200">
+                                <td class="px-4 py-3 font-medium text-gray-900">{{ plan.name }}</td>
+                                <td class="px-4 py-3 text-gray-600">{{ plan.description }}</td>
+                                <td class="px-4 py-3 text-gray-600">{{ plan.paymentOnline ? 'Yes' : ('CREATE_OFFER._pp_online_no' | translate) }}</td>
+                                <td class="px-4 py-3 text-right relative">
+                                  <button type="button" (click)="toggleActionMenu(i); $event.stopPropagation()"
+                                    class="p-1 rounded hover:bg-gray-100"
+                                    [attr.aria-label]="'CREATE_OFFER._pp_col_action' | translate">
+                                    <svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                      <circle cx="5" cy="12" r="1.75"/>
+                                      <circle cx="12" cy="12" r="1.75"/>
+                                      <circle cx="19" cy="12" r="1.75"/>
+                                    </svg>
+                                  </button>
+                                  @if(openActionMenuIndex === i){
+                                    <div class="absolute right-2 z-10 mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-lg py-1 text-left">
+                                      <button type="button" (click)="editPricePlan(plan)"
+                                        class="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+                                        {{ 'CREATE_OFFER._pp_edit' | translate }}
+                                      </button>
+                                      <button type="button" (click)="removePricePlan(plan)"
+                                        class="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-50">
+                                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                                        {{ 'CREATE_OFFER._pp_delete' | translate }}
+                                      </button>
+                                    </div>
+                                  }
+                                </td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          } @else if (currentStep === 4) {
+            <div class="flex flex-col gap-5">
+              <div>
+                <h2 class="dome-heading-6">{{ 'CREATE_OFFER._procurement_mode' | translate }}</h2>
+                <p class="dome-body-small mt-2">{{ 'CREATE_OFFER._step5_subtitle' | translate }}</p>
+              </div>
+              <app-procurement-mode
+                [data]="offer"
+                [form]="productOfferForm.controls['procurementMode']"
+                [formType]="formType"
+                (formChange)="handleSubformChange($event)">
+              </app-procurement-mode>
+            </div>
           }
-        } @else if (currentStep === 4) {
-          @if(this.formType=='update'){
-            <app-price-plans-form 
-              [form]="productOfferForm" 
-              [prodSpec]="productOfferForm.get('prodSpec')?.value"
-              [custom]="false"
-              (formChange)="handleSubformChange($event)">
-            </app-price-plans-form>
-          }@else{
-            <app-license-form [data]="offer" 
-                            [formType]="formType" 
-                            [form]="productOfferForm.controls['license']"
-                            (formChange)="handleSubformChange($event)">
-            </app-license-form>
-          }
-        } @else if (currentStep === 5) {
-          @if(this.formType=='update'){
-            <app-procurement-mode [data]="offer" 
-              [form]="productOfferForm.controls['procurementMode']"
-              [formType]="formType"
-              (formChange)="handleSubformChange($event)">
-            </app-procurement-mode>
-          }@else{
-            <app-price-plans-form [form]="productOfferForm" 
-                                [prodSpec]="productOfferForm.get('prodSpec')?.value"
-                                [custom]="false"
-                                (formChange)="handleSubformChange($event)">
-            </app-price-plans-form>
-          }         
-        } @else if (currentStep === 6) {
-          @if(this.formType=='update'){
-            <!--<app-replication-visibility></app-replication-visibility>-->
-            <app-offer-summary [productOfferForm]="productOfferForm"></app-offer-summary>
-          }@else{
-            <!--<app-replication-visibility></app-replication-visibility>-->
-            <app-procurement-mode [data]="offer" 
-              [formType]="formType" 
-              [form]="productOfferForm.controls['procurementMode']"
-              (formChange)="handleSubformChange($event)">
-            </app-procurement-mode>
-          }
-        } @else if(currentStep === 7) {
-          <!--@if(this.formType=='update'){
-            <app-offer-summary [productOfferForm]="productOfferForm"></app-offer-summary>
-          }@else{
-            <app-replication-visibility></app-replication-visibility>
-          }-->
-          <app-offer-summary [productOfferForm]="productOfferForm"></app-offer-summary>
+
         }
-    </div>
-  }
-    <!-- Navigation Buttons -->
-    <div class="flex justify-end mt-6 space-x-4">
-      <button data-cy="offerPrevious" (click)="goToStep(currentStep - 1)"
-              [disabled]="currentStep === 0"
-              [ngClass]="{
-                'text-gray-500 dark:text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white': currentStep !== 0,
-                'text-gray-300 dark:text-gray-600 cursor-not-allowed': currentStep === 0
-              }"
-              class="px-4 py-2 flex items-center justify-center text-base font-medium rounded-lg  bg-white border border-gray-300 dark:bg-gray-800 dark:border-gray-700 ">
-          <svg class="min-w-4 w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
-            <path fill="currentColor"
-                  d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3
-                  256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"/>
-          </svg>
-          {{ 'CREATE_OFFER._previous' | translate }}
-      </button>
+      </div>
 
-      <button data-cy="offerNext" (click)="goToStep(currentStep + 1)"
-              [disabled]="currentStep === steps.length - 1 || (formType === 'create' && !validateCurrentStep()) || !canNavigate(currentStep)"
-              [ngClass]="{
-                'hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white': currentStep !== steps.length - 1 && (formType !== 'create' || validateCurrentStep() || canNavigate(currentStep)),
-                'cursor-not-allowed opacity-50': currentStep === steps.length - 1 || (formType === 'create' && !validateCurrentStep() || !canNavigate(currentStep))
-              }"
-              class="px-4 py-2 flex items-center justify-center text-base font-medium rounded-lg text-gray-500 bg-white border border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400">
-            {{ 'CREATE_OFFER._next_step' | translate }}
-        <svg class="min-w-4 w-4 h-4 ml-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
-          <path fill="currentColor"
-                d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7
-                256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/>
-        </svg>
-      </button>
-      @if(formType === 'create' && currentStep === 7 || formType === 'update'){
-        <button data-cy="offerFinish" (click)="submitForm()"
-        [disabled]="!isFormValid|| loading"
-        [ngClass]="loading || (formType === 'update' && !isFormValid) ? 'opacity-50' : 'hover:bg-primary-50'"
-
-        class="px-4 py-2 text-base font-medium text-white rounded-lg bg-primary-100">
-          {{ formType === 'create' ? 'Create Offer' : 'Update Offer' }}
-        </button>
+      @if(!loading){
+        <div class="flex items-center justify-end gap-3 pb-2">
+          @if(currentStep === 3 && pricePlanFormMode === 'form'){
+            <button type="button" (click)="cancelCurrentPricePlanForm()"
+              class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50">
+              {{ 'CREATE_OFFER._pp_go_back' | translate }}
+            </button>
+            <button data-cy="ppSave" type="button" (click)="saveCurrentPricePlanForm()"
+              [disabled]="currentPricePlanForm.invalid"
+              [ngClass]="currentPricePlanForm.invalid ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
+              class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg bg-primary-100">
+              {{ 'CREATE_OFFER._pp_save' | translate }}
+            </button>
+          } @else {
+            @if(currentStep === 0){
+              <button type="button" (click)="onBackClick()"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50">
+                {{ 'CREATE_OFFER._cancel' | translate }}
+              </button>
+            } @else {
+              <button type="button" (click)="goToStep(currentStep - 1)"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50">
+                {{ 'CREATE_OFFER._previous_step' | translate }}
+              </button>
+            }
+            @if(currentStep < steps.length - 1){
+              <button data-cy="offerNext" type="button" (click)="goToStep(currentStep + 1)"
+                [disabled]="!canNavigate(currentStep)"
+                [ngClass]="!canNavigate(currentStep) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg bg-primary-100">
+                {{ 'CREATE_OFFER._save_continue' | translate }}
+              </button>
+            } @else {
+              <button data-cy="offerFinish" type="button" (click)="submitForm()"
+                [disabled]="!isFormValid || loading"
+                [ngClass]="(loading || !isFormValid) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg bg-primary-100">
+                {{ formType === 'create' ? ('CREATE_OFFER._finish_create' | translate) : ('UPDATE_OFFER._finish_update' | translate) }}
+              </button>
+            }
+          }
+        </div>
       }
-    </div>
-  </form>
-}
+      </div>
+    </form>
+  }
 </div>
+
+@if(showLeaveModal){
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4" (click)="cancelLeave()">
+    <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-lg" (click)="$event.stopPropagation()">
+      <div class="flex justify-end">
+        <button type="button" (click)="cancelLeave()" class="text-gray-500 hover:text-gray-700">
+          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="flex flex-col items-center text-center -mt-4">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center mb-4" style="background-color: #DDE6F6;">
+          <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="#2D58A7" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-extrabold text-gray-900 mb-3">{{ 'CREATE_OFFER._leave_title' | translate }}</h3>
+        <p class="text-sm text-gray-600 mb-6">{{ 'CREATE_OFFER._leave_text' | translate }}</p>
+        <div class="flex gap-3 w-full">
+          <button type="button" (click)="cancelLeave()"
+            class="flex-1 px-4 py-2.5 text-sm font-semibold text-primary-100 rounded-lg border border-primary-100 hover:bg-primary-50/10">
+            {{ 'CREATE_OFFER._continue_editing' | translate }}
+          </button>
+          <button type="button" (click)="confirmLeave()"
+            class="flex-1 px-4 py-2.5 text-sm font-semibold text-white rounded-lg bg-primary-100 hover:bg-primary-50">
+            {{ 'CREATE_OFFER._leave_save_draft' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+
+@if(showSelectPlanTypeModal){
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4" (click)="closeSelectPlanTypeModal()">
+    <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-3xl" (click)="$event.stopPropagation()">
+      <div class="flex items-start justify-between mb-2">
+        <h3 class="dome-heading-6">{{ 'CREATE_OFFER._add_new_price_plan' | translate }}</h3>
+        <button type="button" (click)="closeSelectPlanTypeModal()" class="text-gray-500 hover:text-gray-700">
+          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <p class="dome-body-small mb-6 mt-2">{{ 'CREATE_OFFER._select_plan_type' | translate }}</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <button type="button" (click)="selectedNewPlanType = 'standard'"
+          class="plan-card text-left rounded-2xl border p-6"
+          [class.bg-white]="selectedNewPlanType !== 'standard'"
+          [class.border-gray-200]="selectedNewPlanType !== 'standard'"
+          [style.background-color]="selectedNewPlanType === 'standard' ? '#ECFEFF' : null"
+          [style.border-color]="selectedNewPlanType === 'standard' ? '#06B6D4' : null"
+          [style.box-shadow]="selectedNewPlanType === 'standard' ? '0px 4px 24px rgba(0, 84, 98, 0.2)' : null">
+          <h4 class="dome-heading-6 mb-3">{{ 'CREATE_OFFER._standard_plan' | translate }}</h4>
+          <p class="dome-body-small">{{ 'CREATE_OFFER._standard_plan_desc' | translate }}</p>
+        </button>
+        <button type="button" (click)="selectedNewPlanType = 'flex'"
+          class="plan-card text-left rounded-2xl border p-6"
+          [class.bg-white]="selectedNewPlanType !== 'flex'"
+          [class.border-gray-200]="selectedNewPlanType !== 'flex'"
+          [style.background-color]="selectedNewPlanType === 'flex' ? '#ECFEFF' : null"
+          [style.border-color]="selectedNewPlanType === 'flex' ? '#06B6D4' : null"
+          [style.box-shadow]="selectedNewPlanType === 'flex' ? '0px 4px 24px rgba(0, 84, 98, 0.2)' : null">
+          <h4 class="dome-heading-6 mb-3">{{ 'CREATE_OFFER._flex_plan' | translate }}</h4>
+          <p class="dome-body-small">{{ 'CREATE_OFFER._flex_plan_desc' | translate }}</p>
+        </button>
+      </div>
+
+      <div class="flex justify-end gap-3">
+        <button type="button" (click)="closeSelectPlanTypeModal()"
+          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50">
+          {{ 'CREATE_OFFER._cancel' | translate }}
+        </button>
+        <button data-cy="selectPlanTypeContinue" type="button" (click)="confirmSelectPlanType()"
+          [disabled]="!selectedNewPlanType"
+          [ngClass]="!selectedNewPlanType ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
+          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg bg-primary-100">
+          {{ 'CREATE_OFFER._continue' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if(showPriceComponentModal){
+  <div class="fixed inset-0 z-50 bg-black transition-opacity duration-300"
+    [class.bg-opacity-40]="priceDrawerEntered" [class.bg-opacity-0]="!priceDrawerEntered"
+    (click)="closePriceComponentModal()">
+    <form [formGroup]="priceComponentForm"
+      class="absolute top-0 right-0 h-full w-full sm:max-w-[600px] bg-white shadow-2xl flex flex-col transform transition-transform duration-300"
+      [class.translate-x-0]="priceDrawerEntered" [class.translate-x-full]="!priceDrawerEntered"
+      (click)="$event.stopPropagation()">
+
+      <div class="flex items-start justify-between px-8 pt-6 pb-4 shrink-0">
+        <h3 class="text-2xl font-extrabold text-gray-900">{{ 'CREATE_OFFER._add_price_component' | translate }}</h3>
+        <button type="button" (click)="closePriceComponentModal()" class="text-gray-500 hover:text-gray-700">
+          <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto px-8 py-2 flex flex-col gap-6">
+        @if(isFlexComponent){
+          <div class="grid grid-cols-1 gap-4" [ngClass]="isRangeConfigOption ? '' : 'md:grid-cols-2'">
+            <div>
+              <label for="pcConfigOption" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_configuration_option' | translate }}</label>
+              <select data-cy="pcConfigOption" id="pcConfigOption" formControlName="configOption" (change)="onConfigOptionChange()"
+                class="block w-full p-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-primary-100 focus:border-primary-100">
+                <option value="">{{ 'CREATE_OFFER._select' | translate }}</option>
+                @for(c of prodSpecCharacteristics; track c.id){
+                  <option [value]="c.id">{{ c.name }}</option>
+                }
+              </select>
+            </div>
+            @if(!isRangeConfigOption){
+              <div>
+                <label for="pcName" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_name_configuration' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+                <input data-cy="pcName" id="pcName" type="text" formControlName="name" maxlength="100"
+                  placeholder="{{ 'CREATE_OFFER._pc_name_configuration_placeholder' | translate }}"
+                  class="bg-white border text-gray-900 text-sm rounded-lg block w-full p-3 focus:ring-primary-100 focus:border-primary-100"
+                  [class.border-gray-300]="!(priceComponentForm.get('name')?.touched && priceComponentForm.get('name')?.invalid)"
+                  [class.border-red-500]="priceComponentForm.get('name')?.touched && priceComponentForm.get('name')?.invalid"/>
+              </div>
+            }
+          </div>
+
+          @if(!isRangeConfigOption){
+            <div>
+              <label for="pcDescription" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_description_configuration' | translate }}</label>
+              <textarea data-cy="pcDescription" id="pcDescription" formControlName="description" rows="3" maxlength="200"
+                placeholder="{{ 'CREATE_OFFER._pc_description_placeholder' | translate }}"
+                class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3 resize-none"></textarea>
+              <p class="mt-1 text-xs text-gray-500">{{ (priceComponentForm.get('description')?.value?.length || 0) }}/200</p>
+            </div>
+          }
+        } @else {
+          <div>
+            <label for="pcName" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pp_col_name' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+            <input data-cy="pcName" id="pcName" type="text" formControlName="name" maxlength="100"
+              placeholder="{{ 'CREATE_OFFER._pc_name_placeholder' | translate }}"
+              class="bg-white border text-gray-900 text-sm rounded-lg block w-full p-3 focus:ring-primary-100 focus:border-primary-100"
+              [class.border-gray-300]="!(priceComponentForm.get('name')?.touched && priceComponentForm.get('name')?.invalid)"
+              [class.border-red-500]="priceComponentForm.get('name')?.touched && priceComponentForm.get('name')?.invalid"/>
+          </div>
+
+          <div>
+            <label for="pcDescription" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pp_col_description' | translate }}</label>
+            <textarea data-cy="pcDescription" id="pcDescription" formControlName="description" rows="3" maxlength="200"
+              placeholder="{{ 'CREATE_OFFER._pc_description_placeholder' | translate }}"
+              class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3 resize-none"></textarea>
+            <p class="mt-1 text-xs text-gray-500">{{ (priceComponentForm.get('description')?.value?.length || 0) }}/200</p>
+          </div>
+        }
+
+        @if(!isFlexComponent || (selectedConfigOption && !isRangeConfigOption)){
+        <div class="rounded-2xl p-4 flex flex-col gap-5" style="background: #F7F9FD; border: 1px solid #D8DADE;">
+          <h4 class="text-lg font-bold text-gray-900">{{ 'CREATE_OFFER._pc_price_configuration' | translate }}</h4>
+
+          <div class="grid grid-cols-1 gap-4" [ngClass]="showConfigValueField ? 'md:grid-cols-4' : 'md:grid-cols-2'">
+            <div [ngClass]="showConfigValueField ? 'md:col-span-2' : ''">
+              <label for="pcBasePrice" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_base_price' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+              <input data-cy="pcBasePrice" id="pcBasePrice" type="number" min="0" step="0.01" formControlName="basePrice"
+                placeholder="{{ 'CREATE_OFFER._pc_base_price_placeholder' | translate }}"
+                class="bg-white border text-gray-900 text-sm rounded-lg block w-full p-3 focus:ring-primary-100 focus:border-primary-100"
+                [class.border-gray-300]="!(priceComponentForm.get('basePrice')?.touched && priceComponentForm.get('basePrice')?.invalid)"
+                [class.border-red-500]="priceComponentForm.get('basePrice')?.touched && priceComponentForm.get('basePrice')?.invalid"/>
+            </div>
+            <div>
+              <label for="pcPriceType" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_price_type' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+              <div class="relative">
+                <button data-cy="pcPriceType" id="pcPriceType" type="button"
+                  (click)="showPriceTypeDropdown = !showPriceTypeDropdown"
+                  class="flex items-center justify-between w-full p-3 bg-white border border-gray-300 rounded-lg text-sm text-left focus:ring-primary-100 focus:border-primary-100"
+                  [class.text-gray-900]="priceComponentForm.get('priceType')?.value"
+                  [class.text-gray-500]="!priceComponentForm.get('priceType')?.value">
+                  <span class="truncate">{{ priceComponentForm.get('priceType')?.value ? (priceTypeLabelKey(priceComponentForm.get('priceType')?.value) | translate) : ('CREATE_OFFER._select' | translate) }}</span>
+                  <svg class="w-5 h-5 text-gray-500 shrink-0 transition-transform" [class.rotate-180]="showPriceTypeDropdown"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                  </svg>
+                </button>
+
+                @if(showPriceTypeDropdown){
+                  <div class="fixed inset-0 z-10" (click)="showPriceTypeDropdown = false"></div>
+                  <ul class="absolute left-0 right-0 top-full mt-1 z-20 bg-white rounded-lg py-1 overflow-hidden"
+                    style="border: 1px solid #EBECEE; box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);">
+                    @for(opt of priceTypeOptions; track opt.id){
+                      <li>
+                        <button type="button" [attr.data-cy]="'pcPriceType-' + opt.id" (click)="selectPriceType(opt.id)"
+                          class="flex items-center w-full text-left px-4 h-14 text-base text-[#131B25] hover:bg-[#DDE6F6] transition-colors"
+                          [style.background-color]="priceComponentForm.get('priceType')?.value === opt.id ? '#DDE6F6' : null">
+                          {{ opt.labelKey | translate }}
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            </div>
+
+            @if(showConfigValueField){
+              <div>
+                <label for="pcConfigValue" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_value' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+                <select data-cy="pcConfigValue" id="pcConfigValue" formControlName="configValue"
+                  class="block w-full p-3 bg-white border rounded-lg text-sm text-gray-900 focus:ring-primary-100 focus:border-primary-100"
+                  [class.border-gray-300]="!(priceComponentForm.get('configValue')?.touched && priceComponentForm.get('configValue')?.invalid)"
+                  [class.border-red-500]="priceComponentForm.get('configValue')?.touched && priceComponentForm.get('configValue')?.invalid">
+                  <option value="">{{ 'CREATE_OFFER._select' | translate }}</option>
+                  @for(val of selectedConfigOptionValues; track val.value){
+                    <option [value]="val.value">{{ val.value }}{{ val.unitOfMeasure ? ' (' + val.unitOfMeasure + ')' : '' }}</option>
+                  }
+                </select>
+              </div>
+            }
+          </div>
+
+          @if(priceComponentForm.get('priceType')?.value === 'recurring' || priceComponentForm.get('priceType')?.value === 'recurring-prepaid'){
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-3">{{ 'CREATE_OFFER._pc_recurring_period' | translate }}</label>
+              <div class="flex flex-wrap items-center gap-x-10 gap-y-3">
+                @for(opt of recurringPeriodOptions; track opt.id){
+                  <label class="inline-flex items-center gap-3 cursor-pointer">
+                    <input type="radio" formControlName="recurringPeriod" [value]="opt.id" [attr.data-cy]="'pcRecurringPeriod-' + opt.id"
+                      class="w-5 h-5 cursor-pointer" style="accent-color: #2D58A7;"/>
+                    <span class="text-base text-gray-700">{{ opt.labelKey | translate }}</span>
+                  </label>
+                }
+              </div>
+            </div>
+          }
+
+          @if(priceComponentForm.get('priceType')?.value === 'usage'){
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="pcUsageSpec" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_usage_spec' | translate }}</label>
+                <select data-cy="pcUsageSpec" id="pcUsageSpec" (change)="onUsageSpecChange($event)"
+                  class="block w-full p-3 bg-white border rounded-lg text-sm text-gray-900 focus:ring-primary-100 focus:border-primary-100"
+                  [class.border-gray-300]="usageSpecs.length > 0"
+                  [class.border-red-500]="usageSpecs.length === 0">
+                  <option value="" [selected]="!priceComponentForm.get('usageSpecId')?.value">{{ 'CREATE_OFFER._select' | translate }}</option>
+                  @for(spec of usageSpecs; track spec.id){
+                    <option [value]="spec.id" [selected]="spec.id === priceComponentForm.get('usageSpecId')?.value">{{ spec.name }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label for="pcMetric" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_metric' | translate }}</label>
+                <select data-cy="pcMetric" id="pcMetric" formControlName="usageUnit"
+                  class="block w-full p-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-primary-100 focus:border-primary-100">
+                  <option value="">{{ 'CREATE_OFFER._select' | translate }}</option>
+                  @for(metric of selectedUsageSpec?.specCharacteristic; track metric.name){
+                    <option [value]="metric.name">{{ metric.name }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          }
+
+          <label class="inline-flex items-center gap-3 cursor-pointer">
+            <input data-cy="pcIncludeDiscount" type="checkbox" formControlName="includeDiscount" class="sr-only peer"/>
+            <span class="relative w-11 h-6 bg-gray-200 rounded-full transition-colors peer-checked:bg-primary-100
+              after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-5 after:h-5 after:bg-white after:rounded-full after:shadow after:transition-transform peer-checked:after:translate-x-5"></span>
+            <span class="text-sm font-medium text-gray-900">{{ 'CREATE_OFFER._pc_include_discount' | translate }}</span>
+          </label>
+
+          @if(priceComponentForm.get('includeDiscount')?.value){
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="pcDiscountAmount" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_amount' | translate }}</label>
+                <input data-cy="pcDiscountAmount" id="pcDiscountAmount" type="number" min="0" step="0.01" formControlName="discountValue"
+                  placeholder="{{ 'CREATE_OFFER._pc_amount_placeholder' | translate }}"
+                  class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3 focus:ring-primary-100 focus:border-primary-100"/>
+              </div>
+              <div>
+                <label for="pcDiscountUnit" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_amount_unit' | translate }}</label>
+                <select data-cy="pcDiscountUnit" id="pcDiscountUnit" formControlName="discountUnit"
+                  class="block w-full p-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-primary-100 focus:border-primary-100">
+                  <option value="percentage">{{ 'CREATE_OFFER._pc_discount_percentage' | translate }}</option>
+                  <option value="fixed">{{ 'CREATE_OFFER._pc_discount_fixed' | translate }}</option>
+                </select>
+              </div>
+              <div>
+                <label for="pcDiscountDuration" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_duration' | translate }}</label>
+                <input data-cy="pcDiscountDuration" id="pcDiscountDuration" type="number" min="1" step="1" formControlName="discountDuration"
+                  placeholder="{{ 'CREATE_OFFER._pc_duration_placeholder' | translate }}"
+                  class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3 focus:ring-primary-100 focus:border-primary-100"/>
+              </div>
+              <div>
+                <label for="pcDurationUnit" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_duration_unit' | translate }}</label>
+                <select data-cy="pcDurationUnit" id="pcDurationUnit" formControlName="discountDurationUnit"
+                  class="block w-full p-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-primary-100 focus:border-primary-100">
+                  <option value="days">{{ 'CREATE_OFFER._pc_duration_days' | translate }}</option>
+                  <option value="weeks">{{ 'CREATE_OFFER._pc_duration_weeks' | translate }}</option>
+                  <option value="months">{{ 'CREATE_OFFER._pc_duration_months' | translate }}</option>
+                  <option value="years">{{ 'CREATE_OFFER._pc_duration_years' | translate }}</option>
+                </select>
+              </div>
+            </div>
+          }
+        </div>
+        }
+
+        @if(isFlexComponent && selectedConfigOption && isRangeConfigOption){
+          <div class="rounded-2xl flex flex-col gap-6" style="background: #F7F9FD; border: 1px solid #D8DADE; padding: 16px 16px 32px;">
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <h4 class="text-lg font-bold text-gray-900">{{ 'CREATE_OFFER._pc_tier_list' | translate }}</h4>
+                <span class="w-px h-4 bg-[#B6CAEC]"></span>
+                <span class="text-sm text-gray-600">{{ 'CREATE_OFFER._pc_tier_count' | translate:{ count: flexTiers.length } }}</span>
+              </div>
+              <button data-cy="pcAddTier" type="button" (click)="addTier()"
+                class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-primary-100 text-sm font-semibold text-primary-100 hover:bg-[#DDE6F6]">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M11.25 4.5a.75.75 0 0 1 1.5 0v6.75H19.5a.75.75 0 0 1 0 1.5h-6.75V19.5a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5Z"/>
+                </svg>
+                {{ 'CREATE_OFFER._pc_add_tier' | translate }}
+              </button>
+            </div>
+
+            @if(flexTiers.length && !tiersCoverRange){
+              <div data-cy="tierCoverageWarning" class="flex items-start gap-2 rounded-lg px-4 py-3 text-sm" style="background: #FEF3F2; border: 1px solid #FDA29B; color: #B42318;">
+                <svg class="w-5 h-5 shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+                </svg>
+                <span>
+                  {{ 'CREATE_OFFER._pc_tier_gap_warning' | translate }}
+                  <span class="font-semibold">{{ formatTierGaps() }}</span>
+                </span>
+              </div>
+            }
+
+            @for(tier of flexTiers.slice().reverse(); track tier; let ri = $index){
+              <div class="tier-watermark relative overflow-hidden rounded-xl bg-white px-4 py-3 flex items-center justify-between gap-4" style="border: 1px solid #D8DADE;">
+                <div class="min-w-0 flex flex-col">
+                  <p class="text-base font-semibold text-gray-800" style="letter-spacing: 0.5px;">{{ tier.name || (('CREATE_OFFER._pc_tier' | translate) + ' ' + (flexTiers.length - ri)) }}</p>
+                  <div class="flex items-center gap-2 flex-wrap text-base text-gray-800 mt-0.5">
+                    <span>{{ 'CREATE_OFFER._pc_tier_range' | translate }} {{ tier.min }}-{{ tier.max }}</span>
+                    @if(tier.priceType){
+                      <span class="w-px h-4 bg-[#B6CAEC]"></span>
+                      <span>{{ priceTypeLabelKey(tier.priceType) | translate }}</span>
+                    }
+                    @if(tier.discountValue != null){
+                      <span class="w-px h-4 bg-[#B6CAEC]"></span>
+                      <span>{{ (recurringPeriodLabelKey(tier.discountDurationUnit) | translate) | lowercase }}</span>
+                      <span class="w-px h-4 bg-[#B6CAEC]"></span>
+                      <span>-{{ tier.discountValue }}{{ tier.discountUnit === 'fixed' ? (' ' + currencySymbol) : '%' }}</span>
+                      <span class="w-px h-4 bg-[#B6CAEC]"></span>
+                      <span class="line-through">{{ tier.price }}{{ currencySymbol }}</span>
+                      <span class="font-semibold">{{ tierFinalPrice(tier) | number:'1.2-2' }}{{ currencySymbol }}</span>
+                    } @else {
+                      <span class="w-px h-4 bg-[#B6CAEC]"></span>
+                      <span class="font-semibold">{{ tier.price }}{{ currencySymbol }}</span>
+                    }
+                  </div>
+                </div>
+                <button type="button" (click)="editTier(flexTiers.length - 1 - ri)"
+                  class="shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-primary-100 hover:bg-[#DDE6F6]" aria-label="Edit tier">
+                  <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
+                  </svg>
+                </button>
+              </div>
+            }
+
+            @if(showTierForm){
+              <div [formGroup]="tierForm" class="rounded-xl bg-white border border-[#E4E4E4] p-4 flex flex-col gap-6"
+                style="box-shadow: 0px 2px 12px rgba(0,0,0,0.15);">
+                <div class="flex items-center justify-between gap-4">
+                  <h5 class="text-base font-semibold text-gray-700">{{ 'CREATE_OFFER._pc_range_configuration' | translate }}</h5>
+                  <button type="button" (click)="deleteCurrentTier()" class="inline-flex items-center gap-2 text-sm font-semibold text-gray-400 hover:text-gray-600">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                    </svg>
+                    {{ 'CREATE_OFFER._pp_delete' | translate }}
+                  </button>
+                </div>
+
+                <div class="flex items-end gap-4">
+                  <div class="w-24">
+                    <label for="tierMin" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_tier_min' | translate }}</label>
+                    <input data-cy="tierMin" id="tierMin" type="number" formControlName="min" [min]="rangeBounds.min" [max]="rangeBounds.max"
+                      class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3 focus:ring-primary-100 focus:border-primary-100"/>
+                  </div>
+                  <div class="w-24">
+                    <label for="tierMax" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_tier_max' | translate }}</label>
+                    <input data-cy="tierMax" id="tierMax" type="number" formControlName="max" [min]="rangeBounds.min" [max]="rangeBounds.max"
+                      class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3 focus:ring-primary-100 focus:border-primary-100"/>
+                  </div>
+                  <div class="flex-1 relative pt-8 pb-3">
+                    <div class="absolute top-0 -translate-x-1/2 px-2 py-0.5 rounded text-sm text-gray-800 whitespace-nowrap"
+                      style="background: #DDE6F6;" [style.left.%]="tierSliderMinPercent">
+                      {{ tierForm.get('min')?.value }}
+                    </div>
+                    <div class="absolute top-0 -translate-x-1/2 px-2 py-0.5 rounded text-sm text-gray-800 whitespace-nowrap"
+                      style="background: #DDE6F6;" [style.left.%]="tierSliderMaxPercent">
+                      {{ tierForm.get('max')?.value }}
+                    </div>
+
+                    <div class="dual-range relative h-[18px]">
+                      <div class="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1.5 rounded-full bg-[#DDE6F6]"></div>
+                      <div class="absolute top-1/2 -translate-y-1/2 h-1.5 rounded-full" style="background: #2D58A7;"
+                        [style.left.%]="tierSliderMinPercent" [style.right.%]="100 - tierSliderMaxPercent"></div>
+                      <input data-cy="tierSliderMin" type="range" [min]="rangeBounds.min" [max]="rangeBounds.max" step="1"
+                        [value]="tierForm.get('min')?.value" (input)="setTierBound('min', $event)" class="dual-thumb"/>
+                      <input data-cy="tierSliderMax" type="range" [min]="rangeBounds.min" [max]="rangeBounds.max" step="1"
+                        [value]="tierForm.get('max')?.value" (input)="setTierBound('max', $event)" class="dual-thumb"/>
+                    </div>
+                  </div>
+                </div>
+
+                @if(tierFormErrorKey){
+                  <p data-cy="tierRangeError" class="-mt-3 text-sm text-red-600">{{ tierFormErrorKey | translate }}</p>
+                }
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label for="tierPrice" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_col_price' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+                    <input data-cy="tierPrice" id="tierPrice" type="number" min="0" step="0.01" formControlName="price"
+                      placeholder="{{ 'CREATE_OFFER._pc_base_price_placeholder' | translate }}"
+                      class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3 focus:ring-primary-100 focus:border-primary-100"/>
+                  </div>
+                  <div>
+                    <label for="tierPriceType" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_price_type' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+                    <select data-cy="tierPriceType" id="tierPriceType" formControlName="priceType"
+                      class="block w-full p-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-primary-100 focus:border-primary-100">
+                      <option value="">{{ 'CREATE_OFFER._select' | translate }}</option>
+                      @for(opt of priceTypeOptions; track opt.id){
+                        <option [value]="opt.id">{{ opt.labelKey | translate }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label for="tierName" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_tier_name' | translate }}</label>
+                  <input data-cy="tierName" id="tierName" type="text" formControlName="name" maxlength="100"
+                    placeholder="{{ 'CREATE_OFFER._pc_tier_name_placeholder' | translate }}"
+                    class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3 focus:ring-primary-100 focus:border-primary-100"/>
+                </div>
+
+                <div>
+                  <label for="tierDescription" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pp_col_description' | translate }}</label>
+                  <textarea data-cy="tierDescription" id="tierDescription" formControlName="description" rows="3" maxlength="200"
+                    placeholder="{{ 'CREATE_OFFER._pc_tier_description_placeholder' | translate }}"
+                    class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3 resize-none"></textarea>
+                  <p class="mt-1 text-xs text-gray-500">{{ (tierForm.get('description')?.value?.length || 0) }}/200</p>
+                </div>
+
+                <label class="inline-flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" formControlName="includeDiscount" class="sr-only peer"/>
+                  <span class="relative w-11 h-6 bg-gray-200 rounded-full transition-colors peer-checked:bg-primary-100
+                    after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-5 after:h-5 after:bg-white after:rounded-full after:shadow after:transition-transform peer-checked:after:translate-x-5"></span>
+                  <span class="text-sm font-medium text-gray-900">{{ 'CREATE_OFFER._pc_include_discount' | translate }}</span>
+                </label>
+
+                @if(tierForm.get('includeDiscount')?.value){
+                  <div class="flex flex-col gap-4">
+                    <h6 class="text-base font-semibold text-gray-700">{{ 'CREATE_OFFER._pc_discount_configuration' | translate }}</h6>
+
+                    <div class="flex items-end gap-6">
+                      <div class="w-48">
+                        <label class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_amount' | translate }}</label>
+                        <input data-cy="tierDiscountAmount" type="number" min="0" step="0.01" formControlName="discountValue"
+                          placeholder="{{ 'CREATE_OFFER._pc_amount_placeholder' | translate }}"
+                          class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3 focus:ring-primary-100 focus:border-primary-100"/>
+                      </div>
+                      <div class="flex items-center gap-6 pb-3">
+                        <label class="inline-flex items-center gap-2 cursor-pointer">
+                          <input type="radio" formControlName="discountUnit" value="percentage" class="w-4 h-4" style="accent-color: #2D58A7;"/>
+                          <span class="text-base text-gray-700">{{ 'CREATE_OFFER._pc_discount_percentage' | translate }}</span>
+                        </label>
+                        <label class="inline-flex items-center gap-2 cursor-pointer">
+                          <input type="radio" formControlName="discountUnit" value="fixed" class="w-4 h-4" style="accent-color: #2D58A7;"/>
+                          <span class="text-base text-gray-700">{{ 'CREATE_OFFER._pc_discount_fixed' | translate }}</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="inline-flex w-fit items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700" style="background: #F2F4F7;">
+                      <span class="font-semibold">{{ 'CREATE_OFFER._pc_final_price' | translate }}:</span>
+                      <span class="font-semibold">{{ currencySymbol }} {{ tierFormFinalPrice | number:'1.2-2' }}</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_duration_unit' | translate }}</label>
+                        <select formControlName="discountDurationUnit"
+                          class="block w-full p-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-primary-100 focus:border-primary-100">
+                          @for(opt of recurringPeriodOptions; track opt.id){
+                            <option [value]="opt.id">{{ opt.labelKey | translate }}</option>
+                          }
+                        </select>
+                      </div>
+                      <div>
+                        <label class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_duration' | translate }}</label>
+                        <input type="number" min="1" step="1" formControlName="discountDuration"
+                          placeholder="{{ 'CREATE_OFFER._pc_duration_placeholder' | translate }}"
+                          class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3 focus:ring-primary-100 focus:border-primary-100"/>
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                <div class="flex justify-center items-center gap-10">
+                  @if(editingTierIndex !== null){
+                    <button type="button" (click)="cancelTierForm()" class="text-base font-semibold text-primary-100 hover:text-primary-50">
+                      {{ 'CREATE_OFFER._pc_close' | translate }}
+                    </button>
+                  } @else {
+                    <button type="button" (click)="resetTierForm()" class="text-base font-semibold text-primary-100 hover:text-primary-50">
+                      {{ 'CREATE_OFFER._pc_reset' | translate }}
+                    </button>
+                  }
+                  <button data-cy="pcSaveTier" type="button" (click)="saveTier()"
+                    [disabled]="!canSaveTier()"
+                    [ngClass]="!canSaveTier() ? 'opacity-50 cursor-not-allowed border-[#D8DADE] text-[#A1A5B0]' : 'border-primary-100 text-primary-100 hover:bg-[#DDE6F6]'"
+                    class="inline-flex items-center gap-2 px-6 py-2.5 text-base font-semibold rounded-lg border-2">
+                    {{ 'CREATE_OFFER._pc_save_tier' | translate }}
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        @if(priceComponentForm.get('priceType')?.value === 'usage' && usageSpecs.length === 0){
+          <div data-cy="pcNoUsageSpecs" class="flex items-center gap-3 px-3 py-2 rounded-lg"
+            style="background: #FFD9DD; border: 0.5px solid #930002; color: #7D000C;">
+            <svg class="w-6 h-6 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm9.75-4.5a.75.75 0 0 0-.75.75v3.75a.75.75 0 0 0 1.5 0V8.25a.75.75 0 0 0-.75-.75Zm0 8.25a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z" clip-rule="evenodd"/>
+            </svg>
+            <p class="text-sm" style="line-height: 24px;">{{ 'CREATE_OFFER._pc_no_usage_specs' | translate }}</p>
+          </div>
+        }
+      </div>
+
+      <div class="flex justify-end items-center gap-4 px-8 py-4 shrink-0 border-t border-[#EBECEE]">
+        <button type="button" (click)="closePriceComponentModal()"
+          class="inline-flex items-center gap-2 px-5 py-2.5 text-base font-semibold text-primary-100 rounded-lg hover:bg-[#F7F9FD]">
+          {{ 'CREATE_OFFER._cancel' | translate }}
+        </button>
+        <button data-cy="pcSave" type="button" (click)="savePriceComponent()"
+          [disabled]="!canSavePriceComponent()"
+          [ngClass]="!canSavePriceComponent() ? 'opacity-50 cursor-not-allowed bg-[#D8DADE] text-[#858B99]' : 'bg-primary-100 text-white hover:bg-primary-50'"
+          class="inline-flex items-center gap-2 px-6 py-2.5 text-base font-semibold rounded-lg">
+          {{ 'CREATE_OFFER._pc_save_component' | translate }}
+        </button>
+      </div>
+    </form>
+  </div>
+}
+
+@if(showConfigProfileModal){
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4" (click)="closeConfigProfileModal()">
+    <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-3xl" [formGroup]="configProfileForm" (click)="$event.stopPropagation()">
+      <div class="flex items-start justify-between mb-2">
+        <h3 class="dome-heading-6">{{ 'CREATE_OFFER._set_configuration_profile' | translate }}</h3>
+        <button type="button" (click)="closeConfigProfileModal()" class="text-gray-500 hover:text-gray-700">
+          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <p class="dome-body-small mb-6 mt-2">{{ 'CREATE_OFFER._set_configuration_profile_subtitle' | translate }}</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        @for(ctrl of configProfileSelectedValues.controls; track ctrl.value.id; let i = $index){
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">{{ ctrl.value.name }}</label>
+            <select
+              [value]="ctrl.value.selectedValue || ''"
+              (change)="onConfigProfileValueChange(i, $event)"
+              class="block w-full p-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-primary-100 focus:border-primary-100">
+              <option value="">{{ 'CREATE_OFFER._select' | translate }}</option>
+              @for(opt of getCharacteristicValues(ctrl.value.id); track opt.value){
+                <option [value]="opt.value">{{ opt.value }}{{ opt.unitOfMeasure ? ' ' + opt.unitOfMeasure : '' }}</option>
+              }
+            </select>
+          </div>
+        }
+      </div>
+
+      <div class="flex justify-end gap-3">
+        <button type="button" (click)="closeConfigProfileModal()"
+          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50">
+          {{ 'CREATE_OFFER._cancel' | translate }}
+        </button>
+        <button data-cy="configProfileSave" type="button" (click)="saveConfigProfile()"
+          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg bg-primary-100 hover:bg-primary-50">
+          {{ 'CREATE_OFFER._save' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
 
 @if(showError){
   <div class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
-    <div id="alert-additional-content-2" class="p-4 mb-4 text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-red-900 dark:border-red-900 dark:text-white" role="alert">
+    <div class="p-4 mb-4 text-red-800 border border-red-300 rounded-lg bg-red-50" role="alert">
       <div class="flex items-center">
         <svg class="flex-shrink-0 w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
           <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>

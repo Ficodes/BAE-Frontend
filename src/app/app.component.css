@@ -8,3 +8,9 @@
 .app-content > main {
   flex: 1 0 auto;
 }
+
+.app-content--workspace > main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}

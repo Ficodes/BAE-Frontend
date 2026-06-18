@@ -1,7 +1,7 @@
-<div class="w-full col-span-2 mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-secondary-200 dark:border-secondary-200">
+<div class="w-full col-span-2 mb-4 border border-gray-200 rounded-lg bg-gray-50">
     <div class="flex items-center justify-between px-3 py-2 border-b">
-      <div class="flex flex-wrap items-center divide-gray-200 dark:divide-secondary-200 sm:divide-x sm:rtl:divide-x-reverse">
-        <div class="flex items-center space-x-1 rtl:space-x-reverse sm:pe-4 text-gray-500 dark:text-gray-200">
+      <div class="flex flex-wrap items-center divide-gray-200 sm:divide-x sm:rtl:divide-x-reverse">
+        <div class="flex items-center space-x-1 rtl:space-x-reverse sm:pe-4 text-gray-500">
           <button [disabled]="showPreview" [ngClass]="showPreview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" (click)="addMarkdownTag('bold')" type="button"
                   class="p-2 rounded hover:text-gray-900 hover:bg-gray-100">
             <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
@@ -74,7 +74,7 @@
           </button>
         </div>
       </div>
-      <button type="button" (click)="togglePreview()" data-tooltip-target="tooltip-fullscreen" class="rounded cursor-pointer text-gray-500 dark:text-gray-200 p-2 sm:ms-auto hover:text-gray-900 dark:hover:text-gray-900 hover:bg-gray-100">
+      <button type="button" (click)="togglePreview()" data-tooltip-target="tooltip-fullscreen" class="rounded cursor-pointer text-gray-500 p-2 sm:ms-auto hover:text-gray-900 hover:bg-gray-100">
         <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <path stroke="currentColor" stroke-width="2" d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"/>
           <path stroke="currentColor" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
@@ -87,19 +87,19 @@
         <div class="tooltip-arrow" data-popper-arrow></div>
       </div>
     </div>
-    <div class="relative px-4 py-2 bg-white dark:bg-secondary-300 rounded-b-lg">
+    <div class="relative px-4 py-2 bg-white rounded-b-lg">
       <label for="editor" class="sr-only">Publish post</label>
       @if(showPreview){
         <markdown [ngClass]="{
           'break-all': hasLongWord(value, 20),
           'break-words': !hasLongWord(value, 20)
-          }" class="min-h-16 h-fit block bg-white text-wrap break-words dark:bg-secondary-300 dark:text-white text-gray-900"
+          }" class="min-h-16 h-fit block bg-white text-wrap break-words text-gray-900"
                   [data]="value"></markdown>
 
       }@else{
         <textarea id="editor"
                   data-cy="textArea"
-                  class="block w-full h-fit px-0 text-sm text-gray-800 dark:text-gray-200 bg-white dark:bg-secondary-300 border-0"
+                  class="block w-full h-fit px-0 text-sm text-gray-800 bg-white border-0"
                   placeholder="{{placeholder}}"
                   [value]="value"
                   rows="8"

@@ -1,15 +1,12 @@
-import {AfterViewInit, ChangeDetectorRef, Component, forwardRef, Input, OnInit, OnDestroy, Output, EventEmitter} from '@angular/core';
-import {DatePipe, NgClass, NgIf, NgTemplateOutlet} from "@angular/common";
-import {TranslateModule} from "@ngx-translate/core";
-import {ControlValueAccessor, NG_VALUE_ACCESSOR} from "@angular/forms";
-import {AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
-import {initFlowbite} from "flowbite";
-import {FormChangeState} from "../../../../models/interfaces";
-import {EventMessageService} from "src/app/services/event-message.service";
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { environment } from 'src/environments/environment';
-import { lastValueFrom, Subscription, Subject } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { AbstractControl, ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR, ReactiveFormsModule, Validators } from "@angular/forms";
+import { TranslateModule } from "@ngx-translate/core";
+import { lastValueFrom, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { EventMessageService } from "src/app/services/event-message.service";
+import { environment } from 'src/environments/environment';
+import { FormChangeState } from "../../../../models/interfaces";
 
 interface ProcurementMode {
   id: string;
@@ -51,52 +48,53 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
     id: 'automatic',
     name: 'Automatic'
   }];
-  
+
   procurementMode: string = 'manual';
+  showProcurementDropdown: boolean = false;
   private originalValue: ProcurementMode | null = null;
   private hasBeenModified: boolean = false;
   private isEditMode: boolean = false;
   private formSub?: Subscription;
   private destroy$ = new Subject<void>();
 
-  showProcurementError:boolean=false;
-  errorMessage:string = '';
-  gatewayUrl:string = '';
+  showProcurementError: boolean = false;
+  errorMessage: string = '';
+  gatewayUrl: string = '';
   gatewayCount: number = 0;
 
   constructor(private cdr: ChangeDetectorRef, private eventMessage: EventMessageService, private http: HttpClient) {
     console.log('🔄 Initializing ProcurementModeComponent');
     this.eventMessage.messages$
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(ev => {
-      if(ev.type === 'UpdateOffer') {
-        if (this.isEditMode && this.hasBeenModified && this.originalValue) {
-          const currentValue = {
-            id: this.procurementMode,
-            name: this.procurementModes.find(m => m.id === this.procurementMode)?.name || 'Manual',
-            extBillingEnabled: this.formGroup.get('extBillingEnabled')?.value ?? false,
-            plaSpecId: this.formGroup.get('plaSpecId')?.value ?? ''
-          };
-          
-          // Solo emitir si el valor es diferente al original
-          if (JSON.stringify(currentValue) !== JSON.stringify(this.originalValue)) {
-            console.log('📝 Emitting changes on destroy');
-            this.formChange.emit({
-              subformType: 'procurement',
-              isDirty: true,
-              dirtyFields: ['id', 'name'],
-              originalValue: this.originalValue,
-              currentValue: currentValue
-            });
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(ev => {
+        if (ev.type === 'UpdateOffer') {
+          if (this.isEditMode && this.hasBeenModified && this.originalValue) {
+            const currentValue = {
+              id: this.procurementMode,
+              name: this.procurementModes.find(m => m.id === this.procurementMode)?.name || 'Manual',
+              extBillingEnabled: this.formGroup.get('extBillingEnabled')?.value ?? false,
+              plaSpecId: this.formGroup.get('plaSpecId')?.value ?? ''
+            };
+
+            // Solo emitir si el valor es diferente al original
+            if (JSON.stringify(currentValue) !== JSON.stringify(this.originalValue)) {
+              console.log('📝 Emitting changes on destroy');
+              this.formChange.emit({
+                subformType: 'procurement',
+                isDirty: true,
+                dirtyFields: ['id', 'name'],
+                originalValue: this.originalValue,
+                currentValue: currentValue
+              });
+            }
           }
         }
-      }
-    })
+      })
   }
 
   // As ControlValueAccessor
-  onChange: (value: any) => void = () => {};
-  onTouched: () => void = () => {};
+  onChange: (value: any) => void = () => { };
+  onTouched: () => void = () => { };
 
   writeValue(pmode: any): void {
     console.log('📝 writeValue - Input value:', pmode);
@@ -106,14 +104,14 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
       console.log('📝 writeValue - Selected mode:', selectedMode);
       this.procurementMode = selectedMode;
       console.log('📝 writeValue - Updated procurementMode:', this.procurementMode);
-      
+
       // Actualizar el FormGroup si existe
       if (this.formGroup) {
         this.formGroup.patchValue({
           mode: selectedMode
         });
       }
-      
+
       // Emitir el valor completo
       const mode = this.procurementModes.find(m => m.id === selectedMode);
       this.onChange(mode || { id: selectedMode, name: 'Manual' });
@@ -195,36 +193,36 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
 
     // Suscribirse a los cambios del formulario
     this.formSub = this.form.valueChanges
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(value => {
-      console.log('📝 Form value changed in subscription:', value);
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(value => {
+        console.log('📝 Form value changed in subscription:', value);
 
-      if (value) {
-        if (value.mode) {
-          if (value.mode != 'manual' && this.gatewayCount == 0) {
-            this.errorMessage = "You can't select this procurement mode as you are not registered on the payment gateway.";
-            this.showProcurementError = true;
-            this.form.setErrors({ invalidProcurement: true });
-            this.formGroup.patchValue({
-              mode: 'manual'
-            }, { emitEvent: false });
-            return;
+        if (value) {
+          if (value.mode) {
+            if (value.mode != 'manual' && this.gatewayCount == 0) {
+              this.errorMessage = "You can't select this procurement mode as you are not registered on the payment gateway.";
+              this.showProcurementError = true;
+              this.form.setErrors({ invalidProcurement: true });
+              this.formGroup.patchValue({
+                mode: 'manual'
+              }, { emitEvent: false });
+              return;
+            }
+
+            this.errorMessage = "";
+            this.showProcurementError = false;
+            this.form.setErrors(null);
+
+            const mode = this.procurementModes.find(m => m.id === value.mode) || this.procurementModes[0];
+            console.log('📝 Found mode:', mode);
+
+            this.procurementMode = mode.id;
+            console.log('📝 Current procurementMode:', this.procurementMode);
           }
 
-          this.errorMessage = "";
-          this.showProcurementError = false;
-          this.form.setErrors(null);
-
-          const mode = this.procurementModes.find(m => m.id === value.mode) || this.procurementModes[0];
-          console.log('📝 Found mode:', mode);
-
-          this.procurementMode = mode.id;
-          console.log('📝 Current procurementMode:', this.procurementMode);
+          this.hasBeenModified = true;
         }
-
-        this.hasBeenModified = true;
-      }
-    });
+      });
 
     let paymentInfoUrl = `${environment.BASE_URL}/paymentInfo`;
     lastValueFrom(this.http.get<any>(paymentInfoUrl)).then(data => {
@@ -235,24 +233,24 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
     });
   }
 
-  changeProcurement(event: any) {
-    console.log('🔄 changeProcurement - Event value:', event.target.value);
-    this.procurementMode = event.target.value;
-    console.log('🔄 changeProcurement - Updated procurementMode:', this.procurementMode);
-    let pm = this.procurementModes.find(mode => mode.id === event.target.value);
-    console.log('🔄 changeProcurement - Found mode:', pm);
+  get selectedProcurementName(): string {
+    return this.procurementModes.find(mode => mode.id === this.procurementMode)?.name
+      || this.procurementModes[0].name;
+  }
 
-    if (pm) {
-      // Actualizar el FormGroup
-      this.formGroup.patchValue({
-        mode: event.target.value
-      });
-      
-      this.hasBeenModified = true;
-      
-      // Emitir el valor completo
-      this.onChange(pm);
-    }
+  selectProcurementMode(id: string) {
+    this.showProcurementDropdown = false;
+
+    this.formGroup.patchValue({ mode: id });
+
+    const settledId = this.formGroup.get('mode')?.value ?? 'manual';
+    const pm = this.procurementModes.find(mode => mode.id === settledId) || this.procurementModes[0];
+
+    this.procurementMode = pm.id;
+    this.hasBeenModified = true;
+
+    // Emitir el valor completo
+    this.onChange(pm);
   }
 
   ngAfterViewInit() {
@@ -272,7 +270,7 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
         id: this.procurementMode,
         name: this.procurementModes.find(m => m.id === this.procurementMode)?.name || 'Manual'
       };
-      
+
       // Solo emitir si el valor es diferente al original
       if (JSON.stringify(currentValue) !== JSON.stringify(this.originalValue)) {
         console.log('📝 Emitting changes on destroy');

@@ -1,35 +1,74 @@
 <nav class="sticky top-0 z-50 w-full text-white transition-all duration-300"
-  [class.header-top]="!scrolled && !isNavBarOpen" [class.header-glass]="scrolled || isNavBarOpen">
+  [class.header-top]="!isWorkspace && !scrolled && !isNavBarOpen"
+  [class.header-glass]="!isWorkspace && (scrolled || isNavBarOpen)"
+  [class.bg-secondary-100]="isWorkspace">
   <div class="mx-auto max-w-[1180px] px-6 sm:px-10">
-    <div class="flex h-[88px] items-center justify-between">
-      <a (click)="goTo('/dashboard')" class="flex items-center gap-4 cursor-pointer select-none">
-        @if (currentTheme?.assets?.logoUrl) {
-        <img [src]="currentTheme?.assets?.logoUrl" class="h-[51.7px] w-auto"
-          alt="{{ currentTheme?.displayName }} Logo" />
-        }
-      </a>
+    <div class="flex h-[88px] items-center" [class.justify-between]="!isWorkspace">
+      @if (isWorkspace) {
+        <a (click)="onWorkspaceBackClick()" class="flex items-center gap-2 cursor-pointer select-none text-sm font-medium text-white hover:text-white/80">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+          </svg>
+          {{ backLabelKey | translate }}
+        </a>
 
-      <div class="hidden lg:flex items-center justify-center flex-1">
-        <ul class="flex items-center gap-12">
-          <ng-container [ngTemplateOutlet]="navLinksTemplate" [ngTemplateOutletContext]="{ mobile: false }">
-          </ng-container>
-        </ul>
-      </div>
-
-      <div class="flex items-center gap-3">
-        <div class="hidden lg:flex items-center gap-3">
-          <ng-container [ngTemplateOutlet]="headerActionsTemplate" [ngTemplateOutletContext]="{ mobile: false }">
-          </ng-container>
+        <div class="flex items-center justify-center flex-1">
+          @if (currentTheme?.assets?.logoUrl) {
+            <img [src]="currentTheme?.assets?.logoUrl" class="h-[51.7px] w-auto"
+              alt="{{ currentTheme?.displayName }} Logo" />
+          }
         </div>
 
-        <button #navbarbutton type="button"
-          class="inline-flex lg:hidden h-[44px] w-[44px] items-center justify-center rounded-[10px] text-white/90 hover:text-white hover:bg-white/10 transition"
-          aria-controls="navbar-dropdown" [attr.aria-expanded]="isNavBarOpen"
-          (click)="toggleNavBar(); $event.stopPropagation()">
-          <span class="sr-only">{{ 'HEADER._open_menu' | translate }}</span>
-          <fa-icon [icon]="faBars"></fa-icon>
-        </button>
-      </div>
+        <div class="flex items-center gap-3">
+          <button id="workspaceSupport" type="button" (click)="goToResources()"
+            class="h-[26px] w-[26px] rounded-full bg-white flex items-center justify-center text-secondary-100 hover:bg-gray-100" aria-label="Help">
+            <span class="font-black text-[13px] leading-none" style="font-family: Arial, Helvetica, sans-serif">?</span>
+          </button>
+
+          @if (is_logged) {
+            <div data-cy="loggedAcc" id="loggedAcc" data-dropdown-toggle="userDropdown" data-dropdown-placement="bottom-end"
+              class="h-[44px] w-[44px] rounded-full bg-[#EBF0F7] text-[#2D58A7] flex items-center justify-center cursor-pointer select-none font-bold text-sm tracking-wide"
+              aria-label="User menu">
+              {{ usercharacters }}
+            </div>
+          } @else {
+            <button data-cy="login" id="login" type="button"
+              class="inline-flex h-[40px] items-center justify-center rounded-[10px] header-solid-btn px-5 text-sm font-semibold text-white"
+              (click)="onLoginClick()">
+              Login
+            </button>
+          }
+        </div>
+      } @else {
+        <a (click)="goTo('/dashboard')" class="flex items-center gap-4 cursor-pointer select-none">
+          @if (currentTheme?.assets?.logoUrl) {
+          <img [src]="currentTheme?.assets?.logoUrl" class="h-[51.7px] w-auto"
+            alt="{{ currentTheme?.displayName }} Logo" />
+          }
+        </a>
+
+        <div class="hidden lg:flex items-center justify-center flex-1">
+          <ul class="flex items-center gap-12">
+            <ng-container [ngTemplateOutlet]="navLinksTemplate" [ngTemplateOutletContext]="{ mobile: false }">
+            </ng-container>
+          </ul>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="hidden lg:flex items-center gap-3">
+            <ng-container [ngTemplateOutlet]="headerActionsTemplate" [ngTemplateOutletContext]="{ mobile: false }">
+            </ng-container>
+          </div>
+
+          <button #navbarbutton type="button"
+            class="inline-flex lg:hidden h-[44px] w-[44px] items-center justify-center rounded-[10px] text-white/90 hover:text-white hover:bg-white/10 transition"
+            aria-controls="navbar-dropdown" [attr.aria-expanded]="isNavBarOpen"
+            (click)="toggleNavBar(); $event.stopPropagation()">
+            <span class="sr-only">{{ 'HEADER._open_menu' | translate }}</span>
+            <fa-icon [icon]="faBars"></fa-icon>
+          </button>
+        </div>
+      }
     </div>
 
     @if (isNavBarOpen) {
@@ -111,14 +150,6 @@
             <fa-icon [icon]="faPieChart" class="mr-2"></fa-icon>Analytics
           </a>
         </li>
-
-        @if (roles.includes(sellerRole)) {
-        <li>
-          <button id="usageSpecs" type="button" class="dropdown-item" (click)="goTo('/usage-spec')">
-            <fa-icon [icon]="faRuler" class="mr-2"></fa-icon>Usage Spec
-          </button>
-        </li>
-        }
 
         <li>
           <button id="myInventory" type="button" class="dropdown-item" (click)="goTo('/product-inventory')">
@@ -358,12 +389,6 @@
     <a class="mobile-nav-item" target="_blank" [href]="analytics">
       <fa-icon [icon]="faPieChart" class="mr-2"></fa-icon>Analytics
     </a>
-
-    @if (roles.includes(sellerRole)) {
-    <button type="button" class="mobile-nav-item" (click)="goTo('/usage-spec')">
-      <fa-icon [icon]="faRuler" class="mr-2"></fa-icon>Usage Spec
-    </button>
-    }
 
     <button type="button" class="mobile-nav-item" (click)="goTo('/product-inventory')">
       <fa-icon [icon]="faBoxesStacked" class="mr-2"></fa-icon>{{ 'HEADER._inventory' | translate }}

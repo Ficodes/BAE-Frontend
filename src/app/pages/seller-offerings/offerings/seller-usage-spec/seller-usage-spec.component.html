@@ -1,32 +1,19 @@
 <div class="bg-white rounded-2xl border border-[#EBECEE] shadow-sm p-6 w-full flex-1 flex flex-col gap-8">
   <div class="flex items-start justify-between">
     <div>
-      <h2 class="text-2xl font-extrabold text-gray-900">{{ 'OFFERINGS._serv_spec' | translate }}</h2>
-      <p class="text-sm text-gray-500 mt-1">{{ 'OFFERINGS._manage_offerings_subtitle' | translate }}</p>
+      <h2 class="text-2xl font-extrabold text-gray-900">{{ 'USAGE_SPECS._usage_spec' | translate }}</h2>
+      <p class="text-sm text-gray-500 mt-1">{{ 'OFFERINGS._manage_usage_subtitle' | translate }}</p>
     </div>
-    <button data-cy="createServSpec" (click)="goToCreate()" type="button"
+    <button data-cy="createUsageSpec" (click)="goToCreate()" type="button"
       class="inline-flex items-center gap-2 bg-primary-100 hover:bg-primary-50 text-white text-sm font-semibold rounded-lg h-10 px-4">
       <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.4" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
       </svg>
-      {{ 'OFFERINGS._add_new_serv' | translate }}
+      {{ 'OFFERINGS._new_usage' | translate }}
     </button>
   </div>
 
-  <div class="border-b border-[#EBECEE] flex items-stretch">
-    @for (tab of ['Draft','Validated','Deleted']; track tab) {
-      <button type="button" (click)="selectTab(tab)"
-        class="w-56 flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold tracking-[0.5px] leading-6 border-b-[3px] -mb-px transition-colors"
-        [ngClass]="selectedTab === tab ? 'text-[#131B25] border-[#2D58A7]' : 'text-gray-500 border-transparent hover:text-gray-700'">
-        {{ ('OFFERINGS._' + tab.toLowerCase()) | translate }}
-        <span class="inline-flex items-center justify-center min-w-[28px] h-6 px-2 rounded-full text-sm font-semibold"
-          [style.background-color]="selectedTab === tab ? '#DDE6F6' : '#EBECEE'"
-          [style.color]="selectedTab === tab ? '#14274a' : '#374151'">{{ statusCounts[tab] }}</span>
-      </button>
-    }
-  </div>
-
-  <div class="rounded-2xl flex-1" [class.dashed-pane]="loading || servSpecs.length === 0">
+  <div class="rounded-2xl flex-1" [class.dashed-pane]="loading || usageSpecs.length === 0">
     @if (loading) {
       <div role="status" class="w-full flex justify-center items-center py-24">
         <svg aria-hidden="true" class="w-10 h-10 text-gray-200 animate-spin fill-primary-100" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -35,7 +22,7 @@
         </svg>
         <span class="sr-only">Loading...</span>
       </div>
-    } @else if (servSpecs.length === 0) {
+    } @else if (usageSpecs.length === 0) {
       <div class="flex flex-col items-center justify-center flex-1 py-12 px-6">
         <div class="w-[72px] h-[72px] rounded-full flex items-center justify-center mb-5 p-4" style="background-color: #DDE6F6;">
           <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#2D58A7">
@@ -43,40 +30,34 @@
             <path fill-rule="evenodd" clip-rule="evenodd" d="M3.087 9l.54 9.176A3 3 0 006.62 21h10.757a3 3 0 002.995-2.824L20.913 9H3.087zm6.133 2.845a.75.75 0 011.06 0l1.72 1.72 1.72-1.72a.75.75 0 111.06 1.06l-1.72 1.72 1.72 1.72a.75.75 0 11-1.06 1.06L12 15.685l-1.72 1.72a.75.75 0 11-1.06-1.06l1.72-1.72-1.72-1.72a.75.75 0 010-1.06z"/>
           </svg>
         </div>
-        <p class="text-base font-bold text-gray-900 mb-1">{{ 'OFFERINGS._no_serv' | translate }}</p>
+        <p class="text-base font-bold text-gray-900 mb-1">{{ 'OFFERINGS._no_usage_yet' | translate }}</p>
         <p class="text-sm text-gray-500 mb-6">{{ 'OFFERINGS._add_new_to_collect' | translate }}</p>
         <button (click)="goToCreate()" type="button"
           class="inline-flex items-center gap-2 bg-primary-100 hover:bg-primary-50 text-white text-sm font-semibold rounded-lg h-10 px-4">
           <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.4" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          {{ 'OFFERINGS._add_new_serv' | translate }}
+          {{ 'OFFERINGS._new_usage' | translate }}
         </button>
       </div>
     } @else {
       <div class="rounded-2xl overflow-visible bg-white" style="border: 1px solid #D8DADE;">
-        <table data-cy="servSpecTable" class="w-full text-sm text-left text-gray-700">
+        <table data-cy="usageSpecTable" class="w-full text-sm text-left text-gray-700">
           <thead class="text-xs text-gray-500 uppercase bg-white" style="border-bottom: 1px solid #EBECEE;">
             <tr class="h-[56px]">
               <th scope="col" class="px-6 font-semibold rounded-tl-2xl">{{ 'OFFERINGS._name' | translate }}</th>
-              <th scope="col" class="px-6 font-semibold">{{ 'OFFERINGS._status' | translate }}</th>
-              <th scope="col" class="hidden md:table-cell px-6 font-semibold">{{ 'OFFERINGS._last_update' | translate }}</th>
+              <th scope="col" class="hidden md:table-cell px-6 font-semibold">{{ 'USAGE_SPECS._description' | translate }}</th>
               <th scope="col" class="px-6 font-semibold text-right rounded-tr-2xl">{{ 'OFFERINGS._actions' | translate }}</th>
             </tr>
           </thead>
           <tbody>
-            @for (serv of servSpecs; track serv.id; let idx = $index; let last = $last) {
-              <tr data-cy="servSpecRow" class="h-[56px] group" [style.border-bottom]="!last ? '1px solid #EBECEE' : null">
-                <td [ngClass]="{'break-all': hasLongWord(serv.name, 20),'break-words': !hasLongWord(serv.name, 20), 'rounded-bl-2xl': last}" class="px-6 text-gray-900 group-hover:bg-gray-50">
-                  {{ serv.name }}
+            @for (usage of usageSpecs; track usage.id; let idx = $index; let last = $last) {
+              <tr data-cy="usageSpecRow" class="h-[56px] group" [style.border-bottom]="!last ? '1px solid #EBECEE' : null">
+                <td [ngClass]="{'break-all': hasLongWord(usage.name, 20),'break-words': !hasLongWord(usage.name, 20), 'rounded-bl-2xl': last}" class="px-6 text-gray-900 group-hover:bg-gray-50">
+                  {{ usage.name }}
                 </td>
-                <td class="px-6 group-hover:bg-gray-50">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    [style.background-color]="rowStatusBadge(serv).bg"
-                    [style.color]="rowStatusBadge(serv).color">{{ rowStatusBadge(serv).text }}</span>
-                </td>
-                <td class="hidden md:table-cell px-6 text-gray-500 whitespace-nowrap group-hover:bg-gray-50">
-                  {{ serv.lastUpdate | date:'dd/MM/yyyy - HH:mm' }}
+                <td class="hidden md:table-cell px-6 text-gray-500 group-hover:bg-gray-50">
+                  {{ usage.description }}
                 </td>
                 <td class="px-6 text-right relative group-hover:bg-gray-50" [ngClass]="{'rounded-br-2xl': last}">
                   <button type="button" (click)="toggleMenu(idx, $event)" class="p-1 hover:bg-gray-100 rounded text-gray-500">
@@ -88,25 +69,11 @@
                   </button>
                   @if(openMenuIdx === idx){
                     <div class="absolute right-4 top-12 z-20 bg-white rounded-xl shadow-lg border border-gray-100 py-2 w-40 text-left" (click)="$event.stopPropagation()">
-                      <button data-cy="serviceSpecEdit" type="button" (click)="goToUpdate(serv); openMenuIdx=null" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                      <button data-cy="usageSpecEdit" type="button" (click)="goToUpdate(usage); openMenuIdx=null" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/>
                         </svg>
                         {{ 'OFFERINGS._edit' | translate }}
-                      </button>
-                      @if(serv.lifecycleStatus === 'Active'){
-                        <button type="button" (click)="validateServ(serv)" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                          </svg>
-                          {{ 'OFFERINGS._validate' | translate }}
-                        </button>
-                      }
-                      <button type="button" (click)="deleteServ(serv)" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
-                        </svg>
-                        {{ 'OFFERINGS._delete' | translate }}
                       </button>
                     </div>
                   }

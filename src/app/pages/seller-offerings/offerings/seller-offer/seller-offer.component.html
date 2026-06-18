@@ -1,245 +1,214 @@
+<div class="bg-white rounded-2xl border border-[#EBECEE] shadow-sm p-6 w-full flex-1 flex flex-col gap-8">
+  <div class="flex items-start justify-between">
+    <div>
+      <h2 class="text-2xl font-extrabold text-gray-900">{{ 'OFFERINGS._product_offers' | translate }}</h2>
+      <p class="text-sm text-gray-500 mt-1">{{ 'OFFERINGS._manage_offers_subtitle' | translate }}</p>
+    </div>
+    <button data-cy="newOffering" (click)="goToCreate()" type="button"
+      class="inline-flex items-center gap-2 bg-primary-100 hover:bg-primary-50 text-white text-sm font-semibold rounded-lg h-10 px-4">
+      <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.4" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+      {{ 'OFFERINGS._new_product_offer' | translate }}
+    </button>
+  </div>
 
-<div>
-    <div class="w-full h-fit mb-4 bg-secondary-50 rounded-lg dark:bg-secondary-100 dark:border-gray-800 border-gray-300 border-secondary-50 border flex flex-col shadow-lg">
-      <div class="flex w-full flex-cols items-center justify-between">
-        <div class="mb-4 lg:mb-0 lg:w-1/4 p-8">
-            <h2 class="text-2xl font-bold mb-4 dark:text-white">{{ 'OFFERINGS._prod_offer' | translate }}</h2>              
-        </div>
-
-        <div class="flex flex-row w-full justify-end">
-            <!--<form class="max-w-lg w-1/2 pr-4 z-10">
-                <div class="relative">
-                    <input type="search" id="search" [formControl]="searchField" class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-white shadow rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Filter product offers..." />
-                    <button type="submit" (click)="filterInventoryByKeywords()" class="absolute shadow top-0 end-0 inline-flex items-center p-2.5 text-sm font-medium h-full text-white bg-primary-100 rounded-e-lg hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300">
-                        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-                        </svg>                  
-                        <span class="ml-2">{{ 'OFFERINGS._search' | translate }}</span>
-                    </button>
-                </div>
-              </form>-->
-            <button data-cy="newOffering" type="button" (click)="goToCreate()" class="ml-2 mr-8 mb-4 text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center align-middle me-2">
-                <p class="pl-2 pr-2">{{ 'OFFERINGS._add_new_offer' | translate }}</p>
-                <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
-                </svg>
-            </button>  
-        </div>
-
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="rounded-2xl p-6 flex flex-col" style="background: linear-gradient(101.53deg, #EBF0F7 0%, #DDE6F6 100%); border: 1px solid #EBECEE; box-shadow: 0px 0px 8px rgba(45, 88, 167, 0.08);">
+      <div class="flex items-center justify-between">
+        <span class="text-lg font-semibold" style="color: #4C5A6B;">{{ 'OFFERINGS._total_offers' | translate }}</span>
+        <span class="w-10 h-10 rounded-xl flex items-center justify-center" style="background-color: #2D58A7;">
+          <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.378 1.602a.75.75 0 00-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03zM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 00.372-.648V7.93zM11.25 22.18v-9l-9-5.25v8.57a.75.75 0 00.372.648l8.628 5.033z"/>
+          </svg>
+        </span>
       </div>
-      <div class="flex w-full flex-col items-center md:flex-row justify-between">
-
-        <div class="p-8 w-full">
-          <div class="flex flex-row mb-1">
-            <fa-icon [icon]="faSwatchbook" class="fa-base text-primary-100 align-middle mr-2"></fa-icon>
-            <h2 class="text-base font-bold dark:text-white">{{ 'OFFERINGS._filter_state' | translate }}</h2>
-            </div>
-            <button id="dropdownDefault" data-dropdown-toggle="dropdown"
-            class="text-black dark:text-white w-full justify-between shadow bg-white dark:bg-secondary-200 hover:bg-gray-100 dark:hover:bg-secondary-300 focus:ring-4 focus:outline-none focus:ring-primary-100 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center shadow-lg"
-            type="button">
-            {{ 'OFFERINGS._filter_state' | translate }}
-            <svg class="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
-            </button>
-            
-            <div id="dropdown" class="z-20 hidden w-fit md:w-1/5 p-3 bg-white rounded-lg shadow dark:bg-secondary-200">
-            <h6 class="mb-3 text-sm font-medium text-gray-900 dark:text-white">
-                {{ 'OFFERINGS._status' | translate }}
-            </h6>
-            <ul class="space-y-2 text-sm" aria-labelledby="dropdownDefault">
-  
-                <li class="flex items-center">
-                <input id="active" type="checkbox" value="" checked (change)="onStateFilterChange('Active')"
-                    class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded text-primary-600 focus:ring-primary-100" />
-    
-                <label for="active" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-200">
-                    {{ 'OFFERINGS._active' | translate }}
-                </label>
-                </li>
-    
-                <li class="flex items-center">
-                <input id="launched" type="checkbox" value="" checked (change)="onStateFilterChange('Launched')"
-                    class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded text-primary-600 focus:ring-primary-100" />
-    
-                <label for="launched" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-200">
-                    {{ 'OFFERINGS._launched' | translate }}
-                </label>
-                </li>
-    
-                <li class="flex items-center">
-                <input id="retired" type="checkbox" value="" (change)="onStateFilterChange('Retired')"
-                    class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded text-primary-600 focus:ring-primary-100" />
-    
-                <label for="retired" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-200">
-                    {{ 'OFFERINGS._retired' | translate }}
-                </label>
-                </li>
-
-                <li class="flex items-center">
-                  <input id="obsolete" type="checkbox" value="" (change)="onStateFilterChange('Obsolete')"
-                      class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded text-primary-600 focus:ring-primary-100" />
-      
-                  <label for="obsolete" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-200">
-                    {{ 'OFFERINGS._obsolete' | translate }}
-                  </label>
-                </li>
-            </ul>
-          </div>
-      </div> 
-
-
-      <!--<div class="p-8 w-full">
-        <div class="flex flex-row mb-1">
-          <fa-icon [icon]="faSparkles" class="fa-base text-primary-100 align-middle mr-2"></fa-icon>
-          <h2 class="text-base font-bold">{{ 'OFFERINGS._filter_type' | translate }}</h2>
-        </div>
-        <select id="type" (change)="onTypeChange($event)" class="shadow bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-          <option value="none" selected>{{ 'OFFERINGS._filter_type' | translate }}</option>
-          <option value="all">{{ 'OFFERINGS._all' | translate }}</option>
-          <option value="simple">{{ 'OFFERINGS._simple' | translate }}</option>
-          <option value="bundle">{{ 'OFFERINGS._bundle' | translate }}</option>
-        </select>
+      <div class="text-4xl font-extrabold mt-2" style="color: #0B1528;">{{ totalOffersCount }}</div>
+    </div>
+    <div class="rounded-2xl p-6 flex flex-col" style="background: linear-gradient(101.53deg, #EAF7EF 0%, #D6F0E0 100%); border: 1px solid #EBECEE; box-shadow: 0px 0px 8px rgba(45, 88, 167, 0.08);">
+      <div class="flex items-center justify-between">
+        <span class="text-lg font-semibold" style="color: #4C5A6B;">{{ 'OFFERINGS._published' | translate }}</span>
+        <span class="w-10 h-10 rounded-xl flex items-center justify-center" style="background-color: #16A34A;">
+          <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M9.315 7.584C12.195 3.883 16.695 1.5 21.75 1.5a.75.75 0 01.75.75c0 5.056-2.383 9.555-6.084 12.436A6.75 6.75 0 019.75 22.5a.75.75 0 01-.75-.75v-4.131A15.838 15.838 0 016.382 15H2.25a.75.75 0 01-.75-.75 6.75 6.75 0 017.815-6.666zM15 6.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z" clip-rule="evenodd"/>
+            <path d="M5.26 17.242a.75.75 0 10-.897-1.203 5.243 5.243 0 00-2.05 5.022.75.75 0 00.625.627 5.243 5.243 0 005.022-2.051.75.75 0 10-1.202-.897 3.744 3.744 0 01-3.008 1.51c0-1.23.592-2.323 1.51-3.008z"/>
+          </svg>
+        </span>
       </div>
-
-      <div class="p-8 w-full">
-        <div class="flex flex-row mb-1">
-          <fa-icon [icon]="faSort" class="fa-base text-primary-100 align-middle mr-2"></fa-icon>
-          <h2 class="text-base font-bold">{{ 'OFFERINGS._order_by' | translate }}</h2>
-        </div>
-        <select id="sort" (change)="onSortChange($event)" class="shadow bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-          <option value="none" selected>{{ 'OFFERINGS._order_by' | translate }}</option>
-          <option value="update">{{ 'OFFERINGS._last_update' | translate }}</option>
-          <option value="name">{{ 'OFFERINGS._name' | translate }}</option>
-        </select>
-      </div>-->
-
-
+      <div class="text-4xl font-extrabold mt-2" style="color: #0B1528;">{{ statusCounts['Published'] }}</div>
+    </div>
+    <div class="rounded-2xl p-6 flex flex-col" style="background: linear-gradient(101.53deg, #F3EEFB 0%, #E9DEF7 100%); border: 1px solid #EBECEE; box-shadow: 0px 0px 8px rgba(45, 88, 167, 0.08);">
+      <div class="flex items-center justify-between">
+        <span class="text-lg font-semibold" style="color: #4C5A6B;">{{ 'OFFERINGS._total_views' | translate }}</span>
+        <span class="w-10 h-10 rounded-xl flex items-center justify-center" style="background-color: #9333EA;">
+          <svg class="w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.4" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.281m5.94 2.28l-2.28 5.941"/>
+          </svg>
+        </span>
+      </div>
+      <div class="text-4xl font-extrabold mt-2" style="color: #0B1528;">{{ totalViewsCount }}</div>
     </div>
   </div>
 
-@if(loading){
-    <div role="status" class="w-full h-full flex justify-center align-middle">
-        <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+  <div class="border-b border-[#EBECEE] flex items-stretch">
+    @for (tab of ['Draft','Published','Unpublished','Archived']; track tab) {
+      <button type="button" (click)="selectTab(tab)"
+        class="w-56 flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold tracking-[0.5px] leading-6 border-b-[3px] -mb-px transition-colors"
+        [ngClass]="selectedTab === tab ? 'text-[#131B25] border-[#2D58A7]' : 'text-gray-500 border-transparent hover:text-gray-700'">
+        {{ ('OFFERINGS._' + tab.toLowerCase()) | translate }}
+        <span class="inline-flex items-center justify-center min-w-[28px] h-6 px-2 rounded-full text-sm font-semibold"
+          [style.background-color]="selectedTab === tab ? '#DDE6F6' : '#EBECEE'"
+          [style.color]="selectedTab === tab ? '#14274a' : '#374151'">{{ statusCounts[tab] }}</span>
+      </button>
+    }
+  </div>
+
+  <div class="rounded-2xl flex-1" [class.dashed-pane]="loading || offers.length === 0">
+    @if (loading) {
+      <div role="status" class="w-full flex justify-center items-center py-24">
+        <svg aria-hidden="true" class="w-10 h-10 text-gray-200 animate-spin fill-primary-100" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+          <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
         </svg>
         <span class="sr-only">Loading...</span>
       </div>
-} @else {
-    <div class="bg-secondary-50 dark:bg-secondary-100 border dark:border-gray-800 mt-8 p-4 rounded-lg">
-        <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white dark:bg-secondary-300">
-            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
-                    <tr>
-                        <th scope="col" class="px-6 py-3">
-                            {{ 'OFFERINGS._name' | translate }}
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            {{ 'OFFERINGS._status' | translate }}
-                        </th>
-                        <th scope="col" class="hidden md:table-cell px-6 py-3">
-                            {{ 'OFFERINGS._type' | translate }}
-                        </th>
-                        <th scope="col" class="hidden md:table-cell px-6 py-3">
-                            {{ 'OFFERINGS._last_update' | translate }}
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            {{ 'OFFERINGS._actions' | translate }}
-                        </th>
-                    </tr>
-                </thead>
-                <tbody data-cy="offers">
-                    @for (offer of offers; track offer.id) {
-                        <tr data-cy="offerRow" class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                            <td data-cy="offerTitle" [ngClass]="{
-                                'break-all': hasLongWord(offer.name, 20),
-                                'break-words': !hasLongWord(offer.name, 20)
-                                }" class="px-6 py-4 text-wrap break-words">
-                                {{offer.name}}
-                            </td>
-                            <td data-cy="offerStatus" class="px-6 py-4">
-                                @if(offer.lifecycleStatus == 'Active'){
-                                    <span class="bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{offer.lifecycleStatus}}</span>
-                                } @else if(offer.lifecycleStatus == 'Launched') {
-                                    <span class="bg-blue-100 dark:bg-secondary-300 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500">{{offer.lifecycleStatus}}</span>
-                                } @else if(offer.lifecycleStatus == 'Retired') {
-                                    <span class="bg-blue-100 dark:bg-secondary-300 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{offer.lifecycleStatus}}</span>
-                                } @else if(offer.lifecycleStatus == 'Obsolete') {
-                                    <span class="bg-blue-100 dark:bg-secondary-300 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{offer.lifecycleStatus}}</span>
-                                }
-                            </td>
-                            <td class="px-6 py-4 hidden md:table-cell">
-                                @if(offer.isBundle == false){
-                                    <span class="bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{ 'OFFERINGS._simple' | translate }}</span>
-                                } @else {
-                                    <span class="bg-blue-100 dark:bg-secondary-300 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500">{{ 'OFFERINGS._bundle' | translate }}</span>
-                                }
-                            </td>
-                            <td class="px-6 py-4 hidden md:table-cell">
-                                {{offer.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}} 
-                            </td>
-                            <td data-cy="offerEdit" class="px-6 py-4">
-                                <button type="button" (click)="goToUpdate(offer)" class="text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
-                                    <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                        <path fill-rule="evenodd" d="M14 4.182A4.136 4.136 0 0 1 16.9 3c1.087 0 2.13.425 2.899 1.182A4.01 4.01 0 0 1 21 7.037c0 1.068-.43 2.092-1.194 2.849L18.5 11.214l-5.8-5.71 1.287-1.31.012-.012Zm-2.717 2.763L6.186 12.13l2.175 2.141 5.063-5.218-2.141-2.108Zm-6.25 6.886-1.98 5.849a.992.992 0 0 0 .245 1.026 1.03 1.03 0 0 0 1.043.242L10.282 19l-5.25-5.168Zm6.954 4.01 5.096-5.186-2.218-2.183-5.063 5.218 2.185 2.15Z" clip-rule="evenodd"/>
-                                    </svg>
-                                </button>
-                                @if(customMap[offer.id]){
-                                    <button type="button" (click)="goToCreateCustom(offer)" class="text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
-                                        <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7.757v8.486M7.757 12h8.486M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
-                                          </svg>                                          
-                                
-                                    </button>
-                                }
-                                <!--<button type="button" class="text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2">
-                                    <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-width="2" d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"/>
-                                        <path stroke="currentColor" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
-                                      </svg>                                  
-                                </button>-->
-                            </td>
-                        </tr>
-                    } @empty {
-                        <div class="flex justify-center w-full m-4">
-                            <div class="flex w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-gray-100 dark:bg-secondary-200 dark:text-primary-50" role="alert">
-                              <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-                              </svg>
-                              <div>
-                                {{ 'OFFERINGS._no_offerings' | translate }}
-                              </div>
-                            </div>
-                        </div>                          
-                    }
-                </tbody>
-            </table>
+    } @else if (offers.length === 0) {
+      <div class="flex flex-col items-center justify-center flex-1 py-12 px-6">
+        <div class="w-[72px] h-[72px] rounded-full flex items-center justify-center mb-5 p-4" style="background-color: #DDE6F6;">
+          <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#2D58A7">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M3.375 3C2.339 3 1.5 3.84 1.5 4.875v.75c0 1.036.84 1.875 1.875 1.875h17.25c1.035 0 1.875-.84 1.875-1.875v-.75C22.5 3.839 21.66 3 20.625 3H3.375z"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M3.087 9l.54 9.176A3 3 0 006.62 21h10.757a3 3 0 002.995-2.824L20.913 9H3.087zm6.133 2.845a.75.75 0 011.06 0l1.72 1.72 1.72-1.72a.75.75 0 111.06 1.06l-1.72 1.72 1.72 1.72a.75.75 0 11-1.06 1.06L12 15.685l-1.72 1.72a.75.75 0 11-1.06-1.06l1.72-1.72-1.72-1.72a.75.75 0 010-1.06z"/>
+          </svg>
         </div>
-        @if (!loading_more) {
-            @if (page_check) {
-            <div class="flex pt-6 pb-2 justify-center align-middle">
-                <button data-cy="loadMore" (click)="next()" class="flex cursor-pointer shadow-lg items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 dark:text-white bg-white dark:bg-primary-100 dark:hover:bg-secondary-100 border border-gray-300 dark:border-secondary-200 rounded-lg hover:bg-gray-200">
-                {{ 'OFFERINGS._load_more' | translate }}
-                <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
-                </svg>
-                </button>
-            </div>
-            }
-        } @else {
-            <div role="status" class="w-full h-full flex justify-center align-middle mt-2">
-            <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-                <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
-            </svg>
-            <span class="sr-only">Loading...</span>
-            </div>
-        }
+        <p class="text-base font-bold text-gray-900 mb-1">{{ 'OFFERINGS._no_offerings' | translate }}</p>
+        <p class="text-sm text-gray-500 mb-6">{{ 'OFFERINGS._add_new_to_collect' | translate }}</p>
+        <button (click)="goToCreate()" type="button"
+          class="inline-flex items-center gap-2 bg-primary-100 hover:bg-primary-50 text-white text-sm font-semibold rounded-lg h-10 px-4">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.4" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          {{ 'OFFERINGS._new_product_offer' | translate }}
+        </button>
       </div>
-}
-
-
+    } @else {
+      <div class="rounded-2xl overflow-visible bg-white" style="border: 1px solid #D8DADE;">
+        <table data-cy="offerTable" class="w-full text-sm text-left text-gray-700">
+          <thead class="text-xs text-gray-500 uppercase bg-white" style="border-bottom: 1px solid #EBECEE;">
+            <tr class="h-[56px]">
+              <th scope="col" class="px-6 font-semibold rounded-tl-2xl">{{ 'OFFERINGS._name' | translate }}</th>
+              <th scope="col" class="px-6 font-semibold">{{ 'OFFERINGS._status' | translate }}</th>
+              <th scope="col" class="hidden md:table-cell px-6 font-semibold">{{ 'OFFERINGS._last_update' | translate }}</th>
+              <th scope="col" class="px-6 font-semibold text-right rounded-tr-2xl">{{ 'OFFERINGS._actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody data-cy="offers">
+            @for (offer of offers; track offer.id; let idx = $index; let last = $last) {
+              <tr data-cy="offerRow" class="h-[56px] group" [style.border-bottom]="!last ? '1px solid #EBECEE' : null">
+                <td data-cy="offerTitle" [ngClass]="{'break-all': hasLongWord(offer.name, 20),'break-words': !hasLongWord(offer.name, 20), 'rounded-bl-2xl': last}" class="px-6 text-gray-900 group-hover:bg-gray-50">
+                  {{ offer.name }}
+                </td>
+                <td data-cy="offerStatus" class="px-6 group-hover:bg-gray-50">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    [style.background-color]="rowStatusBadge(offer).bg"
+                    [style.color]="rowStatusBadge(offer).color">{{ rowStatusBadge(offer).text }}</span>
+                </td>
+                <td class="hidden md:table-cell px-6 text-gray-500 whitespace-nowrap group-hover:bg-gray-50">
+                  {{ offer.lastUpdate | date:'dd/MM/yyyy - HH:mm' }}
+                </td>
+                <td data-cy="offerEdit" class="px-6 text-right relative group-hover:bg-gray-50" [ngClass]="{'rounded-br-2xl': last}">
+                  <button type="button" (click)="toggleMenu(idx, $event)" class="p-1 hover:bg-gray-100 rounded text-gray-500">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="5" r="2"/>
+                      <circle cx="12" cy="12" r="2"/>
+                      <circle cx="12" cy="19" r="2"/>
+                    </svg>
+                  </button>
+                  @if(openMenuIdx === idx){
+                    <div class="absolute right-4 top-12 z-20 bg-white rounded-xl shadow-lg border border-gray-100 py-2 w-48 text-left" (click)="$event.stopPropagation()">
+                      @if(selectedTab === 'Archived'){
+                        <button type="button" (click)="restoreOffer(offer)" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"/>
+                          </svg>
+                          {{ 'OFFERINGS._restore' | translate }}
+                        </button>
+                        <button type="button" (click)="deleteOfferPermanent(offer)" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-gray-50">
+                          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                          </svg>
+                          {{ 'OFFERINGS._delete' | translate }}
+                        </button>
+                      } @else if (selectedTab === 'Published') {
+                        <button type="button" (click)="goToUpdate(offer); openMenuIdx=null" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/>
+                          </svg>
+                          {{ 'OFFERINGS._edit' | translate }}
+                        </button>
+                        <button type="button" (click)="duplicateOffer(offer)" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75"/>
+                          </svg>
+                          {{ 'OFFERINGS._duplicate' | translate }}
+                        </button>
+                        <button type="button" (click)="unpublishOffer(offer)" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/>
+                          </svg>
+                          {{ 'OFFERINGS._unpublish' | translate }}
+                        </button>
+                      } @else {
+                        <button type="button" (click)="goToUpdate(offer); openMenuIdx=null" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/>
+                          </svg>
+                          {{ 'OFFERINGS._edit' | translate }}
+                        </button>
+                        @if(customMap[offer.id]){
+                          <button type="button" (click)="goToCreateCustom(offer); openMenuIdx=null" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M12 7.757v8.486M7.757 12h8.486M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            {{ 'OFFERINGS._custom_offer' | translate }}
+                          </button>
+                        }
+                        @if(offer.lifecycleStatus === 'Active'){
+                          <button type="button" (click)="publishOffer(offer)"
+                            [disabled]="!isOfferComplete(offer)"
+                            [ngClass]="!isOfferComplete(offer) ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-50'"
+                            class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700">
+                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                              <path fill-rule="evenodd" d="M9.315 7.584C12.195 3.883 16.695 1.5 21.75 1.5a.75.75 0 01.75.75c0 5.056-2.383 9.555-6.084 12.436A6.75 6.75 0 019.75 22.5a.75.75 0 01-.75-.75v-4.131A15.838 15.838 0 016.382 15H2.25a.75.75 0 01-.75-.75 6.75 6.75 0 017.815-6.666zM15 6.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z" clip-rule="evenodd"/>
+                              <path d="M5.26 17.242a.75.75 0 10-.897-1.203 5.243 5.243 0 00-2.05 5.022.75.75 0 00.625.627 5.243 5.243 0 005.022-2.051.75.75 0 10-1.202-.897 3.744 3.744 0 01-3.008 1.51c0-1.23.592-2.323 1.51-3.008z"/>
+                            </svg>
+                            {{ 'OFFERINGS._publish' | translate }}
+                          </button>
+                        }
+                        <button type="button" (click)="deleteOffer(offer)" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                          </svg>
+                          {{ 'OFFERINGS._delete' | translate }}
+                        </button>
+                      }
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (!loading_more && page_check) {
+        <div class="flex pt-4 justify-center">
+          <button data-cy="loadMore" (click)="next()" class="inline-flex items-center px-4 h-9 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+            {{ 'OFFERINGS._load_more' | translate }}
+            <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+            </svg>
+          </button>
+        </div>
+      }
+    }
+  </div>
 </div>
