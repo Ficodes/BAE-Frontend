@@ -31,6 +31,7 @@ export interface ThemeLinkConfig {
   headerLinks?: NavLink[];
   footerLinks?: NavHeaderLink[];
   footerLinksColsNumber?: number;
+  marketplaceHomeUrl?: string;
 
   // Social networks
   linkedin?: string;

@@ -19,8 +19,18 @@
     <!-- Dropdown menu -->
     <div id="dropdown-nav-content" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
       <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdown-nav">
+        <li class="px-4 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          Catalog
+        </li>
+        <li>
+          <a (click)="goToDefaultCatalog()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'ADMIN._defaultCatalog' | translate }}</a>
+        </li>
         <li>
           <a (click)="goToCategories()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'ADMIN._categories' | translate }}</a>
+        </li>
+        <li class="my-1 border-t border-gray-100 dark:border-gray-600"></li>
+        <li class="px-4 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          Business
         </li>
         <li>
           <a (click)="goToVerification()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'ADMIN._verification' | translate }}</a>
@@ -28,27 +38,57 @@
         <li>
           <a (click)="goToRevenue()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'ADMIN._revenue' | translate }}</a>
         </li>
+        <li class="my-1 border-t border-gray-100 dark:border-gray-600"></li>
+        <li class="px-4 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          Config
+        </li>
         <li>
           <a (click)="goToEmail()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'ADMIN._email' | translate }}</a>
+        </li>
+        <li>
+          <a (click)="goToSearchFilters()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Search &amp; filters</a>
         </li>
       </ul>
     </div>
     
     <div class="w-full grid lg:grid-cols-20/80">
         <div class="hidden lg:block">
-          <div class="w-48 h-fit text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white mb-8">
-            <button (click)="goToCategories()" id="categories-button" aria-current="true" class="block w-full px-4 py-2 text-white bg-primary-100 border-b border-gray-200 rounded-t-lg cursor-pointer dark:border-gray-600 hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-              {{ 'ADMIN._categories' | translate }}
-            </button>
-            <button (click)="goToVerification()" id="verify-button" class="block w-full px-4 py-2 border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-              {{ 'ADMIN._verification' | translate }}
-            </button>
-            <button (click)="goToRevenue()" id="revenue-button" class="block w-full px-4 py-2 border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-              {{ 'ADMIN._revenue' | translate }}
-            </button>
-            <button (click)="goToEmail()" id="email-button" class="block w-full px-4 py-2 border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-              {{ 'ADMIN._email' | translate }}
-            </button>
+          <div class="w-48 h-fit text-sm font-medium text-gray-900 dark:text-white mb-8 space-y-4">
+            <div>
+              <p class="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Catalog</p>
+              <div class="bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                <button (click)="goToDefaultCatalog()" id="default-catalog-button" data-cy="adminDefaultCatalogSection" class="block w-full px-4 py-2 border-b border-gray-200 rounded-t-lg cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+                  {{ 'ADMIN._defaultCatalog' | translate }}
+                </button>
+                <button (click)="goToCategories()" id="categories-button" data-cy="adminCategoriesSection" aria-current="true" class="block w-full px-4 py-2 text-white bg-primary-100 rounded-b-lg cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+                  {{ 'ADMIN._categories' | translate }}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <p class="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Business</p>
+              <div class="bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                <button (click)="goToVerification()" id="verify-button" class="block w-full px-4 py-2 border-b border-gray-200 rounded-t-lg cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+                  {{ 'ADMIN._verification' | translate }}
+                </button>
+                <button (click)="goToRevenue()" id="revenue-button" class="block w-full px-4 py-2 rounded-b-lg cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+                  {{ 'ADMIN._revenue' | translate }}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <p class="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Config</p>
+              <div class="bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                <button (click)="goToEmail()" id="email-button" class="block w-full px-4 py-2 border-b border-gray-200 rounded-t-lg cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+                  {{ 'ADMIN._email' | translate }}
+                </button>
+                <button (click)="goToSearchFilters()" id="search-filters-button" data-cy="adminSearchFiltersSection" class="block w-full px-4 py-2 rounded-b-lg cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+                  Search &amp; filters
+                </button>
+              </div>
+            </div>
           </div>
        </div>
 
@@ -69,6 +109,12 @@
         }
         @if(show_email){
           <email></email>
+        }
+        @if(show_search_filters){
+          <search-filters-config></search-filters-config>
+        }
+        @if(show_default_catalog){
+          <default-catalog></default-catalog>
         }
     </div>
 </div>

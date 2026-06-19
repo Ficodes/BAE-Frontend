@@ -27,10 +27,13 @@ export class ApiServiceService {
     return this.http.get<ProductOfferingModel[]>(url);
   }
 
-  getProducts(page: any, keywords: any) {
+  getProducts(page: any, keywords: any, sort?: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering?limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}&lifecycleStatus=Launched`;
     if (keywords != undefined) {
       url = url + '&keyword=' + keywords;
+    }
+    if (sort != undefined) {
+      url = url + '&sort=' + sort;
     }
 
     return lastValueFrom(this.http.get<any[]>(url));
@@ -95,7 +98,7 @@ export class ApiServiceService {
     }));
   }
 
-  getProductsByCategory(ids: Category[], page: any, keywords: any) {
+  getProductsByCategory(ids: Category[], page: any, keywords: any, sort?: any) {
     let id_str = '';
     for (let i = 0; i < ids.length; i++) {
       if (i == 0) {
@@ -117,6 +120,9 @@ export class ApiServiceService {
     }
     if (keywords != undefined) {
       url = url + '&keyword=' + keywords;
+    }
+    if (sort != undefined) {
+      url = url + '&sort=' + sort;
     }
     return lastValueFrom(this.http.get<any[]>(url));
   }
@@ -312,10 +318,28 @@ export class ApiServiceService {
     return this.http.post<any>(url, catalog);
   }
 
+  postAdminCatalog(catalog: any) {
+    let url = `${ApiServiceService.BASE_URL}/admin/catalog/catalog`;
+
+    return this.http.post<any>(url, catalog);
+  }
+
   updateCatalog(catalog: any, id: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog/${id}`;
 
     return this.http.patch<any>(url, catalog);
+  }
+
+  updateAdminCatalog(catalog: any, id: any) {
+    let url = `${ApiServiceService.BASE_URL}/admin/catalog/catalog/${id}`;
+
+    return this.http.patch<any>(url, catalog);
+  }
+
+  setDefaultCatalog(catalogId: string) {
+    let url = `${ApiServiceService.BASE_URL}/admin/defaultcatalog`;
+
+    return this.http.post<any>(url, { catalogId });
   }
 
   getServiceSpec(id: any) {

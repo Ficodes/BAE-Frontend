@@ -54,6 +54,7 @@ export class FeaturedComponent implements OnInit {
     } as Category;*/
     this.localStorage.addCategoryFilter(cat);
     this.eventMessage.emitAddedFilter(cat);
+    this.eventMessage.emitFiltersCommitted();
     this.router.navigate(['/search']);
     
   }

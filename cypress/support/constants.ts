@@ -326,7 +326,15 @@ export const productOffering = {
     ]
 }
 export const blogEntry = {
-    title: 'Entry title', content: 'Blog entry content', partyId: 'urn:ngsi-ld:individual:b73dd8ce-b63f-4c5b-be07-ca7ea10ad78e', author: 'admin'
+    title: 'Entry title',
+    slug: 'entry-title',
+    featuredImage: '',
+    metaDescription: '',
+    excerpt: '',
+    tags: [],
+    partyId: 'urn:ngsi-ld:individual:b73dd8ce-b63f-4c5b-be07-ca7ea10ad78e',
+    author: 'admin',
+    content: 'Blog entry content'
 }
 export const productSpec = {
     id: "urn:ngsi-ld:product-specification:305ac5ed-5845-467b-ab18-13856c2a8bac",

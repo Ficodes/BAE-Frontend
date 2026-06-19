@@ -14,11 +14,10 @@ const domeHeaderLinks: NavLink[] = [
     isRouterLink: true
   },
   {
-    id: 'dropdown-marketplace',
     label: 'HEADER._marketplaceH',
     children: [{
       label: 'HEADER._browse_serv',
-      url: '/search',
+      url: '/browse',
       isRouterLink: true,
     },
     {
@@ -132,6 +131,7 @@ export const DOME_THEME_CONFIG: ThemeConfig = {
     headerLinks: domeHeaderLinks,
     footerLinks: domeFooterLinks,
     footerLinksColsNumber: domeFooterLinks.length,
+    marketplaceHomeUrl: '/browse',
 
     linkedin: environment.DOME_LINKEDIN,
     youtube: environment.DOME_YOUTUBE,

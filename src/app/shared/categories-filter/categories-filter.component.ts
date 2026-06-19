@@ -1,4 +1,4 @@
-import {Component, EventEmitter, OnInit, Output, ChangeDetectorRef, Input, OnDestroy} from '@angular/core';
+import {Component, EventEmitter, OnInit, Output, ChangeDetectorRef, Input, OnDestroy, OnChanges, SimpleChanges} from '@angular/core';
 import {Category} from "../../models/interfaces";
 import {Subject} from "rxjs";
 import {LocalStorageService} from "../../services/local-storage.service";
@@ -9,14 +9,15 @@ import {faCircleCheck} from "@fortawesome/pro-solid-svg-icons";
 import {faCircle} from "@fortawesome/pro-regular-svg-icons";
 import { takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
-import availableFilters, { type Filter } from '../../data/availableFilters';
+import availableFilters, { type Filter, type FilterOption } from '../../data/availableFilters';
+import { iconForCategory } from '../../data/categoryIcons';
 
 @Component({
   selector: 'bae-categories-filter',
   templateUrl: './categories-filter.component.html',
   styleUrl: './categories-filter.component.css'
 })
-export class CategoriesFilterComponent implements OnInit, OnDestroy {
+export class CategoriesFilterComponent implements OnInit, OnDestroy, OnChanges {
 
   classListFirst = 'flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-b-0 border-gray-200 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-tertiary-100 gap-3';
   classListLast  = 'flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-gray-200 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-tertiary-100 gap-3';
@@ -35,6 +36,10 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
   cs: Category[] = [];
   @Output() selectedCategories = new EventEmitter<Category[]>();
   @Input() catalogId: any = undefined;
+  @Input() showTitle: boolean = true;
+  @Input() simpleMode: boolean = false;
+  @Input() selectedRootId: string | null | undefined = undefined;
+  @Input() selectedRootName: string | null | undefined = undefined;
 
   // AI Search facets
   aiSearchEnabled = environment.AI_SEARCH_ENABLED;
@@ -42,8 +47,24 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
   dynamicAiCategories: Category[] = [];
   configuredAiCategories: Category[] = [];
 
+  get allFilterItems(): Category[] {
+    const result: Category[] = [];
+    const collect = (cats: Category[]) => {
+      for (const cat of cats) {
+        if (cat.children && cat.children.length > 0) {
+          collect(cat.children);
+        } else {
+          result.push(cat);
+        }
+      }
+    };
+    collect(this.categories);
+    return result;
+  }
+
   protected readonly faCircleCheck = faCircleCheck;
   protected readonly faCircle = faCircle;
+  protected readonly iconForCategory = iconForCategory;
 
   private destroy$ = new Subject<void>();
 
@@ -90,7 +111,7 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
       this.checkedCategories.push(this.selected[i].id)
     }
 
-    if (this.aiSearchEnabled) {
+    if (this.aiSearchEnabled && !this.selectedRootId) {
       await this.loadCatalogCategories();
       this.dynamicAiCategories = this.convertDynamicCategoriesToAiFilterCategories(this.categories);
       this.configuredAiCategories = this.convertFiltersToCategories(availableFilters);
@@ -160,6 +181,7 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
       this.selectedCategories.emit(this.selected);
       this.localStorage.setObject('selected_categories', this.selected);
       this.eventMessage.emitAddedFilter(cat);
+      this.eventMessage.emitFiltersCommitted();
     }
   }
 
@@ -174,6 +196,7 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
       if (checkId !== -1) {
         this.checkedCategories.splice(checkId, 1);
       }
+      this.eventMessage.emitFiltersCommitted();
     }
   }
   
@@ -201,6 +224,43 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
       if (index !== -1) {
         this.checkedCategories.splice(index, 1);
       }
+    }
+    if (this.selectedRootId) {
+      this.syncParentFilterForSimpleMode();
+    }
+    this.eventMessage.emitFiltersCommitted();
+  }
+
+  private syncParentFilterForSimpleMode(): void {
+    const rootId = this.selectedRootId;
+    if (!rootId) {
+      return;
+    }
+
+    const selected = this.localStorage.getObject('selected_categories') as Category[] || [];
+    const selectableChildIds = new Set(
+      this.allFilterItems
+        .map(item => item?.id)
+        .filter((id): id is string => !!id)
+    );
+    const hasSelectedChildren = selected.some(item => !!item?.id && selectableChildIds.has(item.id));
+    const parentInStorage = selected.find(item => item?.id === rootId);
+
+    if (hasSelectedChildren) {
+      if (parentInStorage) {
+        this.localStorage.removeCategoryFilter(parentInStorage);
+        this.eventMessage.emitRemovedFilter(parentInStorage);
+      }
+      return;
+    }
+
+    if (!parentInStorage) {
+      const parentFilter: Category = {
+        id: rootId,
+        name: this.selectedRootName || 'Category'
+      };
+      this.localStorage.addCategoryFilter(parentFilter);
+      this.eventMessage.emitAddedFilter(parentFilter);
     }
   }
 
@@ -444,6 +504,13 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
 
   private async loadCatalogCategories(): Promise<void> {
     this.categories = [];
+
+    if (this.selectedRootId) {
+      const children = await this.api.getCategoriesByParentId(this.selectedRootId).catch(() => []);
+      this.categories = Array.isArray(children) ? children : [];
+      return;
+    }
+
     const hasCatalogId = this.catalogId !== undefined && this.catalogId !== null && String(this.catalogId).trim() !== '';
 
     if (hasCatalogId) {
@@ -476,6 +543,15 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
     }
   }
 
+  async ngOnChanges(changes: SimpleChanges) {
+    const rootChange = changes['selectedRootId'];
+    if (rootChange && !rootChange.firstChange) {
+      await this.loadCatalogCategories();
+      this.cdr.detectChanges();
+      initFlowbite();
+    }
+  }
+
   private async loadCategorySubtree(parent: any): Promise<Category> {
     const children = await this.api.getCategoriesByParentId(parent.id).catch(() => []);
     const childList = Array.isArray(children) ? children : [];
@@ -497,19 +573,28 @@ export class CategoriesFilterComponent implements OnInit, OnDestroy {
   }
 
   private convertFiltersToCategories(filters: Filter[]): Category[] {
-    return filters.map(filter => this.convertFilterToCategory(filter, true, filter.name));
+    return filters.map(filter => this.convertFilterToCategory(filter));
   }
 
-  private convertFilterToCategory(filter: Filter, isRoot: boolean = false, rootFilterName?: string): Category {
-    const filterKey = rootFilterName || filter.name;
-    const sanitizedId = this.sanitizeIdForCss(filter.name);
-
+  private convertFilterToCategory(filter: Filter): Category {
+    const filterKey = filter.name;
     return {
-      id: isRoot ? filter.name : `${filterKey}::${filter.name}`,
-      name: isRoot ? this.formatFacetName(filter.name) : filter.name,
-      isRoot,
-      children: (filter.children || []).map(child => this.convertFilterToCategory(child, false, filterKey)),
-      sanitizedId: isRoot ? sanitizedId : `${this.sanitizeIdForCss(filterKey)}-${sanitizedId}`
+      id: filter.name,
+      name: this.formatFacetName(filter.name),
+      isRoot: true,
+      children: (filter.children || []).map(child => this.convertOptionToCategory(filterKey, child)),
+      sanitizedId: this.sanitizeIdForCss(filter.name)
+    };
+  }
+
+  private convertOptionToCategory(filterKey: string, option: FilterOption): Category {
+    const optionId = `${filterKey}::${option.name}`;
+    return {
+      id: optionId,
+      name: option.label?.trim() || option.name,
+      isRoot: false,
+      children: [],
+      sanitizedId: `${this.sanitizeIdForCss(filterKey)}-${this.sanitizeIdForCss(option.name)}`
     };
   }
 
