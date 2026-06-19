@@ -40,10 +40,10 @@ export class PaginationService {
       if("filters" in options){
         params.push(options.filters)
       }
-      if("partyId" in options){
+      if("partyId" in options && options.partyId != null){
         params.push(options.partyId.toString())
       }
-      if("catalogId" in options){
+      if("catalogId" in options && options.catalogId != null){
         params.push(options.catalogId.toString())
       }
       if("sort" in options){

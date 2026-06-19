@@ -1341,7 +1341,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       };
 
       const schemaLocation = this.getSchemaLocationForType(this.charTypeSelected);
-      if (this.isDataSpaceCharacteristicType(this.charTypeSelected)) {
+      const primitiveTypes = ['string', 'number', 'boolean', 'range'];
+      if (!primitiveTypes.includes(this.charTypeSelected)) {
         characteristic.valueType = this.charTypeSelected;
       }
       if (schemaLocation) {
@@ -1351,7 +1352,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       this.prodChars.push(characteristic);
 
       // Create the X - enabled characteristic
-      if (this.isOptional && this.charTypeSelected !== 'boolean' && !this.isJsonCharacteristicType(this.charTypeSelected)) {
+      if (this.isOptional && primitiveTypes.includes(this.charTypeSelected) && this.charTypeSelected !== 'boolean') {
         this.prodChars.push({
           id: 'urn:ngsi-ld:characteristic:' + uuidv4(),
           name: this.charsForm.value.name + ' - enabled',
