@@ -1,4 +1,5 @@
-import { Component, input } from "@angular/core";
+import { Component } from "@angular/core";
+import { RouterLink } from "@angular/router";
 import { TranslateModule } from '@ngx-translate/core';
 
 type Milestone = {
@@ -11,12 +12,9 @@ type Milestone = {
   selector: "app-dashboard-ecosystem",
   standalone: true,
   templateUrl: "./dashboard-ecosystem.component.html",
-  imports: [TranslateModule]
+  imports: [TranslateModule, RouterLink]
 })
 export class DashboardEcosystemComponent {
-
-  providersLink = input.required<string>();
-  customersLink = input.required<string>();
 
   milestones: Milestone[] = [
     {
