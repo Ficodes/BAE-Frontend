@@ -16,7 +16,7 @@
 @if(dspCompatible) {
 @if (accessControl) {
 <label class="font-bold text-lg col-span-2 dark:text-white">{{ 'Access Policy' | translate }}</label>
-<textarea [formControl]="accessControl" rows="10"
+<textarea data-cy="dspAccessPolicy" [formControl]="accessControl" rows="10"
   class="mb-2 min-h-fit bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-mono"
   [class.border-red-500]="accessControl.invalid && accessControl.touched"
   placeholder='{"example": "Enter your JSON here"}'></textarea>
@@ -26,7 +26,7 @@
 }
 @if (contractControl) {
 <label class="font-bold text-lg col-span-2 dark:text-white">{{ 'Contract Policy' | translate }}</label>
-<textarea [formControl]="contractControl" rows="10"
+<textarea data-cy="dspContractPolicy" [formControl]="contractControl" rows="10"
   class="mb-2 min-h-fit bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-mono"
   [class.border-red-500]="contractControl.invalid && contractControl.touched"
   placeholder='{"example": "Enter your JSON here"}'></textarea>
