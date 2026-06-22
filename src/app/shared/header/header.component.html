@@ -270,6 +270,47 @@
   </ng-template>
 
   <ng-template #headerActionsTemplate let-mobile="mobile">
+    <!-- Language selector -->
+    @if (!mobile) {
+    <div class="relative">
+      <button type="button"
+        class="inline-flex h-[44px] items-center gap-1 rounded-[10px] px-3 text-white/90 hover:text-white hover:bg-white/10 transition text-[13px] font-semibold uppercase tracking-wide"
+        (click)="flagDropdownOpen = !flagDropdownOpen; $event.stopPropagation()">
+        {{ defaultLang }}<span class="ml-0.5 opacity-60 text-[10px]">▾</span>
+      </button>
+      @if (flagDropdownOpen) {
+      <div class="dropdown-glass absolute right-0 top-[calc(100%+8px)] z-50 w-[140px] rounded-[14px] p-2"
+        (click)="$event.stopPropagation()">
+        <ul class="flex flex-col">
+          @for (lang of langs; track lang) {
+          <li>
+            <button type="button" class="dropdown-item"
+              [class.font-bold]="lang === defaultLang"
+              (click)="switchLanguage(lang); flagDropdownOpen = false">
+              {{ lang === 'es' ? 'Español' : 'English' }}
+            </button>
+          </li>
+          }
+        </ul>
+      </div>
+      }
+    </div>
+    } @else {
+    <div class="flex gap-2">
+      @for (lang of langs; track lang) {
+      @if (lang === defaultLang) {
+      <button type="button"
+        class="flex-1 py-2.5 rounded-[10px] text-[14px] font-semibold uppercase transition bg-white/20 text-white ring-1 ring-white/30"
+        (click)="switchLanguage(lang)">{{ lang }}</button>
+      } @else {
+      <button type="button"
+        class="flex-1 py-2.5 rounded-[10px] text-[14px] font-semibold uppercase transition text-white/70 hover:text-white hover:bg-white/10"
+        (click)="switchLanguage(lang)">{{ lang }}</button>
+      }
+      }
+    </div>
+    }
+
     @if (!is_logged) {
     @if (providerThemeName === 'DOME') {
     @if (mobile) {

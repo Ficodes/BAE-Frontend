@@ -1,50 +1,37 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
 import { initFlowbite } from 'flowbite';
-import { TranslateService } from '@ngx-translate/core';
-import {LocalStorageService} from "./services/local-storage.service";
-import {Category} from "./models/interfaces";
-import {EventMessageService} from "./services/event-message.service";
-import { ActivatedRoute, NavigationEnd } from '@angular/router';
-import { Router } from '@angular/router';
-import { LoginInfo } from 'src/app/models/interfaces';
-import { ApiServiceService } from 'src/app/services/product-service.service';
-import { RefreshLoginServiceService } from "src/app/services/refresh-login-service.service";
 import * as moment from 'moment';
-import {ThemeService} from "./services/theme.service";
-import {environment} from "../environments/environment";
-import { filter } from 'rxjs'; 
+import { filter } from 'rxjs';
+import { LoginInfo } from 'src/app/models/interfaces';
+import { RefreshLoginServiceService } from "src/app/services/refresh-login-service.service";
+import { environment } from "../environments/environment";
+import { EventMessageService } from "./services/event-message.service";
+import { LocalStorageService } from "./services/local-storage.service";
+import { LocaleService } from './services/locale.service';
+import { ThemeService } from "./services/theme.service";
 
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css'], 
+  styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit {
   title = 'BAE Marketplace';
   showPanel = false;
-  providerThemeName=environment.providerThemeName;
-  isProduction:boolean = environment.isProduction;
+  providerThemeName = environment.providerThemeName;
+  isProduction: boolean = environment.isProduction;
   showHeaderAndFooter = false;
 
-  constructor(private translate: TranslateService,
-              private localStorage: LocalStorageService,
-              private eventMessage: EventMessageService,
-              private route: ActivatedRoute,
-              private router: Router,
-              private api: ApiServiceService,
-              private themeService: ThemeService,
-              private refreshApi: RefreshLoginServiceService) {
-    this.translate.addLangs(['en', 'es']);
-    this.translate.setDefaultLang('es');
-    let currLang = this.localStorage.getItem('current_language')
-    if(!currLang || currLang == null) {
-      this.localStorage.setItem('current_language', '');
-      this.translate.use('es');
-    } else {
-      this.translate.use(currLang);
-    }
-    if(!this.localStorage.getObject('selected_categories'))
+  constructor(private localeService: LocaleService,
+    private localStorage: LocalStorageService,
+    private eventMessage: EventMessageService,
+    private router: Router,
+    private themeService: ThemeService,
+    private refreshApi: RefreshLoginServiceService) {
+    this.localeService.init().subscribe();
+    if (!this.localStorage.getObject('selected_categories'))
       this.localStorage.setObject('selected_categories', []);
 
     /*this.eventMessage.messages$.subscribe(ev => {
@@ -60,34 +47,34 @@ export class AppComponent implements OnInit {
     this.themeService.initializeProviderTheme(providerThemeName);
 
     initFlowbite();
-    if(!this.localStorage.getObject('selected_categories'))
+    if (!this.localStorage.getObject('selected_categories'))
       this.localStorage.setObject('selected_categories', []);
-    if(!this.localStorage.getObject('cart_items'))
+    if (!this.localStorage.getObject('cart_items'))
       this.localStorage.setObject('cart_items', []);
-    if(!this.localStorage.getObject('login_items'))
+    if (!this.localStorage.getObject('login_items'))
       this.localStorage.setObject('login_items', {});
-    if(!this.localStorage.getObject('feedback'))
+    if (!this.localStorage.getObject('feedback'))
       this.localStorage.setObject('feedback', {});
     //this.checkPanel();
     this.eventMessage.messages$.subscribe(ev => {
-      if(ev.type === 'LoginProcess') {
+      if (ev.type === 'LoginProcess') {
         this.refreshApi.stopInterval();
         let info = ev.value as LoginInfo;
 
-        this.refreshApi.startInterval(((info.expire - moment().unix())-4)*1000, ev);
+        this.refreshApi.startInterval(((info.expire - moment().unix()) - 4) * 1000, ev);
         initFlowbite();
         //this.refreshApi.startInterval(3000, ev.value);
       }
     })
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
-    if(JSON.stringify(aux) === '{}'){
+    if (JSON.stringify(aux) === '{}') {
       //this.siopInfo.getSiopInfo().subscribe((data)=>{
       //  environment.SIOP_INFO = data
       //})
     }
-    else if (((aux.expire - moment().unix())-4) > 0) {
+    else if (((aux.expire - moment().unix()) - 4) > 0) {
       this.refreshApi.stopInterval();
-      this.refreshApi.startInterval(((aux.expire - moment().unix())-4)*1000, aux);
+      this.refreshApi.startInterval(((aux.expire - moment().unix()) - 4) * 1000, aux);
       initFlowbite();
     }
     this.router.events
@@ -112,5 +99,5 @@ export class AppComponent implements OnInit {
     }
   }*/
 
- 
+
 }
