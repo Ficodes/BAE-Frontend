@@ -1225,14 +1225,14 @@
               <div class="flex flex-col w-1/2">
                 <label class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._dsp_endpoint_name' | translate
                   }}</label>
-                <input [value]="newEndpointName" (input)="newEndpointName = $any($event.target).value" type="url"
+                <input data-cy="dspEndpointName" [value]="newEndpointName" (input)="newEndpointName = $any($event.target).value" type="url"
                   [placeholder]="'CREATE_PROD_SPEC._dsp_endpoint_name_placeholder' | translate"
                   class="bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
               </div>
               <div class="flex flex-col w-1/2">
                 <label class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._dsp_endpoint_url' | translate
                   }}</label>
-                <input [value]="newEndpointUrl" (input)="newEndpointUrl = $any($event.target).value" type="url"
+                <input data-cy="dspEndpointUrl" [value]="newEndpointUrl" (input)="newEndpointUrl = $any($event.target).value" type="url"
                   [placeholder]="'CREATE_PROD_SPEC._dsp_endpoint_url_placeholder' | translate"
                   class="bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
               </div>
@@ -1240,13 +1240,13 @@
             <div>
               <label class="font-bold text-lg dark:text-white">{{ 'CREATE_PROD_SPEC._dsp_endpoint_description' |
                 translate }}</label>
-              <textarea [value]="newEndpointDescription" (input)="newEndpointDescription = $any($event.target).value"
+              <textarea data-cy="dspEndpointDescription" [value]="newEndpointDescription" (input)="newEndpointDescription = $any($event.target).value"
                 rows="3" [placeholder]="'CREATE_PROD_SPEC._dsp_endpoint_description_placeholder' | translate"
                 maxlength="100000"
                 class="bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"></textarea>
             </div>
             <div class="flex justify-center">
-              <button type="button" (click)="addEndpointUrl()"
+              <button data-cy="dspAddEndpoint" type="button" (click)="addEndpointUrl()"
                 [disabled]="!newEndpointUrl.trim() || !newEndpointDescription.trim()"
                 [class.opacity-50]="!newEndpointUrl.trim() || !newEndpointDescription.trim()"
                 [class.cursor-not-allowed]="!newEndpointUrl.trim() || !newEndpointDescription.trim()"
@@ -1270,13 +1270,13 @@
           <form [formGroup]="dspConfigForm" class="flex flex-col gap-4">
             <div>
               <label class="font-bold text-lg dark:text-white">Upstream Address</label>
-              <input formControlName="upstreamAddress" type="text"
+              <input data-cy="dspUpstreamAddress" formControlName="upstreamAddress" type="text"
                 class="bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                 [ngClass]="dspConfigForm.get('upstreamAddress')?.invalid && dspConfigForm.get('upstreamAddress')?.value !== '' ? 'border-red-600' : ''" />
             </div>
             <div>
               <label class="font-bold text-lg dark:text-white">Target Specification</label>
-              <textarea formControlName="targetSpecification" rows="4"
+              <textarea data-cy="dspTargetSpecification" formControlName="targetSpecification" rows="4"
                 class="font-mono bg-gray-50 dark:bg-secondary-300 border dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                 [ngClass]="dspConfigForm.get('targetSpecification')?.invalid && dspConfigForm.get('targetSpecification')?.touched ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"
                 placeholder='{"key": "value"}'></textarea>
@@ -1290,7 +1290,7 @@
             </div>
             <div>
               <label class="font-bold text-lg dark:text-white">Service Configuration</label>
-              <textarea formControlName="serviceConfiguration" rows="4"
+              <textarea data-cy="dspServiceConfiguration" formControlName="serviceConfiguration" rows="4"
                 class="font-mono bg-gray-50 dark:bg-secondary-300 border dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                 [ngClass]="dspConfigForm.get('serviceConfiguration')?.invalid && dspConfigForm.get('serviceConfiguration')?.touched ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"
                 placeholder='{"key": "value"}'></textarea>
@@ -1304,7 +1304,7 @@
             </div>
             <div>
               <label class="font-bold text-lg dark:text-white">Credentials Configuration</label>
-              <textarea formControlName="credentialsConfig" rows="4"
+              <textarea data-cy="dspCredentialsConfig" formControlName="credentialsConfig" rows="4"
                 class="font-mono bg-gray-50 dark:bg-secondary-300 border dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                 [ngClass]="dspConfigForm.get('credentialsConfig')?.invalid && dspConfigForm.get('credentialsConfig')?.touched ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"
                 placeholder='{"key": "value"}'></textarea>
@@ -1318,7 +1318,7 @@
             </div>
             <div>
               <label class="font-bold text-lg dark:text-white">Policy Configuration</label>
-              <textarea formControlName="policyConfig" rows="4"
+              <textarea data-cy="dspPolicyConfig" formControlName="policyConfig" rows="4"
                 class="font-mono bg-gray-50 dark:bg-secondary-300 border dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                 [ngClass]="dspConfigForm.get('policyConfig')?.invalid && dspConfigForm.get('policyConfig')?.touched ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'"
                 placeholder='{"key": "value"}'></textarea>
