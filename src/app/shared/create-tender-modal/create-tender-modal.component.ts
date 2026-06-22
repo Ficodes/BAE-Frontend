@@ -1,19 +1,14 @@
-import { Component, EventEmitter, Input, Output, inject, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { forkJoin, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { QuoteService } from 'src/app/features/quotes/services/quote.service';
-import { NotificationService } from 'src/app/services/notification.service';
-import { LocalStorageService } from 'src/app/services/local-storage.service';
-import { ProviderService, Provider } from 'src/app/services/provider.service';
-import { ApiServiceService } from 'src/app/services/product-service.service';
-import { AccountServiceService } from 'src/app/services/account-service.service';
-import { Tender, TenderAttachment } from 'src/app/models/tender.model';
 import { Category, LoginInfo } from 'src/app/models/interfaces';
-import { API_ROLES } from 'src/app/models/roles.constants';
 import { TENDER_STEP2_DESCRIPTION } from 'src/app/models/quote.constants';
+import { API_ROLES } from 'src/app/models/roles.constants';
 import {
   ProviderCountryOption,
   SearchOrganizationsFilters,
@@ -24,6 +19,12 @@ import {
   resolveTenderCategoryLeafNames,
   shouldUseUnfilteredProviderFallback,
 } from 'src/app/models/search-organizations-filters.model';
+import { Tender, TenderAttachment } from 'src/app/models/tender.model';
+import { AccountServiceService } from 'src/app/services/account-service.service';
+import { LocalStorageService } from 'src/app/services/local-storage.service';
+import { NotificationService } from 'src/app/services/notification.service';
+import { ApiServiceService } from 'src/app/services/product-service.service';
+import { Provider, ProviderService } from 'src/app/services/provider.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { TenderDateFieldComponent } from '../tender-date-field/tender-date-field.component';
 import {
@@ -34,7 +35,7 @@ import {
 @Component({
   selector: 'app-create-tender-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConfirmDialogComponent, TenderDateFieldComponent],
+  imports: [CommonModule, FormsModule, ConfirmDialogComponent, TenderDateFieldComponent, TranslateModule],
   template: `
     <!-- Tender Creation Modal -->
     <div *ngIf="isOpen" class="fixed inset-0 z-50 flex h-full w-full items-start justify-center overflow-hidden bg-[#0b1220]/45 px-4 py-6 font-[Blinker]" (click)="closeTenderModal()">
@@ -282,7 +283,7 @@ import {
                       [ngClass]="selectedServiceCategory ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-[#EBECEE] text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'"
                        class="flex h-10 max-w-[240px] items-center gap-2 rounded-lg border pl-4 pr-3 text-[15px] transition-colors"
                     >
-                      <span class="truncate">{{ selectedServiceCategory?.name || 'All Categories' }}</span>
+                      <span class="truncate">{{ (selectedServiceCategory?.name || 'PRODUCT_DETAILS._all_categories') | translate }}</span>
                       <svg class="h-4 w-4 shrink-0 transition-transform" [ngClass]="showServiceCategoryDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                       </svg>
@@ -290,7 +291,7 @@ import {
                     <div *ngIf="showServiceCategoryDropdown" (click)="$event.stopPropagation()" class="absolute left-0 top-full z-[70] mt-2 max-h-[360px] w-[280px] overflow-y-auto rounded-xl bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
                       <div *ngIf="catalogueOptionsLoading" class="px-3 py-2.5 text-[14px] text-[#526179]">Loading categories...</div>
                       <button type="button" (click)="selectServiceCategory(null, $event)" [ngClass]="!selectedServiceCategory ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14px] text-[#0b1220] transition-colors">
-                        <span class="min-w-0 flex-1">All Categories</span>
+                        <span class="min-w-0 flex-1">{{ 'PRODUCT_DETAILS._all_categories' | translate }}</span>
                         <svg *ngIf="!selectedServiceCategory" class="h-4 w-4 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                         </svg>
@@ -502,6 +503,7 @@ import {
       (cancel)="showGenericConfirm = false"
     ></app-confirm-dialog>
   `,
+
   styles: []
 })
 export class CreateTenderModalComponent implements OnInit, OnChanges {
