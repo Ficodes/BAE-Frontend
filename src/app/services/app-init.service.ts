@@ -40,6 +40,7 @@ export class AppInitService {
                 environment.CERTIFIER_ROLE = config.roles?.certifier;
                 environment.quoteApi = config.quoteApi ?? 'http://localhost:8080/quoteManagement';
                 const analyticsConfig = this.getAnalyticsConfig(config);
+                environment.analyticsEnabled = config.analyticsEnabled ?? false;
                 environment.analytics = analyticsConfig.link;
                 environment.analyticsSupersetDomain = analyticsConfig.supersetDomain;
                 environment.feedbackCampaign = config.feedbackCampaign ?? false;

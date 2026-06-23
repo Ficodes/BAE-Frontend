@@ -106,11 +106,13 @@
         </li>
         }
 
+        @if (analyticsEnabled) {
         <li>
           <a id="analytics" class="dropdown-item" routerLink="/analytics" (click)="closeUserDropdown()">
             <fa-icon [icon]="faPieChart" class="mr-2"></fa-icon>Analytics
           </a>
         </li>
+        }
 
         @if (roles.includes(sellerRole)) {
         <li>
@@ -355,9 +357,11 @@
     </button>
     }
 
+    @if (analyticsEnabled) {
     <a class="mobile-nav-item" routerLink="/analytics" (click)="isNavBarOpen = false">
       <fa-icon [icon]="faPieChart" class="mr-2"></fa-icon>Analytics
     </a>
+    }
 
     @if (roles.includes(sellerRole)) {
     <button type="button" class="mobile-nav-item" (click)="goTo('/usage-spec')">

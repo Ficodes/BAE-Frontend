@@ -46,6 +46,9 @@
           <a (click)="goToEmail()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'ADMIN._email' | translate }}</a>
         </li>
         <li>
+          <a (click)="goToAnalytics()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Analytics</a>
+        </li>
+        <li>
           <a (click)="goToSearchFilters()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Search &amp; filters</a>
         </li>
         <li>
@@ -87,6 +90,9 @@
                 <button (click)="goToEmail()" id="email-button" class="block w-full px-4 py-2 border-b border-gray-200 rounded-t-lg cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
                   {{ 'ADMIN._email' | translate }}
                 </button>
+                <button (click)="goToAnalytics()" id="analytics-button" data-cy="adminAnalyticsSection" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+                  Analytics
+                </button>
                 <button (click)="goToSearchFilters()" id="search-filters-button" data-cy="adminSearchFiltersSection" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
                   Search &amp; filters
                 </button>
@@ -115,6 +121,9 @@
         }
         @if(show_email){
           <email></email>
+        }
+        @if(show_analytics){
+          <analytics-config></analytics-config>
         }
         @if(show_search_filters){
           <search-filters-config></search-filters-config>

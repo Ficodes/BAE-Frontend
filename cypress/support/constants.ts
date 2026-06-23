@@ -18,6 +18,7 @@ export const init_config = {
     'matomoId': '',
     'matomoUrl': '',
     'searchEnabled': true,
+    'analyticsEnabled': true,
     'analyticsSupersetDomain': 'https://analytics.dome-marketplace-sbx.org',
     'quotesEnabled': false,
     'tenderingEnabled': false,

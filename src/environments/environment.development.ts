@@ -88,6 +88,7 @@ export const environment = {
   },
   QUOTES_ENABLED: true,
   TENDER_ENABLED: true,
+  analyticsEnabled: false,
   analytics: '',
   analyticsSupersetDomain: '',
   analyticsGuestTokenEndpoint: '/analytics/guest-token',

@@ -25,6 +25,7 @@ import { GalleryComponent } from "./offerings/gallery/gallery.component";
 import { HowItWorksComponent } from "./offerings/how-it-works/how-it-works.component";
 import { PlatformBenefitsComponent } from "./offerings/platform-benefits/platform-benefits.component";
 import { AdminComponent } from './pages/admin/admin.component';
+import { AnalyticsConfigComponent } from './pages/admin/analytics-config/analytics-config.component';
 import { CategoriesComponent } from './pages/admin/categories/categories.component';
 import { CreateCategoryComponent } from './pages/admin/categories/create-category/create-category.component';
 import { UpdateCategoryComponent } from './pages/admin/categories/update-category/update-category.component';
@@ -146,6 +147,7 @@ import { RequestValidationModalComponent } from './pages/seller-offerings/offeri
     ErrorMessageComponent,
     CartCardComponent,
     AdminComponent,
+    AnalyticsConfigComponent,
     CategoriesComponent,
     CreateCategoryComponent,
     UpdateCategoryComponent,

@@ -98,8 +98,12 @@ export class AnalyticsComponent implements AfterViewInit, OnDestroy {
     return environment.analyticsSupersetDomain ?? '';
   }
 
+  get analyticsEnabled(): boolean {
+    return environment.analyticsEnabled;
+  }
+
   get hasDashboardConfig(): boolean {
-    return Boolean(this.supersetDomain);
+    return this.analyticsEnabled && Boolean(this.supersetDomain);
   }
 
   getTabClass(tab: AnalyticsTabKey): string {
@@ -120,6 +124,12 @@ export class AnalyticsComponent implements AfterViewInit, OnDestroy {
     }
 
     mountPoint.innerHTML = '';
+
+    if (!this.analyticsEnabled) {
+      this.loading = false;
+      this.statusMessage = 'Analytics is disabled.';
+      return;
+    }
 
     if (!this.supersetDomain) {
       this.loading = false;
