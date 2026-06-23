@@ -16,15 +16,9 @@
         @for(flagControl of flagsArray.controls; track i; let i = $index){
           <div [formGroupName]="i" class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] items-center p-4 border border-gray-200 rounded-lg bg-white dark:bg-secondary-300 dark:border-secondary-200">
             <div>
-              @if(flagControl.get('known')?.value){
-                <p class="font-semibold text-gray-900 dark:text-white">{{ getDefinition(flagControl.get('key')?.value ?? '')?.label }}</p>
-                <p class="text-sm text-gray-500 dark:text-gray-300">{{ getDefinition(flagControl.get('key')?.value ?? '')?.description }}</p>
-                <p class="mt-1 font-mono text-xs text-gray-400 dark:text-gray-300">{{ flagControl.get('key')?.value }}</p>
-              } @else {
-                <label class="font-semibold text-sm dark:text-white">Feature key</label>
-                <input formControlName="key" type="text" placeholder="customFeatureEnabled"
-                  class="mt-1 bg-gray-50 dark:bg-secondary-200 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg block w-full p-2.5" />
-              }
+              <p class="font-semibold text-gray-900 dark:text-white">{{ getDefinition(flagControl.get('key')?.value ?? '')?.label }}</p>
+              <p class="text-sm text-gray-500 dark:text-gray-300">{{ getDefinition(flagControl.get('key')?.value ?? '')?.description }}</p>
+              <p class="mt-1 font-mono text-xs text-gray-400 dark:text-gray-300">{{ flagControl.get('key')?.value }}</p>
             </div>
 
             <div class="flex items-center justify-between gap-4 md:justify-end">
@@ -32,13 +26,6 @@
                 <input type="checkbox" formControlName="enabled" class="sr-only peer">
                 <div class="relative w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-50 dark:peer-focus:ring-secondary-200 dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-100"></div>
               </label>
-
-              @if(!flagControl.get('known')?.value){
-                <button type="button" (click)="removeFeatureFlag(i)"
-                  class="text-red-700 border border-red-300 hover:bg-red-50 rounded-lg text-sm px-4 py-2">
-                  Remove
-                </button>
-              }
             </div>
           </div>
         }
@@ -51,11 +38,7 @@
       </div>
     }
 
-    <div class="flex w-full justify-between gap-3 mr-4">
-      <button type="button" (click)="addFeatureFlag()"
-        class="ml-4 text-primary-100 border border-primary-100 hover:bg-primary-50 rounded-lg text-sm px-4 py-2">
-        Add feature
-      </button>
+    <div class="flex w-full justify-end gap-3 mr-4">
       <button data-cy="adminSaveFeaturesConfig" type="button" (click)="saveConfig()" [disabled]="saving"
         [ngClass]="saving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
         class="flex text-white justify-end bg-primary-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">

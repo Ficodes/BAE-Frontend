@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormControl, FormGroup } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import {
   applyRuntimeFeaturesConfig,
@@ -13,7 +13,6 @@ import { environment } from 'src/environments/environment';
 type FeatureFlagFormGroup = FormGroup<{
   key: FormControl<string>;
   enabled: FormControl<boolean>;
-  known: FormControl<boolean>;
 }>;
 
 @Component({
@@ -83,7 +82,7 @@ export class FeaturesConfigComponent implements OnInit, OnDestroy {
       const url = `${environment.BASE_URL}/config/features`;
       await firstValueFrom(this.http.patch<any>(url, payload));
 
-      applyRuntimeFeaturesConfig({ features: payload });
+      applyRuntimeFeaturesConfig(payload);
       await this.syncFromBackend();
 
       this.successMessage = 'Features configuration saved successfully.';
@@ -96,19 +95,6 @@ export class FeaturesConfigComponent implements OnInit, OnDestroy {
     } finally {
       this.saving = false;
     }
-  }
-
-  addFeatureFlag(): void {
-    this.flagsArray.push(this.createFeatureGroup('', false, false));
-  }
-
-  removeFeatureFlag(index: number): void {
-    const flag = this.flagsArray.at(index);
-    if (flag.get('known')?.value) {
-      return;
-    }
-
-    this.flagsArray.removeAt(index);
   }
 
   private async syncFromBackend(): Promise<void> {
@@ -124,22 +110,14 @@ export class FeaturesConfigComponent implements OnInit, OnDestroy {
     }
 
     for (const definition of this.definitions) {
-      this.flagsArray.push(this.createFeatureGroup(definition.key, features[definition.key] ?? false, true));
+      this.flagsArray.push(this.createFeatureGroup(definition.key, features[definition.key] ?? false));
     }
-
-    Object.entries(features)
-      .filter(([key, value]) => typeof value === 'boolean' && !this.getDefinition(key))
-      .sort(([left], [right]) => left.localeCompare(right))
-      .forEach(([key, value]) => {
-        this.flagsArray.push(this.createFeatureGroup(key, Boolean(value), false));
-      });
   }
 
-  private createFeatureGroup(key: string, enabled: boolean, known: boolean): FeatureFlagFormGroup {
+  private createFeatureGroup(key: string, enabled: boolean): FeatureFlagFormGroup {
     return new FormGroup({
-      key: new FormControl<string>(key, { nonNullable: true, validators: [Validators.required] }),
-      enabled: new FormControl<boolean>(enabled, { nonNullable: true }),
-      known: new FormControl<boolean>(known, { nonNullable: true })
+      key: new FormControl<string>(key, { nonNullable: true }),
+      enabled: new FormControl<boolean>(enabled, { nonNullable: true })
     });
   }
 
