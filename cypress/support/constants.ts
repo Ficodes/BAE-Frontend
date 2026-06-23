@@ -18,6 +18,18 @@ export const init_config = {
     'matomoId': '',
     'matomoUrl': '',
     'searchEnabled': true,
+    'analyticsSupersetDomain': 'https://analytics.dome-marketplace-sbx.org',
+    'features': {
+        'searchEnabled': true,
+        'purchaseEnabled': false,
+        'quotesEnabled': false,
+        'tenderingEnabled': false,
+        'bundleEnabled': false,
+        'dataSpaceEnabled': false,
+        'launchValidationEnabled': false,
+        'tenderDevButtonsOpenCloseEnabled': false,
+        'aiSearchEnabled': false
+    },
     'domeAbout': 'https://dome-marketplace.eu/about/',
     'domeRegister': 'https://dome-marketplace.github.io/onboarding/',
     'domePublish': 'https://knowledgebase.dome-marketplace.org/shelves/company-onboarding-process',

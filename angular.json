@@ -30,7 +30,8 @@
             "scripts": [],
             "allowedCommonJsDependencies": [
               "moment",
-              "currencies.json"
+              "currencies.json",
+              "@superset-ui/embedded-sdk"
             ]
           },
           "configurations": {

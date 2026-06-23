@@ -48,6 +48,9 @@
         <li>
           <a (click)="goToSearchFilters()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Search &amp; filters</a>
         </li>
+        <li>
+          <a (click)="goToFeatures()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Features</a>
+        </li>
       </ul>
     </div>
     
@@ -84,8 +87,11 @@
                 <button (click)="goToEmail()" id="email-button" class="block w-full px-4 py-2 border-b border-gray-200 rounded-t-lg cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
                   {{ 'ADMIN._email' | translate }}
                 </button>
-                <button (click)="goToSearchFilters()" id="search-filters-button" data-cy="adminSearchFiltersSection" class="block w-full px-4 py-2 rounded-b-lg cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+                <button (click)="goToSearchFilters()" id="search-filters-button" data-cy="adminSearchFiltersSection" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
                   Search &amp; filters
+                </button>
+                <button (click)="goToFeatures()" id="features-button" data-cy="adminFeaturesSection" class="block w-full px-4 py-2 rounded-b-lg cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+                  Features
                 </button>
               </div>
             </div>
@@ -112,6 +118,9 @@
         }
         @if(show_search_filters){
           <search-filters-config></search-filters-config>
+        }
+        @if(show_features){
+          <features-config></features-config>
         }
         @if(show_default_catalog){
           <default-catalog></default-catalog>

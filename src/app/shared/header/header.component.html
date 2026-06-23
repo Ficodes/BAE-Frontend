@@ -107,7 +107,7 @@
         }
 
         <li>
-          <a id="analytics" class="dropdown-item" target="_blank" [href]="analytics">
+          <a id="analytics" class="dropdown-item" routerLink="/analytics" (click)="closeUserDropdown()">
             <fa-icon [icon]="faPieChart" class="mr-2"></fa-icon>Analytics
           </a>
         </li>
@@ -355,7 +355,7 @@
     </button>
     }
 
-    <a class="mobile-nav-item" target="_blank" [href]="analytics">
+    <a class="mobile-nav-item" routerLink="/analytics" (click)="isNavBarOpen = false">
       <fa-icon [icon]="faPieChart" class="mr-2"></fa-icon>Analytics
     </a>
 
