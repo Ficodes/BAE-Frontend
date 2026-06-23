@@ -14,7 +14,7 @@ describe('QuoteService attachment downloads', () => {
 
   beforeEach(() => {
     originalDocumentApi = environment.documentApi;
-    environment.documentApi = '/document/v4';
+    environment.documentApi = '/document';
 
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule]
@@ -66,7 +66,7 @@ describe('QuoteService attachment downloads', () => {
     });
 
     const req = httpMock.expectOne(
-      'http://localhost:8004/document/v4/documentSpecification/urn%3Angsi-ld%3Adocument-specification%3A6b947d6f-599d-45b2-94c1-9537167c83a3'
+      'http://localhost:8004/document/documentSpecification/urn%3Angsi-ld%3Adocument-specification%3A6b947d6f-599d-45b2-94c1-9537167c83a3'
     );
     expect(req.request.method).toBe('GET');
     req.flush({
@@ -97,7 +97,7 @@ describe('QuoteService attachment downloads', () => {
     });
 
     const req = httpMock.expectOne(
-      'http://localhost:8004/document/v4/documentSpecification/urn%3Angsi-ld%3Adocument-specification%3Amissing-document-file'
+      'http://localhost:8004/document/documentSpecification/urn%3Angsi-ld%3Adocument-specification%3Amissing-document-file'
     );
     req.flush({ attachment: [{ name: 'empty.pdf', mimeType: 'application/pdf' }] });
     expect(clickSpy).not.toHaveBeenCalled();

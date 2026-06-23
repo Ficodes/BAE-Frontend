@@ -25,7 +25,7 @@ describe('AppInitService runtime config', () => {
   });
 
   it('keeps the environment document API when runtime config does not provide one', async () => {
-    environment.documentApi = 'https://documents.example.test/tmf-api/document/v4';
+    environment.documentApi = 'https://documents.example.test/tmf-api/document';
 
     const initPromise = service.init();
 
@@ -34,20 +34,20 @@ describe('AppInitService runtime config', () => {
 
     await initPromise;
 
-    expect(environment.documentApi).toBe('https://documents.example.test/tmf-api/document/v4');
+    expect(environment.documentApi).toBe('https://documents.example.test/tmf-api/document');
   });
 
   it('uses the runtime document API when config provides one', async () => {
-    environment.documentApi = 'https://documents.example.test/tmf-api/document/v4';
+    environment.documentApi = 'https://documents.example.test/tmf-api/document';
 
     const initPromise = service.init();
 
     const req = httpMock.expectOne(`${environment.BASE_URL}/config`);
-    req.flush(buildConfig({ documentApi: '/document/v4' }));
+    req.flush(buildConfig({ documentApi: '/document' }));
 
     await initPromise;
 
-    expect(environment.documentApi).toBe('/document/v4');
+    expect(environment.documentApi).toBe('/document');
   });
 
   function buildConfig(overrides: Record<string, unknown> = {}): Record<string, unknown> {
