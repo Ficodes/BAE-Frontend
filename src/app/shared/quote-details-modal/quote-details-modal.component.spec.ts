@@ -76,6 +76,19 @@ describe('QuoteDetailsModalComponent', () => {
     expect(buttonLabels).not.toContain('Chat');
   });
 
+  it('uses a neutral badge palette for closed coordinator tenders', () => {
+    component.quote = {
+      ...coordinatorQuote,
+      state: QUOTE_STATUSES.ACCEPTED,
+      quoteItem: [{ state: QUOTE_STATUSES.ACCEPTED }],
+    };
+
+    expect(component.getStatusLabel()).toBe('Tender Closed');
+    expect(component.getStatusBadgeClass()).toContain('border-[#CBD3DF]');
+    expect(component.getStatusBadgeClass()).toContain('bg-[#F2F4F8]');
+    expect(component.getStatusBadgeClass()).toContain('text-[#324153]');
+  });
+
   it('broadcasts from coordinator quote details by adding notes to related tendering quotes', () => {
     const relatedQuotes: Quote[] = [
       { id: 'provider-quote-1', category: QUOTE_CATEGORIES.TENDER, quoteItem: [] },

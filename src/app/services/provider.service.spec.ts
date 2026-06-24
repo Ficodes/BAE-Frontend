@@ -68,11 +68,11 @@ describe('ProviderService', () => {
     });
 
     const baseUrl = `${environment.BASE_URL}${environment.searchOrganizationsEndpoint}`;
-    const req = httpMock.expectOne(`${baseUrl}?size=10&offset=0`);
+    const req = httpMock.expectOne(`${baseUrl}?page=0&size=100`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(filters);
 
-    // Fewer than 10 results → stops after one page
+    // Fewer than a full page → stops after the first page
     req.flush([{ id: 'provider-1', tradingName: 'Provider One' }]);
 
     expect(result).toEqual([{ id: 'provider-1', tradingName: 'Provider One' }]);
@@ -87,15 +87,15 @@ describe('ProviderService', () => {
     });
 
     const baseUrl = `${environment.BASE_URL}${environment.searchOrganizationsEndpoint}`;
-    const page1 = Array.from({ length: 10 }, (_, i) => ({ id: `provider-${i}` }));
-    const page2 = [{ id: 'provider-10' }, { id: 'provider-11' }];
+    const page1 = Array.from({ length: 100 }, (_, i) => ({ id: `provider-${i}` }));
+    const page2 = [{ id: 'provider-100' }, { id: 'provider-101' }];
 
-    const req1 = httpMock.expectOne(`${baseUrl}?size=10&offset=0`);
+    const req1 = httpMock.expectOne(`${baseUrl}?page=0&size=100`);
     expect(req1.request.method).toBe('POST');
     req1.flush(page1);
 
-    // First page was full → service fetches next page
-    const req2 = httpMock.expectOne(`${baseUrl}?size=10&offset=10`);
+    // First page was full → service fetches the next page (page index + 1)
+    const req2 = httpMock.expectOne(`${baseUrl}?page=1&size=100`);
     expect(req2.request.method).toBe('POST');
     req2.flush(page2);
 

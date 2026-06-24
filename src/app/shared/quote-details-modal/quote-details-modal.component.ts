@@ -714,6 +714,11 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
 
   getStatusBadgeClass(): string {
     const state = this.getPrimaryState();
+
+    if (this.getQuoteCategory() === QUOTE_CATEGORIES.COORDINATOR && state === QUOTE_STATUSES.ACCEPTED) {
+      return 'border border-[#CBD3DF] bg-[#F2F4F8] text-[#324153]';
+    }
+
     const classes: Record<string, string> = {
       [QUOTE_STATUSES.PENDING]: 'border border-[#F2D28A] bg-[#FFF8E6] text-[#7A4D00]',
       [QUOTE_STATUSES.IN_PROGRESS]: 'border border-[#B6CAEC] bg-[#EBF0F7] text-[#1f4fbf]',
@@ -876,22 +881,18 @@ export class QuoteDetailsModalComponent implements OnInit, OnChanges {
 
   downloadAttachment() {
     if (!this.quote) return;
-    try {
-      this.quoteService.downloadAttachment(this.quote);
-      this.notificationService.showSuccess('Download started');
-    } catch (error: any) {
-      this.notificationService.showError(error.message || 'Error downloading attachment');
-    }
+    this.quoteService.downloadAttachment(this.quote).subscribe({
+      next: () => this.notificationService.showSuccess('Download started'),
+      error: (error: any) => this.notificationService.showError(error.message || 'Error downloading attachment')
+    });
   }
 
   downloadCoordinatorAttachment() {
     if (!this.coordinatorQuote) return;
-    try {
-      this.quoteService.downloadAttachment(this.coordinatorQuote);
-      this.notificationService.showSuccess('Download started');
-    } catch (error: any) {
-      this.notificationService.showError(error.message || 'Error downloading customer request');
-    }
+    this.quoteService.downloadAttachment(this.coordinatorQuote).subscribe({
+      next: () => this.notificationService.showSuccess('Download started'),
+      error: (error: any) => this.notificationService.showError(error.message || 'Error downloading customer request')
+    });
   }
 
   onFileSelected(event: Event) {

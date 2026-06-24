@@ -136,7 +136,8 @@ describe('CreateTenderModalComponent', () => {
         attachment: [{
           name: 'Tender-request.pdf',
           mimeType: 'application/pdf',
-          content: 'cGRm',
+          content: 'urn:ngsi-ld:DocumentSpecification:tender-request',
+          url: 'https://bucket.example.test/tender/Tender-request.pdf',
           size: { amount: 3 },
         }],
       }],
@@ -159,6 +160,7 @@ describe('CreateTenderModalComponent', () => {
     expect(component.tenderCreationStep).toBe(3);
     expect(component.pdfAttachmentSet).toBeTrue();
     expect(component.existingAttachment?.name).toBe('Tender-request.pdf');
+    expect(component.existingAttachment?.url).toBe('https://bucket.example.test/tender/Tender-request.pdf');
     expect(summary.textContent).toContain('Tender-request.pdf');
   }));
 
