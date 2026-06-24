@@ -8,6 +8,7 @@ import { LocalStorageService } from 'src/app/services/local-storage.service';
 import { Provider, ProviderService } from 'src/app/services/provider.service';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
+import { TranslateModule } from '@ngx-translate/core';
 
 describe('CreateTenderModalComponent', () => {
   let fixture: ComponentFixture<CreateTenderModalComponent>;
@@ -37,7 +38,7 @@ describe('CreateTenderModalComponent', () => {
     providerService.getProvidersForTender.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
-      imports: [CreateTenderModalComponent],
+      imports: [CreateTenderModalComponent, TranslateModule.forRoot()],
       providers: [
         { provide: QuoteService, useValue: quoteService },
         { provide: NotificationService, useValue: notificationService },
