@@ -20,7 +20,7 @@ import {
 } from '@fortawesome/sharp-solid-svg-icons';
 import { TranslateService } from '@ngx-translate/core';
 import { initFlowbite } from 'flowbite';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';

@@ -6,7 +6,7 @@ import {LocalStorageService} from "src/app/services/local-storage.service";
 import { LoginInfo, Report } from 'src/app/models/interfaces';
 import { RevenueSharingService } from 'src/app/services/revenue-sharing.service'
 import { RevenueReportComponent } from 'src/app/shared/revenue-report/revenue-report.component'
-import * as moment from 'moment';
+import moment from 'moment';
 
 @Component({
   selector: 'provider-revenue-sharing',

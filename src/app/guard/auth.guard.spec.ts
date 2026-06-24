@@ -3,7 +3,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router';
-import * as moment from 'moment';
+import moment from 'moment';
 import { LocalStorageService } from '../services/local-storage.service';
 import { AuthGuard } from './auth.guard';
 

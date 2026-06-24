@@ -5,7 +5,7 @@ import {EventMessageService} from "src/app/services/event-message.service";
 import {LocalStorageService} from "src/app/services/local-storage.service";
 import { DomeBlogServiceService } from "src/app/services/dome-blog-service.service"
 import { LoginInfo } from 'src/app/models/interfaces';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Subject } from 'rxjs';
 import { ConfirmDialogComponent } from "src/app/shared/confirm-dialog/confirm-dialog.component";
 
