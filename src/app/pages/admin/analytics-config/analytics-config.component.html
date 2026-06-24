@@ -11,6 +11,23 @@
       <span class="sr-only">Loading...</span>
     </div>
   } @else {
+    <div class="m-4">
+      <label for="analytics-provided-json" class="font-bold text-lg dark:text-white">Provide analytics JSON</label>
+      <textarea id="analytics-provided-json" data-cy="adminAnalyticsJson" [(ngModel)]="providedJson" [ngModelOptions]="{ standalone: true }" rows="10"
+        class="mt-2 mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-mono"></textarea>
+      <div class="flex gap-2 justify-end">
+        <button data-cy="adminLoadAnalyticsJson" type="button" (click)="loadProvidedJsonIntoForm()"
+          class="text-primary-100 border border-primary-100 hover:bg-primary-50 rounded-lg text-sm px-4 py-2">
+          Load JSON
+        </button>
+        <button data-cy="adminSaveAnalyticsJson" type="button" (click)="saveProvidedJson()" [disabled]="saving"
+          [ngClass]="saving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
+          class="text-white bg-primary-100 rounded-lg text-sm px-4 py-2">
+          Save JSON
+        </button>
+      </div>
+    </div>
+
     <form class="m-4 space-y-6" [formGroup]="analyticsForm">
       <section class="space-y-4">
         <div class="flex items-center justify-between gap-4 p-4 border border-gray-200 rounded-lg bg-white dark:bg-secondary-300 dark:border-secondary-200">

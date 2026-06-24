@@ -42,6 +42,7 @@ export class AnalyticsConfigComponent implements OnInit, OnDestroy {
   showSuccess = false;
   errorMessage = '';
   successMessage = '';
+  providedJson = '';
   passwordConfigured: boolean | null = null;
   private successTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
@@ -106,8 +107,7 @@ export class AnalyticsConfigComponent implements OnInit, OnDestroy {
     this.showError = false;
 
     try {
-      const config = await firstValueFrom(this.http.get<any>(`${environment.BASE_URL}/config/analytics`));
-      this.loadAnalyticsConfig(config);
+      await this.syncFromBackend();
     } catch (error: any) {
       this.handleError(error, 'There was an error while loading analytics configuration.');
     } finally {
@@ -126,13 +126,8 @@ export class AnalyticsConfigComponent implements OnInit, OnDestroy {
 
     try {
       const payload = this.buildPayload();
-      const response = await firstValueFrom(this.http.patch<any>(`${environment.BASE_URL}/config/analytics`, payload));
-
-      environment.analyticsSupersetDomain = response?.analyticsSupersetDomain ?? payload.analyticsSupersetDomain;
-      environment.analyticsEnabled = response?.analyticsEnabled ?? payload.analyticsEnabled;
-      this.passwordConfigured = response?.analyticsSuperset?.passwordConfigured ?? null;
-      this.analyticsForm.get('analyticsSuperset.password')?.reset('');
-      this.loadAnalyticsConfig(response);
+      await this.saveAnalyticsPayload(payload);
+      await this.syncFromBackend();
 
       this.successMessage = 'Analytics configuration saved successfully.';
       this.showSuccess = true;
@@ -143,6 +138,50 @@ export class AnalyticsConfigComponent implements OnInit, OnDestroy {
       this.handleError(error, 'There was an error while saving analytics configuration.');
     } finally {
       this.saving = false;
+    }
+  }
+
+  async saveProvidedJson(): Promise<void> {
+    if (this.saving) {
+      return;
+    }
+
+    this.showError = false;
+    this.showSuccess = false;
+    this.saving = true;
+
+    try {
+      const parsed = this.parseProvidedJson(this.providedJson);
+      const payload = this.normalizeProvidedAnalyticsForSave(parsed);
+      await this.saveAnalyticsPayload(payload);
+      await this.syncFromBackend();
+
+      this.successMessage = 'Analytics JSON saved successfully.';
+      this.showSuccess = true;
+      this.successTimeoutId = setTimeout(() => {
+        this.showSuccess = false;
+      }, 3000);
+    } catch (error: any) {
+      this.handleError(error, 'There was an error while saving provided JSON.');
+    } finally {
+      this.saving = false;
+    }
+  }
+
+  loadProvidedJsonIntoForm(): void {
+    try {
+      const parsed = this.parseProvidedJson(this.providedJson);
+      const normalized = this.normalizeProvidedAnalyticsForSave(parsed);
+      this.loadAnalyticsConfig(normalized);
+      if (normalized.analyticsSuperset.password) {
+        this.analyticsForm.get('analyticsSuperset.password')?.setValue(normalized.analyticsSuperset.password);
+      }
+      if (typeof parsed?.analyticsSuperset?.passwordConfigured === 'boolean') {
+        this.passwordConfigured = parsed.analyticsSuperset.passwordConfigured;
+      }
+      this.providedJson = JSON.stringify(this.normalizeAnalyticsForJson(normalized), null, 2);
+    } catch (error: any) {
+      this.handleError(error, 'The provided JSON could not be loaded into the form.');
     }
   }
 
@@ -171,6 +210,19 @@ export class AnalyticsConfigComponent implements OnInit, OnDestroy {
 
       rules.push(this.createRlsRuleGroup());
     }
+  }
+
+  private async syncFromBackend(): Promise<void> {
+    const config = await firstValueFrom(this.http.get<any>(`${environment.BASE_URL}/config/analytics`));
+    this.loadAnalyticsConfig(config);
+    this.providedJson = JSON.stringify(this.normalizeAnalyticsForJson(config), null, 2);
+  }
+
+  private async saveAnalyticsPayload(payload: AnalyticsConfigPayload): Promise<void> {
+    const response = await firstValueFrom(this.http.patch<any>(`${environment.BASE_URL}/config/analytics`, payload));
+
+    environment.analyticsSupersetDomain = response?.analyticsSupersetDomain ?? payload.analyticsSupersetDomain;
+    environment.analyticsEnabled = response?.analyticsEnabled ?? payload.analyticsEnabled;
   }
 
   private loadAnalyticsConfig(config: any): void {
@@ -283,6 +335,109 @@ export class AnalyticsConfigComponent implements OnInit, OnDestroy {
     return payload;
   }
 
+  private normalizeProvidedAnalyticsForSave(parsed: any): AnalyticsConfigPayload {
+    const superset = parsed?.analyticsSuperset && typeof parsed.analyticsSuperset === 'object'
+      ? parsed.analyticsSuperset
+      : {};
+    const password = typeof superset.password === 'string'
+      ? superset.password.trim()
+      : '';
+
+    if (!password && this.passwordConfigured !== true) {
+      throw new Error('Superset password is required.');
+    }
+
+    const payload: AnalyticsConfigPayload = {
+      analyticsEnabled: parsed?.analyticsEnabled === true,
+      analyticsSupersetDomain: this.requireString(parsed?.analyticsSupersetDomain, 'Superset domain is required.'),
+      analyticsDashboards: {
+        businessInsightsNonLear: this.requireString(parsed?.analyticsDashboards?.businessInsightsNonLear, 'Business Insights Non-LEAR dashboard ID is required.'),
+        businessInsightsLear: this.requireString(parsed?.analyticsDashboards?.businessInsightsLear, 'Business Insights LEAR dashboard ID is required.'),
+        usageMonitor: this.requireString(parsed?.analyticsDashboards?.usageMonitor, 'Usage Monitor dashboard ID is required.')
+      },
+      analyticsSuperset: {
+        url: this.requireString(superset.url, 'Superset URL is required.'),
+        username: this.requireString(superset.username, 'Superset username is required.'),
+        provider: this.requireString(superset.provider, 'Superset provider is required.'),
+        rls: {
+          businessInsightsNonLear: this.normalizeRlsRules(superset?.rls?.businessInsightsNonLear, 'businessInsightsNonLear'),
+          businessInsightsLear: this.normalizeRlsRules(superset?.rls?.businessInsightsLear, 'businessInsightsLear'),
+          usageMonitor: this.normalizeRlsRules(superset?.rls?.usageMonitor, 'usageMonitor')
+        }
+      }
+    };
+
+    if (password) {
+      payload.analyticsSuperset.password = password;
+    }
+
+    return payload;
+  }
+
+  private normalizeAnalyticsForJson(config: any): any {
+    const analyticsSuperset = config?.analyticsSuperset && typeof config.analyticsSuperset === 'object'
+      ? config.analyticsSuperset
+      : {};
+    const normalized = {
+      analyticsEnabled: config?.analyticsEnabled === true,
+      analyticsSupersetDomain: this.readString(config?.analyticsSupersetDomain),
+      analyticsDashboards: {
+        businessInsightsNonLear: this.readString(config?.analyticsDashboards?.businessInsightsNonLear),
+        businessInsightsLear: this.readString(config?.analyticsDashboards?.businessInsightsLear),
+        usageMonitor: this.readString(config?.analyticsDashboards?.usageMonitor)
+      },
+      analyticsSuperset: {
+        url: this.readString(analyticsSuperset.url),
+        username: this.readString(analyticsSuperset.username),
+        provider: this.readString(analyticsSuperset.provider),
+        rls: {
+          businessInsightsNonLear: this.normalizeRlsRulesForJson(analyticsSuperset?.rls?.businessInsightsNonLear),
+          businessInsightsLear: this.normalizeRlsRulesForJson(analyticsSuperset?.rls?.businessInsightsLear),
+          usageMonitor: this.normalizeRlsRulesForJson(analyticsSuperset?.rls?.usageMonitor)
+        }
+      }
+    };
+
+    if (typeof analyticsSuperset.passwordConfigured === 'boolean') {
+      return {
+        ...normalized,
+        analyticsSuperset: {
+          ...normalized.analyticsSuperset,
+          passwordConfigured: analyticsSuperset.passwordConfigured
+        }
+      };
+    }
+
+    return normalized;
+  }
+
+  private normalizeRlsRules(rawRules: any, key: AnalyticsDashboardKey): RlsRuleConfig[] {
+    if (!Array.isArray(rawRules) || rawRules.length === 0) {
+      throw new Error(`${this.getDashboardLabel(key)} must include at least one RLS rule.`);
+    }
+
+    return rawRules.map((rule: any, index: number) => ({
+      datasets: this.normalizeDatasets(rule?.datasets, `${this.getDashboardLabel(key)} rule ${index + 1}`),
+      clauseTemplate: this.requireString(
+        rule?.clauseTemplate,
+        `${this.getDashboardLabel(key)} rule ${index + 1}: clause template is required.`
+      )
+    }));
+  }
+
+  private normalizeRlsRulesForJson(rawRules: any): RlsRuleConfig[] {
+    if (!Array.isArray(rawRules)) {
+      return [];
+    }
+
+    return rawRules.map((rule: any) => ({
+      datasets: Array.isArray(rule?.datasets)
+        ? rule.datasets.filter((dataset: any) => Number.isInteger(dataset))
+        : [],
+      clauseTemplate: this.readString(rule?.clauseTemplate)
+    }));
+  }
+
   private buildRlsRules(key: AnalyticsDashboardKey): RlsRuleConfig[] {
     const rules = this.rlsArray(key).controls.map((ruleControl, index) => {
       const datasetsText = ruleControl.get('datasets')?.value;
@@ -321,6 +476,36 @@ export class AnalyticsConfigComponent implements OnInit, OnDestroy {
       }
       return parsed;
     });
+  }
+
+  private normalizeDatasets(value: any, label: string): number[] {
+    if (!Array.isArray(value) || value.length === 0) {
+      throw new Error(`${label}: provide at least one dataset ID.`);
+    }
+
+    return value.map(dataset => {
+      if (!Number.isInteger(dataset)) {
+        throw new Error(`${label}: dataset IDs must be integers.`);
+      }
+      return dataset;
+    });
+  }
+
+  private parseProvidedJson(raw: string): any {
+    const text = raw.trim();
+    if (!text) {
+      throw new Error('Please provide a JSON value.');
+    }
+
+    try {
+      const parsed = JSON.parse(text);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new Error('Provided JSON must be an object.');
+      }
+      return parsed;
+    } catch {
+      throw new Error('Provided JSON is invalid.');
+    }
   }
 
   private requireString(value: any, message: string): string {
