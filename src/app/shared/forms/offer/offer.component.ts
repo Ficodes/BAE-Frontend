@@ -2,7 +2,7 @@ import { NgClass } from "@angular/common";
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { TranslateModule } from "@ngx-translate/core";
-import * as moment from 'moment';
+import moment from 'moment';
 import { lastValueFrom, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { components } from "src/app/models/product-catalog";

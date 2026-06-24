@@ -4,7 +4,7 @@ import { lastValueFrom, map } from 'rxjs';
 import { Category, LoginInfo } from '../models/interfaces';
 import { environment } from 'src/environments/environment';
 import {LocalStorageService} from "./local-storage.service";
-import * as moment from 'moment';
+import moment from 'moment';
 
 @Injectable({
   providedIn: 'root'

@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
 import { initFlowbite } from 'flowbite';
 import { environment } from 'src/environments/environment';
 type ProductOffering = components["schemas"]["ProductOffering"];
-import * as moment from 'moment';
+import moment from 'moment';
 import { FormControl } from '@angular/forms';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";

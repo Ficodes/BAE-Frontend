@@ -10,7 +10,7 @@ import {LocalStorageService} from "src/app/services/local-storage.service";
 import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "../../services/event-message.service";
-import * as moment from 'moment';
+import moment from 'moment';
 import { firstValueFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { QuoteService } from 'src/app/features/quotes/services/quote.service';

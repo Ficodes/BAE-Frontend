@@ -5,7 +5,7 @@ import {EventMessageService} from "src/app/services/event-message.service";
 import { ServiceSpecServiceService } from 'src/app/services/service-spec-service.service';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
-import * as moment from 'moment';
+import moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
 import { Subject } from 'rxjs';

@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { initFlowbite } from 'flowbite';
-import * as moment from 'moment';
+import moment from 'moment';
 import { FileSystemDirectoryEntry, FileSystemFileEntry, NgxFileDropEntry } from 'ngx-file-drop';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';

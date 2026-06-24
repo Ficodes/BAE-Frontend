@@ -8,7 +8,7 @@ import {components} from "src/app/models/product-catalog";
 import {EventMessageService} from "src/app/services/event-message.service";
 import { LocalStorageService } from 'src/app/services/local-storage.service';
 import { LoginInfo } from 'src/app/models/interfaces';
-import * as moment from 'moment';
+import moment from 'moment';
 
 @Component({
   selector: 'update-usage-spec',

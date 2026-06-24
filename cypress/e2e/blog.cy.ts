@@ -1,5 +1,5 @@
 import { loginAcc, blogEntry, local_items } from "../support/constants"
-import * as moment from 'moment';
+import moment from 'moment';
 
 describe('/blog',{
     viewportHeight: 800,

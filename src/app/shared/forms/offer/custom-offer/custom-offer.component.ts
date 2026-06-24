@@ -13,7 +13,7 @@ import {components} from "src/app/models/product-catalog";
 import {EventMessageService} from "src/app/services/event-message.service";
 import {FormChangeState, PricePlanChangeState} from "../../../../models/interfaces";
 import {Subscription} from "rxjs";
-import * as moment from 'moment';
+import moment from 'moment';
 import { environment } from 'src/environments/environment';
 import { QuoteService } from 'src/app/features/quotes/services/quote.service';
 

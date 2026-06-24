@@ -5,7 +5,7 @@ import { DomeBlogServiceService } from "src/app/services/dome-blog-service.servi
 import { MarkdownComponent } from "ngx-markdown";
 import { LocalStorageService } from "src/app/services/local-storage.service";
 import { LoginInfo } from "src/app/models/interfaces";
-import * as moment from 'moment';
+import moment from 'moment';
 import { ConfirmDialogComponent } from "src/app/shared/confirm-dialog/confirm-dialog.component";
 import { Meta, Title } from "@angular/platform-browser";
 

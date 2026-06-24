@@ -10,7 +10,7 @@ import { ProductOrderService } from 'src/app/services/product-order-service.serv
 import { cartProduct, billingAccountCart, LoginInfo } from '../../models/interfaces';
 import { TYPES } from 'src/app/models/types.const';
 import { initFlowbite } from 'flowbite';
-import * as moment from 'moment';
+import moment from 'moment';
 import { environment } from 'src/environments/environment';
 import {LocalStorageService} from "../../services/local-storage.service";
 import { Router } from '@angular/router';

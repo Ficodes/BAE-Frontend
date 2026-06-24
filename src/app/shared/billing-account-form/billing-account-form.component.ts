@@ -18,7 +18,7 @@ import {components} from "../../models/product-catalog";
 type ProductOffering = components["schemas"]["ProductOffering"];
 import {phoneNumbers, countries} from '../../models/country.const'
 import {initFlowbite} from 'flowbite';
-import * as moment from 'moment';
+import moment from 'moment';
 import {LoginInfo, billingAccountCart} from 'src/app/models/interfaces';
 import {EventMessageService} from "../../services/event-message.service";
 import {getCountries, getCountryCallingCode, CountryCode} from 'libphonenumber-js'

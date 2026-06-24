@@ -1,5 +1,5 @@
 import { category_launched, init_config, init_stat, local_items, login_token, product_offering, checkHeaderPostLogin, checkHeaderPreLogin, loginAcc } from "../support/constants"
-import * as moment from 'moment';
+import moment from 'moment';
 
 describe('/dashboard',{
     viewportHeight: 800,
