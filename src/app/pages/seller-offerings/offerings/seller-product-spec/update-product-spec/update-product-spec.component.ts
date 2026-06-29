@@ -31,7 +31,7 @@ type ProductSpecificationRelationship = components["schemas"]["ProductSpecificat
 type AttachmentRefOrValue = components["schemas"]["AttachmentRefOrValue"];
 type ProductSpecFormStep = 'general' | 'bundle' | 'compliance' | 'characteristics' | 'dataspace' | 'resource' | 'service' | 'attachments' | 'relationships' | 'summary' | 'dsp_config';
 
-const DSP_CHARS: string[] = ['endpointUrl', 'upstreamAddress', 'targetSpecification', 'serviceConfiguration', 'credentialsConfig', 'authorizationPolicy', 'transferPath']
+const DSP_CHARS: string[] = ['endpointUrl', 'upstreamAddress', 'targetSpecification', 'serviceConfiguration', 'credentialsConfig', 'authorizationPolicy', 'transferPath', 'transferType']
 interface Step {
   label: string;
   id: ProductSpecFormStep;
@@ -92,9 +92,11 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   newEndpointDescription: string = '';
   newEndpointName: string = '';
   endpointUrls: { url: string; description: string; name: string, id?: string }[] = [];
+  readonly transferTypes: string[] = ['HttpData-PULL', 'HttpData-PUSH'];
   dspConfigForm = new FormGroup({
     upstreamAddress: new FormControl('', [Validators.required]),
     transferPath: new FormControl(''),
+    transferType: new FormControl('HttpData-PULL', [Validators.required]),
     targetSpecification: new FormControl('', [Validators.required, jsonValidator]),
     serviceConfiguration: new FormControl('', [Validators.required, jsonValidator]),
     credentialsConfig: new FormControl('', [Validators.required, jsonValidator]),
@@ -1795,6 +1797,14 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
             { value: JSON.parse(dspConfigValue.policyConfig!), isDefault: true }
           ]
         },
+        {
+          id: 'transferType',
+          name: 'transferType',
+          valueType: 'transferType',
+          productSpecCharacteristicValue: [
+            { value: dspConfigValue.transferType as any, isDefault: true }
+          ]
+        }
       )
       if (dspConfigValue.transferPath) {
         this.finishChars.push({
@@ -2135,6 +2145,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
             break;
           case 'upstreamAddress':
           case 'transferPath':
+          case 'transferType':
             patch[char.valueType] = value;
             break;
           case 'targetSpecification':

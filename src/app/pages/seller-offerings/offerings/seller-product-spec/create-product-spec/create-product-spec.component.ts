@@ -100,9 +100,11 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   newEndpointDescription: string = '';
   newEndpointName: string = '';
   endpointUrls: { url: string; description: string, name: string }[] = [];
+  readonly transferTypes: string[] = ['HttpData-PULL', 'HttpData-PUSH'];
   dspConfigForm = new FormGroup({
     upstreamAddress: new FormControl('', [Validators.required]),
     transferPath: new FormControl(''),
+    transferType: new FormControl('HttpData-PULL', [Validators.required]),
     targetSpecification: new FormControl('', [Validators.required, jsonValidator]),
     serviceConfiguration: new FormControl('', [Validators.required, jsonValidator]),
     credentialsConfig: new FormControl('', [Validators.required, jsonValidator]),
@@ -1600,6 +1602,14 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
             { value: JSON.parse(dspConfigValue.policyConfig!), isDefault: true }
           ]
         },
+        {
+          id: 'transferType',
+          name: 'transferType',
+          valueType: 'transferType',
+          productSpecCharacteristicValue: [
+            { value: dspConfigValue.transferType as any, isDefault: true }
+          ]
+        }
       )
 
       if (dspConfigValue.transferPath) {
