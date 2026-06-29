@@ -1,7 +1,7 @@
 import { HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import * as moment from 'moment';
+import moment from 'moment';
 import { environment } from 'src/environments/environment';
 import { PROVIDER_COUNTRY_LIST_URL } from '../models/search-organizations-filters.model';
 import { LocalStorageService } from '../services/local-storage.service';

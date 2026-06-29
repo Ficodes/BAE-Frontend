@@ -40,10 +40,10 @@ export class PaginationService {
       if("filters" in options){
         params.push(options.filters)
       }
-      if("partyId" in options){
+      if("partyId" in options && options.partyId != null){
         params.push(options.partyId.toString())
       }
-      if("catalogId" in options){
+      if("catalogId" in options && options.catalogId != null){
         params.push(options.catalogId.toString())
       }
       if("sort" in options){
@@ -623,37 +623,35 @@ export class PaginationService {
   }
 
     async getOffers(inventory: any[]): Promise<any[]> {
-      try {
-        // Process inventory items concurrently
-        const processedInventory = await Promise.all(
-          inventory.map(async (item) => {
-            const offering = await this.api.getProductById(item.productOffering.id);
-            const productSpec = await this.api.getProductSpecification(offering.productSpecification.id);
-            
-            // Attachments
-            const attachments = productSpec?.attachment ?? [];
-    
-            // Construct product object
-            item['product'] = {
-              id: item.id,
-              name: offering.name,
-              category: offering.category,
-              description: offering.description,
-              lastUpdate: offering.lastUpdate,
-              attachment: attachments,
-              productSpecification: offering.productSpecification,
-              productOfferingTerm: offering.productOfferingTerm,
-              version: offering.version
-            };
-            return item;
-          })
-        );
-    
-        return processedInventory;
-      } catch (error) {
-        console.error("Error fetching offers:", error);
-        throw error;
-      }
+      const results = await Promise.allSettled(
+        inventory.map(async (item) => {
+          const offering = await this.api.getProductById(item.productOffering.id);
+          const productSpec = await this.api.getProductSpecification(offering.productSpecification.id);
+
+          item['product'] = {
+            id: item.id,
+            name: offering.name,
+            category: offering.category,
+            description: offering.description,
+            lastUpdate: offering.lastUpdate,
+            attachment: productSpec?.attachment ?? [],
+            productSpecification: offering.productSpecification,
+            productOfferingTerm: offering.productOfferingTerm,
+            version: offering.version
+          };
+          return item;
+        })
+      );
+
+      return results
+        .filter((r): r is PromiseFulfilledResult<any> => {
+          if (r.status === 'rejected') {
+            console.error('Error fetching offer:', r.reason);
+            return false;
+          }
+          return true;
+        })
+        .map(r => r.value);
     }
   
   /*

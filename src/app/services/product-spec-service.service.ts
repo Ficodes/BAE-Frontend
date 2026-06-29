@@ -6,7 +6,7 @@ import { environment } from 'src/environments/environment';
 import {components} from "../models/product-catalog";
 type ProductOffering = components["schemas"]["ProductOffering"];
 import {LocalStorageService} from "./local-storage.service";
-import * as moment from 'moment';
+import moment from 'moment';
 
 @Injectable({
   providedIn: 'root'

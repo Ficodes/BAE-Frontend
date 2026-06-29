@@ -104,5 +104,8 @@ export const environment = {
   AI_SEARCH_PROFILE: 'dome_dev2',
   LEAR_URL: '',
   LAUNCH_VALIDATION_ENABLED: false,
-  TENDER_DEV_BUTTONS_OPEN_CLOSE_ENABLED: false
+  TENDER_DEV_BUTTONS_OPEN_CLOSE_ENABLED: false,
+  DSP_ENABLED: false,
+  DSP_CONTRACT_DEFINITION_SCHEMA: 'https://raw.githubusercontent.com/wistefan/edc-dsc/refs/heads/init/schemas/contract-definition.json',
+  DSP_SCHEMA: 'https://raw.githubusercontent.com/wistefan/edc-dsc/refs/heads/init/schemas/external-id.json'
 };

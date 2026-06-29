@@ -1,0 +1,48 @@
+<div [formGroup]="formGroup" class="grid gap-4" [ngClass]="gridColsClass()">
+  @for (field of fields; track field.name) {
+  <div [ngClass]="colSpanClass(field)">
+    <label [for]="field.name" class="font-bold text-lg dark:text-white">
+      {{ field.label | translate }}
+      @if (field.required) { <span class="text-red-500">*</span> }
+    </label>
+
+    @if (field.type === 'string') {
+    <input [id]="field.name" [formControlName]="field.name" type="text" [placeholder]="$any(field).placeholder ?? ''"
+      [maxLength]="$any(field).maxLength ?? 524288"
+      class="bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+    }
+
+    @if (field.type === 'number') {
+    <input [id]="field.name" [formControlName]="field.name" type="number" [min]="$any(field).min ?? null"
+      [max]="$any(field).max ?? null" [step]="$any(field).step ?? 1"
+      class="bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+    }
+
+    @if (field.type === 'boolean') {
+    <select [id]="field.name" [formControlName]="field.name"
+      class="bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+      <option [value]="false">{{ '_no' | translate }}</option>
+      <option [value]="true">{{ '_yes' | translate }}</option>
+    </select>
+    }
+
+    @if (field.type === 'select') {
+    @if (asSelectable(field).multiple) {
+    <select [id]="field.name" [formControlName]="field.name" multiple
+      class="bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+      @for (opt of asSelectable(field).options; track opt.value) {
+      <option [value]="opt.value">{{ opt.label | translate }}</option>
+      }
+    </select>
+    } @else {
+    <select [id]="field.name" [formControlName]="field.name"
+      class="bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+      @for (opt of asSelectable(field).options; track opt.value) {
+      <option [value]="opt.value">{{ opt.label | translate }}</option>
+      }
+    </select>
+    }
+    }
+  </div>
+  }
+</div>

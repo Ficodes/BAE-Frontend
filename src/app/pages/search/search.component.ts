@@ -15,7 +15,7 @@ import { ActivatedRoute, NavigationStart } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoginInfo, FeedbackInfo } from 'src/app/models/interfaces';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 

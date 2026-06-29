@@ -5,7 +5,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { initFlowbite } from 'flowbite';
-import * as moment from 'moment';
+import moment from 'moment';
 import { map, Subject, takeUntil } from 'rxjs';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { ProductOffering } from 'src/app/models/product.model';

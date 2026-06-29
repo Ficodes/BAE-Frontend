@@ -7,7 +7,7 @@ import {LocalStorageService} from "src/app/services/local-storage.service";
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoginInfo } from 'src/app/models/interfaces';
-import * as moment from 'moment';
+import moment from 'moment';
 import { ConfirmDialogComponent } from "src/app/shared/confirm-dialog/confirm-dialog.component";
 import { environment } from "src/environments/environment";
 

@@ -1,0 +1,43 @@
+<!--@if (treatmentControl) {
+  <label for="prod-name" class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._treatment' | translate }}</label>
+  <input data-cy="treatment" id="prod-name" type="text" [formControl]="treatmentControl" maxLength="100"
+         class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"/>
+}-->
+
+<div class="col-span-2 flex items-center h-fit">
+  <label for="dsp-compatible" class="font-bold text-lg dark:text-white">DSP Compatible</label>
+  <label class="inline-flex items-center me-5 cursor-pointer ml-4">
+    <input type="checkbox" id="dsp-compatible" [formControl]="dspCompatibleControl" class="sr-only peer">
+    <div
+      class="relative w-11 h-6 bg-gray-400 dark:bg-gray-700 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-100 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-100">
+    </div>
+  </label>
+</div>
+@if(dspCompatible) {
+@if (accessControl) {
+<label class="font-bold text-lg col-span-2 dark:text-white">{{ 'Access Policy' | translate }}</label>
+<textarea data-cy="dspAccessPolicy" [formControl]="accessControl" rows="10"
+  class="mb-2 min-h-fit bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-mono"
+  [class.border-red-500]="accessControl.invalid && accessControl.touched"
+  placeholder='{"example": "Enter your JSON here"}'></textarea>
+@if (accessControl.hasError('invalidJson') && accessControl.touched) {
+<p class="mt-1 text-sm text-red-500">{{ 'Invalid JSON' | translate }}</p>
+}
+}
+@if (contractControl) {
+<label class="font-bold text-lg col-span-2 dark:text-white">{{ 'Contract Policy' | translate }}</label>
+<textarea data-cy="dspContractPolicy" [formControl]="contractControl" rows="10"
+  class="mb-2 min-h-fit bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-mono"
+  [class.border-red-500]="contractControl.invalid && contractControl.touched"
+  placeholder='{"example": "Enter your JSON here"}'></textarea>
+@if (contractControl.hasError('invalidJson') && contractControl.touched) {
+<p class="mt-1 text-sm text-red-500">{{ 'Invalid JSON' | translate }}</p>
+}
+}
+
+@if (formGroup.hasError('policiesRequired') && (accessControl?.touched || contractControl?.touched)) {
+<p class="mt-1 text-sm text-red-500">{{ 'Both Access Policy and Contract Policy are required if either is filled' |
+  translate }}</p>
+}
+
+}
