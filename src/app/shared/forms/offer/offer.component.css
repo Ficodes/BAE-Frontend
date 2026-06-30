@@ -1,0 +1,102 @@
+.dashed-pane {
+  background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%238EACE1' stroke-width='1' stroke-dasharray='8 8' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+:host ::ng-deep .dome-heading-6,
+.dome-heading-6 {
+  font-family: "Blinker", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 100%;
+  color: #324153;
+}
+
+:host ::ng-deep .dome-body-small,
+.dome-body-small {
+  font-family: "Blinker", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  color: #4C5A6B;
+}
+
+.tier-watermark > * {
+  position: relative;
+  z-index: 1;
+}
+.tier-watermark::before {
+  content: "";
+  position: absolute;
+  width: 270px;
+  height: 240px;
+  left: -97px;
+  top: -142px;
+  background-color: #EBF0F7;
+  -webkit-mask: url("/assets/logos/DOME_Icon.svg") no-repeat;
+  -webkit-mask-size: contain;
+  mask: url("/assets/logos/DOME_Icon.svg") no-repeat;
+  mask-size: contain;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tag-input-box input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.plan-card {
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.plan-card:hover {
+  background-color: #ECFEFF;
+  box-shadow: 0px 4px 24px rgba(0, 84, 98, 0.2);
+}
+
+.dual-range .dual-thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.dual-range .dual-thumb:focus {
+  outline: none;
+}
+.dual-range .dual-thumb::-webkit-slider-runnable-track {
+  background: transparent;
+  height: 18px;
+}
+.dual-range .dual-thumb::-moz-range-track {
+  background: transparent;
+  height: 18px;
+}
+.dual-range .dual-thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2D58A7;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.07), 0px 2px 2px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+}
+.dual-range .dual-thumb::-moz-range-thumb {
+  pointer-events: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2D58A7;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.07), 0px 2px 2px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+}

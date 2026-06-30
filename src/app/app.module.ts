@@ -59,6 +59,9 @@ import { SellerProductSpecComponent } from './pages/seller-offerings/offerings/s
 import { UpdateProductSpecComponent } from './pages/seller-offerings/offerings/seller-product-spec/update-product-spec/update-product-spec.component';
 import { CreateResourceSpecComponent } from './pages/seller-offerings/offerings/seller-resource-spec/create-resource-spec/create-resource-spec.component';
 import { SellerResourceSpecComponent } from './pages/seller-offerings/offerings/seller-resource-spec/seller-resource-spec.component';
+import { SellerUsageSpecComponent } from './pages/seller-offerings/offerings/seller-usage-spec/seller-usage-spec.component';
+import { CreateUsageSpecComponent } from './pages/usage-specs/usage-sections/create-usage-spec/create-usage-spec.component';
+import { UpdateUsageSpecComponent } from './pages/usage-specs/usage-sections/update-usage-spec/update-usage-spec.component';
 import { UpdateResourceSpecComponent } from './pages/seller-offerings/offerings/seller-resource-spec/update-resource-spec/update-resource-spec.component';
 import { CreateServiceSpecComponent } from './pages/seller-offerings/offerings/seller-service-spec/create-service-spec/create-service-spec.component';
 import { SellerServiceSpecComponent } from './pages/seller-offerings/offerings/seller-service-spec/seller-service-spec.component';
@@ -132,6 +135,7 @@ import { RequestValidationModalComponent } from './pages/seller-offerings/offeri
     SellerProductSpecComponent,
     SellerServiceSpecComponent,
     SellerResourceSpecComponent,
+    SellerUsageSpecComponent,
     SellerOfferComponent,
     CreateProductSpecComponent,
     CreateServiceSpecComponent,
@@ -203,7 +207,9 @@ import { RequestValidationModalComponent } from './pages/seller-offerings/offeri
     AboutDomeComponent,
     MarkdownTextareaComponent,
     ProviderRevenueSharingComponent,
-    OperatorRevenueSharingComponent
+    OperatorRevenueSharingComponent,
+    CreateUsageSpecComponent,
+    UpdateUsageSpecComponent
   ],
   providers: [
     AppInitService,

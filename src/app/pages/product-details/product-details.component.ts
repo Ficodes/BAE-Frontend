@@ -1,10 +1,11 @@
-import { Component, OnInit, ElementRef, ViewChild,ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, ChangeDetectorRef, OnDestroy, Input } from '@angular/core';
+
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import {components} from "../../models/product-catalog";
 import { initFlowbite } from 'flowbite';
 import { PriceServiceService } from 'src/app/services/price-service.service';
-import {faScaleBalanced, faArrowProgress, faArrowRightArrowLeft, faObjectExclude, faSwap, faGlobe, faBook, faShieldHalved, faAtom, faDownload} from "@fortawesome/pro-solid-svg-icons";
+import {faScaleBalanced, faArrowProgress, faArrowRightArrowLeft, faObjectExclude, faSwap, faGlobe, faBook, faShieldHalved, faAtom, faDownload, faPlus, faMinus} from "@fortawesome/pro-solid-svg-icons";
 type Product = components["schemas"]["ProductOffering"];
 type ProductSpecification = components["schemas"]["ProductSpecification"];
 type AttachmentRefOrValue = components["schemas"]["AttachmentRefOrValue"];
@@ -21,6 +22,7 @@ import { Location } from '@angular/common';
 import {firstValueFrom, Subject} from "rxjs";
 import { takeUntil } from 'rxjs/operators';
 import { UsageServiceService } from 'src/app/services/usage-service.service';
+import { findIconByName } from 'src/app/config/popular-icons';
 
 interface UsageMetricCard {
   id: string;
@@ -45,7 +47,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('attachContent')
   attachContent: ElementRef | undefined;
   @ViewChild('agreementsContent')
-  agreementsContent: ElementRef | undefined;  
+  agreementsContent: ElementRef | undefined;
   @ViewChild('textDiv') textDiv!: ElementRef;
   @ViewChild('termsText') termsTextRef!: ElementRef;
   @ViewChild('descriptionText') descriptionTextRef!: ElementRef;
@@ -53,12 +55,15 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('relScrollAnchor') relScrollAnchor!: ElementRef;
   @ViewChild('attachScrollAnchor') attachScrollAnchor!: ElementRef;
   @ViewChild('charsScrollAnchor') charsScrollAnchor!: ElementRef;
-  @ViewChild('detailsScrollAnchor') detailsScrollAnchor!: ElementRef; 
-  
+  @ViewChild('detailsScrollAnchor') detailsScrollAnchor!: ElementRef;
+
+  @Input() previewProductOff: Product | undefined;
+
   providerThemeName = environment.providerThemeName;
-  quotesEnabled = environment.QUOTES_ENABLED; 
+  quotesEnabled = environment.QUOTES_ENABLED;
   id:any;
   productOff: Product | undefined;
+  isPreview: boolean = false;
   category: string = 'none';
   categories: any[] | undefined  = [];
   price: string = '';
@@ -102,7 +107,22 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   productAlreadyInCart:boolean=false;
   activeTab: string = 'overview';
 
+  resolveIcon = findIconByName;
+  specOverview: string = '';
+  howItWorks: string = '';
+  keyFeatures: { name: string, description: string, icon: string | null }[] = [];
+  businessBenefits: { name: string, description: string }[] = [];
+  useCases: { name: string, description: string, icon: string | null }[] = [];
+  faqs: { question: string, answer: string }[] = [];
+  openFaqIdx: number | null = null;
+  descMoreOpen: boolean = false;
+  howItWorksMoreOpen: boolean = false;
+  private readonly DETAILS_START = '<!--dome:details:start-->';
+  private readonly DETAILS_END = '<!--dome:details:end-->';
+
   protected readonly faScaleBalanced = faScaleBalanced;
+  protected readonly faPlus = faPlus;
+  protected readonly faMinus = faMinus;
   protected readonly faArrowProgress = faArrowProgress;
   protected readonly faArrowRightArrowLeft = faArrowRightArrowLeft;
   protected readonly faObjectExclude = faObjectExclude;
@@ -195,6 +215,11 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     initFlowbite();
+    if (this.previewProductOff) {
+      this.isPreview = true;
+      await this.applyPreviewOffer();
+      return;
+    }
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
     if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
       this.check_logged=true;
@@ -219,6 +244,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     let prod = await this.api.getProductById(this.id);
     let spec = await this.api.getProductSpecification(prod.productSpecification.id);
     this.prodSpec=spec;
+    this.parseProductDetails(this.prodSpec.description);
     this.getOwner();
     let prodPrices: any[] | undefined= prod.productOfferingPrice;
     let prices: any[]=[];
@@ -242,7 +268,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
       this.additionalCerts = this.prodSpec.productSpecCharacteristic.filter((char: any) => {
         const cleanedName = char.name.replace('Compliance:', '').trim();
-      
+
         return (
           char.name.startsWith('Compliance:') &&
           !certifications.some(cert => cert.name === cleanedName) && char.name != 'Compliance:SelfAtt'
@@ -252,34 +278,34 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       console.log(this.additionalCerts)
 
       const normalizeName = (name?: string): string =>
-        name?.replace(/compliance:/i, '').trim() ?? '';      
-      
+        name?.replace(/compliance:/i, '').trim() ?? '';
+
       for (let i = 0; i < certifications.length; i++) {
-      
+
         // Buscar característica quitando el prefijo "Compliance:"
         let compProf = this.prodSpec.productSpecCharacteristic.find(p => {
           return normalizeName(p.name) === certifications[i].name;
         });
-      
+
         if (compProf) {
           let cert: any = certifications[i];
           cert.href = compProf.productSpecCharacteristicValue?.at(0)?.value;
           this.complianceProf.push(cert);
         }
-      
+
         // Eliminar certificaciones del array de características
         const index = this.prodChars.findIndex(item =>
           normalizeName(item.name) === certifications[i].name
         );
-      
+
         if (index !== -1) {
           this.prodChars.splice(index, 1);
         }
       }
 
       console.log(this.complianceProf)
-      
-      
+
+
     }
 
     if(this.prodSpec.serviceSpecification != undefined){
@@ -878,7 +904,7 @@ async deleteProduct(product: Product | undefined){
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
-    }   
+    }
   }
 
   getCharacteristicValueLabel(valueSpec: any): string {
@@ -978,6 +1004,127 @@ async deleteProduct(product: Product | undefined){
 
   normalizeName(name?: string): string {
     return name?.replace(/compliance:/i, '').trim() ?? '';
-  }  
+  }
+
+  private parseProductDetails(raw: string | undefined): void {
+    this.howItWorks = '';
+    this.keyFeatures = [];
+    this.businessBenefits = [];
+    this.useCases = [];
+    this.faqs = [];
+    this.openFaqIdx = null;
+    const text = (raw ?? '').toString();
+    const startIdx = text.indexOf(this.DETAILS_START);
+    if (startIdx === -1) {
+      this.specOverview = text;
+      return;
+    }
+    this.specOverview = text.slice(0, startIdx).replace(/\n+$/, '');
+    const endIdx = text.indexOf(this.DETAILS_END);
+    const inner = text.slice(startIdx + this.DETAILS_START.length, endIdx > -1 ? endIdx : undefined);
+    try {
+      const doc = new DOMParser().parseFromString(`<div>${inner}</div>`, 'text/html');
+      const how = doc.querySelector('[data-dome-section="how-it-works"]');
+      if (how) this.howItWorks = how.getAttribute('data-text') || how.querySelector('p')?.textContent || '';
+      this.keyFeatures = this.parseDetailItems(doc, 'key-features', true);
+      this.businessBenefits = this.parseDetailItems(doc, 'business-benefits', false);
+      this.useCases = this.parseDetailItems(doc, 'use-cases', true);
+      this.faqs = this.parseFaqs(doc);
+    } catch { }
+  }
+
+  private parseFaqs(doc: Document): { question: string, answer: string }[] {
+    const section = doc.querySelector('[data-dome-section="faqs"]');
+    if (!section) return [];
+    return Array.from(section.querySelectorAll('li')).map((li: any) => ({
+      question: li.getAttribute('data-q') || li.querySelector('strong')?.textContent || '',
+      answer: li.getAttribute('data-a') || li.querySelector('p')?.textContent || ''
+    })).filter(f => f.question || f.answer);
+  }
+
+  toggleFaq(idx: number): void {
+    this.openFaqIdx = this.openFaqIdx === idx ? null : idx;
+  }
+
+  isFaqOpen(idx: number): boolean {
+    return this.openFaqIdx === idx;
+  }
+
+  private parseDetailItems(doc: Document, key: string, withIcon: boolean): any[] {
+    const section = doc.querySelector(`[data-dome-section="${key}"]`);
+    if (!section) return [];
+    return Array.from(section.querySelectorAll('li')).map((li: any) => {
+      const name = li.getAttribute('data-name') || li.querySelector('strong')?.textContent || '';
+      const description = li.getAttribute('data-desc') || '';
+      return withIcon ? { name, description, icon: li.getAttribute('data-icon') || null } : { name, description };
+    });
+  }
+
+  isLongText(str: string | undefined): boolean {
+    return (str ?? '').toString().length > 280;
+  }
+
+  private async applyPreviewOffer(): Promise<void> {
+    const offer = this.previewProductOff!;
+    this.productOff = offer;
+    this.id = offer.id || 'preview';
+    this.prodSpec = (offer as any).productSpecification || {};
+    this.parseProductDetails((this.prodSpec as any)?.description);
+
+    this.serviceSpecs = [];
+    this.resourceSpecs = [];
+    const previewSpec: any = this.prodSpec;
+    if (Array.isArray(previewSpec?.serviceSpecification)) {
+      for (const ref of previewSpec.serviceSpecification) {
+        try {
+          this.serviceSpecs.push(ref?.id ? await this.api.getServiceSpec(ref.id) : ref);
+        } catch (err) {
+          console.error('Failed to load service spec for preview', err);
+        }
+      }
+    }
+    if (Array.isArray(previewSpec?.resourceSpecification)) {
+      for (const ref of previewSpec.resourceSpecification) {
+        try {
+          this.resourceSpecs.push(ref?.id ? await this.api.getResourceSpec(ref.id) : ref);
+        } catch (err) {
+          console.error('Failed to load resource spec for preview', err);
+        }
+      }
+    }
+
+    this.category = offer?.category?.at(0)?.name ?? 'none';
+    this.categories = offer?.category;
+
+    const firstPrice = offer?.productOfferingPrice?.at(0);
+    this.price = firstPrice?.price?.value != null
+      ? `${firstPrice.price.value} ${firstPrice.price.unit ?? ''}`.trim()
+      : '';
+
+    const attachments = (this.prodSpec as any)?.attachment ?? offer?.attachment ?? [];
+    const isImage = (a: any) => a?.attachmentType === 'Picture' || (a?.attachmentType || '').startsWith('image') || (a?.url || '').startsWith('data:image');
+    const profile = attachments.filter((a: any) => a?.name === 'Profile Picture');
+    if (profile.length === 0) {
+      this.images = attachments.filter(isImage);
+      this.attatchments = attachments.filter((a: any) => !isImage(a));
+    } else {
+      this.images = profile;
+      this.attatchments = attachments.filter((a: any) => a?.name !== 'Profile Picture');
+    }
+    console.log('[preview] attachments:', attachments, 'images:', this.images);
+
+    this.licenseTerm = offer?.productOfferingTerm?.find(
+      (t: any) => t?.name === 'License'
+    );
+
+    if ((this.prodSpec as any)?.productSpecCharacteristic) {
+      this.prodChars = (this.prodSpec as any).productSpecCharacteristic.filter((char: any) =>
+        !char.name?.startsWith('Compliance:') && !char.name?.endsWith(' - enabled')
+      );
+    }
+
+    this.isLoaded = true;
+    this.cdr.detectChanges();
+  }
 
 }

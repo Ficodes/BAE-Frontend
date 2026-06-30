@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
@@ -34,7 +34,15 @@ export class SellerResourceSpecComponent implements OnInit, OnDestroy {
   loading_more: boolean = false;
   page_check:boolean = true;
   filter:any=undefined;
-  status:any[]=['Active','Launched'];
+  status:any[]=['Active'];
+  selectedTab: string = 'Draft';
+  tabStatusMap: { [k: string]: string[] } = {
+    Draft: ['Active'],
+    Validated: ['Launched'],
+    Deleted: ['Retired', 'Obsolete']
+  };
+  statusCounts: { [k: string]: number } = { Draft: 0, Validated: 0, Deleted: 0 };
+  openMenuIdx: number | null = null;
   partyId:any;
   sort:any=undefined;
   private destroy$ = new Subject<void>();
@@ -78,6 +86,7 @@ export class SellerResourceSpecComponent implements OnInit, OnDestroy {
     }
 
     this.getResSpecs(false);
+    this.loadStatusCounts();
     let input = document.querySelector('[type=search]')
     if(input!=undefined){
       input.addEventListener('input', e => {
@@ -147,6 +156,111 @@ export class SellerResourceSpecComponent implements OnInit, OnDestroy {
       this.status.push(filter)
     }
     this.getResSpecs(false);
+  }
+
+  selectTab(tab: string) {
+    if (tab === this.selectedTab) return;
+    this.selectedTab = tab;
+    this.status = [...this.tabStatusMap[tab]];
+    this.page = 0;
+    this.getResSpecs(false);
+  }
+
+  async loadStatusCounts() {
+    try {
+      const all: any[] = [];
+      let offset = 0;
+      while (offset < 10000) {
+        const page = await this.resSpecService.getResourceSpecByUser(offset, [], this.partyId);
+        const items = Array.isArray(page) ? page : [];
+        all.push(...items);
+        if (items.length < this.RES_SPEC_LIMIT) break;
+        offset += this.RES_SPEC_LIMIT;
+      }
+      const counts: { [k: string]: number } = {};
+      for (const tab of Object.keys(this.tabStatusMap)) counts[tab] = 0;
+      for (const item of all) {
+        const status = item?.lifecycleStatus;
+        for (const tab of Object.keys(this.tabStatusMap)) {
+          if (this.tabStatusMap[tab].includes(status)) { counts[tab]++; break; }
+        }
+      }
+      this.statusCounts = counts;
+    } catch {
+    }
+    this.cdr.detectChanges();
+  }
+
+  toggleMenu(idx: number, event: Event){
+    event.stopPropagation();
+    this.openMenuIdx = this.openMenuIdx === idx ? null : idx;
+  }
+
+  @HostListener('document:click')
+  onDocClick(){
+    if(this.openMenuIdx !== null){
+      this.openMenuIdx = null;
+      this.cdr.detectChanges();
+    }
+  }
+
+  rowStatusBadge(res: any): { text: string, bg: string, color: string } {
+    const hasChars = (res?.resourceSpecCharacteristic && res.resourceSpecCharacteristic.length > 0);
+    if(res?.lifecycleStatus === 'Launched'){
+      return { text: 'Validated', bg: '#BBF7D0', color: '#052E16' };
+    }
+    if(res?.lifecycleStatus === 'Retired' || res?.lifecycleStatus === 'Obsolete'){
+      return { text: 'Deleted', bg: '#FEE2E2', color: '#991B1B' };
+    }
+    if(hasChars){
+      return { text: 'Ready to be validated', bg: '#DCFCE7', color: '#166534' };
+    }
+    return { text: 'Not completed', bg: '#FEF3C7', color: '#92400E' };
+  }
+
+  validateRes(res: any){
+    if(!res?.id) return;
+    this.resSpecService.updateResSpec({ lifecycleStatus: 'Launched' }, res.id).subscribe({
+      next: () => {
+        this.openMenuIdx = null;
+        this.eventMessage.emitSpecCreated('Resource specification successfully validated');
+        this.getResSpecs(false);
+        this.loadStatusCounts();
+      },
+      error: () => {
+        this.openMenuIdx = null;
+      }
+    });
+  }
+
+  deleteRes(res: any){
+    if(!res?.id) return;
+    this.openMenuIdx = null;
+    const onSuccess = () => {
+      this.eventMessage.emitSpecCreated('Resource specification deleted');
+      this.getResSpecs(false);
+      this.loadStatusCounts();
+    };
+    const onError = (err: any) => {
+      console.error('Resource spec delete failed', err);
+      this.eventMessage.emitSpecCreated('Could not delete this resource specification.', 'error');
+    };
+    if(res.lifecycleStatus === 'Active'){
+      this.resSpecService.updateResSpec({ lifecycleStatus: 'Launched' }, res.id).subscribe({
+        next: () => {
+          this.resSpecService.updateResSpec({ lifecycleStatus: 'Retired' }, res.id).subscribe({
+            next: onSuccess,
+            error: onError
+          });
+        },
+        error: onError
+      });
+    } else {
+      this.resSpecService.updateResSpec({ lifecycleStatus: 'Retired' }, res.id).subscribe({
+        next: onSuccess,
+        error: onError
+      });
+    }
   }
 
   onSortChange(event: any) {

@@ -1,13 +1,13 @@
-.floating-div {
-    position: relative; /* Position the div relative to its normal position */
-    top: -50px; /* Adjust as needed */
-    left: 50%; /* Adjust as needed */
-    transform: translateX(-50%); /* Center horizontally */
-    padding: 10px;
-    border-radius: 5px;
-    /* Additional styles for the floating div */
-  }
+:host {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
 
-  .disabled {
-    cursor: not-allowed; /* Change the cursor when the div is disabled */
-  }
+.dashed-pane {
+  background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%238EACE1' stroke-width='1' stroke-dasharray='8 8' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+}

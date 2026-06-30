@@ -1,22 +1,42 @@
-<div class="container mx-auto pt-2 pb-8">
-  <h1 class="hidden lg:block mb-8 mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 lg:text-4xl lg:text-5xl dark:text-white w-full"><span class="underline underline-offset-3 decoration-8 decoration-primary-100 dark:decoration-primary-100">{{ 'OFFERINGS._my_offerings' | translate }}</span></h1>
-  <div class="flex flex-cols mr-2 ml-2 lg:hidden">
-    <h1 class="mb-8 mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 lg:text-4xl lg:text-5xl dark:text-white w-full"><span class="underline underline-offset-3 decoration-8 decoration-primary-100 dark:decoration-primary-100">{{ 'OFFERINGS._my_offerings' | translate }}</span></h1>
-    <div class="flex align-middle content-center items-center">
-      <button id="dropdown-nav" data-dropdown-toggle="dropdown-nav-content" 
-      class="text-black dark:text-white h-fit w-fit justify-between shadow bg-white dark:bg-secondary-200 hover:bg-gray-100 dark:hover:bg-secondary-300 focus:ring-4 focus:outline-none focus:ring-primary-100 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center shadow-lg"
-      type="button">
-      <svg class="w-4 h-4 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
-        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
+@if(toastMessage){
+  <div class="fixed top-24 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 px-7 py-4 rounded-xl border"
+    [style.background-color]="toastType === 'error' ? '#FEE2E2' : '#DCFCE7'"
+    [style.border-color]="toastType === 'error' ? '#DC2626' : '#16A34A'"
+    [style.color]="toastType === 'error' ? '#991B1B' : '#166534'">
+    @if(toastType === 'error'){
+      <svg class="w-6 h-6 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#DC2626">
+        <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 00-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clip-rule="evenodd"/>
       </svg>
-      {{ 'OFFERINGS._offerings' | translate }}
+    } @else {
+      <svg class="w-6 h-6 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#16A34A">
+        <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"/>
+      </svg>
+    }
+    <span class="text-base font-semibold">{{ toastMessage }}</span>
+    <button type="button" (click)="dismissToast()" class="ml-3 hover:opacity-70">
+      <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
     </button>
+  </div>
+}
+<div class="bg-[#F7F9FD] min-h-[calc(100vh-88px)] flex flex-col">
+  <div class="w-full px-8 pt-4 pb-6 flex-1 flex flex-col">
+    <div class="flex flex-cols mr-2 ml-2 lg:hidden">
+      <h1 class="mb-8 mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 lg:text-4xl lg:text-5xl dark:text-white w-full"><span class="underline underline-offset-3 decoration-8 decoration-primary-100 dark:decoration-primary-100">{{ 'OFFERINGS._my_offerings' | translate }}</span></h1>
+      <div class="flex align-middle content-center items-center">
+        <button id="dropdown-nav" data-dropdown-toggle="dropdown-nav-content"
+        class="text-black dark:text-white h-fit w-fit justify-between shadow bg-white dark:bg-secondary-200 hover:bg-gray-100 dark:hover:bg-secondary-300 focus:ring-4 focus:outline-none focus:ring-primary-100 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center shadow-lg"
+        type="button">
+          <svg class="w-4 h-4 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
+          </svg>
+          {{ 'OFFERINGS._offerings' | translate }}
+        </button>
+      </div>
     </div>
 
-  </div>
-      
-  <!-- Dropdown menu -->
-  <div id="dropdown-nav-content" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+    <div id="dropdown-nav-content" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
       <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdown-nav">
         <li>
           <a (click)="goToCatalogs()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'OFFERINGS._catalogs' | translate }}</a>
@@ -33,34 +53,82 @@
         <li>
           <a (click)="goToResourceSpec()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'OFFERINGS._res_spec' | translate }}</a>
         </li>
+        <li>
+          <a (click)="goToUsageSpec()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'USAGE_SPECS._usage_spec' | translate }}</a>
+        </li>
       </ul>
-  </div>
-      
-    <div class="w-full grid lg:grid-cols-20/80">
+    </div>
 
-        <div class="hidden lg:block">
-          <div class="w-48 h-fit text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white mb-8">
-            <button data-cy="catalogSection" (click)="goToCatalogs()" id="catalogs-button" aria-current="true" class="block w-full px-4 py-2 text-white bg-primary-100 border-b border-gray-200 rounded-t-lg cursor-pointer dark:border-gray-600 hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-              {{ 'OFFERINGS._catalogs' | translate }}
-            </button>
-            <button data-cy="offerSection" (click)="goToOffers()" id="offers-button" class="block w-full px-4 py-2 border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-              {{ 'OFFERINGS._offers' | translate }}
-            </button>
-          </div>
+    <div class="w-full flex flex-col lg:flex-row lg:gap-6 flex-1">
 
-          <div class="w-48 h-fit text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-            <button data-cy="prdSpecSection" (click)="goToProdSpec()" id="prod-spec-button" class="block w-full rounded-t-lg px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-              {{ 'OFFERINGS._prod_spec' | translate }}
-            </button>
-            <button data-cy="servSpecSection" (click)="goToServiceSpec()" id="sev-spec-button" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-                {{ 'OFFERINGS._serv_spec' | translate }}
-            </button>
-            <button data-cy="resSpecSection" (click)="goToResourceSpec()" id="res-spec-button" class="block w-full px-4 py-2 border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-                {{ 'OFFERINGS._res_spec' | translate }}
+      @if (!show_create_prod_spec && !show_create_serv_spec && !show_create_res_spec && !show_create_offer && !show_create_catalog && !show_create_custom_offer && !show_update_prod_spec && !show_update_serv_spec && !show_update_res_spec && !show_update_offer && !show_update_catalog && !show_create_usage && !show_update_usage) {
+      <div class="hidden lg:flex lg:flex-col lg:w-[324px] lg:shrink-0 lg:basis-[324px]">
+        <h2 class="text-3xl font-extrabold text-gray-900 mb-6 mt-4 px-2">{{ 'OFFERINGS._my_offerings' | translate }}</h2>
+
+        <button data-cy="offerSection" (click)="goToOffers()" id="offers-button"
+          [ngClass]="show_offers ? 'bg-secondary-50 !text-black' : 'text-gray-900 hover:bg-secondary-50/50'"
+          class="flex items-center justify-between w-full p-4 mb-6 rounded-2xl text-base font-medium transition-colors focus:outline-none">
+          <span class="flex items-center gap-3">
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/>
+            </svg>
+            {{ 'OFFERINGS._product_offers' | translate }}
+          </span>
+          <span class="inline-flex items-center justify-center min-w-[36px] h-7 px-2 rounded-full text-xs font-semibold"
+            [style.background-color]="show_offers ? '#B6CAEC' : '#EBECEE'"
+            [style.color]="show_offers ? '#14274a' : '#374151'">{{ productOffersCount }}</span>
+        </button>
+
+        <p class="text-xs uppercase font-semibold text-gray-500 tracking-wider mb-3 px-4">{{ 'OFFERINGS._specifications' | translate }}</p>
+
+        <div class="flex flex-col gap-2">
+          <button data-cy="prdSpecSection" (click)="goToProdSpec()" id="prod-spec-button"
+            [ngClass]="show_prod_specs ? 'bg-secondary-50 !text-black' : 'text-gray-900 hover:bg-secondary-50/50'"
+            class="flex items-center justify-between w-full p-4 rounded-2xl text-base font-medium transition-colors focus:outline-none">
+            <span>{{ 'OFFERINGS._products' | translate }}</span>
+            <span class="inline-flex items-center justify-center min-w-[36px] h-7 px-2 rounded-full text-xs font-semibold"
+              [style.background-color]="show_prod_specs ? '#B6CAEC' : '#EBECEE'"
+              [style.color]="show_prod_specs ? '#14274a' : '#374151'">{{ productSpecsCount }}</span>
+          </button>
+          <button data-cy="servSpecSection" (click)="goToServiceSpec()" id="sev-spec-button"
+            [ngClass]="show_service_specs ? 'bg-secondary-50 !text-black' : 'text-gray-900 hover:bg-secondary-50/50'"
+            class="flex items-center justify-between w-full p-4 rounded-2xl text-base font-medium transition-colors focus:outline-none">
+            <span>{{ 'OFFERINGS._services' | translate }}</span>
+            <span class="inline-flex items-center justify-center min-w-[36px] h-7 px-2 rounded-full text-xs font-semibold"
+              [style.background-color]="show_service_specs ? '#B6CAEC' : '#EBECEE'"
+              [style.color]="show_service_specs ? '#14274a' : '#374151'">{{ serviceSpecsCount }}</span>
+          </button>
+          <button data-cy="resSpecSection" (click)="goToResourceSpec()" id="res-spec-button"
+            [ngClass]="show_resource_specs ? 'bg-secondary-50 !text-black' : 'text-gray-900 hover:bg-secondary-50/50'"
+            class="flex items-center justify-between w-full p-4 rounded-2xl text-base font-medium transition-colors focus:outline-none">
+            <span>{{ 'OFFERINGS._resources' | translate }}</span>
+            <span class="inline-flex items-center justify-center min-w-[36px] h-7 px-2 rounded-full text-xs font-semibold"
+              [style.background-color]="show_resource_specs ? '#B6CAEC' : '#EBECEE'"
+              [style.color]="show_resource_specs ? '#14274a' : '#374151'">{{ resourceSpecsCount }}</span>
+          </button>
+          <button data-cy="usageSpecSection" (click)="goToUsageSpec()" id="usage-spec-button"
+            [ngClass]="show_usage_specs ? 'bg-secondary-50 !text-black' : 'text-gray-900 hover:bg-secondary-50/50'"
+            class="flex items-center justify-between w-full p-4 rounded-2xl text-base font-medium transition-colors focus:outline-none">
+            <span>{{ 'OFFERINGS._usage' | translate }}</span>
+            <span class="inline-flex items-center justify-center min-w-[36px] h-7 px-2 rounded-full text-xs font-semibold"
+              [style.background-color]="show_usage_specs ? '#B6CAEC' : '#EBECEE'"
+              [style.color]="show_usage_specs ? '#14274a' : '#374151'">{{ usageSpecsCount }}</span>
+          </button>
+        </div>
+
+        <div class="mt-auto pt-8 pb-2 pl-16 lg:sticky lg:bottom-2">
+          <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <h3 class="text-base font-bold text-gray-900 mb-1.5">{{ 'OFFERINGS._need_help' | translate }}</h3>
+            <p class="text-sm text-gray-600 mb-3">{{ 'OFFERINGS._explore_guidelines' | translate }}</p>
+            <button type="button" (click)="goToResources()" class="w-full px-3 py-2 bg-white border border-secondary-100 rounded-lg text-sm font-semibold text-secondary-100 hover:bg-secondary-50/50">
+              {{ 'OFFERINGS._view_kb' | translate }}
             </button>
           </div>
         </div>
+      </div>
+      }
 
+      <div class="flex-1 min-w-0 flex flex-col">
         @if(show_catalogs){
           <seller-catalogs></seller-catalogs>
         }
@@ -72,6 +140,15 @@
         }
         @if(show_resource_specs){
           <seller-resource-spec></seller-resource-spec>
+        }
+        @if(show_usage_specs){
+          <seller-usage-spec></seller-usage-spec>
+        }
+        @if(show_create_usage){
+          <create-usage-spec></create-usage-spec>
+        }
+        @if(show_update_usage){
+          <update-usage-spec [usageSpec]="usage_to_update"></update-usage-spec>
         }
         @if(show_offers){
           <seller-offer></seller-offer>
@@ -92,13 +169,13 @@
           <create-catalog></create-catalog>
         }
         @if(show_update_prod_spec){
-          <update-product-spec [prod]="prod_to_update"></update-product-spec>
+          <create-product-spec [prod]="prod_to_update"></create-product-spec>
         }
         @if(show_update_serv_spec){
-          <update-service-spec [serv]="serv_to_update"></update-service-spec>
+          <create-service-spec [serv]="serv_to_update"></create-service-spec>
         }
         @if(show_update_res_spec){
-          <update-resource-spec [res]="res_to_update"></update-resource-spec>
+          <create-resource-spec [res]="res_to_update"></create-resource-spec>
         }
         @if(show_update_offer){
           <update-offer [offer]="offer_to_update"></update-offer>
@@ -109,10 +186,12 @@
         @if(show_create_custom_offer){
           <app-custom-offer [offer]="offer_to_update" [partyId]="custom_offer_partyId"></app-custom-offer>
         }
+      </div>
     </div>
+  </div>
 </div>
 @if(feedback){
-  <feedback-modal 
+  <feedback-modal
   rateMessage="Based on your recent experience, how likely are you to recommend DOME to a colleague or a partner?"
   writeMessage="How can we improve DOME?"
   type="recommendation"

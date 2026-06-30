@@ -141,7 +141,7 @@ export class SearchComponent implements OnInit, OnDestroy {
         this.feedback = false;
       }
     })
-  } 
+  }
 
   async ngOnInit() {
     this.themeService.currentTheme$
@@ -162,7 +162,7 @@ export class SearchComponent implements OnInit, OnDestroy {
         }
       }
     });
-    
+
     this.products=[];
     this.nextProducts=[];
     /*await this.api.slaCheck().then(data => {
@@ -242,7 +242,7 @@ export class SearchComponent implements OnInit, OnDestroy {
           let feedbackInfo = this.localStorage.getObject('feedback') as FeedbackInfo;
           console.log('---------------------- feedbackInfo')
           console.log(feedbackInfo)
-    
+
           if(JSON.stringify(feedbackInfo) === '{}'){
             let wantsFeedback = {
               "expire": environment?.feedbackCampaignExpiration ?? moment().add(1, 'week').unix(),
@@ -270,7 +270,7 @@ export class SearchComponent implements OnInit, OnDestroy {
               }
               this.localStorage.setObject('feedback',wantsFeedback)
             }
-    
+
             if ("approval" in feedbackInfo) {
               /*if (feedbackInfo.approval === true) {
                 this.feedback = true;
@@ -279,11 +279,11 @@ export class SearchComponent implements OnInit, OnDestroy {
               }*/
               this.feedback = false;
             } else {
-              this.feedback = true; 
+              this.feedback = true;
             }
-            
+
           }
-          
+
         }
       }
     });
@@ -590,7 +590,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       // Navigate without the param
       this.router.navigate(['/search'], { replaceUrl: true });
     }
-  }  
+  }
 
   checkPanel() {
     const filters = this.localStorage.getObject('selected_categories') as Category[] || [] ;

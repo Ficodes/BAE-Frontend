@@ -1,4 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
@@ -14,6 +15,7 @@ import * as moment from 'moment';
 import { firstValueFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { QuoteService } from 'src/app/features/quotes/services/quote.service';
+import { ThemeService } from 'src/app/services/theme.service';
 
 @Component({
   selector: 'app-seller-offerings',
@@ -26,6 +28,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   show_prod_specs: boolean = false;
   show_service_specs: boolean = false;
   show_resource_specs: boolean = false;
+  show_usage_specs: boolean = false;
   show_offers: boolean = false;
   show_create_prod_spec: boolean = false;
   show_create_res_spec: boolean = false;
@@ -38,6 +41,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   show_update_offer:boolean=false;
   show_update_catalog:boolean=false;
   show_create_custom_offer:boolean=false;
+  show_create_usage:boolean=false;
+  show_update_usage:boolean=false;
+  usage_to_update:any;
   prod_to_update:any;
   serv_to_update:any;
   res_to_update:any;
@@ -47,13 +53,24 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   feedback:boolean=false;
   isDomeTheme: boolean = (environment.providerThemeName || '').toUpperCase() === 'DOME';
   userInfo:any;
+  productOffersCount: number = 0;
+  productSpecsCount: number = 0;
+  serviceSpecsCount: number = 0;
+  resourceSpecsCount: number = 0;
+  usageSpecsCount: number = 0;
+  workspaceLogoUrl: string | null = null;
+  workspaceThemeName: string = 'DOME';
+  userInitials: string = '';
   activeSection: string = 'catalogs'; // default
+  toastMessage: string | null = null;
+  toastType: 'success' | 'error' = 'success';
   sectionActions : Record<string, () => void> = {
     catalogs: this.goToCatalogs,
     offers: this.goToOffers,
     productspec: this.goToProdSpec,
     servicespec: this.goToServiceSpec,
-    resourcespec: this.goToResourceSpec
+    resourcespec: this.goToResourceSpec,
+    usagespec: this.goToUsageSpec
   };
   //partyIdCustom:string='urn:ngsi-ld:organization:02922d6d-2e7e-4235-a1aa-4f393a75bc52'
   //partyIdCustom:any=null
@@ -65,7 +82,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     private eventMessage: EventMessageService,
     private router: Router,
     private quoteService: QuoteService,
-    private api: ApiServiceService
+    private api: ApiServiceService,
+    private http: HttpClient,
+    private themeService: ThemeService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -92,8 +111,18 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
       if(ev.type === 'SellerResourceSpec' && ev.value == true) {                
         this.goToResourceSpec();
       }
-      if(ev.type === 'SellerCreateResourceSpec' && ev.value == true) {        
+      if(ev.type === 'SellerCreateResourceSpec' && ev.value == true) {
         this.goToCreateResSpec();
+      }
+      if(ev.type === 'UsageSpecList' && ev.value == true) {
+        this.goToUsageSpec();
+      }
+      if(ev.type === 'CreateUsageSpec' && ev.value == true) {
+        this.goToCreateUsage();
+      }
+      if(ev.type === 'UpdateUsageSpec' && ev.value) {
+        this.usage_to_update = ev.value;
+        this.goToUpdateUsage();
       }
       if(ev.type === 'SellerOffer' && ev.value == true) {      
         this.goToOffers();
@@ -136,17 +165,46 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
       if(ev.type === 'CloseFeedback') {
         this.feedback = false;
       }
+      if(ev.type === 'SpecCreated' && ev.text) {
+        this.toastMessage = ev.text;
+        this.toastType = ev.toastType ?? 'success';
+        this.loadCounts();
+        setTimeout(() => { this.toastMessage = null; this.cdr.detectChanges(); }, 4000);
+      }
     })
+  }
+
+  dismissToast(){
+    this.toastMessage = null;
+  }
+
+  goToResources() {
+    const groups = this.themeService.getCurrentThemeConfig()?.links?.footerLinks || [];
+    const link = groups
+      .flatMap((group: any) => group.navLinks ?? [])
+      .find((l: any) => l.label === 'FOOTER.documentation');
+    if (!link?.url) return;
+    if (link.isRouterLink) {
+      this.router.navigate([link.url]);
+    } else {
+      window.open(link.url, '_blank', 'noopener');
+    }
   }
 
   async ngOnInit() {
     this.userInfo = this.localStorage.getObject('login_items') as LoginInfo;
+    const theme = this.themeService.getCurrentThemeConfig();
+    this.workspaceLogoUrl = theme?.assets?.logoUrl ?? null;
+    this.workspaceThemeName = theme?.displayName ?? 'DOME';
+    this.userInitials = this.computeInitials(this.userInfo);
     const saved = localStorage.getItem('activeSection');
     console.log(saved)
     if (saved) this.activeSection = saved;
     if (saved && this.sectionActions[saved]) {
       this.sectionActions[saved].call(this); // bind `this` context
     }
+
+    this.loadCounts();
 
     const state = history.state as { quoteId?: string };
     console.log('Checking state')
@@ -171,6 +229,68 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  private computeInitials(info: any): string {
+    if (!info || JSON.stringify(info) === '{}') return '';
+    let label = '';
+    if (info.logged_as && info.id && info.logged_as !== info.id) {
+      const org = info.organizations?.find((o: any) => o.id === info.logged_as);
+      label = org?.name ?? '';
+    } else {
+      label = info.user ?? '';
+    }
+    return (label.slice(0, 2) || '').toUpperCase();
+  }
+
+  backToMarketplace() {
+    this.router.navigate(['/dashboard']);
+  }
+
+  async loadCounts() {
+    const aux = this.userInfo as LoginInfo;
+    if (!aux) return;
+    let partyId: string;
+    if (aux.logged_as == aux.id) {
+      partyId = aux.partyId;
+    } else {
+      const loggedOrg = aux.organizations?.find((e: any) => e.id == aux.logged_as);
+      if (!loggedOrg) return;
+      partyId = loggedOrg.partyId;
+    }
+
+    const limit = 1000;
+    const base = environment.BASE_URL;
+    const partyParam = `relatedParty.id=${partyId}`;
+    const offersUrl = `${base}${environment.PRODUCT_CATALOG}/productOffering?limit=${limit}&${partyParam}`;
+    const prodSpecUrl = `${base}${environment.PRODUCT_CATALOG}${environment.PRODUCT_SPEC}?limit=${limit}&${partyParam}`;
+    const servSpecUrl = `${base}${environment.SERVICE}${environment.SERVICE_SPEC}?limit=${limit}&${partyParam}`;
+    const resSpecUrl = `${base}${environment.RESOURCE}${environment.RESOURCE_SPEC}?limit=${limit}&${partyParam}`;
+    const usageSpecUrl = `${base}/usage/usageSpecification?limit=${limit}&${partyParam}`;
+
+    const safeCount = async (url: string) => {
+      try {
+        const items = await firstValueFrom(this.http.get<any[]>(url));
+        return Array.isArray(items) ? items.length : 0;
+      } catch {
+        return 0;
+      }
+    };
+
+    const [offers, prods, servs, ress, usages] = await Promise.all([
+      safeCount(offersUrl),
+      safeCount(prodSpecUrl),
+      safeCount(servSpecUrl),
+      safeCount(resSpecUrl),
+      safeCount(usageSpecUrl),
+    ]);
+
+    this.productOffersCount = offers;
+    this.productSpecsCount = prods;
+    this.serviceSpecsCount = servs;
+    this.resourceSpecsCount = ress;
+    this.usageSpecsCount = usages;
+    this.cdr.detectChanges();
+  }
+
   setActiveSection(section: string) {
     this.activeSection = section;
     localStorage.setItem('activeSection', section);
@@ -193,6 +313,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_offer=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
     this.cdr.detectChanges();
   }
 
@@ -213,6 +336,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
     this.cdr.detectChanges();  
   }
 
@@ -233,6 +359,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=true;
     this.show_create_custom_offer=false;
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
     this.cdr.detectChanges();
   }
 
@@ -253,6 +382,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_create_catalog=false;
     this.show_update_catalog=true;
     this.show_create_custom_offer=false;
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
     this.cdr.detectChanges();
   }
 
@@ -272,7 +404,10 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_offer=true;
     this.show_update_catalog=false;
     this.show_create_catalog=false;
-    this.cdr.detectChanges();  
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
+    this.cdr.detectChanges();
   }
 
   goToCreateCustomOffer(){
@@ -292,7 +427,10 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=true;
-    this.cdr.detectChanges();  
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
+    this.cdr.detectChanges();
   }
 
   goToUpdateServiceSpec(){
@@ -312,6 +450,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
     this.cdr.detectChanges(); 
   }
 
@@ -332,6 +473,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
     this.cdr.detectChanges(); 
   }
 
@@ -352,6 +496,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
     this.cdr.detectChanges();
   }
 
@@ -372,6 +519,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
     this.cdr.detectChanges();
   }
 
@@ -392,12 +542,14 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
     this.cdr.detectChanges();
   }
 
   goToCatalogs(){  
-    this.setActiveSection('catalogs');  
-    this.selectCatalogs();
+    this.setActiveSection('catalogs');
     this.show_catalogs=true;
     this.show_prod_specs=false;
     this.show_service_specs=false;
@@ -414,6 +566,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
     this.cdr.detectChanges();
   }
 
@@ -432,8 +587,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToProdSpec(){
-    this.setActiveSection('productspec'); 
-    this.selectProdSpec();
+    this.setActiveSection('productspec');
     this.show_catalogs=false;
     this.show_prod_specs=true;
     this.show_service_specs=false;
@@ -450,6 +604,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
     this.cdr.detectChanges();
   }
 
@@ -468,8 +625,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToServiceSpec(){
-    this.setActiveSection('servicespec'); 
-    this.selectServiceSpec();
+    this.setActiveSection('servicespec');
     this.show_catalogs=false;
     this.show_prod_specs=false;
     this.show_service_specs=true;
@@ -486,6 +642,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
     this.cdr.detectChanges();
   }
 
@@ -504,8 +663,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToResourceSpec(){
-    this.setActiveSection('resourcespec'); 
-    this.selectResourceSpec();
+    this.setActiveSection('resourcespec');
     this.show_catalogs=false;
     this.show_prod_specs=false;
     this.show_service_specs=false;
@@ -522,6 +680,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
     this.cdr.detectChanges();
   }
 
@@ -539,9 +700,78 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.unselectMenu(offer_button,'text-white bg-primary-100');
   }
 
+  goToUsageSpec(){
+    this.setActiveSection('usagespec');
+    this.show_catalogs=false;
+    this.show_prod_specs=false;
+    this.show_service_specs=false;
+    this.show_resource_specs=false;
+    this.show_offers=false;
+    this.show_create_prod_spec=false;
+    this.show_create_res_spec=false;
+    this.show_create_serv_spec=false;
+    this.show_create_offer=false;
+    this.show_update_prod_spec=false;
+    this.show_update_res_spec=false;
+    this.show_update_serv_spec=false;
+    this.show_update_offer=false;
+    this.show_update_catalog=false;
+    this.show_create_catalog=false;
+    this.show_create_custom_offer=false;
+    this.show_usage_specs=true;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
+    this.cdr.detectChanges();
+  }
+
+  goToCreateUsage(){
+    this.show_catalogs=false;
+    this.show_prod_specs=false;
+    this.show_service_specs=false;
+    this.show_resource_specs=false;
+    this.show_offers=false;
+    this.show_create_prod_spec=false;
+    this.show_create_res_spec=false;
+    this.show_create_serv_spec=false;
+    this.show_create_offer=false;
+    this.show_update_prod_spec=false;
+    this.show_update_res_spec=false;
+    this.show_update_serv_spec=false;
+    this.show_update_offer=false;
+    this.show_update_catalog=false;
+    this.show_create_catalog=false;
+    this.show_create_custom_offer=false;
+    this.show_usage_specs=false;
+    this.show_create_usage=true;
+    this.show_update_usage=false;
+    this.cdr.detectChanges();
+  }
+
+  goToUpdateUsage(){
+    this.show_catalogs=false;
+    this.show_prod_specs=false;
+    this.show_service_specs=false;
+    this.show_resource_specs=false;
+    this.show_offers=false;
+    this.show_create_prod_spec=false;
+    this.show_create_res_spec=false;
+    this.show_create_serv_spec=false;
+    this.show_create_offer=false;
+    this.show_update_prod_spec=false;
+    this.show_update_res_spec=false;
+    this.show_update_serv_spec=false;
+    this.show_update_offer=false;
+    this.show_update_catalog=false;
+    this.show_create_catalog=false;
+    this.show_create_custom_offer=false;
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=true;
+    this.cdr.detectChanges();
+  }
+
   goToOffers(){
-    this.setActiveSection('offers'); 
-    this.selectOffers();
+    this.setActiveSection('offers');
     this.show_catalogs=false;
     this.show_prod_specs=false;
     this.show_service_specs=false;
@@ -558,6 +788,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
+    this.show_usage_specs=false;
+    this.show_create_usage=false;
+    this.show_update_usage=false;
     this.cdr.detectChanges();
   }
 

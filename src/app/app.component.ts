@@ -26,6 +26,8 @@ export class AppComponent implements OnInit {
   providerThemeName=environment.providerThemeName;
   isProduction:boolean = environment.isProduction;
   showHeaderAndFooter = false;
+  isWorkspaceRoute = false;
+  private workspaceRoutes = ['/my-offerings'];
 
   constructor(private translate: TranslateService,
               private localStorage: LocalStorageService,
@@ -90,13 +92,15 @@ export class AppComponent implements OnInit {
       this.refreshApi.startInterval(((aux.expire - moment().unix())-4)*1000, aux);
       initFlowbite();
     }
+    this.isWorkspaceRoute = this.workspaceRoutes.some(r => this.router.url.startsWith(r));
     this.router.events
       .pipe(
         filter(
           (event): event is NavigationEnd => event instanceof NavigationEnd,
         ),
       )
-      .subscribe(() => {
+      .subscribe((ev: NavigationEnd) => {
+        this.isWorkspaceRoute = this.workspaceRoutes.some(r => ev.urlAfterRedirects.startsWith(r));
         window.scrollTo({ top: 0, behavior: 'smooth' }); // or just window.scrollTo(0, 0);
       });
 
