@@ -13,10 +13,9 @@ interface RlsRuleConfig {
 
 interface AnalyticsConfigPayload {
   analyticsEnabled: boolean;
-  analyticsSupersetDomain: string;
+  analytics: string;
   analyticsDashboards: Record<AnalyticsDashboardKey, string>;
   analyticsSuperset: {
-    url: string;
     username: string;
     password?: string;
     provider: string;
@@ -48,7 +47,7 @@ export class AnalyticsConfigComponent implements OnInit, OnDestroy {
 
   analyticsForm = new FormGroup({
     analyticsEnabled: new FormControl<boolean>(false, { nonNullable: true }),
-    analyticsSupersetDomain: new FormControl<string>('', {
+    analytics: new FormControl<string>('', {
       nonNullable: true,
       validators: [Validators.required]
     }),
@@ -67,10 +66,6 @@ export class AnalyticsConfigComponent implements OnInit, OnDestroy {
       })
     }),
     analyticsSuperset: new FormGroup({
-      url: new FormControl<string>('', {
-        nonNullable: true,
-        validators: [Validators.required]
-      }),
       username: new FormControl<string>('', {
         nonNullable: true,
         validators: [Validators.required]
@@ -221,14 +216,11 @@ export class AnalyticsConfigComponent implements OnInit, OnDestroy {
   private async saveAnalyticsPayload(payload: AnalyticsConfigPayload): Promise<void> {
     const response = await firstValueFrom(this.http.patch<any>(`${environment.BASE_URL}/config/analytics`, payload));
 
-    environment.analyticsSupersetDomain = response?.analyticsSupersetDomain ?? payload.analyticsSupersetDomain;
+    environment.analytics = response?.analytics ?? payload.analytics;
     environment.analyticsEnabled = response?.analyticsEnabled ?? payload.analyticsEnabled;
   }
 
   private loadAnalyticsConfig(config: any): void {
-    const analyticsSupersetDomain = typeof config?.analyticsSupersetDomain === 'string'
-      ? config.analyticsSupersetDomain.trim()
-      : '';
     const analyticsSuperset = config?.analyticsSuperset && typeof config.analyticsSuperset === 'object'
       ? config.analyticsSuperset
       : {};
@@ -241,14 +233,13 @@ export class AnalyticsConfigComponent implements OnInit, OnDestroy {
       analyticsEnabled: typeof config?.analyticsEnabled === 'boolean'
         ? config.analyticsEnabled
         : false,
-      analyticsSupersetDomain,
+      analytics: this.readAnalyticsUrl(config),
       analyticsDashboards: {
         businessInsightsNonLear: this.readString(config?.analyticsDashboards?.businessInsightsNonLear),
         businessInsightsLear: this.readString(config?.analyticsDashboards?.businessInsightsLear),
         usageMonitor: this.readString(config?.analyticsDashboards?.usageMonitor)
       },
       analyticsSuperset: {
-        url: this.readString(analyticsSuperset.url),
         username: this.readString(analyticsSuperset.username),
         password: '',
         provider: this.readString(analyticsSuperset.provider)
@@ -310,14 +301,13 @@ export class AnalyticsConfigComponent implements OnInit, OnDestroy {
 
     const payload: AnalyticsConfigPayload = {
       analyticsEnabled: this.analyticsForm.get('analyticsEnabled')?.value === true,
-      analyticsSupersetDomain: this.requireString(this.analyticsForm.get('analyticsSupersetDomain')?.value, 'Superset domain is required.'),
+      analytics: this.requireString(this.analyticsForm.get('analytics')?.value, 'Analytics URL is required.'),
       analyticsDashboards: {
         businessInsightsNonLear: this.requireString(dashboards.get('businessInsightsNonLear')?.value, 'Business Insights Non-LEAR dashboard ID is required.'),
         businessInsightsLear: this.requireString(dashboards.get('businessInsightsLear')?.value, 'Business Insights LEAR dashboard ID is required.'),
         usageMonitor: this.requireString(dashboards.get('usageMonitor')?.value, 'Usage Monitor dashboard ID is required.')
       },
       analyticsSuperset: {
-        url: this.requireString(superset.get('url')?.value, 'Superset URL is required.'),
         username: this.requireString(superset.get('username')?.value, 'Superset username is required.'),
         provider: this.requireString(superset.get('provider')?.value, 'Superset provider is required.'),
         rls: {
@@ -349,14 +339,13 @@ export class AnalyticsConfigComponent implements OnInit, OnDestroy {
 
     const payload: AnalyticsConfigPayload = {
       analyticsEnabled: parsed?.analyticsEnabled === true,
-      analyticsSupersetDomain: this.requireString(parsed?.analyticsSupersetDomain, 'Superset domain is required.'),
+      analytics: this.requireString(this.readAnalyticsUrl(parsed), 'Analytics URL is required.'),
       analyticsDashboards: {
         businessInsightsNonLear: this.requireString(parsed?.analyticsDashboards?.businessInsightsNonLear, 'Business Insights Non-LEAR dashboard ID is required.'),
         businessInsightsLear: this.requireString(parsed?.analyticsDashboards?.businessInsightsLear, 'Business Insights LEAR dashboard ID is required.'),
         usageMonitor: this.requireString(parsed?.analyticsDashboards?.usageMonitor, 'Usage Monitor dashboard ID is required.')
       },
       analyticsSuperset: {
-        url: this.requireString(superset.url, 'Superset URL is required.'),
         username: this.requireString(superset.username, 'Superset username is required.'),
         provider: this.requireString(superset.provider, 'Superset provider is required.'),
         rls: {
@@ -380,14 +369,13 @@ export class AnalyticsConfigComponent implements OnInit, OnDestroy {
       : {};
     const normalized = {
       analyticsEnabled: config?.analyticsEnabled === true,
-      analyticsSupersetDomain: this.readString(config?.analyticsSupersetDomain),
+      analytics: this.readAnalyticsUrl(config),
       analyticsDashboards: {
         businessInsightsNonLear: this.readString(config?.analyticsDashboards?.businessInsightsNonLear),
         businessInsightsLear: this.readString(config?.analyticsDashboards?.businessInsightsLear),
         usageMonitor: this.readString(config?.analyticsDashboards?.usageMonitor)
       },
       analyticsSuperset: {
-        url: this.readString(analyticsSuperset.url),
         username: this.readString(analyticsSuperset.username),
         provider: this.readString(analyticsSuperset.provider),
         rls: {
@@ -519,6 +507,20 @@ export class AnalyticsConfigComponent implements OnInit, OnDestroy {
 
   private readString(value: any): string {
     return typeof value === 'string' ? value : '';
+  }
+
+  private readAnalyticsUrl(config: any): string {
+    if (typeof config?.analytics === 'string') {
+      return config.analytics.trim();
+    }
+
+    if (config?.analytics && typeof config.analytics === 'object') {
+      return this.readString(config.analytics.link)
+        || this.readString(config.analytics.url)
+        || this.readString(config.analytics.domain);
+    }
+
+    return '';
   }
 
   private getDashboardLabel(key: AnalyticsDashboardKey): string {

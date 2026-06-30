@@ -39,10 +39,8 @@ export class AppInitService {
                 environment.ORG_ADMIN_ROLE = config.roles?.orgAdmin;
                 environment.CERTIFIER_ROLE = config.roles?.certifier;
                 environment.quoteApi = config.quoteApi ?? 'http://localhost:8080/quoteManagement';
-                const analyticsConfig = this.getAnalyticsConfig(config);
                 environment.analyticsEnabled = config.analyticsEnabled ?? false;
-                environment.analytics = analyticsConfig.link;
-                environment.analyticsSupersetDomain = analyticsConfig.supersetDomain;
+                environment.analytics = this.getAnalyticsUrl(config);
                 environment.feedbackCampaign = config.feedbackCampaign ?? false;
                 environment.feedbackCampaignExpiration = config.feedbackCampaign ?? moment().add(1, 'week').unix();
                 environment.documentApi = config.documentApi ?? environment.documentApi;
@@ -64,22 +62,15 @@ export class AppInitService {
     });
   }
 
-  private getAnalyticsConfig(config: any): {
-    link: string;
-    supersetDomain: string;
-  } {
-    const defaultAnalyticsLink = 'https://analytics.dome-marketplace-sbx.org/';
-    const analyticsConfig = config?.analytics && typeof config.analytics === 'object'
-      ? config.analytics
-      : {};
-    return {
-      link: typeof config?.analytics === 'string'
-        ? config.analytics
-        : analyticsConfig.link ?? defaultAnalyticsLink,
-      supersetDomain: config?.analyticsSupersetDomain
-        ?? analyticsConfig.supersetDomain
-        ?? analyticsConfig.domain
-        ?? ''
-    };
+  private getAnalyticsUrl(config: any): string {
+    if (typeof config?.analytics === 'string') {
+      return config.analytics;
+    }
+
+    if (config?.analytics && typeof config.analytics === 'object') {
+      return config.analytics.link ?? config.analytics.url ?? config.analytics.domain ?? '';
+    }
+
+    return '';
   }
 }

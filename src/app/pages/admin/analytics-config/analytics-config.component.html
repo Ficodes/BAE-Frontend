@@ -42,8 +42,8 @@
         </div>
 
         <div>
-          <label for="analytics-superset-domain" class="font-semibold text-sm dark:text-white">Superset domain</label>
-          <input id="analytics-superset-domain" formControlName="analyticsSupersetDomain" type="url"
+          <label for="analytics-url" class="font-semibold text-sm dark:text-white">Analytics URL</label>
+          <input id="analytics-url" formControlName="analytics" type="url"
             class="mt-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg block w-full p-2.5" />
         </div>
       </section>
@@ -64,11 +64,6 @@
       <section formGroupName="analyticsSuperset" class="space-y-4">
         <h3 class="text-xl font-bold text-primary-100 dark:text-white">Superset service account</h3>
         <div class="grid gap-4 xl:grid-cols-2">
-          <div>
-            <label for="superset-url" class="font-semibold text-sm dark:text-white">URL</label>
-            <input id="superset-url" formControlName="url" type="url"
-              class="mt-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg block w-full p-2.5" />
-          </div>
           <div>
             <label for="superset-provider" class="font-semibold text-sm dark:text-white">Provider</label>
             <input id="superset-provider" formControlName="provider" type="text"

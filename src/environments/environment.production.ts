@@ -90,7 +90,6 @@ export const environment = {
   TENDER_ENABLED: true,
   analyticsEnabled: false,
   analytics: '',
-  analyticsSupersetDomain: '',
   analyticsGuestTokenEndpoint: '/analytics/guest-token',
   feedbackCampaign: false,
   feedbackCampaignExpiration: 0,

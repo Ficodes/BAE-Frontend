@@ -95,7 +95,7 @@ export class AnalyticsComponent implements AfterViewInit, OnDestroy {
   }
 
   get supersetDomain(): string {
-    return environment.analyticsSupersetDomain ?? '';
+    return environment.analytics ?? '';
   }
 
   get analyticsEnabled(): boolean {
