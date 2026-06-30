@@ -33,19 +33,19 @@ jobs:
           echo "Parsing PR body for dependencies..."
 
           # Parse PROXY dependency
-          PROXY_LOCATION=$(echo "$PR_BODY" | grep '^PROXY:' | sed 's/PROXY: *//' | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
+          PROXY_LOCATION=$(echo "$PR_BODY" | grep '^PROXY:' | sed 's/PROXY: *//' | tr -d '\r' | sed 's/\xc2\xa0/ /g; s/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
           echo "Proxy location: $PROXY_LOCATION"
 
           # Parse CHARGING dependency
-          CHARGING_LOCATION=$(echo "$PR_BODY" | grep '^CHARGING:' | sed 's/CHARGING: *//' | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
+          CHARGING_LOCATION=$(echo "$PR_BODY" | grep '^CHARGING:' | sed 's/CHARGING: *//' | tr -d '\r' | sed 's/\xc2\xa0/ /g; s/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
           echo "Charging location: $CHARGING_LOCATION"
 
           # Parse TM_VERSION
-          TM_VERSION=$(echo "$PR_BODY" | grep '^TM_VERSION:' | sed 's/TM_VERSION: *//' | xargs)
+          TM_VERSION=$(echo "$PR_BODY" | grep '^TM_VERSION:' | sed 's/TM_VERSION: *//' | tr -d '\r' | sed 's/\xc2\xa0/ /g; s/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
           echo "TMForum API version: $TM_VERSION"
 
           # Parse E2E_BRANCH (optional - branch of E2E-DOME-BAE to use)
-          E2E_BRANCH=$(echo "$PR_BODY" | grep '^E2E_BRANCH:' | sed 's/E2E_BRANCH: *//' | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
+          E2E_BRANCH=$(echo "$PR_BODY" | grep '^E2E_BRANCH:' | sed 's/E2E_BRANCH: *//' | tr -d '\r' | sed 's/\xc2\xa0/ /g; s/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
           echo "E2E branch: $E2E_BRANCH"
 
           # Default values (using upstream FIWARE-TMForum repos)
