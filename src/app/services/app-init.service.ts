@@ -41,6 +41,7 @@ export class AppInitService {
                 environment.CERTIFIER_ROLE = config.roles?.certifier;
                 environment.quoteApi = config.quoteApi ?? environment.quoteApi;
                 environment.documentApi = config.documentApi ?? environment.documentApi;
+                environment.googleTagManagerId = config.googleTagManagerId ?? '';
                 environment.analytics = config.analytics ?? 'https://analytics.dome-marketplace-sbx.org/',
                 environment.feedbackCampaign = config.feedbackCampaign ?? false,
                 environment.feedbackCampaignExpiration = config.feedbackCampaign ?? moment().add(1, 'week').unix()
