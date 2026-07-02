@@ -5,6 +5,7 @@ export type FeatureFlagKey =
   | 'quotesEnabled'
   | 'tenderingEnabled'
   | 'dataSpaceEnabled'
+  | 'catalogManagementEnabled'
   | 'launchValidationEnabled'
   | 'tenderDevButtonsOpenCloseEnabled'
   | 'aiEnabled';
@@ -46,6 +47,11 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     description: 'Enable data space fields in organization and offer forms.'
   },
   {
+    key: 'catalogManagementEnabled',
+    label: 'Catalog management',
+    description: 'Enable seller catalog list, create, and update screens in My Offerings.'
+  },
+  {
     key: 'launchValidationEnabled',
     label: 'Launch validation',
     description: 'Enable launch validation requests for offerings.'
@@ -76,6 +82,7 @@ export function readFeaturesConfig(config: any): FeaturesConfig {
   result.quotesEnabled = readBoolean(source, 'quotesEnabled');
   result.tenderingEnabled = readBoolean(source, 'tenderingEnabled');
   result.dataSpaceEnabled = readBoolean(source, 'dataSpaceEnabled');
+  result.catalogManagementEnabled = readBoolean(source, 'catalogManagementEnabled');
   result.launchValidationEnabled = readBoolean(source, 'launchValidationEnabled');
   result.tenderDevButtonsOpenCloseEnabled = readBoolean(source, 'tenderDevButtonsOpenCloseEnabled');
   result.aiEnabled = readBoolean(source, 'aiEnabled');
@@ -91,6 +98,7 @@ export function applyRuntimeFeaturesConfig(config: any): void {
   environment.QUOTES_ENABLED = features.quotesEnabled ?? false;
   environment.TENDER_ENABLED = features.tenderingEnabled ?? false;
   environment.DATA_SPACE_ENABLED = features.dataSpaceEnabled ?? false;
+  environment.CATALOG_MANAGEMENT_ENABLED = features.catalogManagementEnabled ?? environment.CATALOG_MANAGEMENT_ENABLED;
   environment.LAUNCH_VALIDATION_ENABLED = features.launchValidationEnabled ?? false;
   environment.TENDER_DEV_BUTTONS_OPEN_CLOSE_ENABLED = features.tenderDevButtonsOpenCloseEnabled ?? false;
   environment.AI_SEARCH_ENABLED = features.aiEnabled ?? false;

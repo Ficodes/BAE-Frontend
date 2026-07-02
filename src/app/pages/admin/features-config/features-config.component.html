@@ -14,7 +14,7 @@
     <form class="m-4" [formGroup]="featuresForm">
       <div formArrayName="flags" class="space-y-3">
         @for(flagControl of flagsArray.controls; track i; let i = $index){
-          <div [formGroupName]="i" class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] items-center p-4 border border-gray-200 rounded-lg bg-white dark:bg-secondary-300 dark:border-secondary-200">
+          <div [formGroupName]="i" [attr.data-cy]="'adminFeatureFlag-' + (flagControl.get('key')?.value ?? '')" class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] items-center p-4 border border-gray-200 rounded-lg bg-white dark:bg-secondary-300 dark:border-secondary-200">
             <div>
               <p class="font-semibold text-gray-900 dark:text-white">{{ getDefinition(flagControl.get('key')?.value ?? '')?.label }}</p>
               <p class="text-sm text-gray-500 dark:text-gray-300">{{ getDefinition(flagControl.get('key')?.value ?? '')?.description }}</p>
