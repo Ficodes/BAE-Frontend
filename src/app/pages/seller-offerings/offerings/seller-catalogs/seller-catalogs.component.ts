@@ -36,6 +36,7 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
   filter:any=undefined;
   partyId:any;
   status:any[]=['Active','Launched'];
+  readonly statusOptions = ['Active', 'Launched', 'Retired', 'Obsolete'];
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -150,6 +151,25 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
     this.catalogs=[];
     this.nextCatalogs=[];
     this.getCatalogs(false);
+  }
+
+  isStatusSelected(status: string): boolean {
+    return this.status.includes(status);
+  }
+
+  getStatusBadgeClass(status: string | undefined): string {
+    switch (status) {
+      case 'Active':
+        return 'border-blue-200 bg-blue-50 text-blue-700';
+      case 'Launched':
+        return 'border-green-200 bg-green-50 text-green-700';
+      case 'Retired':
+        return 'border-yellow-200 bg-yellow-50 text-yellow-700';
+      case 'Obsolete':
+        return 'border-red-200 bg-red-50 text-red-700';
+      default:
+        return 'border-gray-200 bg-gray-50 text-gray-700';
+    }
   }
 
   hasLongWord(str: string | undefined, threshold = 20) {

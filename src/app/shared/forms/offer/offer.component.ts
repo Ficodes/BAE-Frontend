@@ -11,6 +11,7 @@ import { environment } from 'src/environments/environment';
 import { v4 as uuidv4 } from 'uuid';
 import { FormChangeState, LoginInfo, PricePlanChangeState } from "../../../models/interfaces";
 import { LocalStorageService } from "../../../services/local-storage.service";
+import { AccountServiceService } from "../../../services/account-service.service";
 import { ApiServiceService } from "../../../services/product-service.service";
 import { ProductSpecServiceService } from "../../../services/product-spec-service.service";
 import { UsageServiceService } from "../../../services/usage-service.service";
@@ -162,7 +163,8 @@ export class OfferComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private prodSpecService: ProductSpecServiceService,
     private localStorage: LocalStorageService,
-    private usageService: UsageServiceService) {
+    private usageService: UsageServiceService,
+    private accountService: AccountServiceService) {
 
     this.productOfferForm = this.fb.group({
       generalInfo: this.fb.group({
@@ -1382,8 +1384,10 @@ export class OfferComponent implements OnInit, OnDestroy {
         this.productOfferForm.patchValue({ catalogue: this.autoCatalogue });
         return this.autoCatalogue;
       }
+      const catalogueName = await this.getDefaultCatalogueName();
+      if (!catalogueName) return null;
       const created = await lastValueFrom(this.api.postCatalog({
-        name: 'My Catalogue',
+        name: catalogueName,
         description: '',
         lifecycleStatus: 'Launched',
         relatedParty: [{ id: this.partyId, role: environment.SELLER_ROLE, '@referredType': '' }]
@@ -1397,6 +1401,58 @@ export class OfferComponent implements OnInit, OnDestroy {
       console.error('Failed to ensure provider catalogue', err);
       return null;
     }
+  }
+
+  private async getDefaultCatalogueName(): Promise<string> {
+    let catalogueName = this.getCachedLoggedPartyName();
+
+    if (!catalogueName) {
+      try {
+        const party = this.isOrganizationParty()
+          ? await this.accountService.getOrgInfo(this.partyId)
+          : await this.accountService.getUserInfo(this.partyId);
+        catalogueName = this.isOrganizationParty()
+          ? this.pickOrganizationPartyName(party)
+          : this.pickIndividualPartyName(party);
+      } catch (err) {
+        console.error('Failed to resolve default catalogue name', err);
+      }
+    }
+
+    return catalogueName;
+  }
+
+  private getCachedLoggedPartyName(): string {
+    const loginInfo = this.localStorage.getObject('login_items') as LoginInfo;
+    if (!loginInfo || JSON.stringify(loginInfo) === '{}') return '';
+
+    if (loginInfo.logged_as && loginInfo.id && loginInfo.logged_as !== loginInfo.id) {
+      const loggedOrg = loginInfo.organizations?.find((org: any) => org.id === loginInfo.logged_as || org.partyId === this.partyId);
+      return this.pickOrganizationPartyName(loggedOrg);
+    }
+
+    return this.normalizeCatalogueName(loginInfo.user);
+  }
+
+  private pickOrganizationPartyName(party: any): string {
+    const value = party?.tradingName ?? party?.name;
+    return this.normalizeCatalogueName(value);
+  }
+
+  private pickIndividualPartyName(party: any): string {
+    return [party?.givenName, party?.familyName]
+      .filter((value: any) => typeof value === 'string' && value.trim().length > 0)
+      .join(' ')
+      .trim()
+      .slice(0, 100);
+  }
+
+  private normalizeCatalogueName(value: any): string {
+    return typeof value === 'string' ? value.trim().slice(0, 100) : '';
+  }
+
+  private isOrganizationParty(): boolean {
+    return String(this.partyId || '').toLowerCase().includes('organization');
   }
 
 

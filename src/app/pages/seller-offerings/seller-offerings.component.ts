@@ -24,12 +24,13 @@ import { ThemeService } from 'src/app/services/theme.service';
 })
 export class SellerOfferingsComponent implements OnInit, OnDestroy {
 
-  show_catalogs: boolean = true;
+  catalogManagementEnabled: boolean = environment.CATALOG_MANAGEMENT_ENABLED;
+  show_catalogs: boolean = this.catalogManagementEnabled;
   show_prod_specs: boolean = false;
   show_service_specs: boolean = false;
   show_resource_specs: boolean = false;
   show_usage_specs: boolean = false;
-  show_offers: boolean = false;
+  show_offers: boolean = !this.catalogManagementEnabled;
   show_create_prod_spec: boolean = false;
   show_create_res_spec: boolean = false;
   show_create_serv_spec: boolean = false;
@@ -54,6 +55,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   isDomeTheme: boolean = (environment.providerThemeName || '').toUpperCase() === 'DOME';
   userInfo:any;
   productOffersCount: number = 0;
+  catalogsCount: number = 0;
   productSpecsCount: number = 0;
   serviceSpecsCount: number = 0;
   resourceSpecsCount: number = 0;
@@ -61,7 +63,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   workspaceLogoUrl: string | null = null;
   workspaceThemeName: string = 'DOME';
   userInitials: string = '';
-  activeSection: string = 'catalogs'; // default
+  activeSection: string = this.catalogManagementEnabled ? 'catalogs' : 'offers';
   toastMessage: string | null = null;
   toastType: 'success' | 'error' = 'success';
   sectionActions : Record<string, () => void> = {
@@ -127,13 +129,13 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
       if(ev.type === 'SellerOffer' && ev.value == true) {      
         this.goToOffers();
       }
-      if(ev.type == 'SellerCatalog' && ev.value == true){
+      if(ev.type == 'SellerCatalog' && ev.value == true && this.catalogManagementEnabled){
         this.goToCatalogs();
       }
       if(ev.type === 'SellerCreateOffer' && ev.value == true) {
         this.goToCreateOffer();
       }
-      if(ev.type === 'SellerCatalogCreate' && ev.value == true) {
+      if(ev.type === 'SellerCatalogCreate' && ev.value == true && this.catalogManagementEnabled) {
         this.goToCreateCatalog();
       }
       if(ev.type === 'SellerUpdateProductSpec') {
@@ -158,7 +160,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
         this.custom_offer_partyId = evValue.partyId || null;
         this.goToCreateCustomOffer();
       }
-      if(ev.type === 'SellerCatalogUpdate') {
+      if(ev.type === 'SellerCatalogUpdate' && this.catalogManagementEnabled) {
         this.catalog_to_update=ev.value;
         this.goToUpdateCatalog();
       }
@@ -198,10 +200,12 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.workspaceThemeName = theme?.displayName ?? 'DOME';
     this.userInitials = this.computeInitials(this.userInfo);
     const saved = localStorage.getItem('activeSection');
-    console.log(saved)
-    if (saved) this.activeSection = saved;
-    if (saved && this.sectionActions[saved]) {
-      this.sectionActions[saved].call(this); // bind `this` context
+    const initialSection = !this.catalogManagementEnabled && saved === 'catalogs'
+      ? 'offers'
+      : saved || this.activeSection;
+    this.activeSection = initialSection;
+    if (this.sectionActions[initialSection]) {
+      this.sectionActions[initialSection].call(this);
     }
 
     this.loadCounts();
@@ -261,6 +265,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     const base = environment.BASE_URL;
     const partyParam = `relatedParty.id=${partyId}`;
     const offersUrl = `${base}${environment.PRODUCT_CATALOG}/productOffering?limit=${limit}&${partyParam}`;
+    const catalogsUrl = `${base}${environment.PRODUCT_CATALOG}/catalog?limit=${limit}&${partyParam}`;
     const prodSpecUrl = `${base}${environment.PRODUCT_CATALOG}${environment.PRODUCT_SPEC}?limit=${limit}&${partyParam}`;
     const servSpecUrl = `${base}${environment.SERVICE}${environment.SERVICE_SPEC}?limit=${limit}&${partyParam}`;
     const resSpecUrl = `${base}${environment.RESOURCE}${environment.RESOURCE_SPEC}?limit=${limit}&${partyParam}`;
@@ -275,8 +280,9 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
       }
     };
 
-    const [offers, prods, servs, ress, usages] = await Promise.all([
+    const [offers, catalogs, prods, servs, ress, usages] = await Promise.all([
       safeCount(offersUrl),
+      this.catalogManagementEnabled ? safeCount(catalogsUrl) : Promise.resolve(0),
       safeCount(prodSpecUrl),
       safeCount(servSpecUrl),
       safeCount(resSpecUrl),
@@ -284,6 +290,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     ]);
 
     this.productOffersCount = offers;
+    this.catalogsCount = catalogs;
     this.productSpecsCount = prods;
     this.serviceSpecsCount = servs;
     this.resourceSpecsCount = ress;
@@ -343,6 +350,10 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToCreateCatalog(){
+    if (!this.catalogManagementEnabled) {
+      this.goToOffers();
+      return;
+    }
     this.show_catalogs=false;
     this.show_prod_specs=false;
     this.show_service_specs=false;
@@ -366,6 +377,10 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToUpdateCatalog(){
+    if (!this.catalogManagementEnabled) {
+      this.goToOffers();
+      return;
+    }
     this.show_catalogs=false;
     this.show_prod_specs=false;
     this.show_service_specs=false;
@@ -549,6 +564,10 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToCatalogs(){  
+    if (!this.catalogManagementEnabled) {
+      this.goToOffers();
+      return;
+    }
     this.setActiveSection('catalogs');
     this.show_catalogs=true;
     this.show_prod_specs=false;

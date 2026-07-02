@@ -38,9 +38,11 @@
 
     <div id="dropdown-nav-content" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
       <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdown-nav">
+        @if(catalogManagementEnabled){
         <li>
           <a (click)="goToCatalogs()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'OFFERINGS._catalogs' | translate }}</a>
         </li>
+        }
         <li>
           <a (click)="goToOffers()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'OFFERINGS._offers' | translate }}</a>
         </li>
@@ -64,6 +66,22 @@
       @if (!show_create_prod_spec && !show_create_serv_spec && !show_create_res_spec && !show_create_offer && !show_create_catalog && !show_create_custom_offer && !show_update_prod_spec && !show_update_serv_spec && !show_update_res_spec && !show_update_offer && !show_update_catalog && !show_create_usage && !show_update_usage) {
       <div class="hidden lg:flex lg:flex-col lg:w-[324px] lg:shrink-0 lg:basis-[324px]">
         <h2 class="text-3xl font-extrabold text-gray-900 mb-6 mt-4 px-2">{{ 'OFFERINGS._my_offerings' | translate }}</h2>
+
+        @if(catalogManagementEnabled){
+        <button data-cy="catalogSection" (click)="goToCatalogs()" id="catalogs-button"
+          [ngClass]="show_catalogs ? 'bg-secondary-50 !text-black' : 'text-gray-900 hover:bg-secondary-50/50'"
+          class="flex items-center justify-between w-full p-4 mb-3 rounded-2xl text-base font-medium transition-colors focus:outline-none">
+          <span class="flex items-center gap-3">
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5M3.75 9.75h16.5M6 14.25h12M6 18.75h12"/>
+            </svg>
+            {{ 'OFFERINGS._catalogs' | translate }}
+          </span>
+          <span class="inline-flex items-center justify-center min-w-[36px] h-7 px-2 rounded-full text-xs font-semibold"
+            [style.background-color]="show_catalogs ? '#B6CAEC' : '#EBECEE'"
+            [style.color]="show_catalogs ? '#14274a' : '#374151'">{{ catalogsCount }}</span>
+        </button>
+        }
 
         <button data-cy="offerSection" (click)="goToOffers()" id="offers-button"
           [ngClass]="show_offers ? 'bg-secondary-50 !text-black' : 'text-gray-900 hover:bg-secondary-50/50'"
@@ -129,7 +147,7 @@
       }
 
       <div class="flex-1 min-w-0 flex flex-col">
-        @if(show_catalogs){
+        @if(catalogManagementEnabled && show_catalogs){
           <seller-catalogs></seller-catalogs>
         }
         @if(show_prod_specs){
@@ -165,7 +183,7 @@
         @if(show_create_offer){
           <create-offer></create-offer>
         }
-        @if(show_create_catalog){
+        @if(catalogManagementEnabled && show_create_catalog){
           <create-catalog></create-catalog>
         }
         @if(show_update_prod_spec){
@@ -180,7 +198,7 @@
         @if(show_update_offer){
           <update-offer [offer]="offer_to_update"></update-offer>
         }
-        @if(show_update_catalog){
+        @if(catalogManagementEnabled && show_update_catalog){
           <update-catalog [cat]="catalog_to_update"></update-catalog>
         }
         @if(show_create_custom_offer){
