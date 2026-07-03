@@ -163,12 +163,12 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
     console.log('📝 ngOnInit - Initial value:', initialValue);
     this.isEditMode = this.formType === 'update';
 
-    // Inicializar el control del formulario
-    this.formGroup.addControl('mode', new FormControl<string>(initialValue, [Validators.required]));
+    this.procurementMode = initialValue;
 
     const existingPlaSpecId = this.data?.pricingLogicAlgorithm?.[0]?.plaSpecId ?? '';
-    this.formGroup.addControl('extBillingEnabled', new FormControl<boolean>(!!existingPlaSpecId));
-    this.formGroup.addControl('plaSpecId', new FormControl<string>(existingPlaSpecId, !!existingPlaSpecId ? [Validators.required] : []));
+    this.upsertControl('mode', initialValue, [Validators.required]);
+    this.upsertControl('extBillingEnabled', !!existingPlaSpecId);
+    this.upsertControl('plaSpecId', existingPlaSpecId, !!existingPlaSpecId ? [Validators.required] : []);
 
     this.formGroup.get('extBillingEnabled')!.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((enabled: boolean) => {
       const plaControl = this.formGroup.get('plaSpecId')!;
@@ -236,6 +236,17 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
   get selectedProcurementName(): string {
     return this.procurementModes.find(mode => mode.id === this.procurementMode)?.name
       || this.procurementModes[0].name;
+  }
+
+  private upsertControl(name: string, value: any, validators: any[] = []): void {
+    const control = this.formGroup.get(name);
+    if (control) {
+      control.setValidators(validators);
+      control.setValue(value, { emitEvent: false });
+      control.updateValueAndValidity({ emitEvent: false });
+    } else {
+      this.formGroup.addControl(name, new FormControl(value, validators));
+    }
   }
 
   selectProcurementMode(id: string) {

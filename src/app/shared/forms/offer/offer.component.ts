@@ -1588,23 +1588,14 @@ export class OfferComponent implements OnInit, OnDestroy {
       const procurementTerm = this.offer.productOfferingTerm.find(
         (element: { name: string; }) => element.name === 'procurement'
       );
-      if (procurementTerm) {
-        const procurementValue = {
-          id: procurementTerm.description,
-          name: procurementTerm.description
-        };
-        console.log('Setting procurement value:', procurementValue);
-        this.productOfferForm.patchValue({
-          procurementMode: procurementValue
-        });
-      } else {
-        this.productOfferForm.patchValue({
-          procurementMode: {
-            id: 'manual',
-            name: 'Manual'
-          }
-        });
-      }
+      const plaSpecId = this.offer.pricingLogicAlgorithm?.[0]?.plaSpecId ?? '';
+      this.productOfferForm.patchValue({
+        procurementMode: {
+          mode: procurementTerm?.description || 'manual',
+          extBillingEnabled: plaSpecId !== '',
+          plaSpecId
+        }
+      });
       /*console.log('Checking procurement terms...');
       this.offer.productOfferingTerm.forEach((term: any) => {
         console.log('Checking term:', term);
