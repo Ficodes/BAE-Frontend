@@ -9,6 +9,7 @@ import * as moment from 'moment';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 
 import {components} from "src/app/models/product-catalog";
 type Catalog_Update = components["schemas"]["Catalog_Update"];
@@ -30,8 +31,8 @@ export class UpdateCatalogComponent implements OnInit, OnDestroy {
   currentStep = 0;
   highestStep = 0;
   steps = [
-    'General Info',
-    'Summary'
+    'UPDATE_CATALOG._general',
+    'UPDATE_CATALOG._summary'
   ];
 
   //markdown variables:
@@ -63,7 +64,8 @@ export class UpdateCatalogComponent implements OnInit, OnDestroy {
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
     private elementRef: ElementRef,
-    private api: ApiServiceService
+    private api: ApiServiceService,
+    private translate: TranslateService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -159,9 +161,9 @@ export class UpdateCatalogComponent implements OnInit, OnDestroy {
         console.error('There was an error while updating!', error);
         if(error.error.error){
           console.log(error)
-          this.errorMessage='Error: '+error.error.error;
+          this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
         } else {
-          this.errorMessage='There was an error while updating the catalog!';
+          this.errorMessage=this.translate.instant('UPDATE_CATALOG._update_error');
         }
         this.loading=false;
         this.showError=true;
@@ -350,4 +352,3 @@ export class UpdateCatalogComponent implements OnInit, OnDestroy {
     }
   }
 }
-

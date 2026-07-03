@@ -23,7 +23,7 @@
               class="flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50">
               <span [ngClass]="currentStep === i ? 'bg-secondary-100 text-white' : 'bg-gray-100 text-gray-600'"
                 class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold">{{ i + 1 }}</span>
-              <span>{{ step }}</span>
+              <span>{{ step | translate }}</span>
             </button>
           </li>
         }
@@ -52,7 +52,7 @@
               <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908Z" fill="currentColor"/>
               <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289Z" fill="currentFill"/>
             </svg>
-            <span class="sr-only">Loading...</span>
+            <span class="sr-only">{{ 'COMMON._loading' | translate }}</span>
           </div>
         } @else {
           <div class="space-y-6">

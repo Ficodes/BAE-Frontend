@@ -16,50 +16,50 @@ export type FeaturesConfig = Partial<Record<RuntimeFeatureFlagKey, boolean>> & R
 
 export interface FeatureFlagDefinition {
   key: FeatureFlagKey;
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
 }
 
 export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     key: 'quotesEnabled',
-    label: 'Quotes',
-    description: 'Enable quote request flows and quote pages.'
+    labelKey: 'ADMIN.FEATURES._quotes_label',
+    descriptionKey: 'ADMIN.FEATURES._quotes_description'
   },
   {
     key: 'purchaseEnabled',
-    label: 'Purchases',
-    description: 'Enable shopping cart and checkout actions.'
+    labelKey: 'ADMIN.FEATURES._purchases_label',
+    descriptionKey: 'ADMIN.FEATURES._purchases_description'
   },
   {
     key: 'aiEnabled',
-    label: 'AI search',
-    description: 'Enable AI-assisted catalog search.'
+    labelKey: 'ADMIN.FEATURES._ai_search_label',
+    descriptionKey: 'ADMIN.FEATURES._ai_search_description'
   },
   {
     key: 'tenderingEnabled',
-    label: 'Tendering',
-    description: 'Enable tendering features.'
+    labelKey: 'ADMIN.FEATURES._tendering_label',
+    descriptionKey: 'ADMIN.FEATURES._tendering_description'
   },
   {
     key: 'dataSpaceEnabled',
-    label: 'Data space',
-    description: 'Enable data space fields in organization and offer forms.'
+    labelKey: 'ADMIN.FEATURES._data_space_label',
+    descriptionKey: 'ADMIN.FEATURES._data_space_description'
   },
   {
     key: 'catalogManagementEnabled',
-    label: 'Catalog management',
-    description: 'Enable seller catalog list, create, and update screens in My Offerings.'
+    labelKey: 'ADMIN.FEATURES._catalog_management_label',
+    descriptionKey: 'ADMIN.FEATURES._catalog_management_description'
   },
   {
     key: 'launchValidationEnabled',
-    label: 'Launch validation',
-    description: 'Enable launch validation requests for offerings.'
+    labelKey: 'ADMIN.FEATURES._launch_validation_label',
+    descriptionKey: 'ADMIN.FEATURES._launch_validation_description'
   },
   {
     key: 'tenderDevButtonsOpenCloseEnabled',
-    label: 'Tender dev actions',
-    description: 'Enable tender open and close development controls.'
+    labelKey: 'ADMIN.FEATURES._tender_dev_actions_label',
+    descriptionKey: 'ADMIN.FEATURES._tender_dev_actions_description'
   }
 ];
 

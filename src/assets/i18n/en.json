@@ -1,6 +1,13 @@
 {
   "_yes": "Yes",
   "_no": "No",
+  "COMMON": {
+    "_loading": "Loading...",
+    "_save": "Save"
+  },
+  "ERRORS": {
+    "_error_prefix": "Error: {{message}}"
+  },
   "europeTrademark": "Distributed Open Marketplace for Europe (DOME) Project has received funding from European Union’s Digital Europe Programme under the Grant Agreement No 101084071.",
   "DASHBOARD": {
     "whatsdome": {
@@ -1972,7 +1979,8 @@
     "_description": "Description",
     "_next": "Next",
     "_summary": "Catalogue's summary",
-    "_finish": "Finish"
+    "_finish": "Finish",
+    "_create_error": "There was an error while creating the catalog!"
   },
   "UPDATE_CATALOG": {
     "_back": "Back",
@@ -1994,7 +2002,8 @@
     "_active": "Active",
     "_launched": "Launched",
     "_retired": "Retired",
-    "_obsolete": "Obsolete"
+    "_obsolete": "Obsolete",
+    "_update_error": "There was an error while updating the catalog!"
   },
   "CREATE_PROD_SPEC": {
     "_back": "Back",
@@ -2948,7 +2957,31 @@
     "_defaultCatalog": "Default catalog",
     "_defaultCatalogId": "Default catalog ID",
     "_noDefaultCatalogConfigured": "No default catalog is currently configured.",
-    "_saveDefaultCatalog": "Save default catalog"
+    "_saveDefaultCatalog": "Save default catalog",
+    "FEATURES": {
+      "_title": "Features",
+      "_quotes_label": "Quotes",
+      "_quotes_description": "Enable quote request flows and quote pages.",
+      "_purchases_label": "Purchases",
+      "_purchases_description": "Enable shopping cart and checkout actions.",
+      "_ai_search_label": "AI search",
+      "_ai_search_description": "Enable AI-assisted catalog search.",
+      "_tendering_label": "Tendering",
+      "_tendering_description": "Enable tendering features.",
+      "_data_space_label": "Data space",
+      "_data_space_description": "Enable data space fields in organization and offer forms.",
+      "_catalog_management_label": "Catalog management",
+      "_catalog_management_description": "Enable seller catalog list, create, and update screens in My Offerings.",
+      "_launch_validation_label": "Launch validation",
+      "_launch_validation_description": "Enable launch validation requests for offerings.",
+      "_tender_dev_actions_label": "Tender dev actions",
+      "_tender_dev_actions_description": "Enable tender open and close development controls.",
+      "_load_error": "There was an error while loading features configuration.",
+      "_save_success": "Features configuration saved successfully.",
+      "_save_error": "There was an error while saving features configuration.",
+      "_key_required_error": "Feature {{index}}: key is required.",
+      "_duplicated_key_error": "Feature \"{{key}}\" is duplicated."
+    }
   },
   "CATEGORIES": {
     "_categories": "Categories",

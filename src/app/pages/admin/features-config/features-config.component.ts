@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormControl, FormGroup } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 import {
   applyRuntimeFeaturesConfig,
   FEATURE_FLAG_DEFINITIONS,
@@ -34,7 +35,10 @@ export class FeaturesConfigComponent implements OnInit, OnDestroy {
     flags: new FormArray<FeatureFlagFormGroup>([])
   });
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private translate: TranslateService
+  ) {}
 
   ngOnInit(): void {
     void this.loadConfig();
@@ -62,7 +66,7 @@ export class FeaturesConfigComponent implements OnInit, OnDestroy {
     try {
       await this.syncFromBackend();
     } catch (error: any) {
-      this.handleError(error, 'There was an error while loading features configuration.');
+      this.handleError(error, this.translate.instant('ADMIN.FEATURES._load_error'));
     } finally {
       this.loading = false;
     }
@@ -85,13 +89,13 @@ export class FeaturesConfigComponent implements OnInit, OnDestroy {
       applyRuntimeFeaturesConfig(payload);
       await this.syncFromBackend();
 
-      this.successMessage = 'Features configuration saved successfully.';
+      this.successMessage = this.translate.instant('ADMIN.FEATURES._save_success');
       this.showSuccess = true;
       this.successTimeoutId = setTimeout(() => {
         this.showSuccess = false;
       }, 3000);
     } catch (error: any) {
-      this.handleError(error, 'There was an error while saving features configuration.');
+      this.handleError(error, this.translate.instant('ADMIN.FEATURES._save_error'));
     } finally {
       this.saving = false;
     }
@@ -130,10 +134,10 @@ export class FeaturesConfigComponent implements OnInit, OnDestroy {
       const enabled = flagControl.get('enabled')?.value === true;
 
       if (!key) {
-        throw new Error(`Feature ${index + 1}: key is required.`);
+        throw new Error(this.translate.instant('ADMIN.FEATURES._key_required_error', { index: index + 1 }));
       }
       if (seenKeys.has(key)) {
-        throw new Error(`Feature "${key}" is duplicated.`);
+        throw new Error(this.translate.instant('ADMIN.FEATURES._duplicated_key_error', { key }));
       }
 
       seenKeys.add(key);
@@ -145,7 +149,7 @@ export class FeaturesConfigComponent implements OnInit, OnDestroy {
 
   private handleError(error: any, fallbackMessage: string): void {
     if (error?.error?.error) {
-      this.errorMessage = `Error: ${error.error.error}`;
+      this.errorMessage = this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
     } else if (error?.message) {
       this.errorMessage = error.message;
     } else {
