@@ -3,7 +3,8 @@
   "_no": "No",
   "COMMON": {
     "_loading": "Loading...",
-    "_save": "Save"
+    "_save": "Save",
+    "_close": "Close"
   },
   "ERRORS": {
     "_error_prefix": "Error: {{message}}"
@@ -3078,7 +3079,12 @@
       "_title": "Select Procurement Mode",
       "_manual": "Manual",
       "_automatic": "Automatic",
-      "_payment_automatic": "Payment Automatic - Procurement Manual"
+      "_payment_automatic": "Payment Automatic - Procurement Manual",
+      "_warning_title": "Warning!",
+      "_payment_gateway_required": "You can't select this procurement mode as you are not registered on the payment gateway.",
+      "_payment_check_pending": "Payment gateway status is still being checked.",
+      "_payment_check_failed": "Payment gateway status could not be verified.",
+      "_payment_gateway_link": "Check the payment gateway here."
     },
     "PRICE_PLANS": {
       "_price_plans": "Price Plans",

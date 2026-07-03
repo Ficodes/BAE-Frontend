@@ -11,6 +11,7 @@ import { FormChangeState } from "../../../../models/interfaces";
 interface ProcurementMode {
   id: string;
   name: string;
+  labelKey?: string;
   extBillingEnabled?: boolean;
   plaSpecId?: string;
 }
@@ -40,13 +41,16 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
 
   procurementModes = [{
     id: 'manual',
-    name: 'Manual'
+    name: 'Manual',
+    labelKey: 'FORMS.PROCUREMENT_MODE._manual'
   }, {
     id: 'payment-automatic',
-    name: 'Payment Automatic - Procurement Manual'
+    name: 'Payment Automatic - Procurement Manual',
+    labelKey: 'FORMS.PROCUREMENT_MODE._payment_automatic'
   }, {
     id: 'automatic',
-    name: 'Automatic'
+    name: 'Automatic',
+    labelKey: 'FORMS.PROCUREMENT_MODE._automatic'
   }];
 
   procurementMode: string = 'manual';
@@ -58,9 +62,11 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
   private destroy$ = new Subject<void>();
 
   showProcurementError: boolean = false;
-  errorMessage: string = '';
+  errorMessageKey: string = '';
   gatewayUrl: string = '';
-  gatewayCount: number = 0;
+  gatewayCount: number | null = null;
+  paymentInfoLoaded: boolean = false;
+  paymentInfoError: boolean = false;
 
   constructor(private cdr: ChangeDetectorRef, private eventMessage: EventMessageService, private http: HttpClient) {
     console.log('🔄 Initializing ProcurementModeComponent');
@@ -191,51 +197,20 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
       console.log('📝 Original value stored:', this.originalValue);
     }
 
-    // Suscribirse a los cambios del formulario
+    this.modeControl?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(modeId => this.handleModeChange(modeId));
+
     this.formSub = this.form.valueChanges
       .pipe(takeUntil(this.destroy$))
-      .subscribe(value => {
-        console.log('📝 Form value changed in subscription:', value);
+      .subscribe(() => this.hasBeenModified = true);
 
-        if (value) {
-          if (value.mode) {
-            if (value.mode != 'manual' && this.gatewayCount == 0) {
-              this.errorMessage = "You can't select this procurement mode as you are not registered on the payment gateway.";
-              this.showProcurementError = true;
-              this.form.setErrors({ invalidProcurement: true });
-              this.formGroup.patchValue({
-                mode: 'manual'
-              }, { emitEvent: false });
-              return;
-            }
-
-            this.errorMessage = "";
-            this.showProcurementError = false;
-            this.form.setErrors(null);
-
-            const mode = this.procurementModes.find(m => m.id === value.mode) || this.procurementModes[0];
-            console.log('📝 Found mode:', mode);
-
-            this.procurementMode = mode.id;
-            console.log('📝 Current procurementMode:', this.procurementMode);
-          }
-
-          this.hasBeenModified = true;
-        }
-      });
-
-    let paymentInfoUrl = `${environment.BASE_URL}/paymentInfo`;
-    lastValueFrom(this.http.get<any>(paymentInfoUrl)).then(data => {
-      this.gatewayUrl = data.providerUrl;
-      this.gatewayCount = data.gatewaysCount;
-    }).catch(() => {
-      this.gatewayCount = 0;
-    });
+    this.loadPaymentInfo();
   }
 
-  get selectedProcurementName(): string {
-    return this.procurementModes.find(mode => mode.id === this.procurementMode)?.name
-      || this.procurementModes[0].name;
+  get selectedProcurementNameKey(): string {
+    return this.procurementModes.find(mode => mode.id === this.procurementMode)?.labelKey
+      || this.procurementModes[0].labelKey!;
   }
 
   private upsertControl(name: string, value: any, validators: any[] = []): void {
@@ -252,6 +227,11 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
   selectProcurementMode(id: string) {
     this.showProcurementDropdown = false;
 
+    if (!this.canSelectProcurementMode(id)) {
+      this.showProcurementModeError(this.getProcurementModeErrorKey());
+      return;
+    }
+
     this.formGroup.patchValue({ mode: id });
 
     const settledId = this.formGroup.get('mode')?.value ?? 'manual';
@@ -262,6 +242,95 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
 
     // Emitir el valor completo
     this.onChange(pm);
+  }
+
+  isModeUnavailable(id: string): boolean {
+    return !this.canSelectProcurementMode(id);
+  }
+
+  private loadPaymentInfo(): void {
+    const paymentInfoUrl = `${environment.BASE_URL}/paymentInfo`;
+
+    this.gatewayCount = null;
+    this.paymentInfoLoaded = false;
+    this.paymentInfoError = false;
+
+    lastValueFrom(this.http.get<any>(paymentInfoUrl)).then(data => {
+      this.gatewayUrl = data?.providerUrl ?? '';
+      this.gatewayCount = Number(data?.gatewaysCount ?? 0);
+      this.paymentInfoLoaded = true;
+      this.paymentInfoError = false;
+      this.resolvePendingPaymentError();
+    }).catch(() => {
+      this.gatewayCount = null;
+      this.paymentInfoLoaded = true;
+      this.paymentInfoError = true;
+      this.resolvePendingPaymentError();
+    });
+  }
+
+  private handleModeChange(modeId: string): void {
+    if (!modeId) {
+      return;
+    }
+
+    if (!this.canSelectProcurementMode(modeId)) {
+      this.showProcurementModeError(this.getProcurementModeErrorKey());
+      this.formGroup.patchValue({ mode: 'manual' }, { emitEvent: false });
+      this.procurementMode = 'manual';
+      return;
+    }
+
+    this.clearProcurementModeError();
+
+    const mode = this.procurementModes.find(m => m.id === modeId) || this.procurementModes[0];
+    this.procurementMode = mode.id;
+  }
+
+  private canSelectProcurementMode(modeId: string): boolean {
+    if (modeId === 'manual') {
+      return true;
+    }
+
+    return this.paymentInfoLoaded && !this.paymentInfoError && (this.gatewayCount ?? 0) > 0;
+  }
+
+  private getProcurementModeErrorKey(): string {
+    let errorKey = 'FORMS.PROCUREMENT_MODE._payment_gateway_required';
+
+    if (!this.paymentInfoLoaded) {
+      errorKey = 'FORMS.PROCUREMENT_MODE._payment_check_pending';
+    } else if (this.paymentInfoError) {
+      errorKey = 'FORMS.PROCUREMENT_MODE._payment_check_failed';
+    }
+
+    return errorKey;
+  }
+
+  private showProcurementModeError(errorKey: string): void {
+    this.errorMessageKey = errorKey;
+    this.showProcurementError = true;
+    this.form.setErrors({ invalidProcurement: true });
+  }
+
+  private clearProcurementModeError(): void {
+    this.errorMessageKey = '';
+    this.showProcurementError = false;
+    this.form.setErrors(null);
+  }
+
+  private resolvePendingPaymentError(): void {
+    if (this.errorMessageKey !== 'FORMS.PROCUREMENT_MODE._payment_check_pending') {
+      return;
+    }
+
+    if (this.paymentInfoError) {
+      this.showProcurementModeError('FORMS.PROCUREMENT_MODE._payment_check_failed');
+    } else if ((this.gatewayCount ?? 0) > 0) {
+      this.clearProcurementModeError();
+    } else {
+      this.showProcurementModeError('FORMS.PROCUREMENT_MODE._payment_gateway_required');
+    }
   }
 
   ngAfterViewInit() {
