@@ -12,6 +12,7 @@ import { PaginationService } from 'src/app/services/pagination.service';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { ProductSpecServiceService } from 'src/app/services/product-spec-service.service';
 import { environment } from 'src/environments/environment';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'seller-product-spec',
@@ -55,7 +56,8 @@ export class SellerProductSpecComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
-    private paginationService: PaginationService
+    private paginationService: PaginationService,
+    private translate: TranslateService
   ) {
     this.eventMessage.messages$
       .pipe(takeUntil(this.destroy$))
@@ -220,7 +222,7 @@ export class SellerProductSpecComponent implements OnInit, OnDestroy {
     this.prodSpecService.updateProdSpec({ lifecycleStatus: 'Launched' }, prod.id).subscribe({
       next: () => {
         this.openMenuIdx = null;
-        this.eventMessage.emitSpecCreated('Product specification successfully validated');
+        this.eventMessage.emitSpecCreated(this.translate.instant('CREATE_PROD_SPEC._validate_success'));
         this.getProdSpecs(false);
         this.loadStatusCounts();
       },
@@ -234,13 +236,13 @@ export class SellerProductSpecComponent implements OnInit, OnDestroy {
     if (!prod?.id) return;
     this.openMenuIdx = null;
     const onSuccess = () => {
-      this.eventMessage.emitSpecCreated('Product specification deleted');
+      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._product_spec_delete_success'));
       this.getProdSpecs(false);
       this.loadStatusCounts();
     };
     const onError = (err: any) => {
       console.error('Product spec delete failed', err);
-      this.eventMessage.emitSpecCreated('Could not delete this product specification.', 'error');
+      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._product_spec_delete_error'), 'error');
     };
     if (prod.lifecycleStatus === 'Active') {
       this.prodSpecService.updateProdSpec({ lifecycleStatus: 'Launched' }, prod.id).subscribe({

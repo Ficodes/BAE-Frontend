@@ -20,6 +20,7 @@ import { certifications } from 'src/app/models/certification-standards.const';
 import {ProductOfferingPrice_DTO} from 'src/app/models/interfaces';
 import { lastValueFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 
 type ProductOffering_Create = components["schemas"]["ProductOffering_Create"];
 type BundledProductOffering = components["schemas"]["BundledProductOffering"];
@@ -239,7 +240,8 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
     private attachmentService: AttachmentServiceService,
     private servSpecService: ServiceSpecServiceService,
     private resSpecService: ResourceSpecServiceService,
-    private paginationService: PaginationService
+    private paginationService: PaginationService,
+    private translate: TranslateService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -997,9 +999,9 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
                   console.error('There was an error while creating offers price!', error);
                   if(error.error.error){
                     console.log(error)
-                    this.errorMessage='Error: '+error.error.error;
+                    this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                   } else {
-                    this.errorMessage='There was an error while creating offers price!';
+                    this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                   }
                   this.showError=true;
                   setTimeout(() => {
@@ -1020,9 +1022,9 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
                 console.error('There was an error while creating offers price!', error);
                 if(error.error.error){
                   console.log(error)
-                  this.errorMessage='Error: '+error.error.error;
+                  this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                 } else {
-                  this.errorMessage='There was an error while creating offers price!';
+                  this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                 }
                 this.showError=true;
                 setTimeout(() => {
@@ -1056,9 +1058,9 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
               console.error('There was an error while creating offers price!', error);
               if(error.error.error){
                 console.log(error)
-                this.errorMessage='Error: '+error.error.error;
+                this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
               } else {
-                this.errorMessage='There was an error while creating offers price!';
+                this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
               }
               this.showError=true;
               setTimeout(() => {
@@ -1110,9 +1112,9 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
             console.error('There was an error while creating offers price!', error);
             if(error.error.error){
               console.log(error)
-              this.errorMessage='Error: '+error.error.error;
+              this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
             } else {
-              this.errorMessage='There was an error while creating offers price!';
+              this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
             }
             this.showError=true;
             setTimeout(() => {
@@ -1213,9 +1215,9 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
         console.error('There was an error while creating the offer!', error);
         if(error.error.error){
           console.log(error)
-          this.errorMessage='Error: '+error.error.error;
+          this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
         } else {
-          this.errorMessage='There was an error while creating the offer!';
+          this.errorMessage=this.translate.instant('CREATE_OFFER._save_error');
         }
         this.showError=true;
         setTimeout(() => {

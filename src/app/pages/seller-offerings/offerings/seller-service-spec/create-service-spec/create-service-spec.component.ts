@@ -10,6 +10,7 @@ import { LocalStorageService } from "src/app/services/local-storage.service";
 import { ServiceSpecServiceService } from 'src/app/services/service-spec-service.service';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
 import { v4 as uuidv4 } from 'uuid';
+import { TranslateService } from '@ngx-translate/core';
 
 import { components } from "src/app/models/service-catalog";
 import { environment } from 'src/environments/environment';
@@ -35,8 +36,8 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy {
   currentStep = 0;
   highestStep = 0;
   steps = [
-    'General info',
-    'Configuration options'
+    'CREATE_SERV_SPEC._step_general_info',
+    'CREATE_SERV_SPEC._step_configuration_options'
   ];
 
   //markdown variables:
@@ -98,6 +99,7 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy {
     private eventMessage: EventMessageService,
     private elementRef: ElementRef,
     private servSpecService: ServiceSpecServiceService,
+    private translate: TranslateService,
   ) {
     this.eventMessage.messages$
       .pipe(takeUntil(this.destroy$))
@@ -160,7 +162,7 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy {
   }
 
   finishAsDraft() {
-    this.eventMessage.emitSpecCreated(this.isEditMode ? 'Service specification successfully updated' : 'Service specification successfully created');
+    this.eventMessage.emitSpecCreated(this.translate.instant(this.isEditMode ? 'CREATE_SERV_SPEC._update_success' : 'CREATE_SERV_SPEC._create_success'));
     this.showSuccessModal = false;
     this.eventMessage.emitSellerServiceSpec(true);
   }
@@ -174,17 +176,23 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy {
     this.servSpecService.updateServSpec({ lifecycleStatus: 'Launched' }, this.createdServiceId).subscribe({
       next: () => {
         this.loading = false;
-        this.eventMessage.emitSpecCreated('Service specification successfully validated');
+        this.eventMessage.emitSpecCreated(this.translate.instant('CREATE_SERV_SPEC._validate_success'));
         this.showSuccessModal = false;
         this.eventMessage.emitSellerServiceSpec(true);
       },
       error: () => {
         this.loading = false;
-        this.errorMessage = 'There was an error while validating the service!';
+        this.errorMessage = this.translate.instant('CREATE_SERV_SPEC._validate_error');
         this.showError = true;
         setTimeout(() => { this.showError = false; }, 3000);
       }
     });
+  }
+
+  private getErrorMessage(error: any, fallbackKey: string): string {
+    return error?.error?.error
+      ? this.translate.instant('ERRORS._error_prefix', { message: error.error.error })
+      : this.translate.instant(fallbackKey);
   }
 
   toggleGeneral() {
@@ -458,7 +466,7 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy {
         },
         error: error => {
           console.error('There was an error while updating!', error);
-          this.errorMessage = error?.error?.error ? 'Error: ' + error.error.error : 'There was an error while updating the service!';
+          this.errorMessage = this.getErrorMessage(error, 'CREATE_SERV_SPEC._update_error');
           this.loading = false;
           this.showError = true;
           setTimeout(() => { this.showError = false; }, 3000);
@@ -474,12 +482,7 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy {
       },
       error: error => {
         console.error('There was an error while creating!', error);
-        if (error.error.error) {
-          console.log(error)
-          this.errorMessage = 'Error: ' + error.error.error;
-        } else {
-          this.errorMessage = 'There was an error while creating the service!';
-        }
+        this.errorMessage = this.getErrorMessage(error, 'CREATE_SERV_SPEC._create_error');
         this.loading = false;
         this.showError = true;
         setTimeout(() => {

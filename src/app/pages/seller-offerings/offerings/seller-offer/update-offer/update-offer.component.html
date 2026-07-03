@@ -35,7 +35,7 @@
                 <div class="min-h-screen bg-[#F7F9FD] font-[Blinker]">
                   <div class="mx-auto max-w-[1440px] px-8">
                     <nav class="flex items-center gap-2 pt-4 pb-4 text-[16px] text-[#526179]">
-                      <span>Marketplace</span>
+                      <span>{{ 'OFFERINGS._marketplace' | translate }}</span>
                       <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
                       <div class="h-4 w-32 bg-gray-200 animate-pulse rounded"></div>
                     </nav>
@@ -56,21 +56,21 @@
                     <div class="flex items-center justify-between rounded-2xl bg-white border border-[#EBECEE] shadow-sm p-3 flex-wrap gap-y-2">
                       <div class="flex items-center gap-2">
                         @for(chip of [
-                          {label:'Delivery model', w: 120},
-                          {label:'Compliance level', w: 128},
-                          {label:'Addressable sector', w: 140},
-                          {label:'Procurement type', w: 132},
-                          {label:'Integration type', w: 120}
+                          {label:'OFFERINGS._delivery_model', w: 120},
+                          {label:'OFFERINGS._compliance_level', w: 128},
+                          {label:'OFFERINGS._addressable_sector', w: 140},
+                          {label:'OFFERINGS._procurement_type', w: 132},
+                          {label:'OFFERINGS._integration_type', w: 120}
                         ]; track chip.label){
                           <div class="flex items-center gap-2 h-10 rounded-lg border border-gray-200 pl-4 pr-3 text-[16px] text-[#324153]">
-                            <span class="text-[#526179]">{{ chip.label }}</span>
+                            <span class="text-[#526179]">{{ chip.label | translate }}</span>
                             <svg class="h-4 w-4 text-[#526179]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
                           </div>
                         }
                       </div>
                       <div class="flex items-center gap-2 text-[16px] text-[#1f4fbf]">
                         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/></svg>
-                        Clear all
+                        {{ 'OFFERINGS._clear_all' | translate }}
                       </div>
                     </div>
                   </div>
@@ -79,8 +79,8 @@
                       <aside class="w-[260px] lg:w-[300px] shrink-0">
                         <div class="rounded-xl border border-gray-200 bg-white p-5">
                           <div class="mb-4 flex items-center justify-between">
-                            <h3 class="text-[18px] font-semibold text-[#0b1220]">Filters</h3>
-                            <span class="text-[14px] font-medium text-[#1f4fbf]">Clear all</span>
+                            <h3 class="text-[18px] font-semibold text-[#0b1220]">{{ 'OFFERINGS._filters' | translate }}</h3>
+                            <span class="text-[14px] font-medium text-[#1f4fbf]">{{ 'OFFERINGS._clear_all' | translate }}</span>
                           </div>
                           @for(row of [
                             {w:130},{w:210},{w:80},{w:170},{w:220},{w:150},{w:190}

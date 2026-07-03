@@ -18,6 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { currencies } from 'currencies.json';
 import { lastValueFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 
 type ProductOffering_Update = components["schemas"]["ProductOffering_Update"];
 type BundledProductOffering = components["schemas"]["BundledProductOffering"];
@@ -229,7 +230,8 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
     private attachmentService: AttachmentServiceService,
     private servSpecService: ServiceSpecServiceService,
     private resSpecService: ResourceSpecServiceService,
-    private paginationService: PaginationService
+    private paginationService: PaginationService,
+    private translate: TranslateService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -1109,9 +1111,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                       console.error('There was an error while creating offers price!', error);
                       if(error.error.error){
                         console.log(error)
-                        this.errorMessage='Error: '+error.error.error;
+                        this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                       } else {
-                        this.errorMessage='There was an error while creating offers price!';
+                        this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                       }
                       this.showError=true;
                       setTimeout(() => {
@@ -1132,9 +1134,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                     console.error('There was an error while creating offers price!', error);
                     if(error.error.error){
                       console.log(error)
-                      this.errorMessage='Error: '+error.error.error;
+                      this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                     } else {
-                      this.errorMessage='There was an error while creating offers price!';
+                      this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                     }
                     this.showError=true;
                     setTimeout(() => {
@@ -1169,9 +1171,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
               console.error('There was an error while creating offers price!', error);
               if(error.error.error){
                 console.log(error)
-                this.errorMessage='Error: '+error.error.error;
+                this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
               } else {
-                this.errorMessage='There was an error while creating offers price!';
+                this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
               }
               this.showError=true;
               setTimeout(() => {
@@ -1222,9 +1224,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
               console.error('There was an error while creating offers price!', error);
               if(error.error.error){
                 console.log(error)
-                this.errorMessage='Error: '+error.error.error;
+                this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
               } else {
-                this.errorMessage='There was an error while creating offers price!';
+                this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
               }
               this.showError=true;
               setTimeout(() => {
@@ -1303,9 +1305,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                             console.error('There was an error while creating offers price!', error);
                             if(error.error.error){
                               console.log(error)
-                              this.errorMessage='Error: '+error.error.error;
+                              this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                             } else {
-                              this.errorMessage='There was an error while creating offers price!';
+                              this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                             }
                             this.showError=true;
                             setTimeout(() => {
@@ -1337,9 +1339,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                             console.error('There was an error while creating offers price!', error);
                             if(error.error.error){
                               console.log(error)
-                              this.errorMessage='Error: '+error.error.error;
+                              this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                             } else {
-                              this.errorMessage='There was an error while creating offers price!';
+                              this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                             }
                             this.showError=true;
                             setTimeout(() => {
@@ -1361,9 +1363,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                         console.error('There was an error while creating offers price!', error);
                         if(error.error.error){
                           console.log(error)
-                          this.errorMessage='Error: '+error.error.error;
+                          this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                         } else {
-                          this.errorMessage='There was an error while creating offers price!';
+                          this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                         }
                         this.showError=true;
                         setTimeout(() => {
@@ -1425,9 +1427,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                           console.error('There was an error while creating offers price!', error);
                           if(error.error.error){
                             console.log(error)
-                            this.errorMessage='Error: '+error.error.error;
+                            this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                           } else {
-                            this.errorMessage='There was an error while creating offers price!';
+                            this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                           }
                           this.showError=true;
                           setTimeout(() => {
@@ -1448,9 +1450,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                         console.error('There was an error while creating offers price!', error);
                         if(error.error.error){
                           console.log(error)
-                          this.errorMessage='Error: '+error.error.error;
+                          this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                         } else {
-                          this.errorMessage='There was an error while creating offers price!';
+                          this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                         }
                         this.showError=true;
                         setTimeout(() => {
@@ -1487,9 +1489,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                   console.error('There was an error while creating offers price!', error);
                   if(error.error.error){
                     console.log(error)
-                    this.errorMessage='Error: '+error.error.error;
+                    this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                   } else {
-                    this.errorMessage='There was an error while creating offers price!';
+                    this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                   }
                   this.showError=true;
                   setTimeout(() => {
@@ -1520,9 +1522,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                   console.error('There was an error while creating offers price!', error);
                   if(error.error.error){
                     console.log(error)
-                    this.errorMessage='Error: '+error.error.error;
+                    this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                   } else {
-                    this.errorMessage='There was an error while creating offers price!';
+                    this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                   }
                   this.showError=true;
                   setTimeout(() => {
@@ -1607,9 +1609,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
         console.error('There was an error while updating!', error);
         if(error.error.error){
           console.log(error)
-          this.errorMessage='Error: '+error.error.error;
+          this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
         } else {
-          this.errorMessage='There was an error while updating the offer!';
+          this.errorMessage=this.translate.instant('UPDATE_OFFER._update_error');
         }
         this.showError=true;
         setTimeout(() => {

@@ -10,6 +10,7 @@ import { LocalStorageService } from "src/app/services/local-storage.service";
 import { ResourceSpecServiceService } from 'src/app/services/resource-spec-service.service';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
 import { v4 as uuidv4 } from 'uuid';
+import { TranslateService } from '@ngx-translate/core';
 
 import { components } from "src/app/models/resource-catalog";
 import { environment } from 'src/environments/environment';
@@ -35,8 +36,8 @@ export class CreateResourceSpecComponent implements OnInit, OnDestroy {
   currentStep = 0;
   highestStep = 0;
   steps = [
-    'General info',
-    'Configuration options'
+    'CREATE_RES_SPEC._step_general_info',
+    'CREATE_RES_SPEC._step_configuration_options'
   ];
 
   //markdown variables:
@@ -98,6 +99,7 @@ export class CreateResourceSpecComponent implements OnInit, OnDestroy {
     private eventMessage: EventMessageService,
     private elementRef: ElementRef,
     private resSpecService: ResourceSpecServiceService,
+    private translate: TranslateService,
   ) {
     this.eventMessage.messages$
       .pipe(takeUntil(this.destroy$))
@@ -160,7 +162,7 @@ export class CreateResourceSpecComponent implements OnInit, OnDestroy {
   }
 
   finishAsDraft() {
-    this.eventMessage.emitSpecCreated(this.isEditMode ? 'Resource specification successfully updated' : 'Resource specification successfully created');
+    this.eventMessage.emitSpecCreated(this.translate.instant(this.isEditMode ? 'CREATE_RES_SPEC._update_success' : 'CREATE_RES_SPEC._create_success'));
     this.showSuccessModal = false;
     this.eventMessage.emitSellerResourceSpec(true);
   }
@@ -174,17 +176,23 @@ export class CreateResourceSpecComponent implements OnInit, OnDestroy {
     this.resSpecService.updateResSpec({ lifecycleStatus: 'Launched' }, this.createdResourceId).subscribe({
       next: () => {
         this.loading = false;
-        this.eventMessage.emitSpecCreated('Resource specification successfully validated');
+        this.eventMessage.emitSpecCreated(this.translate.instant('CREATE_RES_SPEC._validate_success'));
         this.showSuccessModal = false;
         this.eventMessage.emitSellerResourceSpec(true);
       },
       error: () => {
         this.loading = false;
-        this.errorMessage = 'There was an error while validating the resource!';
+        this.errorMessage = this.translate.instant('CREATE_RES_SPEC._validate_error');
         this.showError = true;
         setTimeout(() => { this.showError = false; }, 3000);
       }
     });
+  }
+
+  private getErrorMessage(error: any, fallbackKey: string): string {
+    return error?.error?.error
+      ? this.translate.instant('ERRORS._error_prefix', { message: error.error.error })
+      : this.translate.instant(fallbackKey);
   }
 
   toggleGeneral() {
@@ -458,7 +466,7 @@ export class CreateResourceSpecComponent implements OnInit, OnDestroy {
         },
         error: error => {
           console.error('There was an error while updating!', error);
-          this.errorMessage = error?.error?.error ? 'Error: ' + error.error.error : 'There was an error while updating the resource!';
+          this.errorMessage = this.getErrorMessage(error, 'CREATE_RES_SPEC._update_error');
           this.loading = false;
           this.showError = true;
           setTimeout(() => { this.showError = false; }, 3000);
@@ -474,12 +482,7 @@ export class CreateResourceSpecComponent implements OnInit, OnDestroy {
       },
       error: error => {
         console.error('There was an error while creating!', error);
-        if (error.error.error) {
-          console.log(error)
-          this.errorMessage = 'Error: ' + error.error.error;
-        } else {
-          this.errorMessage = 'There was an error while creating the resource!';
-        }
+        this.errorMessage = this.getErrorMessage(error, 'CREATE_RES_SPEC._create_error');
         this.loading = false;
         this.showError = true;
         setTimeout(() => {

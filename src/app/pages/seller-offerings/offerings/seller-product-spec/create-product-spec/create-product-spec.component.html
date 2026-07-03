@@ -23,7 +23,7 @@
               <div class="w-px h-8 bg-gray-300 my-1"></div>
             }
           </div>
-          <span class="mt-1 text-base font-medium" [ngClass]="stepLabelClasses(i)">{{ step }}</span>
+          <span class="mt-1 text-base font-medium" [ngClass]="stepLabelClasses(i)">{{ step | translate }}</span>
         </div>
       }
     </div>
@@ -750,10 +750,10 @@
             <label class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_PROD_SPEC._type' | translate }}</label>
             <select data-cy="prodSpecCharType" id="type" (change)="onTypeChange($event)"
               class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-2.5">
-              <option selected value="string">String</option>
-              <option value="number">Number</option>
-              <option value="range">Number range</option>
-              <option value="boolean">Boolean</option>
+              <option selected value="string">{{ 'CREATE_PROD_SPEC._type_string' | translate }}</option>
+              <option value="number">{{ 'CREATE_PROD_SPEC._type_number' | translate }}</option>
+              <option value="range">{{ 'CREATE_PROD_SPEC._type_number_range' | translate }}</option>
+              <option value="boolean">{{ 'CREATE_PROD_SPEC._type_boolean' | translate }}</option>
             </select>
           </div>
           <div class="col-span-1 md:col-span-2">
@@ -855,7 +855,7 @@
             </div>
           } @else if (booleanCharSelected){
             <div class="flex items-center gap-3">
-              <span class="text-sm font-medium text-gray-700">Default value is true</span>
+              <span class="text-sm font-medium text-gray-700">{{ 'CREATE_PROD_SPEC._default_value_true' | translate }}</span>
               <label class="inline-flex items-center cursor-pointer">
                 <input data-cy="prodSpecCharBooleanDefault" type="checkbox" [(ngModel)]="booleanDefaultTrue" (change)="onBooleanDefaultChange()" class="sr-only peer">
                 <div class="relative w-11 h-6 bg-gray-300 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-100 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-100"></div>

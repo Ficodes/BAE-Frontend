@@ -13,6 +13,7 @@ import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'seller-service-spec',
@@ -54,7 +55,8 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
-    private paginationService: PaginationService
+    private paginationService: PaginationService,
+    private translate: TranslateService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -217,7 +219,7 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
     this.servSpecService.updateServSpec({ lifecycleStatus: 'Launched' }, serv.id).subscribe({
       next: () => {
         this.openMenuIdx = null;
-        this.eventMessage.emitSpecCreated('Service specification successfully validated');
+        this.eventMessage.emitSpecCreated(this.translate.instant('CREATE_SERV_SPEC._validate_success'));
         this.getServSpecs(false);
         this.loadStatusCounts();
       },
@@ -231,13 +233,13 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
     if(!serv?.id) return;
     this.openMenuIdx = null;
     const onSuccess = () => {
-      this.eventMessage.emitSpecCreated('Service specification deleted');
+      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._service_spec_delete_success'));
       this.getServSpecs(false);
       this.loadStatusCounts();
     };
     const onError = (err: any) => {
       console.error('Service spec delete failed', err);
-      this.eventMessage.emitSpecCreated('Could not delete this service specification.', 'error');
+      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._service_spec_delete_error'), 'error');
     };
     if(serv.lifecycleStatus === 'Active'){
       this.servSpecService.updateServSpec({ lifecycleStatus: 'Launched' }, serv.id).subscribe({

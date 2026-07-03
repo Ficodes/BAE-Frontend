@@ -14,6 +14,7 @@ import { noWhitespaceValidator } from 'src/app/validators/validators';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { POPULAR_ICON_CATEGORIES, findIconByName, IconCategory } from 'src/app/config/popular-icons';
+import { TranslateService } from '@ngx-translate/core';
 
 import {components} from "src/app/models/product-catalog";
 import { environment } from 'src/environments/environment';
@@ -39,13 +40,13 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   currentStep = 0;
   highestStep = 0;
   steps = [
-    'General info',
-    'Product details',
-    'Configuration options',
-    'Service specifications',
-    'Resource specifications',
-    'FAQs',
-    'Compliance profile'
+    'CREATE_PROD_SPEC._step_general_info',
+    'CREATE_PROD_SPEC._step_product_details',
+    'CREATE_PROD_SPEC._step_configuration_options',
+    'CREATE_PROD_SPEC._step_service_specs',
+    'CREATE_PROD_SPEC._step_resource_specs',
+    'CREATE_PROD_SPEC._step_faqs',
+    'CREATE_PROD_SPEC._step_compliance_profile'
   ];
 
   productImage: { name: string, size?: number } | null = null;
@@ -157,6 +158,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     private resSpecService: ResourceSpecServiceService,
     private servSpecService: ServiceSpecServiceService,
     private attachmentService: AttachmentServiceService,
+    private translate: TranslateService,
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -318,19 +320,25 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   private onPersistSuccess(launched: boolean){
     this.loading = false;
     this.showSuccessModal = false;
-    const msg = launched
-      ? 'Product specification successfully validated'
-      : (this.isEditMode ? 'Product specification successfully updated' : 'Product specification successfully created');
+    const msg = this.translate.instant(launched
+      ? 'CREATE_PROD_SPEC._validate_success'
+      : (this.isEditMode ? 'CREATE_PROD_SPEC._update_success' : 'CREATE_PROD_SPEC._create_success'));
     this.eventMessage.emitSpecCreated(msg);
     this.eventMessage.emitSellerProductSpec(true);
   }
 
   private onPersistError(error: any){
     console.error('There was an error while saving the product spec!', error);
-    this.errorMessage = error?.error?.error ? 'Error: ' + error.error.error : 'There was an error while saving the product!';
+    this.errorMessage = this.getErrorMessage(error, 'CREATE_PROD_SPEC._save_error');
     this.loading = false;
     this.showError = true;
     setTimeout(() => { this.showError = false; }, 3000);
+  }
+
+  private getErrorMessage(error: any, fallbackKey: string): string {
+    return error?.error?.error
+      ? this.translate.instant('ERRORS._error_prefix', { message: error.error.error })
+      : this.translate.instant(fallbackKey);
   }
 
   onTypeChange(event: any) {
@@ -696,8 +704,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
             this.uploadingImage = false;
             console.error('Image upload failed', err);
             this.errorMessage = err?.status === 413
-              ? 'File size too large! Must be under 3MB.'
-              : (err?.error?.error ? 'Error: ' + err.error.error : 'There was an error while uploading the image!');
+              ? this.translate.instant('CREATE_PROD_SPEC._file_size_error')
+              : this.getErrorMessage(err, 'CREATE_PROD_SPEC._image_upload_error');
             this.showError = true;
             setTimeout(() => { this.showError = false; }, 3000);
             this.removeProductImage();
@@ -748,8 +756,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
               this.uploadingAttachment = this.attachments.some(a => (a as any)._uploading && a !== placeholder);
               console.error('Attachment upload failed', err);
               this.errorMessage = err?.status === 413
-                ? 'File size too large! Must be under 3MB.'
-                : (err?.error?.error ? 'Error: ' + err.error.error : 'There was an error while uploading the file!');
+                ? this.translate.instant('CREATE_PROD_SPEC._file_size_error')
+                : this.getErrorMessage(err, 'CREATE_PROD_SPEC._file_upload_error');
               this.showError = true;
               setTimeout(() => { this.showError = false; }, 3000);
               const idx = this.attachments.indexOf(placeholder);
@@ -866,8 +874,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
         error: (err: any) => {
           console.error('Compliance upload failed', err);
           this.errorMessage = err?.status === 413
-            ? 'File size too large! Must be under 3MB.'
-            : (err?.error?.error ? 'Error: ' + err.error.error : 'There was an error while uploading the file!');
+            ? this.translate.instant('CREATE_PROD_SPEC._file_size_error')
+            : this.getErrorMessage(err, 'CREATE_PROD_SPEC._file_upload_error');
           this.showError = true;
           setTimeout(() => { this.showError = false; }, 3000);
           onError();
@@ -928,11 +936,11 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   private serializeProductDetails(): string {
     const parts: string[] = [];
     if (this.howItWorks?.trim()) {
-      parts.push(`<section data-dome-section="how-it-works" data-text="${this.attr(this.howItWorks)}"><h3>How it works</h3><p>${this.esc(this.howItWorks)}</p></section>`);
+      parts.push(`<section data-dome-section="how-it-works" data-text="${this.attr(this.howItWorks)}"><h3>${this.esc(this.translate.instant('CREATE_PROD_SPEC._how_it_works'))}</h3><p>${this.esc(this.howItWorks)}</p></section>`);
     }
-    parts.push(this.serializeItemSection('key-features', 'Key features', this.keyFeatures, true));
-    parts.push(this.serializeItemSection('business-benefits', 'Business benefits', this.businessBenefits, false));
-    parts.push(this.serializeItemSection('use-cases', 'Use cases', this.useCases, true));
+    parts.push(this.serializeItemSection('key-features', this.translate.instant('CREATE_PROD_SPEC._key_features'), this.keyFeatures, true));
+    parts.push(this.serializeItemSection('business-benefits', this.translate.instant('CREATE_PROD_SPEC._business_benefits'), this.businessBenefits, false));
+    parts.push(this.serializeItemSection('use-cases', this.translate.instant('CREATE_PROD_SPEC._use_cases'), this.useCases, true));
     parts.push(this.serializeFaqs());
     return parts.filter(Boolean).join('\n');
   }
@@ -942,7 +950,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     const lis = this.faqs.map(f =>
       `<li data-q="${this.attr(f.question)}" data-a="${this.attr(f.answer)}"><strong>${this.esc(f.question)}</strong><p>${this.esc(f.answer)}</p></li>`
     ).join('');
-    return `<section data-dome-section="faqs"><h3>FAQs</h3><ul>${lis}</ul></section>`;
+    return `<section data-dome-section="faqs"><h3>${this.esc(this.translate.instant('CREATE_PROD_SPEC._faqs'))}</h3><ul>${lis}</ul></section>`;
   }
 
   private serializeItemSection(key: string, title: string, items: any[], withIcon: boolean): string {

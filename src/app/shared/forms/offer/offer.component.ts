@@ -1,7 +1,7 @@
 import { DecimalPipe, LowerCasePipe, NgClass } from "@angular/common";
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
-import { TranslateModule } from "@ngx-translate/core";
+import { TranslateModule, TranslateService } from "@ngx-translate/core";
 import * as moment from 'moment';
 import { lastValueFrom, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -60,11 +60,11 @@ export class OfferComponent implements OnInit, OnDestroy {
   currentStep = 0;
   highestStep = 0;
   steps = [
-    'General info',
-    'Category',
-    'Terms & Conditions',
-    'Price plans',
-    'Procurement mode'
+    'CREATE_OFFER._step_general_info',
+    'CREATE_OFFER._step_category',
+    'CREATE_OFFER._step_terms',
+    'CREATE_OFFER._step_price_plans',
+    'CREATE_OFFER._step_procurement_mode'
   ];
   isFormValid = false;
   selectedProdSpec: any;
@@ -164,7 +164,8 @@ export class OfferComponent implements OnInit, OnDestroy {
     private prodSpecService: ProductSpecServiceService,
     private localStorage: LocalStorageService,
     private usageService: UsageServiceService,
-    private accountService: AccountServiceService) {
+    private accountService: AccountServiceService,
+    private translate: TranslateService) {
 
     this.productOfferForm = this.fb.group({
       generalInfo: this.fb.group({
@@ -397,10 +398,10 @@ export class OfferComponent implements OnInit, OnDestroy {
     if (this.formType === 'create' && this.hasAnyDraftData()) {
       try {
         await this.saveDraftOffer();
-        this.eventMessage.emitSpecCreated('Draft saved');
+        this.eventMessage.emitSpecCreated(this.translate.instant('CREATE_OFFER._draft_saved'));
       } catch (err: any) {
         console.error('Failed to save draft offer', err);
-        this.errorMessage = err?.error?.error || err?.message || 'Failed to save draft';
+        this.errorMessage = err?.error?.error || err?.message || this.translate.instant('CREATE_OFFER._draft_save_error');
         this.showError = true;
         setTimeout(() => (this.showError = false), 4000);
         return;
@@ -437,7 +438,7 @@ export class OfferComponent implements OnInit, OnDestroy {
 
     const catalogue = this.autoCatalogue || await this.ensureCatalogue();
     if (!catalogue?.id) {
-      throw new Error('Could not save draft: provider catalogue is unavailable.');
+      throw new Error(this.translate.instant('CREATE_OFFER._draft_catalogue_unavailable'));
     }
     await lastValueFrom(this.api.postProductOffering(offer, catalogue.id));
   }
@@ -1727,7 +1728,9 @@ export class OfferComponent implements OnInit, OnDestroy {
 
   private handleApiError(error: any): void {
     console.error('Error while creating offer price!', error);
-    this.errorMessage = error?.error?.error ? 'Error: ' + error.error.error : 'Error creating offer price!';
+    this.errorMessage = error?.error?.error
+      ? this.translate.instant('ERRORS._error_prefix', { message: error.error.error })
+      : this.translate.instant('CREATE_OFFER._price_create_error');
     this.showError = true;
     setTimeout(() => (this.showError = false), 3000);
   }
@@ -2045,7 +2048,7 @@ export class OfferComponent implements OnInit, OnDestroy {
 
     const catalogueId = formValue.catalogue?.id || this.autoCatalogue?.id;
     if (this.formType === 'create' && !catalogueId) {
-      this.errorMessage = 'No catalogue available for this user. Please create one first.';
+      this.errorMessage = this.translate.instant('CREATE_OFFER._no_catalogue_available');
       this.loading = false;
       this.showError = true;
       setTimeout(() => (this.showError = false), 3000);
@@ -2061,12 +2064,14 @@ export class OfferComponent implements OnInit, OnDestroy {
         console.log('product offer created:');
         console.log(data);
         this.loading = false;
-        this.eventMessage.emitSpecCreated(this.formType === 'create' ? 'Product offer successfully created' : 'Product offer successfully updated');
+        this.eventMessage.emitSpecCreated(this.translate.instant(this.formType === 'create' ? 'CREATE_OFFER._create_success' : 'UPDATE_OFFER._update_success'));
         this.goBack();
       },
       error: (error) => {
         console.error('Error during offer save/update:', error);
-        this.errorMessage = error?.error?.error ? 'Error: ' + error.error.error : 'An error occurred while saving the offer!';
+        this.errorMessage = error?.error?.error
+          ? this.translate.instant('ERRORS._error_prefix', { message: error.error.error })
+          : this.translate.instant('CREATE_OFFER._save_error');
         this.loading = false;
         this.showError = true;
         setTimeout(() => (this.showError = false), 3000);
@@ -2334,7 +2339,9 @@ export class OfferComponent implements OnInit, OnDestroy {
       this.goBack();
     } catch (error: any) {
       console.error('❌ Error updating offer:', error);
-      this.errorMessage = error?.error?.error ? 'Error: ' + error.error.error : 'An error occurred while updating the offer!';
+      this.errorMessage = error?.error?.error
+        ? this.translate.instant('ERRORS._error_prefix', { message: error.error.error })
+        : this.translate.instant('UPDATE_OFFER._update_error');
       this.loading = false;
       this.showError = true;
       setTimeout(() => (this.showError = false), 3000);

@@ -13,6 +13,7 @@ import {EventMessageService} from "src/app/services/event-message.service";
 import { initFlowbite } from 'flowbite';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'seller-resource-spec',
@@ -54,7 +55,8 @@ export class SellerResourceSpecComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
-    private paginationService: PaginationService
+    private paginationService: PaginationService,
+    private translate: TranslateService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -223,7 +225,7 @@ export class SellerResourceSpecComponent implements OnInit, OnDestroy {
     this.resSpecService.updateResSpec({ lifecycleStatus: 'Launched' }, res.id).subscribe({
       next: () => {
         this.openMenuIdx = null;
-        this.eventMessage.emitSpecCreated('Resource specification successfully validated');
+        this.eventMessage.emitSpecCreated(this.translate.instant('CREATE_RES_SPEC._validate_success'));
         this.getResSpecs(false);
         this.loadStatusCounts();
       },
@@ -237,13 +239,13 @@ export class SellerResourceSpecComponent implements OnInit, OnDestroy {
     if(!res?.id) return;
     this.openMenuIdx = null;
     const onSuccess = () => {
-      this.eventMessage.emitSpecCreated('Resource specification deleted');
+      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._resource_spec_delete_success'));
       this.getResSpecs(false);
       this.loadStatusCounts();
     };
     const onError = (err: any) => {
       console.error('Resource spec delete failed', err);
-      this.eventMessage.emitSpecCreated('Could not delete this resource specification.', 'error');
+      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._resource_spec_delete_error'), 'error');
     };
     if(res.lifecycleStatus === 'Active'){
       this.resSpecService.updateResSpec({ lifecycleStatus: 'Launched' }, res.id).subscribe({

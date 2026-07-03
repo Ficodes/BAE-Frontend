@@ -13,6 +13,7 @@ import { initFlowbite } from 'flowbite';
 import { PriceServiceService } from 'src/app/services/price-service.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'seller-offer',
@@ -66,7 +67,8 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
     private paginationService: PaginationService,
-    private priceService: PriceServiceService
+    private priceService: PriceServiceService,
+    private translate: TranslateService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -264,17 +266,17 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     if(!offer?.id) return;
     this.openMenuIdx = null;
     if(!this.isOfferComplete(offer)){
-      this.eventMessage.emitSpecCreated('Cannot publish: the offer is incomplete. Please fill in all required fields first.', 'error');
+      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._publish_incomplete_error'), 'error');
       return;
     }
     this.api.updateProductOffering({ lifecycleStatus: 'Launched' }, offer.id).subscribe({
       next: () => {
-        this.eventMessage.emitSpecCreated('Product offer successfully published');
+        this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_publish_success'));
         this.getOffers(false);
         this.loadStatusCounts();
       },
       error: () => {
-        this.eventMessage.emitSpecCreated('Could not publish this product offer.', 'error');
+        this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_publish_error'), 'error');
       }
     });
   }
@@ -284,12 +286,12 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     this.openMenuIdx = null;
     this.api.updateProductOffering({ lifecycleStatus: 'Retired' }, offer.id).subscribe({
       next: () => {
-        this.eventMessage.emitSpecCreated('Product offer unpublished');
+        this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_unpublish_success'));
         this.getOffers(false);
         this.loadStatusCounts();
       },
       error: () => {
-        this.eventMessage.emitSpecCreated('Could not unpublish this product offer.', 'error');
+        this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_unpublish_error'), 'error');
       }
     });
   }
@@ -324,12 +326,12 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     const catalogId = Array.isArray(offer.catalog) && offer.catalog.length > 0 ? offer.catalog[0].id : null;
     this.api.postProductOffering(copy, catalogId).subscribe({
       next: () => {
-        this.eventMessage.emitSpecCreated('Product offer duplicated');
+        this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_duplicate_success'));
         this.getOffers(false);
         this.loadStatusCounts();
       },
       error: () => {
-        this.eventMessage.emitSpecCreated('Could not duplicate this product offer.', 'error');
+        this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_duplicate_error'), 'error');
       }
     });
   }
@@ -338,13 +340,13 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     if(!offer?.id) return;
     this.openMenuIdx = null;
     const onSuccess = () => {
-      this.eventMessage.emitSpecCreated('Product offer restored');
+      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_restore_success'));
       this.getOffers(false);
       this.loadStatusCounts();
     };
     const onError = (err: any) => {
       console.error('Product offer restore failed', err);
-      this.eventMessage.emitSpecCreated('Could not restore this product offer.', 'error');
+      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_restore_error'), 'error');
     };
     this.api.updateProductOffering({ lifecycleStatus: 'Retired' }, offer.id).subscribe({
       next: () => {
@@ -362,13 +364,13 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     this.openMenuIdx = null;
     this.api.deleteProductOffering(offer.id).subscribe({
       next: () => {
-        this.eventMessage.emitSpecCreated('Product offer deleted permanently');
+        this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_delete_permanent_success'));
         this.getOffers(false);
         this.loadStatusCounts();
       },
       error: (err: any) => {
         console.error('Permanent delete failed', err);
-        this.eventMessage.emitSpecCreated('Could not delete this product offer permanently.', 'error');
+        this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_delete_permanent_error'), 'error');
       }
     });
   }
@@ -377,13 +379,13 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     if(!offer?.id) return;
     this.openMenuIdx = null;
     const onSuccess = () => {
-      this.eventMessage.emitSpecCreated('Product offer deleted');
+      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_delete_success'));
       this.getOffers(false);
       this.loadStatusCounts();
     };
     const onError = (err: any) => {
       console.error('Product offer delete failed', err);
-      this.eventMessage.emitSpecCreated('Could not delete this product offer.', 'error');
+      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_delete_error'), 'error');
     };
     if(offer.lifecycleStatus === 'Active'){
       this.api.updateProductOffering({ lifecycleStatus: 'Launched' }, offer.id).subscribe({
