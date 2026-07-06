@@ -44,6 +44,8 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
   };
   statusCounts: { [k: string]: number } = { Draft: 0, Validated: 0, Deleted: 0 };
   openMenuIdx: number | null = null;
+  deleteConfirmation: any | null = null;
+  deleteLoading: boolean = false;
   partyId:any;
   sort:any=undefined;
   private destroy$ = new Subject<void>();
@@ -232,12 +234,39 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
   deleteServ(serv: any){
     if(!serv?.id) return;
     this.openMenuIdx = null;
+    this.deleteConfirmation = serv;
+  }
+
+  cancelDeleteServ(): void {
+    if (this.deleteLoading) return;
+    this.deleteConfirmation = null;
+  }
+
+  confirmDeleteServ(): void {
+    if (!this.deleteConfirmation || this.deleteLoading) return;
+    const serv = this.deleteConfirmation;
+    this.deleteLoading = true;
+    this.performDeleteServ(serv);
+  }
+
+  get deleteServName(): string {
+    return this.deleteConfirmation?.name || '';
+  }
+
+  private clearDeleteConfirmation(): void {
+    this.deleteLoading = false;
+    this.deleteConfirmation = null;
+  }
+
+  private performDeleteServ(serv: any){
     const onSuccess = () => {
+      this.clearDeleteConfirmation();
       this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._service_spec_delete_success'));
       this.getServSpecs(false);
       this.loadStatusCounts();
     };
     const onError = (err: any) => {
+      this.clearDeleteConfirmation();
       console.error('Service spec delete failed', err);
       this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._service_spec_delete_error'), 'error');
     };

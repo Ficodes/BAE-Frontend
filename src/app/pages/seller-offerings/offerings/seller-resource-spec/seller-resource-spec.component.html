@@ -129,3 +129,29 @@
     }
   </div>
 </div>
+
+@if(deleteConfirmation){
+  <div data-cy="deleteResourceSpecConfirmModal" (click)="cancelDeleteRes()" class="fixed inset-0 z-50 flex items-center justify-center px-4" style="background-color: rgba(11, 21, 40, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div (click)="$event.stopPropagation()" role="dialog" aria-modal="true" class="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-gray-100">
+      <div class="p-6">
+        <div class="flex items-start gap-4">
+          <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600">
+            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12V16.5Zm9-4.5a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <h2 class="text-lg font-bold text-gray-900">{{ 'OFFERINGS._delete_resource_spec_title' | translate }}</h2>
+            <p class="mt-2 text-sm leading-6 text-gray-600">{{ 'OFFERINGS._delete_resource_spec_desc' | translate:{ name: deleteResName } }}</p>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end gap-3">
+          <button type="button" (click)="cancelDeleteRes()" [disabled]="deleteLoading" class="h-10 px-4 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50">{{ 'OFFERINGS._cancel' | translate }}</button>
+          <button data-cy="confirmDeleteResourceSpec" type="button" (click)="confirmDeleteRes()" [disabled]="deleteLoading" class="h-10 px-4 rounded-lg bg-red-600 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50">
+            {{ (deleteLoading ? 'OFFERINGS._deleting' : 'OFFERINGS._delete') | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -3,7 +3,9 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { of } from 'rxjs';
 import { EventMessageService } from 'src/app/services/event-message.service';
+import { ProductSpecServiceService } from 'src/app/services/product-spec-service.service';
 
 import { SellerProductSpecComponent } from './seller-product-spec.component';
 
@@ -11,6 +13,7 @@ describe('SellerProductSpecComponent', () => {
   let component: SellerProductSpecComponent;
   let fixture: ComponentFixture<SellerProductSpecComponent>;
   let eventMessage: EventMessageService;
+  let productSpecService: ProductSpecServiceService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -23,6 +26,7 @@ describe('SellerProductSpecComponent', () => {
     fixture = TestBed.createComponent(SellerProductSpecComponent);
     component = fixture.componentInstance;
     eventMessage = TestBed.inject(EventMessageService);
+    productSpecService = TestBed.inject(ProductSpecServiceService);
   });
 
   it('should create', () => {
@@ -69,5 +73,34 @@ describe('SellerProductSpecComponent', () => {
 
     component.onTypeChange({ target: { value: 'all' } });
     expect(component.isBundle).toBeUndefined();
+  });
+
+  it('deleteProd should require confirmation before deleting a product spec', () => {
+    const updateSpy = spyOn(productSpecService, 'updateProdSpec').and.returnValue(of({}) as any);
+    spyOn(eventMessage, 'emitSpecCreated');
+    spyOn(component, 'getProdSpecs');
+    spyOn(component, 'loadStatusCounts');
+    const prod = { id: 'prod-2', name: 'Product Spec Two', lifecycleStatus: 'Launched' };
+
+    component.deleteProd(prod);
+
+    expect(component.deleteConfirmation).toBe(prod);
+    expect(updateSpy).not.toHaveBeenCalled();
+
+    component.confirmDeleteProd();
+
+    expect(updateSpy).toHaveBeenCalledWith({ lifecycleStatus: 'Retired' }, 'prod-2');
+    expect(component.deleteConfirmation).toBeNull();
+    expect(component.deleteLoading).toBeFalse();
+  });
+
+  it('cancelDeleteProd should clear pending delete without calling API', () => {
+    const updateSpy = spyOn(productSpecService, 'updateProdSpec').and.returnValue(of({}) as any);
+
+    component.deleteProd({ id: 'prod-3', name: 'Product Spec Three' });
+    component.cancelDeleteProd();
+
+    expect(component.deleteConfirmation).toBeNull();
+    expect(updateSpy).not.toHaveBeenCalled();
   });
 });

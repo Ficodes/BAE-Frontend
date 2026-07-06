@@ -3,7 +3,7 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { Subject } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { Router } from '@angular/router';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { PaginationService } from 'src/app/services/pagination.service';
@@ -27,12 +27,16 @@ describe('SellerOfferComponent', () => {
 
   beforeEach(async () => {
     messages$ = new Subject<any>();
-    apiSpy = jasmine.createSpyObj<ApiServiceService>('ApiServiceService', ['getProductOfferByOwner']);
+    apiSpy = jasmine.createSpyObj<ApiServiceService>('ApiServiceService', [
+      'getProductOfferByOwner',
+      'updateProductOffering',
+      'deleteProductOffering',
+    ]);
     paginationSpy = jasmine.createSpyObj<PaginationService>('PaginationService', ['getItemsPaginated']);
     localStorageSpy = jasmine.createSpyObj<LocalStorageService>('LocalStorageService', ['getObject']);
     eventMessageSpy = jasmine.createSpyObj<EventMessageService>(
       'EventMessageService',
-      ['emitSellerCreateOffer', 'emitSellerUpdateOffer', 'emitSellerCreateCustomOffer'],
+      ['emitSellerCreateOffer', 'emitSellerUpdateOffer', 'emitSellerCreateCustomOffer', 'emitSpecCreated'],
       { messages$: messages$.asObservable() }
     );
     priceServiceSpy = jasmine.createSpyObj<PriceServiceService>('PriceServiceService', ['isCustomOffering']);
@@ -49,6 +53,8 @@ describe('SellerOfferComponent', () => {
       partyId: 'party-user',
       organizations: [],
     } as any);
+    apiSpy.updateProductOffering.and.returnValue(of({}) as any);
+    apiSpy.deleteProductOffering.and.returnValue(of({}) as any);
 
     await TestBed.configureTestingModule({
       schemas: [NO_ERRORS_SCHEMA],
@@ -240,6 +246,51 @@ describe('SellerOfferComponent', () => {
     const offer = { id: 'off-2' };
     component.goToCreateCustom(offer);
     expect(eventMessageSpy.emitSellerCreateCustomOffer).toHaveBeenCalledWith(offer);
+  });
+
+  it('deleteOffer should require confirmation before archiving an offer', () => {
+    spyOn(component, 'getOffers');
+    spyOn(component, 'loadStatusCounts');
+    const offer = { id: 'off-3', name: 'Offer Three', lifecycleStatus: 'Retired' };
+
+    component.deleteOffer(offer);
+
+    expect(component.deleteConfirmation).toEqual({ offer, permanent: false });
+    expect(apiSpy.updateProductOffering).not.toHaveBeenCalled();
+
+    component.confirmDeleteOffer();
+
+    expect(apiSpy.updateProductOffering).toHaveBeenCalledWith({ lifecycleStatus: 'Obsolete' }, 'off-3');
+    expect(component.deleteConfirmation).toBeNull();
+    expect(component.deleteLoading).toBeFalse();
+  });
+
+  it('deleteOfferPermanent should require confirmation before deleting permanently', () => {
+    spyOn(component, 'getOffers');
+    spyOn(component, 'loadStatusCounts');
+    const offer = { id: 'off-4', name: 'Offer Four', lifecycleStatus: 'Obsolete' };
+
+    component.deleteOfferPermanent(offer);
+
+    expect(component.deleteConfirmation).toEqual({ offer, permanent: true });
+    expect(apiSpy.deleteProductOffering).not.toHaveBeenCalled();
+
+    component.confirmDeleteOffer();
+
+    expect(apiSpy.deleteProductOffering).toHaveBeenCalledWith('off-4');
+    expect(component.deleteConfirmation).toBeNull();
+    expect(component.deleteLoading).toBeFalse();
+  });
+
+  it('cancelDeleteOffer should clear pending delete without calling API', () => {
+    const offer = { id: 'off-5', name: 'Offer Five' };
+
+    component.deleteOffer(offer);
+    component.cancelDeleteOffer();
+
+    expect(component.deleteConfirmation).toBeNull();
+    expect(apiSpy.updateProductOffering).not.toHaveBeenCalled();
+    expect(apiSpy.deleteProductOffering).not.toHaveBeenCalled();
   });
 
   it('hasLongWord should detect words above threshold', () => {

@@ -44,6 +44,8 @@ export class SellerProductSpecComponent implements OnInit, OnDestroy {
   };
   statusCounts: { [k: string]: number } = { Draft: 0, Validated: 0, Deleted: 0 };
   openMenuIdx: number | null = null;
+  deleteConfirmation: any | null = null;
+  deleteLoading: boolean = false;
   partyId: any;
   sort: any = undefined;
   isBundle: any = undefined;
@@ -235,12 +237,39 @@ export class SellerProductSpecComponent implements OnInit, OnDestroy {
   deleteProd(prod: any) {
     if (!prod?.id) return;
     this.openMenuIdx = null;
+    this.deleteConfirmation = prod;
+  }
+
+  cancelDeleteProd(): void {
+    if (this.deleteLoading) return;
+    this.deleteConfirmation = null;
+  }
+
+  confirmDeleteProd(): void {
+    if (!this.deleteConfirmation || this.deleteLoading) return;
+    const prod = this.deleteConfirmation;
+    this.deleteLoading = true;
+    this.performDeleteProd(prod);
+  }
+
+  get deleteProdName(): string {
+    return this.deleteConfirmation?.name || '';
+  }
+
+  private clearDeleteConfirmation(): void {
+    this.deleteLoading = false;
+    this.deleteConfirmation = null;
+  }
+
+  private performDeleteProd(prod: any) {
     const onSuccess = () => {
+      this.clearDeleteConfirmation();
       this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._product_spec_delete_success'));
       this.getProdSpecs(false);
       this.loadStatusCounts();
     };
     const onError = (err: any) => {
+      this.clearDeleteConfirmation();
       console.error('Product spec delete failed', err);
       this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._product_spec_delete_error'), 'error');
     };

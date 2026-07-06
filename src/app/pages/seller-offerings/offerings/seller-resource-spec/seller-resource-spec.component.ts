@@ -44,6 +44,8 @@ export class SellerResourceSpecComponent implements OnInit, OnDestroy {
   };
   statusCounts: { [k: string]: number } = { Draft: 0, Validated: 0, Deleted: 0 };
   openMenuIdx: number | null = null;
+  deleteConfirmation: any | null = null;
+  deleteLoading: boolean = false;
   partyId:any;
   sort:any=undefined;
   private destroy$ = new Subject<void>();
@@ -238,12 +240,39 @@ export class SellerResourceSpecComponent implements OnInit, OnDestroy {
   deleteRes(res: any){
     if(!res?.id) return;
     this.openMenuIdx = null;
+    this.deleteConfirmation = res;
+  }
+
+  cancelDeleteRes(): void {
+    if (this.deleteLoading) return;
+    this.deleteConfirmation = null;
+  }
+
+  confirmDeleteRes(): void {
+    if (!this.deleteConfirmation || this.deleteLoading) return;
+    const res = this.deleteConfirmation;
+    this.deleteLoading = true;
+    this.performDeleteRes(res);
+  }
+
+  get deleteResName(): string {
+    return this.deleteConfirmation?.name || '';
+  }
+
+  private clearDeleteConfirmation(): void {
+    this.deleteLoading = false;
+    this.deleteConfirmation = null;
+  }
+
+  private performDeleteRes(res: any){
     const onSuccess = () => {
+      this.clearDeleteConfirmation();
       this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._resource_spec_delete_success'));
       this.getResSpecs(false);
       this.loadStatusCounts();
     };
     const onError = (err: any) => {
+      this.clearDeleteConfirmation();
       console.error('Resource spec delete failed', err);
       this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._resource_spec_delete_error'), 'error');
     };

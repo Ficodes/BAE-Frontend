@@ -50,6 +50,8 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
   publishedDelta: number = 2;
   viewsDelta: number = 18;
   openMenuIdx: number | null = null;
+  deleteConfirmation: { offer: any; permanent: boolean } | null = null;
+  deleteLoading: boolean = false;
 
   get totalOffersCount(): number {
     return Object.values(this.statusCounts).reduce((sum, n) => sum + (n || 0), 0);
@@ -362,13 +364,62 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
   deleteOfferPermanent(offer: any){
     if(!offer?.id) return;
     this.openMenuIdx = null;
+    this.deleteConfirmation = { offer, permanent: true };
+  }
+
+  cancelDeleteOffer(): void {
+    if (this.deleteLoading) return;
+    this.deleteConfirmation = null;
+  }
+
+  confirmDeleteOffer(): void {
+    if (!this.deleteConfirmation || this.deleteLoading) return;
+    const { offer, permanent } = this.deleteConfirmation;
+    this.deleteLoading = true;
+    if (permanent) {
+      this.performPermanentDeleteOffer(offer);
+    } else {
+      this.performDeleteOffer(offer);
+    }
+  }
+
+  get deleteOfferTitleKey(): string {
+    return this.deleteConfirmation?.permanent
+      ? 'OFFERINGS._delete_offer_permanent_title'
+      : 'OFFERINGS._delete_offer_title';
+  }
+
+  get deleteOfferDescriptionKey(): string {
+    return this.deleteConfirmation?.permanent
+      ? 'OFFERINGS._delete_offer_permanent_desc'
+      : 'OFFERINGS._delete_offer_desc';
+  }
+
+  get deleteOfferConfirmKey(): string {
+    return this.deleteConfirmation?.permanent
+      ? 'OFFERINGS._delete_permanently'
+      : 'OFFERINGS._delete';
+  }
+
+  get deleteOfferName(): string {
+    return this.deleteConfirmation?.offer?.name || '';
+  }
+
+  private clearDeleteConfirmation(): void {
+    this.deleteLoading = false;
+    this.deleteConfirmation = null;
+  }
+
+  private performPermanentDeleteOffer(offer: any){
     this.api.deleteProductOffering(offer.id).subscribe({
       next: () => {
+        this.clearDeleteConfirmation();
         this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_delete_permanent_success'));
         this.getOffers(false);
         this.loadStatusCounts();
       },
       error: (err: any) => {
+        this.clearDeleteConfirmation();
         console.error('Permanent delete failed', err);
         this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_delete_permanent_error'), 'error');
       }
@@ -378,12 +429,18 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
   deleteOffer(offer: any){
     if(!offer?.id) return;
     this.openMenuIdx = null;
+    this.deleteConfirmation = { offer, permanent: false };
+  }
+
+  private performDeleteOffer(offer: any){
     const onSuccess = () => {
+      this.clearDeleteConfirmation();
       this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_delete_success'));
       this.getOffers(false);
       this.loadStatusCounts();
     };
     const onError = (err: any) => {
+      this.clearDeleteConfirmation();
       console.error('Product offer delete failed', err);
       this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_delete_error'), 'error');
     };
