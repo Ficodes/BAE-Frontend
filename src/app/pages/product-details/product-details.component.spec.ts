@@ -113,18 +113,18 @@ describe('ProductDetailsComponent', () => {
     expect(component.showQuoteModal).toBeTrue();
   });
 
-  it('getComplianceDescription should return text by level', () => {
+  it('getComplianceDescription should return translation keys by level', () => {
     component.complianceLevel = 'NL';
-    expect(component.getComplianceDescription()).toContain("hasn't reached any compliance level");
+    expect(component.getComplianceDescription()).toBe('PRODUCT_DETAILS._compliance_no_level_desc');
 
     component.complianceLevel = 'BL';
-    expect(component.getComplianceDescription()).toContain('self attestation');
+    expect(component.getComplianceDescription()).toBe('PRODUCT_DETAILS._compliance_baseline_desc');
 
     component.complianceLevel = 'P';
-    expect(component.getComplianceDescription()).toContain('Professional level');
+    expect(component.getComplianceDescription()).toBe('PRODUCT_DETAILS._compliance_professional_desc');
 
     component.complianceLevel = 'PP';
-    expect(component.getComplianceDescription()).toContain('CNDCP');
+    expect(component.getComplianceDescription()).toBe('PRODUCT_DETAILS._compliance_professional_plus_desc');
 
     component.complianceLevel = 'UNKNOWN';
     expect(component.getComplianceDescription()).toBe('');

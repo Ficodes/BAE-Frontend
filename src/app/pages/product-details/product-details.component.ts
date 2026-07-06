@@ -73,7 +73,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   complianceProf:any[] = [];
   additionalCerts:any[] = [];
   complianceLevel:string='NL';
-  complianceDescription:string='No level. This product hasnt reached any compliance level yet.'
+  complianceDescription:string='PRODUCT_DETAILS._compliance_no_level_desc'
   serviceSpecs:any[] = [];
   resourceSpecs:any[]=[];
   check_logged:boolean=false;
@@ -480,13 +480,13 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   getComplianceDescription(): string {
     switch (this.complianceLevel) {
       case 'NL':
-        return `No level. This product hasn't reached any compliance level yet.`;
+        return 'PRODUCT_DETAILS._compliance_no_level_desc';
       case 'BL':
-        return `Basic level. Reached when the provider signs the "self attestation" document (attached below).`;
+        return 'PRODUCT_DETAILS._compliance_baseline_desc';
       case 'P':
-        return `Professional level. The provider has signed the "self attestation" document (attached below) and the product includes the following certifications: BSI-C5, CISPE, EU Cloud CoC, CSA CCM, ISO/IEC 27001, TISAX and SWIPO.`;
+        return 'PRODUCT_DETAILS._compliance_professional_desc';
       case 'PP':
-        return `Professional level. The provider has signed the "self attestation" document (attached below) and the product includes the following certifications: BSI-C5, CISPE, EU Cloud CoC, CSA CCM, ISO/IEC 27001, TISAX, SWIPO and CNDCP (Climate Neutral Data Centre Pact).`;
+        return 'PRODUCT_DETAILS._compliance_professional_plus_desc';
       default:
         return '';
     }

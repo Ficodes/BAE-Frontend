@@ -3,7 +3,7 @@
   <div class="mx-auto max-w-[1200px] px-8">
 
     <nav class="flex items-center gap-2 pt-4 pb-6 text-[16px] text-[#526179]">
-      <a (click)="back()" class="cursor-pointer hover:text-[#1f4fbf] transition-colors">All categories</a>
+      <a (click)="back()" class="cursor-pointer hover:text-[#1f4fbf] transition-colors">{{ 'PRODUCT_DETAILS._all_categories' | translate }}</a>
       <svg class="h-4 w-4 text-[#526179]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
       </svg>
@@ -27,7 +27,7 @@
           </div>
           @if (showDescriptionReadMore) {
             <button (click)="openDescriptionModal()" class="mt-2 text-[14px] font-medium text-[#1f4fbf] hover:underline">
-              Read more
+              {{ 'PRODUCT_DETAILS._read_more' | translate }}
             </button>
           }
         </div>
@@ -64,17 +64,17 @@
       <div class="hidden lg:block relative rounded-2xl bg-[#EBECEE] aspect-[2/1] overflow-hidden">
         @if(isPreview){
           <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
-          <img class="relative z-10 h-full w-full object-contain p-3" src="{{getProductImage()}}" alt="Product image">
+          <img class="relative z-10 h-full w-full object-contain p-3" src="{{getProductImage()}}" [attr.alt]="'PRODUCT_DETAILS._product_image' | translate">
         } @else {
-          <img class="h-full w-full object-cover" src="{{getProductImage()}}" alt="Product image">
+          <img class="h-full w-full object-cover" src="{{getProductImage()}}" [attr.alt]="'PRODUCT_DETAILS._product_image' | translate">
         }
       </div>
       <div class="lg:hidden relative rounded-2xl bg-[#EBECEE] aspect-[2/1] overflow-hidden">
         @if(isPreview){
           <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
-          <img class="relative z-10 h-full w-full object-contain p-3" src="{{getProductImage()}}" alt="Product image">
+          <img class="relative z-10 h-full w-full object-contain p-3" src="{{getProductImage()}}" [attr.alt]="'PRODUCT_DETAILS._product_image' | translate">
         } @else {
-          <img class="h-full w-full object-cover" src="{{getProductImage()}}" alt="Product image">
+          <img class="h-full w-full object-cover" src="{{getProductImage()}}" [attr.alt]="'PRODUCT_DETAILS._product_image' | translate">
         }
       </div>
     </div>
@@ -84,15 +84,15 @@
         <div class="flex w-full gap-1">
           <button (click)="activeTab='overview'" [ngClass]="tabClass('overview')"
             class="flex-1 py-1 px-2 text-[16px] leading-[24px] tracking-[0.5px] text-center rounded-[12px] transition-colors">
-            Overview
+            {{ 'PRODUCT_DETAILS._tab_overview' | translate }}
           </button>
           <button (click)="activeTab='pricing'" [ngClass]="tabClass('pricing')"
             class="flex-1 py-1 px-2 text-[16px] leading-[24px] tracking-[0.5px] text-center rounded-[12px] transition-colors">
-            Pricing
+            {{ 'PRODUCT_DETAILS._tab_pricing' | translate }}
           </button>
           <button (click)="activeTab='compliance'" [ngClass]="tabClass('compliance')"
             class="flex-1 py-1 px-2 text-[16px] leading-[24px] tracking-[0.5px] text-center rounded-[12px] transition-colors">
-            Compliance
+            {{ 'PRODUCT_DETAILS._tab_compliance' | translate }}
           </button>
         </div>
         @if(check_logged){
@@ -140,7 +140,7 @@
                 </svg>
               </div>
               <div>
-                <span class="text-[14px] text-[#8896A8] block">Offer version</span>
+                <span class="text-[14px] text-[#8896A8] block">{{ 'PRODUCT_DETAILS._offer_version' | translate }}</span>
                 <span class="text-[16px] font-semibold text-[#14274A]">v{{productOff?.version || '1.0'}}</span>
               </div>
             </div>
@@ -151,7 +151,7 @@
                 </svg>
               </div>
               <div>
-                <span class="text-[14px] text-[#8896A8] block">Last update</span>
+                <span class="text-[14px] text-[#8896A8] block">{{ 'PRODUCT_DETAILS._last_update' | translate }}</span>
                 <span class="text-[16px] font-semibold text-[#14274A]">{{productOff?.lastUpdate | date:'dd/MM/yy, HH:mm'}}</span>
               </div>
             </div>
@@ -162,7 +162,7 @@
                 </svg>
               </div>
               <div>
-                <span class="text-[14px] text-[#8896A8] block">Product name</span>
+                <span class="text-[14px] text-[#8896A8] block">{{ 'PRODUCT_DETAILS._product_name' | translate }}</span>
                 <span class="text-[16px] font-semibold text-[#14274A]">{{prodSpec.name}}</span>
               </div>
             </div>
@@ -174,7 +174,7 @@
                 </svg>
               </div>
               <div>
-                <span class="text-[14px] text-[#8896A8] block">Identification number</span>
+                <span class="text-[14px] text-[#8896A8] block">{{ 'PRODUCT_DETAILS._identification_number' | translate }}</span>
                 <span class="text-[16px] font-semibold text-[#14274A]">{{prodSpec.productNumber}}</span>
               </div>
             </div>
@@ -187,7 +187,7 @@
                 </svg>
               </div>
               <div>
-                <span class="text-[14px] text-[#8896A8] block">Brand</span>
+                <span class="text-[14px] text-[#8896A8] block">{{ 'PRODUCT_DETAILS._brand' | translate }}</span>
                 <span class="text-[16px] font-semibold text-[#14274A]">{{prodSpec.brand}}</span>
               </div>
             </div>
@@ -200,7 +200,7 @@
                 </svg>
               </div>
               <div>
-                <span class="text-[14px] text-[#8896A8] block">Owner</span>
+                <span class="text-[14px] text-[#8896A8] block">{{ 'PRODUCT_DETAILS._owner' | translate }}</span>
                 <a (click)="goToOrgDetails(orgInfo.id)" class="text-[16px] font-semibold text-[#1f4fbf] cursor-pointer hover:underline">{{orgInfo.tradingName}}</a>
               </div>
             </div>
@@ -210,7 +210,7 @@
 
         @if(specOverview){
         <div class="mb-8">
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">Description</h2>
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._description' | translate }}</h2>
           <div [ngClass]="descMoreOpen ? '' : 'line-clamp-[8]'" class="overflow-hidden">
             <markdown [ngClass]="{
                 'break-all': hasLongWord(specOverview, 20),
@@ -219,7 +219,7 @@
           </div>
           @if(isLongText(specOverview)){
             <button (click)="descMoreOpen=!descMoreOpen" class="mt-3 inline-flex items-center gap-1 text-[14px] font-semibold text-[#1f4fbf] hover:underline">
-              {{ descMoreOpen ? 'Read less' : 'Read more' }}
+              {{ (descMoreOpen ? 'PRODUCT_DETAILS._read_less' : 'PRODUCT_DETAILS._read_more') | translate }}
               <svg class="w-4 h-4 transition-transform" [class.rotate-180]="descMoreOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
             </button>
           }
@@ -228,7 +228,7 @@
 
         @if(howItWorks){
         <div class="mb-8">
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">How it works</h2>
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._how_it_works' | translate }}</h2>
           <div [ngClass]="howItWorksMoreOpen ? '' : 'line-clamp-[8]'" class="overflow-hidden">
             <markdown [ngClass]="{
                 'break-all': hasLongWord(howItWorks, 20),
@@ -237,7 +237,7 @@
           </div>
           @if(isLongText(howItWorks)){
             <button (click)="howItWorksMoreOpen=!howItWorksMoreOpen" class="mt-3 inline-flex items-center gap-1 text-[14px] font-semibold text-[#1f4fbf] hover:underline">
-              {{ howItWorksMoreOpen ? 'Read less' : 'Read more' }}
+              {{ (howItWorksMoreOpen ? 'PRODUCT_DETAILS._read_less' : 'PRODUCT_DETAILS._read_more') | translate }}
               <svg class="w-4 h-4 transition-transform" [class.rotate-180]="howItWorksMoreOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
             </button>
           }
@@ -246,7 +246,7 @@
 
         @if(keyFeatures.length > 0){
         <div class="mb-10">
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-6">Key Features</h2>
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-6">{{ 'PRODUCT_DETAILS._key_features' | translate }}</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             @for(feat of keyFeatures; track feat){
               <div class="kf-card relative isolate overflow-hidden flex flex-row items-start gap-6 p-6 bg-white border border-[#DDE6F6] rounded-2xl">
@@ -270,7 +270,7 @@
 
         @if(businessBenefits.length > 0){
         <div class="mb-10">
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-6">Business Benefits</h2>
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-6">{{ 'PRODUCT_DETAILS._business_benefits' | translate }}</h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             @for(benefit of businessBenefits; track benefit){
               <div class="flex flex-col items-start gap-4 px-6 py-4 bg-[#EBF0F7] rounded-2xl">
@@ -293,7 +293,7 @@
 
         @if(useCases.length > 0){
         <div class="mb-10">
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-6">Use Cases</h2>
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-6">{{ 'PRODUCT_DETAILS._use_cases' | translate }}</h2>
           <div class="flex flex-col gap-4">
             @for(uc of useCases; track uc){
               <div class="rounded-2xl bg-white border border-[#EBECEE] p-6">
@@ -356,7 +356,7 @@
         }
         @if(faqs.length > 0){
         <div class="mb-10">
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-6">FAQs</h2>
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-6">{{ 'PRODUCT_DETAILS._faqs' | translate }}</h2>
           <div class="flex flex-col gap-4">
             @for(faq of faqs; track $index){
               <article class="faq-card" [class.faq-card--open]="isFaqOpen($index)">
@@ -430,7 +430,7 @@
         }
 
         @if(usageMetrics.length > 0){
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">Usage metrics</h2>
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._usage_metrics' | translate }}</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             @for (metric of usageMetrics; track metric.id) {
               <div class="rounded-2xl bg-white border border-[#EBECEE] p-6">
@@ -446,7 +446,7 @@
 
       @if (activeTab === 'compliance') {
         <div class="mb-8">
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">Certification</h2>
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._certification' | translate }}</h2>
           <div class="rounded-2xl bg-[#eef2fb] border border-[#D8DADE] p-6">
             <div class="flex items-center gap-4">
               <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1f4fbf]">
@@ -456,15 +456,15 @@
               </div>
               <div>
                 @if(complianceLevel=='NL'){
-                  <h3 class="text-[18px] font-bold text-[#14274A]">No level</h3>
+                  <h3 class="text-[18px] font-bold text-[#14274A]">{{ 'PRODUCT_DETAILS._compliance_no_level' | translate }}</h3>
                 }@else if(complianceLevel=='BL'){
-                  <h3 class="text-[18px] font-bold text-[#14274A]">Baseline</h3>
+                  <h3 class="text-[18px] font-bold text-[#14274A]">{{ 'PRODUCT_DETAILS._compliance_baseline' | translate }}</h3>
                 } @else if(complianceLevel=='P') {
-                  <h3 class="text-[18px] font-bold text-[#14274A]">Professional</h3>
+                  <h3 class="text-[18px] font-bold text-[#14274A]">{{ 'PRODUCT_DETAILS._compliance_professional' | translate }}</h3>
                 } @else {
-                  <h3 class="text-[18px] font-bold text-[#14274A]">Professional+</h3>
+                  <h3 class="text-[18px] font-bold text-[#14274A]">{{ 'PRODUCT_DETAILS._compliance_professional_plus' | translate }}</h3>
                 }
-                <p class="text-[14px] text-[#526179]">{{ complianceDescription }}</p>
+                <p class="text-[14px] text-[#526179]">{{ complianceDescription | translate }}</p>
               </div>
             </div>
             @if (selfAtt) {
@@ -477,7 +477,7 @@
 
         @if(complianceProf.length>0){
         <div class="mb-8">
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">Key Capabilities</h2>
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._key_capabilities' | translate }}</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             @for (char of complianceProf; track char.id) {
               <div class="rounded-2xl bg-white border border-[#EBECEE] p-6 cursor-pointer hover:shadow-md transition-shadow" (click)="goToLink(char.href)">
@@ -493,7 +493,7 @@
 
         @if(additionalCerts.length>0){
         <div class="mb-8">
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">Additional certifications</h2>
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._additional_certifications' | translate }}</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             @for (char of additionalCerts; track char.id) {
               <div class="rounded-2xl bg-white border border-[#EBECEE] p-6 cursor-pointer hover:shadow-md transition-shadow" (click)="goToLink(char.productSpecCharacteristicValue?.at(0)?.value)">
@@ -523,7 +523,7 @@
               </div>
               @if(showReadMoreButton){
                 <button class="mt-4 text-[#1f4fbf] font-medium text-[14px] hover:underline" (click)="toggleTermsReadMore()">
-                  {{ showTermsMore ? 'Read less' : 'Read more' }}
+                  {{ (showTermsMore ? 'PRODUCT_DETAILS._read_less' : 'PRODUCT_DETAILS._read_more') | translate }}
                 </button>
               }
             </div>
@@ -552,10 +552,10 @@
 
       @if (!check_logged) {
         <div class="rounded-2xl bg-[#14274A] px-8 py-16 text-center mt-8">
-          <h2 class="text-[32px] font-bold text-white mb-3">Ready to get started?</h2>
-          <p class="text-[16px] text-gray-300 mb-6">Join thousands of companies using {{productOff?.name}}</p>
+          <h2 class="text-[32px] font-bold text-white mb-3">{{ 'PRODUCT_DETAILS._ready_to_get_started' | translate }}</h2>
+          <p class="text-[16px] text-gray-300 mb-6">{{ 'PRODUCT_DETAILS._join_companies_using' | translate:{ productName: productOff?.name } }}</p>
           <a [href]="customersLink" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-8 py-3.5 rounded-lg bg-[#1f4fbf] text-white text-[16px] font-medium hover:bg-[#163b99] transition-colors">
-            Join DOME Marketplace
+            {{ 'PRODUCT_DETAILS._join_marketplace' | translate }}
           </a>
         </div>
       }
@@ -576,7 +576,7 @@
       </div>
       <div class="flex items-center ms-auto space-x-2 rtl:space-x-reverse p-1.5">
         <button type="button" (click)="deleteProduct(lastAddedProd)" class="px-3 py-2 text-xs font-medium text-center text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">{{ 'CARD._undo' | translate }}</button>
-        <button type="button" (click)="toastVisibility=false" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-add-cart" aria-label="Close">
+        <button type="button" (click)="toastVisibility=false" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-add-cart" [attr.aria-label]="'CARD._close_toast' | translate">
           <span class="sr-only">{{ 'CARD._close_toast' | translate }}</span>
           <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
