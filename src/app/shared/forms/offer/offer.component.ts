@@ -66,7 +66,6 @@ export class OfferComponent implements OnInit, OnDestroy {
     'CREATE_OFFER._step_price_plans',
     'CREATE_OFFER._step_procurement_mode'
   ];
-  isFormValid = false;
   selectedProdSpec: any;
   pricePlans: any = [];
   errorMessage: any = '';
@@ -238,13 +237,6 @@ export class OfferComponent implements OnInit, OnDestroy {
       discountDurationUnit: new FormControl('month')
     });
 
-    this.productOfferForm.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        const name = this.productOfferForm.get('generalInfo')?.get('name')?.value;
-        this.isFormValid = !!(name && String(name).trim().length > 0);
-      });
-
     // Subscribe to subform changes
     this.formSubscription = this.eventMessage.messages$
       .pipe(takeUntil(this.destroy$))
@@ -278,6 +270,10 @@ export class OfferComponent implements OnInit, OnDestroy {
   }
 
   goToStep(index: number) {
+    if (!this.canNavigate(index)) {
+      this.productOfferForm.markAllAsTouched();
+      return;
+    }
     if (this.currentStep === 3 && index !== 3 && this.pricePlanFormMode === 'form') {
       this.cancelCurrentPricePlanForm();
     }
@@ -307,24 +303,50 @@ export class OfferComponent implements OnInit, OnDestroy {
   }
 
   validateCurrentStep(): boolean {
-    switch (this.currentStep) {
+    return this.isStepValid(this.currentStep);
+  }
+
+  private isStepValid(index: number): boolean {
+    switch (index) {
       case 0:
-        return (this.productOfferForm.get('generalInfo')?.valid || false) && !!this.productOfferForm.get('prodSpec')?.value;
+        return (this.productOfferForm.get('generalInfo')?.valid || false)
+          && !!this.productOfferForm.get('prodSpec')?.value
+          && !!this.selectedSectorId;
       case 1:
         return !!this.selectedRootCategoryId;
       case 2:
         return true;
       case 3:
-        return true;
+        return this.isPriceStepValid();
       case 4:
         return this.productOfferForm.get('procurementMode')?.valid || false;
       default:
-        return true;
+        return false;
     }
   }
 
-  canNavigate(index: number) {
-    return true;
+  private isPriceStepValid(): boolean {
+    if (this.selectedPriceTier === 'free') return true;
+    if (this.selectedPriceTier === 'tailored') return this.tailoredPricePlans.length > 0;
+    if (this.selectedPriceTier === 'online') return this.onlinePaidPricePlans.length > 0;
+    return false;
+  }
+
+  canNavigate(index: number): boolean {
+    if (index < 0 || index >= this.steps.length) return false;
+    if (index <= this.currentStep) return true;
+    return this.steps
+      .slice(0, index)
+      .every((_: string, i: number) => this.isStepValid(i));
+  }
+
+  canSubmitOffer(): boolean {
+    return this.steps.every((_: string, i: number) => this.isStepValid(i));
+  }
+
+  private firstInvalidStep(): number {
+    const index = this.steps.findIndex((_: string, i: number) => !this.isStepValid(i));
+    return index === -1 ? this.steps.length - 1 : index;
   }
 
   stepHasWarning(i: number): boolean {
@@ -345,12 +367,7 @@ export class OfferComponent implements OnInit, OnDestroy {
   }
 
   completedStep(index: number): boolean {
-    if (index === 0) return !!this.productOfferForm.get('generalInfo')?.valid && !!this.productOfferForm.get('prodSpec')?.value && !!this.selectedSectorId;
-    if (index === 1) return !!this.selectedRootCategoryId;
-    if (index === 2) return true;
-    if (index === 3) return !!this.selectedPriceTier;
-    if (index === 4) return !!this.productOfferForm.get('procurementMode')?.valid;
-    return false;
+    return this.isStepValid(index);
   }
 
   stepShowsComplete(i: number): boolean {
@@ -1458,6 +1475,14 @@ export class OfferComponent implements OnInit, OnDestroy {
 
 
   submitForm() {
+    if (this.loading) return;
+    if (!this.canSubmitOffer()) {
+      this.productOfferForm.markAllAsTouched();
+      this.highestStep = this.steps.length - 1;
+      this.currentStep = this.firstInvalidStep();
+      return;
+    }
+
     if (this.formType === 'update') {
       this.eventMessage.emitUpdateOffer(true);
       console.log('🔄 Starting offer update process...');
