@@ -45,6 +45,7 @@ export class AppInitService {
                 environment.feedbackCampaignExpiration = config.feedbackCampaign ?? moment().add(1, 'week').unix();
                 environment.documentApi = config.documentApi ?? environment.documentApi;
                 environment.googleTagManagerId = config.googleTagManagerId ?? '';
+                environment.analytics = config.analytics ?? 'https://analytics.dome-marketplace-sbx.org/',
                 environment.providerThemeName = config.theme ?? 'default';
                 environment.LEAR_URL = config.learUrl ?? '';
                 environment.AI_SEARCH_API_KEY = aiConfig.aiApiKey ?? config.aiApiKey ?? '';
