@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, On
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowRight } from '@fortawesome/pro-regular-svg-icons';
 import { TranslateModule } from '@ngx-translate/core';
+import { RouterLink } from '@angular/router';
 import { ProductOffering } from '../../../models/product.model';
 import { CarouselComponent } from '../../../shared/carousel/carousel.component';
 
@@ -11,7 +12,7 @@ import { CarouselComponent } from '../../../shared/carousel/carousel.component';
   templateUrl: './dashboard-services.component.html',
   styleUrl: './dashboard-services.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FontAwesomeModule, TranslateModule, CarouselComponent]
+  imports: [FontAwesomeModule, TranslateModule, CarouselComponent, RouterLink]
 })
 export class DashboardServicesComponent implements OnInit {
   faArrowRight = faArrowRight;
