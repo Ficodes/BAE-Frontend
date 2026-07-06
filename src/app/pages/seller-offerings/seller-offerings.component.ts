@@ -17,6 +17,23 @@ import { takeUntil } from 'rxjs/operators';
 import { QuoteService } from 'src/app/features/quotes/services/quote.service';
 import { ThemeService } from 'src/app/services/theme.service';
 
+type SellerWorkspaceSection = 'catalogs' | 'offers' | 'productspec' | 'servicespec' | 'resourcespec' | 'usagespec';
+type SellerWorkspaceView =
+  | SellerWorkspaceSection
+  | 'createProductSpec'
+  | 'updateProductSpec'
+  | 'createServiceSpec'
+  | 'updateServiceSpec'
+  | 'createResourceSpec'
+  | 'updateResourceSpec'
+  | 'createOffer'
+  | 'updateOffer'
+  | 'createCatalog'
+  | 'updateCatalog'
+  | 'createCustomOffer'
+  | 'createUsage'
+  | 'updateUsage';
+
 @Component({
   selector: 'app-seller-offerings',
   templateUrl: './seller-offerings.component.html',
@@ -25,25 +42,7 @@ import { ThemeService } from 'src/app/services/theme.service';
 export class SellerOfferingsComponent implements OnInit, OnDestroy {
 
   catalogManagementEnabled: boolean = environment.CATALOG_MANAGEMENT_ENABLED;
-  show_catalogs: boolean = this.catalogManagementEnabled;
-  show_prod_specs: boolean = false;
-  show_service_specs: boolean = false;
-  show_resource_specs: boolean = false;
-  show_usage_specs: boolean = false;
-  show_offers: boolean = !this.catalogManagementEnabled;
-  show_create_prod_spec: boolean = false;
-  show_create_res_spec: boolean = false;
-  show_create_serv_spec: boolean = false;
-  show_create_offer: boolean = false;
-  show_create_catalog:boolean = false;
-  show_update_prod_spec:boolean=false;
-  show_update_serv_spec:boolean=false;
-  show_update_res_spec:boolean=false;
-  show_update_offer:boolean=false;
-  show_update_catalog:boolean=false;
-  show_create_custom_offer:boolean=false;
-  show_create_usage:boolean=false;
-  show_update_usage:boolean=false;
+  activeView: SellerWorkspaceView = this.catalogManagementEnabled ? 'catalogs' : 'offers';
   usage_to_update:any;
   prod_to_update:any;
   serv_to_update:any;
@@ -63,10 +62,10 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   workspaceLogoUrl: string | null = null;
   workspaceThemeName: string = 'DOME';
   userInitials: string = '';
-  activeSection: string = this.catalogManagementEnabled ? 'catalogs' : 'offers';
+  activeSection: SellerWorkspaceSection = this.catalogManagementEnabled ? 'catalogs' : 'offers';
   toastMessage: string | null = null;
   toastType: 'success' | 'error' = 'success';
-  sectionActions : Record<string, () => void> = {
+  sectionActions : Record<SellerWorkspaceSection, () => void> = {
     catalogs: this.goToCatalogs,
     offers: this.goToOffers,
     productspec: this.goToProdSpec,
@@ -77,6 +76,30 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   //partyIdCustom:string='urn:ngsi-ld:organization:02922d6d-2e7e-4235-a1aa-4f393a75bc52'
   //partyIdCustom:any=null
   private destroy$ = new Subject<void>();
+
+  get show_catalogs(): boolean { return this.activeView === 'catalogs'; }
+  get show_prod_specs(): boolean { return this.activeView === 'productspec'; }
+  get show_service_specs(): boolean { return this.activeView === 'servicespec'; }
+  get show_resource_specs(): boolean { return this.activeView === 'resourcespec'; }
+  get show_usage_specs(): boolean { return this.activeView === 'usagespec'; }
+  get show_offers(): boolean { return this.activeView === 'offers'; }
+  get show_create_prod_spec(): boolean { return this.activeView === 'createProductSpec'; }
+  get show_create_res_spec(): boolean { return this.activeView === 'createResourceSpec'; }
+  get show_create_serv_spec(): boolean { return this.activeView === 'createServiceSpec'; }
+  get show_create_offer(): boolean { return this.activeView === 'createOffer'; }
+  get show_create_catalog(): boolean { return this.activeView === 'createCatalog'; }
+  get show_update_prod_spec(): boolean { return this.activeView === 'updateProductSpec'; }
+  get show_update_serv_spec(): boolean { return this.activeView === 'updateServiceSpec'; }
+  get show_update_res_spec(): boolean { return this.activeView === 'updateResourceSpec'; }
+  get show_update_offer(): boolean { return this.activeView === 'updateOffer'; }
+  get show_update_catalog(): boolean { return this.activeView === 'updateCatalog'; }
+  get show_create_custom_offer(): boolean { return this.activeView === 'createCustomOffer'; }
+  get show_create_usage(): boolean { return this.activeView === 'createUsage'; }
+  get show_update_usage(): boolean { return this.activeView === 'updateUsage'; }
+
+  get showWorkspaceNav(): boolean {
+    return ['catalogs', 'offers', 'productspec', 'servicespec', 'resourcespec', 'usagespec'].includes(this.activeView);
+  }
 
   constructor(
     private localStorage: LocalStorageService,
@@ -199,10 +222,8 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.workspaceLogoUrl = theme?.assets?.logoUrl ?? null;
     this.workspaceThemeName = theme?.displayName ?? 'DOME';
     this.userInitials = this.computeInitials(this.userInfo);
-    const saved = localStorage.getItem('activeSection');
-    const initialSection = !this.catalogManagementEnabled && saved === 'catalogs'
-      ? 'offers'
-      : saved || this.activeSection;
+    const saved = localStorage.getItem('activeSection') as SellerWorkspaceSection | null;
+    const initialSection = this.normalizeSection(saved) || this.activeSection;
     this.activeSection = initialSection;
     if (this.sectionActions[initialSection]) {
       this.sectionActions[initialSection].call(this);
@@ -298,297 +319,78 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  setActiveSection(section: string) {
+  private normalizeSection(section: string | null | undefined): SellerWorkspaceSection | null {
+    if (!section) return null;
+    if (section === 'catalogs' && !this.catalogManagementEnabled) return 'offers';
+    return ['catalogs', 'offers', 'productspec', 'servicespec', 'resourcespec', 'usagespec'].includes(section)
+      ? section as SellerWorkspaceSection
+      : null;
+  }
+
+  private activateView(view: SellerWorkspaceView, section?: SellerWorkspaceSection) {
+    if ((view === 'catalogs' || view === 'createCatalog' || view === 'updateCatalog') && !this.catalogManagementEnabled) {
+      this.goToOffers();
+      return;
+    }
+    this.activeView = view;
+    if (section) {
+      this.setActiveSection(section);
+    }
+    this.cdr.detectChanges();
+  }
+
+  setActiveSection(section: SellerWorkspaceSection) {
     this.activeSection = section;
     localStorage.setItem('activeSection', section);
     console.log('Saved to localStorage:', section);
   }
 
   goToCreateProdSpec(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=true;
-    this.show_create_serv_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges();
+    this.activateView('createProductSpec');
   }
 
   goToUpdateProdSpec(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=true;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges();  
+    this.activateView('updateProductSpec');
   }
 
   goToCreateCatalog(){
-    if (!this.catalogManagementEnabled) {
-      this.goToOffers();
-      return;
-    }
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=true;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges();
+    this.activateView('createCatalog');
   }
 
   goToUpdateCatalog(){
-    if (!this.catalogManagementEnabled) {
-      this.goToOffers();
-      return;
-    }
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_create_catalog=false;
-    this.show_update_catalog=true;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges();
+    this.activateView('updateCatalog');
   }
 
   goToUpdateOffer(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=true;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges();
+    this.activateView('updateOffer');
   }
 
   goToCreateCustomOffer(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=true;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges();
+    this.activateView('createCustomOffer');
   }
 
   goToUpdateServiceSpec(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=true;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges(); 
+    this.activateView('updateServiceSpec');
   }
 
   goToUpdateResourceSpec(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=true;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges(); 
+    this.activateView('updateResourceSpec');
   }
 
   goToCreateServSpec(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_serv_spec=true;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges();
+    this.activateView('createServiceSpec');
   }
 
   goToCreateResSpec(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_serv_spec=false;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=true;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges();
+    this.activateView('createResourceSpec');
   }
 
   goToCreateOffer(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_serv_spec=false;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=true;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges();
+    this.activateView('createOffer');
   }
 
   goToCatalogs(){  
-    if (!this.catalogManagementEnabled) {
-      this.goToOffers();
-      return;
-    }
-    this.setActiveSection('catalogs');
-    this.show_catalogs=true;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges();
+    this.activateView('catalogs', 'catalogs');
   }
 
   selectCatalogs(){
@@ -606,27 +408,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToProdSpec(){
-    this.setActiveSection('productspec');
-    this.show_catalogs=false;
-    this.show_prod_specs=true;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges();
+    this.activateView('productspec', 'productspec');
   }
 
   selectProdSpec(){
@@ -644,27 +426,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToServiceSpec(){
-    this.setActiveSection('servicespec');
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=true;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges();
+    this.activateView('servicespec', 'servicespec');
   }
 
   selectServiceSpec(){
@@ -682,27 +444,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToResourceSpec(){
-    this.setActiveSection('resourcespec');
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=true;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges();
+    this.activateView('resourcespec', 'resourcespec');
   }
 
   selectResourceSpec(){
@@ -720,97 +462,19 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToUsageSpec(){
-    this.setActiveSection('usagespec');
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=true;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges();
+    this.activateView('usagespec', 'usagespec');
   }
 
   goToCreateUsage(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=true;
-    this.show_update_usage=false;
-    this.cdr.detectChanges();
+    this.activateView('createUsage');
   }
 
   goToUpdateUsage(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=true;
-    this.cdr.detectChanges();
+    this.activateView('updateUsage');
   }
 
   goToOffers(){
-    this.setActiveSection('offers');
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=true;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.show_usage_specs=false;
-    this.show_create_usage=false;
-    this.show_update_usage=false;
-    this.cdr.detectChanges();
+    this.activateView('offers', 'offers');
   }
 
   selectOffers(){

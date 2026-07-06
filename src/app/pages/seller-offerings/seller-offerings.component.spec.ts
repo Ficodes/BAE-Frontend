@@ -51,15 +51,15 @@ describe('SellerOfferingsComponent', () => {
   });
 
   it('goToCatalogs should activate catalogs section and reset others', () => {
-    spyOn(component, 'selectCatalogs');
     const detectSpy = spyOn((component as any).cdr, 'detectChanges');
 
     component.goToCatalogs();
 
+    expect(component.activeView).toBe('catalogs');
     expect(component.show_catalogs).toBeTrue();
     expect(component.show_offers).toBeFalse();
     expect(component.show_prod_specs).toBeFalse();
-    expect(component.selectCatalogs).toHaveBeenCalled();
+    expect(component.showWorkspaceNav).toBeTrue();
     expect(detectSpy).toHaveBeenCalled();
   });
 
@@ -68,10 +68,38 @@ describe('SellerOfferingsComponent', () => {
 
     component.goToCreateOffer();
 
+    expect(component.activeView).toBe('createOffer');
     expect(component.show_create_offer).toBeTrue();
     expect(component.show_catalogs).toBeFalse();
     expect(component.show_offers).toBeFalse();
+    expect(component.showWorkspaceNav).toBeFalse();
     expect(detectSpy).toHaveBeenCalled();
+  });
+
+  it('typed activeView should only expose one active view getter', () => {
+    component.goToOffers();
+    expect([
+      component.show_catalogs,
+      component.show_offers,
+      component.show_prod_specs,
+      component.show_service_specs,
+      component.show_resource_specs,
+      component.show_usage_specs,
+      component.show_create_offer,
+      component.show_update_offer,
+    ].filter(Boolean).length).toBe(1);
+
+    component.goToUpdateOffer();
+    expect([
+      component.show_catalogs,
+      component.show_offers,
+      component.show_prod_specs,
+      component.show_service_specs,
+      component.show_resource_specs,
+      component.show_usage_specs,
+      component.show_create_offer,
+      component.show_update_offer,
+    ].filter(Boolean).length).toBe(1);
   });
 
   it('event subscription should route to update offer and store payload', () => {

@@ -63,7 +63,7 @@
 
     <div class="w-full flex flex-col lg:flex-row lg:gap-6 flex-1">
 
-      @if (!show_create_prod_spec && !show_create_serv_spec && !show_create_res_spec && !show_create_offer && !show_create_catalog && !show_create_custom_offer && !show_update_prod_spec && !show_update_serv_spec && !show_update_res_spec && !show_update_offer && !show_update_catalog && !show_create_usage && !show_update_usage) {
+      @if (showWorkspaceNav) {
       <div class="hidden lg:flex lg:flex-col lg:w-[324px] lg:shrink-0 lg:basis-[324px]">
         <h2 class="text-3xl font-extrabold text-gray-900 mb-6 mt-4 px-2">{{ 'OFFERINGS._my_offerings' | translate }}</h2>
 
