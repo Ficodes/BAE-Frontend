@@ -19,6 +19,7 @@ import { TranslateService } from '@ngx-translate/core';
 import {components} from "src/app/models/product-catalog";
 import { environment } from 'src/environments/environment';
 type ProductSpecification_Create = components["schemas"]["ProductSpecification_Create"];
+type ProductSpecification_Update = components["schemas"]["ProductSpecification_Update"];
 type CharacteristicValueSpecification = components["schemas"]["CharacteristicValueSpecification"];
 type ProductSpecificationCharacteristic = components["schemas"]["ProductSpecificationCharacteristic"];
 
@@ -34,6 +35,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   partyId:any='';
 
   productSpecToCreate:ProductSpecification_Create | undefined;
+  productSpecToUpdate:ProductSpecification_Update | undefined;
 
   stepsElements:string[]=['general-info','chars'];
   stepsCircles:string[]=['general-circle','chars-circle'];
@@ -51,9 +53,9 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
 
   productImage: { name: string, size?: number } | null = null;
   productImageUrl: string | null = null;
-  productImageRef: { name: string, url: string, attachmentType: string } | null = null;
+  productImageRef: any | null = null;
   uploadingImage: boolean = false;
-  attachments: { name: string, size?: number, url?: string, attachmentType?: string }[] = [];
+  attachments: any[] = [];
   uploadingAttachment: boolean = false;
 
   howItWorks: string = '';
@@ -225,14 +227,13 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
 
   private loadAttachmentsFromProd(){
     const list: any[] = Array.isArray(this.prod?.attachment) ? this.prod.attachment : [];
-    console.log('[loadAttachmentsFromProd] this.prod.attachment =', list);
     const profile = list.find(a => a?.name === 'Profile Picture');
     const picture = profile || list.find(a => (a?.attachmentType || '').startsWith('image'));
     if (picture?.url) {
-      console.log('[loadAttachmentsFromProd] picture =', picture);
       this.productImage = { name: picture.name && picture.name !== 'Profile Picture' ? picture.name : 'Product Image' };
       this.productImageUrl = picture.url;
       this.productImageRef = {
+        ...picture,
         name: picture.name || 'Profile Picture',
         url: picture.url,
         attachmentType: picture.attachmentType || 'image/png'
@@ -241,6 +242,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     this.attachments = list
       .filter(a => a !== picture && !!a?.url)
       .map(a => ({
+        ...a,
         name: a.name || 'Attachment',
         url: a.url,
         attachmentType: a.attachmentType
@@ -293,8 +295,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   private persistSpec(launch: boolean){
     this.loading = true;
     if(this.isEditMode && this.createdProdId){
-      const { relatedParty, lifecycleStatus, ...patchBody } = (this.productSpecToCreate as any) || {};
-      const body: any = launch ? { ...patchBody, lifecycleStatus: 'Launched' } : patchBody;
+      const body = this.buildProductUpdatePatch(launch);
       this.prodSpecService.updateProdSpec(body, this.createdProdId).subscribe({
         next: () => this.onPersistSuccess(launch),
         error: (error: any) => this.onPersistError(error)
@@ -411,10 +412,14 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     if(this.charsForm.value.name!=null){
       const existing = this.editingCharIdx !== null ? this.prodChars[this.editingCharIdx] : null;
       const charData: any = {
+        ...(existing || {}),
         id: existing ? (existing as any).id : 'urn:ngsi-ld:characteristic:'+uuidv4(),
         name: this.charsForm.value.name,
         description: this.charsForm.value.description != null ? this.charsForm.value.description : '',
-        productSpecCharacteristicValue: this.creatingChars,
+        productSpecCharacteristicValue: this.mergeCharacteristicValues(
+          (existing as any)?.productSpecCharacteristicValue || [],
+          this.creatingChars
+        ),
         _lastUpdate: new Date(),
         _isOptional: this.charIsOptional
       };
@@ -448,7 +453,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
       description: char.description
     });
     this.charIsOptional = char._isOptional || false;
-    this.creatingChars = [...(char.productSpecCharacteristicValue || [])];
+    this.creatingChars = (char.productSpecCharacteristicValue || []).map((v: any) => ({ ...v }));
     const vals = this.creatingChars as any[];
     const first = vals[0];
     const isBoolean = vals.length > 0 && vals.every(c =>
@@ -534,23 +539,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
         return rest;
       });
       const allChars = [...cleanChars, ...this.buildComplianceChars()];
-      const attachmentList: any[] = [];
-      if (this.productImageRef?.url) {
-        attachmentList.push({
-          name: this.productImageRef.name,
-          url: this.productImageRef.url,
-          attachmentType: this.productImageRef.attachmentType
-        });
-      }
-      this.attachments.forEach(a => {
-        if (a?.url) {
-          attachmentList.push({
-            name: a.name,
-            url: a.url,
-            attachmentType: a.attachmentType
-          });
-        }
-      });
+      const attachmentList = this.buildAttachmentPayload(false);
 
       this.productSpecToCreate = {
         name: this.generalForm.value.name,
@@ -581,8 +570,139 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     }
   }
 
+  private buildProductUpdatePatch(launch: boolean): ProductSpecification_Update {
+    const patch: ProductSpecification_Update = {
+      name: this.generalForm.value.name || '',
+      description: this.composeDescription(),
+      productSpecCharacteristic: this.buildMergedProductSpecCharacteristics(),
+      attachment: this.buildAttachmentPayload(true),
+      serviceSpecification: this.buildMergedSpecificationRefs('serviceSpecification', this.linkedServiceSpecIds, this.availableServiceSpecs),
+      resourceSpecification: this.buildMergedSpecificationRefs('resourceSpecification', this.linkedResourceSpecIds, this.availableResourceSpecs)
+    };
+
+    if (launch) {
+      patch.lifecycleStatus = 'Launched';
+    }
+
+    this.productSpecToUpdate = patch;
+    return patch;
+  }
+
+  private buildMergedProductSpecCharacteristics(): any[] {
+    const normalChars = this.prodChars.map((char: any) => this.mergeCharacteristicForUpdate(char));
+    const complianceChars = this.buildComplianceChars().map((char: any) => this.mergeCharacteristicForUpdate(char));
+    return [...normalChars, ...complianceChars];
+  }
+
+  private mergeCharacteristicForUpdate(char: any): any {
+    const cleanChar = this.cleanCharacteristic(char);
+    const original = this.findOriginalCharacteristic(cleanChar);
+    if (!original) return cleanChar;
+
+    return {
+      ...this.cloneValue(original),
+      ...cleanChar,
+      productSpecCharacteristicValue: this.mergeCharacteristicValues(
+        original.productSpecCharacteristicValue || [],
+        cleanChar.productSpecCharacteristicValue || []
+      )
+    };
+  }
+
+  private cleanCharacteristic(char: any): any {
+    const { _lastUpdate, _isOptional, ...cleanChar } = char || {};
+    return this.cloneValue(cleanChar);
+  }
+
+  private findOriginalCharacteristic(char: any): any | null {
+    const originals = Array.isArray(this.prod?.productSpecCharacteristic) ? this.prod.productSpecCharacteristic : [];
+    return originals.find((candidate: any) =>
+      (char?.id && candidate?.id === char.id) ||
+      (!char?.id && char?.name && candidate?.name === char.name)
+    ) || null;
+  }
+
+  private mergeCharacteristicValues(originalValues: any[], nextValues: any[]): any[] {
+    return (nextValues || []).map((value: any, index: number) => {
+      const original = value?.id
+        ? originalValues.find((candidate: any) => candidate?.id === value.id)
+        : originalValues[index];
+      return {
+        ...(original ? this.cloneValue(original) : {}),
+        ...this.cloneValue(value)
+      };
+    });
+  }
+
+  private buildAttachmentPayload(preserveMetadata: boolean): any[] {
+    const attachmentList: any[] = [];
+    if (this.productImageRef?.url) {
+      attachmentList.push(this.toAttachmentPayload(this.productImageRef, preserveMetadata));
+    }
+    this.attachments.forEach(a => {
+      if (a?.url) {
+        attachmentList.push(this.toAttachmentPayload(a, preserveMetadata));
+      }
+    });
+    if (preserveMetadata) {
+      const representedIds = new Set(attachmentList.map((attachment: any) => attachment?.id).filter(Boolean));
+      const unrepresentedOriginals = (Array.isArray(this.prod?.attachment) ? this.prod.attachment : [])
+        .filter((attachment: any) => attachment?.id && !representedIds.has(attachment.id) && !attachment?.url);
+      attachmentList.push(...unrepresentedOriginals.map((attachment: any) => this.cloneValue(attachment)));
+    }
+    return attachmentList;
+  }
+
+  private toAttachmentPayload(attachment: any, preserveMetadata: boolean): any {
+    if (!preserveMetadata) {
+      return {
+        name: attachment.name,
+        url: attachment.url,
+        attachmentType: attachment.attachmentType
+      };
+    }
+
+    const payload = this.cloneValue(attachment);
+    delete payload.size;
+    delete payload._uploading;
+    return {
+      ...payload,
+      name: attachment.name,
+      url: attachment.url,
+      attachmentType: attachment.attachmentType
+    };
+  }
+
+  private buildMergedSpecificationRefs(field: 'serviceSpecification' | 'resourceSpecification', selectedIds: string[], availableSpecs: any[]): any[] {
+    const originalRefs = Array.isArray(this.prod?.[field]) ? this.prod[field] : [];
+    const selectedRefs = selectedIds.map(id => {
+      const existing = originalRefs.find((ref: any) => ref?.id === id);
+      if (existing) return this.cloneValue(existing);
+
+      const spec = availableSpecs.find((item: any) => item?.id === id);
+      return {
+        id,
+        href: spec?.href || id,
+        name: spec?.name
+      };
+    });
+    const unrepresentedOriginals = originalRefs
+      .filter((ref: any) => !ref?.id)
+      .map((ref: any) => this.cloneValue(ref));
+    return [...selectedRefs, ...unrepresentedOriginals];
+  }
+
+  private cloneValue<T>(value: T): T {
+    if (value === null || value === undefined) return value;
+    return JSON.parse(JSON.stringify(value));
+  }
+
   createProduct(){
-    this.buildProductToCreate();
+    if (this.isEditMode) {
+      this.productSpecToUpdate = this.buildProductUpdatePatch(false);
+    } else {
+      this.buildProductToCreate();
+    }
     this.showSuccessModal = true;
   }
 
@@ -775,8 +895,9 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   selfAttestationFile: { name: string, size?: number, url?: string, _uploading?: boolean, id?: string } | null = null;
-  complianceFiles: { name: string, size?: number, url?: string, _uploading?: boolean, id?: string, charName?: string }[] = [];
+  complianceFiles: { name: string, size?: number, url?: string, _uploading?: boolean, id?: string, charName?: string, originalChar?: any }[] = [];
   private selfAttId: string | null = null;
+  private selfAttOriginalChar: any = null;
   private complianceVCChar: any = null;
 
   showRequestValidationModal: boolean = false;
@@ -795,17 +916,27 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     const chars: any[] = [];
     if (this.selfAttestationFile?.url) {
       chars.push({
+        ...(this.selfAttOriginalChar || {}),
         id: this.selfAttId || `urn:ngsi-ld:characteristic:${uuidv4()}`,
         name: 'Compliance:SelfAtt',
-        productSpecCharacteristicValue: [{ isDefault: true, value: this.selfAttestationFile.url }]
+        productSpecCharacteristicValue: this.mergeCharacteristicValues(
+          this.selfAttOriginalChar?.productSpecCharacteristicValue || [],
+          [{ isDefault: true, value: this.selfAttestationFile.url }]
+        )
       });
     }
     this.complianceFiles.forEach(f => {
-      if (f.url) {
+      if (f.url || f.originalChar) {
         chars.push({
-          id: f.id || `urn:ngsi-ld:characteristic:${uuidv4()}`,
-          name: f.charName || `Compliance:${f.name}`,
-          productSpecCharacteristicValue: [{ isDefault: true, value: f.url }]
+          ...(f.originalChar || {}),
+          id: f.id || f.originalChar?.id || `urn:ngsi-ld:characteristic:${uuidv4()}`,
+          name: f.charName || f.originalChar?.name || `Compliance:${f.name}`,
+          productSpecCharacteristicValue: f.url
+            ? this.mergeCharacteristicValues(
+              f.originalChar?.productSpecCharacteristicValue || [],
+              [{ isDefault: true, value: f.url }]
+            )
+            : (f.originalChar?.productSpecCharacteristicValue || [])
         });
       }
     });
@@ -820,11 +951,18 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
       const value = char?.productSpecCharacteristicValue?.[0]?.value;
       if (name === 'Compliance:SelfAtt') {
         this.selfAttId = char.id || null;
+        this.selfAttOriginalChar = JSON.parse(JSON.stringify(char));
         if (value) this.selfAttestationFile = { name: this.fileNameFromValue(value), url: value, id: char.id };
       } else if (name === 'Compliance:VC') {
         this.complianceVCChar = JSON.parse(JSON.stringify(char));
       } else if (name.startsWith('Compliance:')) {
-        this.complianceFiles.push({ name: this.fileNameFromValue(value), url: value, id: char.id, charName: name });
+        this.complianceFiles.push({
+          name: this.fileNameFromValue(value),
+          url: value,
+          id: char.id,
+          charName: name,
+          originalChar: JSON.parse(JSON.stringify(char))
+        });
       }
     }
   }
