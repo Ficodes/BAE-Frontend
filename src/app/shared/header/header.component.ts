@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectorRef, Component, DoCheck, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   faAddressCard,
   faAnglesLeft,
@@ -18,17 +18,16 @@ import {
   faUser,
   faUsers
 } from '@fortawesome/sharp-solid-svg-icons';
-import { TranslateService } from '@ngx-translate/core';
 import { initFlowbite } from 'flowbite';
 import * as moment from 'moment';
 import { Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { LocaleService } from 'src/app/services/locale.service';
 import { environment } from 'src/environments/environment';
 import * as uuid from 'uuid';
 
 import { LoginInfo } from 'src/app/models/interfaces';
 import { LoginServiceService } from 'src/app/services/login-service.service';
-import { ApiServiceService } from 'src/app/services/product-service.service';
 import { QrVerifierService } from 'src/app/services/qr-verifier.service';
 import { EventMessageService } from '../../services/event-message.service';
 import { LocalStorageService } from '../../services/local-storage.service';
@@ -45,12 +44,10 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   @ViewChild('navbarbutton') navbarbutton?: ElementRef<HTMLElement>;
 
   constructor(
-    private translate: TranslateService,
+    private localeService: LocaleService,
     private localStorage: LocalStorageService,
-    private api: ApiServiceService,
     private loginService: LoginServiceService,
     private cdr: ChangeDetectorRef,
-    private route: ActivatedRoute,
     private eventMessage: EventMessageService,
     private router: Router,
     private qrVerifier: QrVerifierService,
@@ -124,6 +121,9 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
     if (this.isNavBarOpen) {
       this.isNavBarOpen = false;
     }
+    if (this.flagDropdownOpen) {
+      this.flagDropdownOpen = false;
+    }
   }
 
   @HostListener('window:resize')
@@ -142,9 +142,11 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   }
 
   ngOnInit(): void {
-    this.langs = this.translate.getLangs();
-    const currLang = this.localStorage.getItem('current_language');
-    this.defaultLang = currLang ?? this.translate.getDefaultLang();
+    this.langs = this.localeService.availableLangs;
+    this.defaultLang = this.localeService.currentLang;
+    this.localeService.currentLang$.pipe(takeUntil(this.destroy$)).subscribe(lang => {
+      this.defaultLang = lang;
+    });
 
     this.themeSubscription = this.themeService.currentTheme$.subscribe(theme => {
       this.currentTheme = theme;
@@ -284,9 +286,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   }
 
   switchLanguage(language: string) {
-    this.translate.use(language);
-    this.localStorage.setItem('current_language', language);
-    this.defaultLang = language;
+    this.localeService.setLanguage(language);
   }
 
   async logout() {

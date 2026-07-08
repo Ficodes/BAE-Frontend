@@ -1,10 +1,11 @@
-
 <div class="min-h-screen bg-white font-[Blinker]">
   <div class="mx-auto max-w-[1200px] px-8">
 
     <nav class="flex items-center gap-2 pt-4 pb-6 text-[16px] text-[#526179]">
-      <a (click)="back()" class="cursor-pointer hover:text-[#1f4fbf] transition-colors">All categories</a>
-      <svg class="h-4 w-4 text-[#526179]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+      <a (click)="back()" class="cursor-pointer hover:text-[#1f4fbf] transition-colors">{{
+        'PRODUCT_DETAILS._all_categories' | translate }}</a>
+      <svg class="h-4 w-4 text-[#526179]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+        stroke-width="2.5" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
       </svg>
       <span class="font-medium text-[#1f4fbf]">{{ 'PRODUCT_DETAILS._details' | translate }}</span>
@@ -15,8 +16,7 @@
         <h1 [ngClass]="{
             'break-all': hasLongWord(productOff?.name, 20),
             'break-words': !hasLongWord(productOff?.name, 20)
-          }"
-          class="text-[32px] font-bold leading-tight text-[#14274A] mb-4">{{productOff?.name}}</h1>
+          }" class="text-[32px] font-bold leading-tight text-[#14274A] mb-4">{{productOff?.name}}</h1>
 
         <div class="mb-5">
           <div #descriptionText class="line-clamp-5 overflow-hidden">
@@ -26,48 +26,56 @@
               }" class="text-[16px] leading-[26px] text-[#0B1528]" [data]="productOff?.description"></markdown>
           </div>
           @if (showDescriptionReadMore) {
-            <button (click)="openDescriptionModal()" class="mt-2 text-[14px] font-medium text-[#1f4fbf] hover:underline">
-              Read more
-            </button>
+          <button (click)="openDescriptionModal()" class="mt-2 text-[14px] font-medium text-[#1f4fbf] hover:underline">
+            Read more
+          </button>
           }
         </div>
 
         @if(orgInfo!=undefined){
-          <div class="flex flex-col gap-2 mb-5">
-            @if(orgInfo.contactMedium){
-              @for(contact of orgInfo.contactMedium; track contact){
-                @if(contact.mediumType === 'Email'){
-                  <div class="flex items-center gap-2 text-[15px] text-[#526179]">
-                    <svg class="h-5 w-5 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                    </svg>
-                    <span>{{contact.characteristic?.emailAddress}}</span>
-                  </div>
-                }
-              }
-            }
-            <div class="flex items-center gap-2 text-[15px] text-[#1f4fbf]">
-              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-              </svg>
-              <a (click)="goToOrgDetails(orgInfo.id)" class="cursor-pointer hover:underline">{{orgInfo.tradingName}}</a>
-            </div>
+        <div class="flex flex-col gap-2 mb-5">
+          @if(orgInfo.contactMedium){
+          @for(contact of orgInfo.contactMedium; track contact){
+          @if(contact.mediumType === 'Email'){
+          <div class="flex items-center gap-2 text-[15px] text-[#526179]">
+            <svg class="h-5 w-5 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+            </svg>
+            <span>{{contact.characteristic?.emailAddress}}</span>
           </div>
+          }
+          }
+          }
+          <div class="flex items-center gap-2 text-[15px] text-[#1f4fbf]">
+            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+            </svg>
+            <a (click)="goToOrgDetails(orgInfo.id)" class="cursor-pointer hover:underline">{{orgInfo.tradingName}}</a>
+          </div>
+        </div>
         }
 
         <div class="flex items-center flex-wrap gap-2">
           @for (cat of categories; track cat.id) {
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-[13px] font-medium border border-[#8EACE1] text-[#14274A] bg-[#8EACE1]/10">{{ cat.name }}</span>
+          <span
+            class="inline-flex items-center px-3 py-1 rounded-full text-[13px] font-medium border border-[#8EACE1] text-[#14274A] bg-[#8EACE1]/10">{{
+            cat.name }}</span>
           }
         </div>
       </div>
 
       <div class="relative hidden lg:block rounded-2xl bg-[#EBECEE] aspect-[2/1] overflow-hidden">
-        <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
+        <div class="absolute inset-0 bg-cover bg-center opacity-75"
+          [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
         <img class="relative z-10 h-full w-full object-contain" src="{{getProductImage()}}" alt="Product image">
       </div>
       <div class="relative lg:hidden rounded-2xl bg-[#EBECEE] aspect-[2/1] overflow-hidden">
-        <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
+        <div class="absolute inset-0 bg-cover bg-center opacity-75"
+          [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
         <img class="relative z-10 h-full w-full object-contain" src="{{getProductImage()}}" alt="Product image">
       </div>
     </div>
@@ -93,33 +101,45 @@
           </button>
         </div>
         @if(check_logged){
-          @if (!isCustom()) {
-            <button data-cy="openAddToCartDrawer" type="button" (click)="openDrawer()" [disabled]="!PURCHASE_ENABLED || productAlreadyInCart" [ngClass]="!PURCHASE_ENABLED || productAlreadyInCart ? 'opacity-50' : 'hover:bg-[#163b99]'" class="hidden md:flex shrink-0 mx-3 items-center gap-2 text-white bg-[#1f4fbf] font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
-              <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 21">
-                <path d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z"/>
-              </svg>
-              {{ 'CARD._add_cart' | translate }}
-            </button>
-          } @else if(quotesEnabled) {
-            <button type="button" (click)="toggleQuoteModal();$event.stopPropagation();" class="hidden md:flex shrink-0 mx-3 items-center gap-2 text-white bg-[#1f4fbf] hover:bg-[#163b99] font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
-              {{ 'CARD._quote' | translate }}
-            </button>
-          }
+        @if (!isCustom()) {
+        <button data-cy="openAddToCartDrawer" type="button" (click)="openDrawer()"
+          [disabled]="!PURCHASE_ENABLED || productAlreadyInCart"
+          [ngClass]="!PURCHASE_ENABLED || productAlreadyInCart ? 'opacity-50' : 'hover:bg-[#163b99]'"
+          class="hidden md:flex shrink-0 mx-3 items-center gap-2 text-white bg-[#1f4fbf] font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
+          <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+            viewBox="0 0 18 21">
+            <path
+              d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z" />
+          </svg>
+          {{ 'CARD._add_cart' | translate }}
+        </button>
+        } @else if(quotesEnabled) {
+        <button type="button" (click)="toggleQuoteModal();$event.stopPropagation();"
+          class="hidden md:flex shrink-0 mx-3 items-center gap-2 text-white bg-[#1f4fbf] hover:bg-[#163b99] font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
+          {{ 'CARD._quote' | translate }}
+        </button>
+        }
         }
       </div>
       @if(check_logged) {
-        @if (!isCustom()) {
-          <button data-cy="openAddToCartDrawer" type="button" (click)="openDrawer()" [disabled]="!PURCHASE_ENABLED || productAlreadyInCart" [ngClass]="!PURCHASE_ENABLED || productAlreadyInCart ? 'opacity-50' : 'hover:bg-[#163b99]'" class="flex md:hidden mt-3 w-fit items-center gap-2 text-white bg-[#1f4fbf] font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
-            <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 21">
-              <path d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z"/>
-            </svg>
-            {{ 'CARD._add_cart' | translate }}
-          </button>
-        } @else if(quotesEnabled) {
-          <button type="button" (click)="toggleQuoteModal();$event.stopPropagation();" class="flex md:hidden mt-3 w-fit items-center gap-2 text-white bg-[#1f4fbf] hover:bg-[#163b99] font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
-            {{ 'CARD._quote' | translate }}
-          </button>
-        }
+      @if (!isCustom()) {
+      <button data-cy="openAddToCartDrawer" type="button" (click)="openDrawer()"
+        [disabled]="!PURCHASE_ENABLED || productAlreadyInCart"
+        [ngClass]="!PURCHASE_ENABLED || productAlreadyInCart ? 'opacity-50' : 'hover:bg-[#163b99]'"
+        class="flex md:hidden mt-3 w-fit items-center gap-2 text-white bg-[#1f4fbf] font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
+        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+          viewBox="0 0 18 21">
+          <path
+            d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z" />
+        </svg>
+        {{ 'CARD._add_cart' | translate }}
+      </button>
+      } @else if(quotesEnabled) {
+      <button type="button" (click)="toggleQuoteModal();$event.stopPropagation();"
+        class="flex md:hidden mt-3 w-fit items-center gap-2 text-white bg-[#1f4fbf] hover:bg-[#163b99] font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
+        {{ 'CARD._quote' | translate }}
+      </button>
+      }
       }
     </div>
 
@@ -132,8 +152,10 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="flex items-center gap-4">
               <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#eef2fb]">
-                <svg class="h-6 w-6 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+                <svg class="h-6 w-6 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                  stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
                 </svg>
               </div>
               <div>
@@ -143,19 +165,24 @@
             </div>
             <div class="flex items-center gap-4">
               <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#eef2fb]">
-                <svg class="h-6 w-6 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                <svg class="h-6 w-6 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                  stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                 </svg>
               </div>
               <div>
                 <span class="text-[14px] text-[#8896A8] block">Last update</span>
-                <span class="text-[16px] font-semibold text-[#14274A]">{{productOff?.lastUpdate | date:'dd/MM/yy, HH:mm'}}</span>
+                <span class="text-[16px] font-semibold text-[#14274A]">{{productOff?.lastUpdate | date:'dd/MM/yy,
+                  HH:mm'}}</span>
               </div>
             </div>
             <div class="flex items-center gap-4">
               <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#eef2fb]">
-                <svg class="h-6 w-6 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+                <svg class="h-6 w-6 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                  stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
                 </svg>
               </div>
               <div>
@@ -166,8 +193,10 @@
             @if(prodSpec.productNumber){
             <div class="flex items-center gap-4">
               <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#eef2fb]">
-                <svg class="h-6 w-6 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5" />
+                <svg class="h-6 w-6 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                  stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5" />
                 </svg>
               </div>
               <div>
@@ -179,8 +208,10 @@
             @if(prodSpec.brand){
             <div class="flex items-center gap-4">
               <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#eef2fb]">
-                <svg class="h-6 w-6 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                <svg class="h-6 w-6 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                  stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
                 </svg>
               </div>
               <div>
@@ -192,13 +223,16 @@
             @if(orgInfo!=undefined){
             <div class="flex items-center gap-4">
               <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#eef2fb]">
-                <svg class="h-6 w-6 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                <svg class="h-6 w-6 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                  stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
                 </svg>
               </div>
               <div>
                 <span class="text-[14px] text-[#8896A8] block">Owner</span>
-                <a (click)="goToOrgDetails(orgInfo.id)" class="text-[16px] font-semibold text-[#1f4fbf] cursor-pointer hover:underline">{{orgInfo.tradingName}}</a>
+                <a (click)="goToOrgDetails(orgInfo.id)"
+                  class="text-[16px] font-semibold text-[#1f4fbf] cursor-pointer hover:underline">{{orgInfo.tradingName}}</a>
               </div>
             </div>
             }
@@ -216,51 +250,52 @@
         }
 
         @if(serviceSpecs.length > 0){
-          <div class="mb-6">
-            <h3 class="text-[20px] font-bold text-[#14274A] mb-3">{{ 'PRODUCT_DETAILS._service_spec' | translate }}</h3>
-            @for(service of serviceSpecs; track service.id){
-              <div class="mb-2">
-                <span class="font-semibold text-[#14274A]">{{service.name}}</span>:
-                <markdown class="text-[16px] text-[#0B1528] inline" [data]="service.description"></markdown>
-              </div>
-            }
+        <div class="mb-6">
+          <h3 class="text-[20px] font-bold text-[#14274A] mb-3">{{ 'PRODUCT_DETAILS._service_spec' | translate }}</h3>
+          @for(service of serviceSpecs; track service.id){
+          <div class="mb-2">
+            <span class="font-semibold text-[#14274A]">{{service.name}}</span>:
+            <markdown class="text-[16px] text-[#0B1528] inline" [data]="service.description"></markdown>
           </div>
+          }
+        </div>
         }
 
         @if(resourceSpecs.length > 0){
-          <div class="mb-6">
-            <h3 class="text-[20px] font-bold text-[#14274A] mb-3">{{ 'PRODUCT_DETAILS._resource_spec' | translate }}</h3>
-            @for(resource of resourceSpecs; track resource.id){
-              <div class="mb-2">
-                <span class="font-semibold text-[#14274A]">{{resource.name}}</span>:
-                <markdown class="text-[16px] text-[#0B1528] inline" [data]="resource.description"></markdown>
-              </div>
-            }
+        <div class="mb-6">
+          <h3 class="text-[20px] font-bold text-[#14274A] mb-3">{{ 'PRODUCT_DETAILS._resource_spec' | translate }}</h3>
+          @for(resource of resourceSpecs; track resource.id){
+          <div class="mb-2">
+            <span class="font-semibold text-[#14274A]">{{resource.name}}</span>:
+            <markdown class="text-[16px] text-[#0B1528] inline" [data]="resource.description"></markdown>
           </div>
+          }
+        </div>
         }
 
-        @if(prodSpec.productSpecificationRelationship != undefined && prodSpec.productSpecificationRelationship.length>0){
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._product_rels' | translate }}</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            @for (rel of prodSpec.productSpecificationRelationship; track rel.id) {
-              <div class="rounded-2xl bg-white border border-[#EBECEE] p-6">
-                <h3 [ngClass]="{'break-all': hasLongWord(rel.name, 20), 'break-words': !hasLongWord(rel.name, 20)}"
-                  class="text-[18px] font-bold text-[#14274A] mb-2 break-words">{{rel.name}}</h3>
-                <div class="flex items-center justify-between">
-                  <p class="text-[14px] text-[#526179]">{{rel.relationshipType}}</p>
-                  @if(rel.relationshipType == 'dependency'){
-                    <fa-icon [icon]="faArrowProgress" class="text-xl text-[#1f4fbf]"></fa-icon>
-                  } @else if(rel.relationshipType == 'migration'){
-                    <fa-icon [icon]="faArrowRightArrowLeft" class="text-xl text-[#1f4fbf]"></fa-icon>
-                  } @else if(rel.relationshipType == 'exclusivity'){
-                    <fa-icon [icon]="faObjectExclude" class="text-xl text-[#1f4fbf]"></fa-icon>
-                  } @else if(rel.relationshipType == 'substitution'){
-                    <fa-icon [icon]="faSwap" class="text-xl text-[#1f4fbf]"></fa-icon>
-                  }
-                </div>
-              </div>
-            }
+        @if(prodSpec.productSpecificationRelationship != undefined &&
+        prodSpec.productSpecificationRelationship.length>0){
+        <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._product_rels' | translate }}</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          @for (rel of prodSpec.productSpecificationRelationship; track rel.id) {
+          <div class="rounded-2xl bg-white border border-[#EBECEE] p-6">
+            <h3 [ngClass]="{'break-all': hasLongWord(rel.name, 20), 'break-words': !hasLongWord(rel.name, 20)}"
+              class="text-[18px] font-bold text-[#14274A] mb-2 break-words">{{rel.name}}</h3>
+            <div class="flex items-center justify-between">
+              <p class="text-[14px] text-[#526179]">{{rel.relationshipType}}</p>
+              @if(rel.relationshipType == 'dependency'){
+              <fa-icon [icon]="faArrowProgress" class="text-xl text-[#1f4fbf]"></fa-icon>
+              } @else if(rel.relationshipType == 'migration'){
+              <fa-icon [icon]="faArrowRightArrowLeft" class="text-xl text-[#1f4fbf]"></fa-icon>
+              } @else if(rel.relationshipType == 'exclusivity'){
+              <fa-icon [icon]="faObjectExclude" class="text-xl text-[#1f4fbf]"></fa-icon>
+              } @else if(rel.relationshipType == 'substitution'){
+              <fa-icon [icon]="faSwap" class="text-xl text-[#1f4fbf]"></fa-icon>
+              }
+            </div>
           </div>
+          }
+        </div>
         }
 
       </div>
@@ -268,240 +303,256 @@
 
       @if (activeTab === 'features') {
       @if(prodSpec.productSpecCharacteristic != undefined && prodChars.length>0) {
-        <div id="chars-container">
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._product_chars' | translate }}</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            @for (char of prodChars; track char.id; let idx = $index) {
-              <div class="relative rounded-2xl bg-white border border-[#EBECEE] p-6">
-                <h3 [ngClass]="{'break-all': hasLongWord(char.name, 20), 'break-words': !hasLongWord(char.name, 20)}"
-                  class="text-[18px] font-bold text-[#14274A] mb-2 break-words pr-20">{{char.name}}</h3>
-                @if (char.description) {
-                  <markdown [ngClass]="{'break-all': hasLongWord(char.description, 20), 'break-words': !hasLongWord(char.description, 20)}"
-                    class="text-[13px] text-[#526179] mb-3" [data]="char.description"></markdown>
-                }
-                @if (isOptionalCharacteristic(char)) {
-                  <span class="absolute top-4 right-4 inline-flex items-center rounded-md bg-[#eef2fb] px-2 py-1 text-xs font-medium text-[#1f4fbf]">Optional</span>
-                }
-                <div class="mt-3">
-                  @if (isBooleanCharacteristic(char)) {
-                    <div class="flex items-center gap-2">
-                      <span class="text-sm font-medium text-[#526179]">Default</span>
-                      <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium"
-                        [ngClass]="getBooleanDefaultValue(char) ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700'">
-                        {{ getBooleanDefaultValue(char) ? 'Enabled' : 'Disabled' }}
-                      </span>
-                    </div>
-                  } @else {
-                    @for (val of char?.productSpecCharacteristicValue; track val.value) {
-                      <div class="flex items-center gap-2 mb-1">
-                        <div class="h-4 w-4 shrink-0 rounded-full border" [ngClass]="val?.isDefault ? 'bg-[#1f4fbf] border-[#1f4fbf]' : 'border-gray-300 bg-white'">
-                          @if(val?.isDefault) {
-                            <svg class="h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                            </svg>
-                          }
-                        </div>
-                        @if(val.value !== undefined && val.value !== null){
-                          <span [title]="getCharacteristicValueLabel(val)" class="text-sm text-[#526179] break-all">{{ getCharacteristicValuePreview(val) }}</span>
-                        } @else {
-                          <span [title]="getCharacteristicRangeLabel(val)" class="text-sm text-[#526179] break-all">{{ getCharacteristicRangePreview(val) }}</span>
-                        }
-                      </div>
-                    }
+      <div id="chars-container">
+        <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._product_chars' | translate }}</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          @for (char of prodChars; track char.id; let idx = $index) {
+          <div class="relative rounded-2xl bg-white border border-[#EBECEE] p-6">
+            <h3 [ngClass]="{'break-all': hasLongWord(char.name, 20), 'break-words': !hasLongWord(char.name, 20)}"
+              class="text-[18px] font-bold text-[#14274A] mb-2 break-words pr-20">{{char.name}}</h3>
+            @if (char.description) {
+            <markdown
+              [ngClass]="{'break-all': hasLongWord(char.description, 20), 'break-words': !hasLongWord(char.description, 20)}"
+              class="text-[13px] text-[#526179] mb-3" [data]="char.description"></markdown>
+            }
+            @if (isOptionalCharacteristic(char)) {
+            <span
+              class="absolute top-4 right-4 inline-flex items-center rounded-md bg-[#eef2fb] px-2 py-1 text-xs font-medium text-[#1f4fbf]">Optional</span>
+            }
+            <div class="mt-3">
+              @if (isBooleanCharacteristic(char)) {
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-[#526179]">Default</span>
+                <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium"
+                  [ngClass]="getBooleanDefaultValue(char) ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700'">
+                  {{ getBooleanDefaultValue(char) ? 'Enabled' : 'Disabled' }}
+                </span>
+              </div>
+              } @else {
+              @for (val of char?.productSpecCharacteristicValue; track val.value) {
+              <div class="flex items-center gap-2 mb-1">
+                <div class="h-4 w-4 shrink-0 rounded-full border"
+                  [ngClass]="val?.isDefault ? 'bg-[#1f4fbf] border-[#1f4fbf]' : 'border-gray-300 bg-white'">
+                  @if(val?.isDefault) {
+                  <svg class="h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="3" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
                   }
                 </div>
+                @if(val.value !== undefined && val.value !== null){
+                <span [title]="getCharacteristicValueLabel(val)" class="text-sm text-[#526179] break-all">{{
+                  getCharacteristicValuePreview(val) }}</span>
+                } @else {
+                <span [title]="getCharacteristicRangeLabel(val)" class="text-sm text-[#526179] break-all">{{
+                  getCharacteristicRangePreview(val) }}</span>
+                }
               </div>
-            } @empty {
-              <div class="col-span-3 text-center py-8 text-[#526179]">
-                {{ 'PRODUCT_DETAILS._no_chars' | translate }}
-              </div>
-            }
+              }
+              }
+            </div>
           </div>
+          } @empty {
+          <div class="col-span-3 text-center py-8 text-[#526179]">
+            {{ 'PRODUCT_DETAILS._no_chars' | translate }}
+          </div>
+          }
         </div>
+      </div>
       } @else {
-        <div class="text-center py-12 text-[#526179]">
-          No features available for this product.
-        </div>
+      <div class="text-center py-12 text-[#526179]">
+        No features available for this product.
+      </div>
       }
       }
 
       @if (activeTab === 'pricing') {
-        <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._product_pricing' | translate }}</h2>
-        @if(productOff?.productOfferingPrice != undefined){
-          @if(checkCustom){
-            <div class="grid gap-4 mb-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              @for (price of productOff?.productOfferingPrice; track price.id) {
-                @if (price.priceType == 'custom') {
-                  <div class="rounded-2xl bg-white border border-[#EBECEE] p-6">
-                    <h3 [ngClass]="{'break-all': hasLongWord(price.name, 20), 'break-words': !hasLongWord(price.name, 20)}"
-                      class="text-[20px] font-bold text-[#14274A] mb-2 break-words">{{price.name}}</h3>
-                    <markdown [ngClass]="{'break-all': hasLongWord(price?.description, 20), 'break-words': !hasLongWord(price?.description, 20)}"
-                      class="text-[14px] text-[#526179]" [data]="price?.description"></markdown>
-                  </div>
-                }
-              }
-              @if(productOff?.productOfferingPrice?.length==0){
-                <div class="rounded-2xl bg-white border border-[#EBECEE] p-6 text-center">
-                  <h3 class="text-[20px] font-bold text-[#14274A] mb-2">{{ 'SHOPPING_CART._free' | translate }}</h3>
-                  <p class="text-[14px] text-[#526179]">{{ 'SHOPPING_CART._free_desc' | translate }}</p>
-                </div>
-              }
-            </div>
-          } @else {
-            <div class="grid gap-4 mb-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              @for (price of productOff?.productOfferingPrice; track price.id) {
-                <div class="rounded-2xl bg-white border border-[#EBECEE] overflow-hidden">
-                  <div [ngClass]="price.priceType == 'recurring' ? 'bg-green-500' : price.priceType == 'usage' ? 'bg-yellow-300' : 'bg-[#1f4fbf]'" class="px-6 py-4">
-                    <h3 [ngClass]="{'break-all': hasLongWord(price.name, 20), 'break-words': !hasLongWord(price.name, 20)}"
-                      class="text-[18px] font-bold text-white text-center break-words">{{price.name}}</h3>
-                  </div>
-                  <div class="p-6">
-                    <markdown [ngClass]="{'break-all': hasLongWord(price?.description, 20), 'break-words': !hasLongWord(price?.description, 20)}"
-                      class="text-[14px] text-[#526179]" [data]="price?.description"></markdown>
-                  </div>
-                </div>
-              }
-              @if(productOff?.productOfferingPrice?.length==0){
-                <div class="rounded-2xl bg-white border border-[#EBECEE] overflow-hidden">
-                  <div class="bg-[#1f4fbf] px-6 py-4">
-                    <h3 class="text-[18px] font-bold text-white text-center">{{ 'SHOPPING_CART._free' | translate }}</h3>
-                  </div>
-                  <p class="p-6 text-[14px] text-[#526179] text-center">{{ 'SHOPPING_CART._free_desc' | translate }}</p>
-                </div>
-              }
-            </div>
-          }
+      <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._product_pricing' | translate }}</h2>
+      @if(productOff?.productOfferingPrice != undefined){
+      @if(checkCustom){
+      <div class="grid gap-4 mb-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        @for (price of productOff?.productOfferingPrice; track price.id) {
+        @if (price.priceType == 'custom') {
+        <div class="rounded-2xl bg-white border border-[#EBECEE] p-6">
+          <h3 [ngClass]="{'break-all': hasLongWord(price.name, 20), 'break-words': !hasLongWord(price.name, 20)}"
+            class="text-[20px] font-bold text-[#14274A] mb-2 break-words">{{price.name}}</h3>
+          <markdown
+            [ngClass]="{'break-all': hasLongWord(price?.description, 20), 'break-words': !hasLongWord(price?.description, 20)}"
+            class="text-[14px] text-[#526179]" [data]="price?.description"></markdown>
+        </div>
         }
-
-        @if(usageMetrics.length > 0){
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">Usage metrics</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            @for (metric of usageMetrics; track metric.id) {
-              <div class="rounded-2xl bg-white border border-[#EBECEE] p-6">
-                <h3 [ngClass]="{'break-all': hasLongWord(metric.name, 20), 'break-words': !hasLongWord(metric.name, 20)}"
-                  class="text-[18px] font-bold text-[#14274A] mb-2 break-words">{{metric.name}}</h3>
-                <markdown [ngClass]="{'break-all': hasLongWord(metric.description, 20), 'break-words': !hasLongWord(metric.description, 20)}"
-                  class="text-[14px] text-[#526179]" [data]="metric.description"></markdown>
-              </div>
-            }
+        }
+        @if(productOff?.productOfferingPrice?.length==0){
+        <div class="rounded-2xl bg-white border border-[#EBECEE] p-6 text-center">
+          <h3 class="text-[20px] font-bold text-[#14274A] mb-2">{{ 'SHOPPING_CART._free' | translate }}</h3>
+          <p class="text-[14px] text-[#526179]">{{ 'SHOPPING_CART._free_desc' | translate }}</p>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="grid gap-4 mb-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        @for (price of productOff?.productOfferingPrice; track price.id) {
+        <div class="rounded-2xl bg-white border border-[#EBECEE] overflow-hidden">
+          <div
+            [ngClass]="price.priceType == 'recurring' ? 'bg-green-500' : price.priceType == 'usage' ? 'bg-yellow-300' : 'bg-[#1f4fbf]'"
+            class="px-6 py-4">
+            <h3 [ngClass]="{'break-all': hasLongWord(price.name, 20), 'break-words': !hasLongWord(price.name, 20)}"
+              class="text-[18px] font-bold text-white text-center break-words">{{price.name}}</h3>
           </div>
+          <div class="p-6">
+            <markdown
+              [ngClass]="{'break-all': hasLongWord(price?.description, 20), 'break-words': !hasLongWord(price?.description, 20)}"
+              class="text-[14px] text-[#526179]" [data]="price?.description"></markdown>
+          </div>
+        </div>
         }
+        @if(productOff?.productOfferingPrice?.length==0){
+        <div class="rounded-2xl bg-white border border-[#EBECEE] overflow-hidden">
+          <div class="bg-[#1f4fbf] px-6 py-4">
+            <h3 class="text-[18px] font-bold text-white text-center">{{ 'SHOPPING_CART._free' | translate }}</h3>
+          </div>
+          <p class="p-6 text-[14px] text-[#526179] text-center">{{ 'SHOPPING_CART._free_desc' | translate }}</p>
+        </div>
+        }
+      </div>
+      }
+      }
+
+      @if(usageMetrics.length > 0){
+      <h2 class="text-[24px] font-bold text-[#14274A] mb-4">Usage metrics</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        @for (metric of usageMetrics; track metric.id) {
+        <div class="rounded-2xl bg-white border border-[#EBECEE] p-6">
+          <h3 [ngClass]="{'break-all': hasLongWord(metric.name, 20), 'break-words': !hasLongWord(metric.name, 20)}"
+            class="text-[18px] font-bold text-[#14274A] mb-2 break-words">{{metric.name}}</h3>
+          <markdown
+            [ngClass]="{'break-all': hasLongWord(metric.description, 20), 'break-words': !hasLongWord(metric.description, 20)}"
+            class="text-[14px] text-[#526179]" [data]="metric.description"></markdown>
+        </div>
+        }
+      </div>
+      }
       }
 
       @if (activeTab === 'compliance') {
-        <div class="mb-8">
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">Certification</h2>
-          <div class="rounded-2xl bg-[#eef2fb] border border-[#D8DADE] p-6">
-            <div class="flex items-center gap-4">
-              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1f4fbf]">
-                <svg class="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                </svg>
-              </div>
-              <div>
-                @if(complianceLevel=='NL'){
-                  <h3 class="text-[18px] font-bold text-[#14274A]">No level</h3>
-                }@else if(complianceLevel=='BL'){
-                  <h3 class="text-[18px] font-bold text-[#14274A]">Baseline</h3>
-                } @else if(complianceLevel=='P') {
-                  <h3 class="text-[18px] font-bold text-[#14274A]">Professional</h3>
-                } @else {
-                  <h3 class="text-[18px] font-bold text-[#14274A]">Professional+</h3>
-                }
-                <p class="text-[14px] text-[#526179]">{{ complianceDescription }}</p>
-              </div>
+      <div class="mb-8">
+        <h2 class="text-[24px] font-bold text-[#14274A] mb-4">Certification</h2>
+        <div class="rounded-2xl bg-[#eef2fb] border border-[#D8DADE] p-6">
+          <div class="flex items-center gap-4">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1f4fbf]">
+              <svg class="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
             </div>
-            @if (selfAtt) {
-              <a [href]="selfAtt" target="_blank" class="inline-block mt-3 font-medium text-[#1f4fbf] hover:underline text-[14px]">
-                {{ 'PRODUCT_DETAILS._self_attestation' | translate }}
-              </a>
-            }
+            <div>
+              @if(complianceLevel=='NL'){
+              <h3 class="text-[18px] font-bold text-[#14274A]">No level</h3>
+              }@else if(complianceLevel=='BL'){
+              <h3 class="text-[18px] font-bold text-[#14274A]">Baseline</h3>
+              } @else if(complianceLevel=='P') {
+              <h3 class="text-[18px] font-bold text-[#14274A]">Professional</h3>
+              } @else {
+              <h3 class="text-[18px] font-bold text-[#14274A]">Professional+</h3>
+              }
+              <p class="text-[14px] text-[#526179]">{{ complianceDescription }}</p>
+            </div>
           </div>
+          @if (selfAtt) {
+          <a [href]="selfAtt" target="_blank"
+            class="inline-block mt-3 font-medium text-[#1f4fbf] hover:underline text-[14px]">
+            {{ 'PRODUCT_DETAILS._self_attestation' | translate }}
+          </a>
+          }
         </div>
+      </div>
 
-        @if(complianceProf.length>0){
-        <div class="mb-8">
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">Key Capabilities</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            @for (char of complianceProf; track char.id) {
-              <div class="rounded-2xl bg-white border border-[#EBECEE] p-6 cursor-pointer hover:shadow-md transition-shadow" (click)="goToLink(char.href)">
-                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[#eef2fb] mb-4">
-                  <fa-icon [icon]="faAtom" class="text-[#1f4fbf] text-xl"></fa-icon>
-                </div>
-                <h3 class="text-[18px] font-bold text-[#14274A] mb-1">{{char.name}}</h3>
-              </div>
-            }
+      @if(complianceProf.length>0){
+      <div class="mb-8">
+        <h2 class="text-[24px] font-bold text-[#14274A] mb-4">Key Capabilities</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          @for (char of complianceProf; track char.id) {
+          <div class="rounded-2xl bg-white border border-[#EBECEE] p-6 cursor-pointer hover:shadow-md transition-shadow"
+            (click)="goToLink(char.href)">
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[#eef2fb] mb-4">
+              <fa-icon [icon]="faAtom" class="text-[#1f4fbf] text-xl"></fa-icon>
+            </div>
+            <h3 class="text-[18px] font-bold text-[#14274A] mb-1">{{char.name}}</h3>
           </div>
+          }
         </div>
-        }
+      </div>
+      }
 
-        @if(additionalCerts.length>0){
-        <div class="mb-8">
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">Additional certifications</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            @for (char of additionalCerts; track char.id) {
-              <div class="rounded-2xl bg-white border border-[#EBECEE] p-6 cursor-pointer hover:shadow-md transition-shadow" (click)="goToLink(char.productSpecCharacteristicValue?.at(0)?.value)">
-                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[#eef2fb] mb-4">
-                  <fa-icon [icon]="faAtom" class="text-[#1f4fbf] text-xl"></fa-icon>
-                </div>
-                <h3 class="text-[18px] font-bold text-[#14274A] mb-1">{{normalizeName(char.name)}}</h3>
-              </div>
-            }
+      @if(additionalCerts.length>0){
+      <div class="mb-8">
+        <h2 class="text-[24px] font-bold text-[#14274A] mb-4">Additional certifications</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          @for (char of additionalCerts; track char.id) {
+          <div class="rounded-2xl bg-white border border-[#EBECEE] p-6 cursor-pointer hover:shadow-md transition-shadow"
+            (click)="goToLink(char.productSpecCharacteristicValue?.at(0)?.value)">
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[#eef2fb] mb-4">
+              <fa-icon [icon]="faAtom" class="text-[#1f4fbf] text-xl"></fa-icon>
+            </div>
+            <h3 class="text-[18px] font-bold text-[#14274A] mb-1">{{normalizeName(char.name)}}</h3>
           </div>
+          }
         </div>
-        }
+      </div>
+      }
 
-        @if(licenseTerm || productOff?.serviceLevelAgreement){
-          @if(licenseTerm && licenseTerm?.description != ''){
-            <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._license' | translate }}</h2>
-            <div class="rounded-2xl bg-white border border-[#EBECEE] p-8 mb-8">
-              <div class="flex justify-end mb-4">
-                <fa-icon [icon]="faScaleBalanced" class="text-2xl text-[#1f4fbf]"></fa-icon>
-              </div>
-              <div #termsText [class.line-clamp-5]="!showTermsMore" class="overflow-hidden">
-                <markdown [ngClass]="{
+      @if(licenseTerm || productOff?.serviceLevelAgreement){
+      @if(licenseTerm && licenseTerm?.description != ''){
+      <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._license' | translate }}</h2>
+      <div class="rounded-2xl bg-white border border-[#EBECEE] p-8 mb-8">
+        <div class="flex justify-end mb-4">
+          <fa-icon [icon]="faScaleBalanced" class="text-2xl text-[#1f4fbf]"></fa-icon>
+        </div>
+        <div #termsText [class.line-clamp-5]="!showTermsMore" class="overflow-hidden">
+          <markdown [ngClass]="{
                     'break-all': hasLongWord(licenseTerm?.description, 20),
                     'break-words': !hasLongWord(licenseTerm?.description, 20)
-                  }" [data]="licenseTerm?.description"
-                  class="text-[16px] text-[#526179] break-words"></markdown>
-              </div>
-              @if(showReadMoreButton){
-                <button class="mt-4 text-[#1f4fbf] font-medium text-[14px] hover:underline" (click)="toggleTermsReadMore()">
-                  {{ showTermsMore ? 'Read less' : 'Read more' }}
-                </button>
-              }
-            </div>
-          }
-          @if(productOff?.serviceLevelAgreement){
-            <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._sla' | translate }}</h2>
-            <p class="text-[16px] text-[#526179] mb-8">{{productOff?.serviceLevelAgreement?.name}}.</p>
-          }
+                  }" [data]="licenseTerm?.description" class="text-[16px] text-[#526179] break-words"></markdown>
+        </div>
+        @if(showReadMoreButton){
+        <button class="mt-4 text-[#1f4fbf] font-medium text-[14px] hover:underline" (click)="toggleTermsReadMore()">
+          {{ showTermsMore ? 'Read less' : 'Read more' }}
+        </button>
         }
+      </div>
+      }
+      @if(productOff?.serviceLevelAgreement){
+      <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._sla' | translate }}</h2>
+      <p class="text-[16px] text-[#526179] mb-8">{{productOff?.serviceLevelAgreement?.name}}.</p>
+      }
+      }
 
-        @if(attatchments.length>0){
-          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._product_att' | translate }}</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            @for (att of attatchments; track att.id) {
-              <div class="rounded-2xl bg-white border border-[#EBECEE] p-6 flex items-center justify-between">
-                <h3 [ngClass]="{'break-all': hasLongWord(att.name, 20), 'break-words': !hasLongWord(att.name, 20)}"
-                  class="text-[18px] font-bold text-[#14274A] break-words">{{att.name}}</h3>
-                <button (click)="goToLink(att.url)" class="flex items-center justify-center h-10 w-10 rounded-full bg-[#eef2fb] hover:bg-[#dde6f6] transition-colors text-[#1f4fbf] shrink-0 ml-4">
-                  <fa-icon [icon]="faDownload" class="text-lg"></fa-icon>
-                </button>
-              </div>
-            }
-          </div>
+      @if(attatchments.length>0){
+      <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._product_att' | translate }}</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        @for (att of attatchments; track att.id) {
+        <div class="rounded-2xl bg-white border border-[#EBECEE] p-6 flex items-center justify-between">
+          <h3 [ngClass]="{'break-all': hasLongWord(att.name, 20), 'break-words': !hasLongWord(att.name, 20)}"
+            class="text-[18px] font-bold text-[#14274A] break-words">{{att.name}}</h3>
+          <button (click)="goToLink(att.url)"
+            class="flex items-center justify-center h-10 w-10 rounded-full bg-[#eef2fb] hover:bg-[#dde6f6] transition-colors text-[#1f4fbf] shrink-0 ml-4">
+            <fa-icon [icon]="faDownload" class="text-lg"></fa-icon>
+          </button>
+        </div>
         }
+      </div>
+      }
       }
 
       @if (!check_logged) {
-        <div class="rounded-2xl bg-[#14274A] px-8 py-16 text-center mt-8">
-          <h2 class="text-[32px] font-bold text-white mb-3">Ready to get started?</h2>
-          <p class="text-[16px] text-gray-300 mb-6">Join thousands of companies using {{productOff?.name}}</p>
-          <a [href]="customersLink" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-8 py-3.5 rounded-lg bg-[#1f4fbf] text-white text-[16px] font-medium hover:bg-[#163b99] transition-colors">
-            Join DOME Marketplace
-          </a>
-        </div>
+      <div class="rounded-2xl bg-[#14274A] px-8 py-16 text-center mt-8">
+        <h2 class="text-[32px] font-bold text-white mb-3">Ready to get started?</h2>
+        <p class="text-[16px] text-gray-300 mb-6">Join thousands of companies using {{productOff?.name}}</p>
+        <a [href]="customersLink" target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center px-8 py-3.5 rounded-lg bg-[#1f4fbf] text-white text-[16px] font-medium hover:bg-[#163b99] transition-colors">
+          Join DOME Marketplace
+        </a>
+      </div>
       }
 
     </div>
@@ -510,79 +561,85 @@
 
 <!-- ADD TO CART TOAST -->
 @if (toastVisibility) {
-  <div id="toast-add-cart" class="flex grid grid-flow-row mr-2 items-center w-auto max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 fixed top-1/2 right-0 z-50 justify-center" role="alert">
-    <div class="flex items-center justify-center">
-      <svg class="w-[18px] h-[18px] text-gray-800 dark:text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 20">
-        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 15a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm0 0h8m-8 0-1-4m9 4a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-9-4h10l2-7H3m2 7L3 4m0 0-.792-3H1"/>
-      </svg>
-      <div class="text-sm font-normal">
-        {{ 'CARD._added_card' | translate }}.
-      </div>
-      <div class="flex items-center ms-auto space-x-2 rtl:space-x-reverse p-1.5">
-        <button type="button" (click)="deleteProduct(lastAddedProd)" class="px-3 py-2 text-xs font-medium text-center text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">{{ 'CARD._undo' | translate }}</button>
-        <button type="button" (click)="toastVisibility=false" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-add-cart" aria-label="Close">
-          <span class="sr-only">{{ 'CARD._close_toast' | translate }}</span>
-          <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-          </svg>
-        </button>
-      </div>
+<div id="toast-add-cart"
+  class="flex grid grid-flow-row mr-2 items-center w-auto max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 fixed top-1/2 right-0 z-50 justify-center"
+  role="alert">
+  <div class="flex items-center justify-center">
+    <svg class="w-[18px] h-[18px] text-gray-800 dark:text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none"
+      viewBox="0 0 18 20">
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M6 15a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm0 0h8m-8 0-1-4m9 4a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-9-4h10l2-7H3m2 7L3 4m0 0-.792-3H1" />
+    </svg>
+    <div class="text-sm font-normal">
+      {{ 'CARD._added_card' | translate }}.
     </div>
-    <div class="flex w-full mt-2 rounded-full h-2.5 dark:bg-gray-700">
-      <div id="progress-bar" class="flex bg-green-600 h-2.5 rounded-full dark:bg-green-500 transition-width delay-200 duration-3000 ease-out" style="width: 0px;"></div>
+    <div class="flex items-center ms-auto space-x-2 rtl:space-x-reverse p-1.5">
+      <button type="button" (click)="deleteProduct(lastAddedProd)"
+        class="px-3 py-2 text-xs font-medium text-center text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">{{
+        'CARD._undo' | translate }}</button>
+      <button type="button" (click)="toastVisibility=false"
+        class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
+        data-dismiss-target="#toast-add-cart" aria-label="Close">
+        <span class="sr-only">{{ 'CARD._close_toast' | translate }}</span>
+        <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+        </svg>
+      </button>
     </div>
   </div>
+  <div class="flex w-full mt-2 rounded-full h-2.5 dark:bg-gray-700">
+    <div id="progress-bar"
+      class="flex bg-green-600 h-2.5 rounded-full dark:bg-green-500 transition-width delay-200 duration-3000 ease-out"
+      style="width: 0px;"></div>
+  </div>
+</div>
 }
 
 <!-- CART SELECTION modal -->
 @if (cartSelection){
-  <cart-card [productOff]="productOff" [prodSpec]="prodSpec" [images]="images" [cartSelection]="cartSelection"></cart-card>
+<cart-card [productOff]="productOff" [prodSpec]="prodSpec" [images]="images"
+  [cartSelection]="cartSelection"></cart-card>
 }
 
 @if (showError){
-  <error-message class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50" [message]="errorMessage"></error-message>
+<error-message
+  class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"
+  [message]="errorMessage"></error-message>
 }
 
 @if (showQuoteModal){
-  <app-quote-request-modal
-  [ngClass]="showQuoteModal ? 'backdrop-blur-sm': ''"
+<app-quote-request-modal [ngClass]="showQuoteModal ? 'backdrop-blur-sm': ''"
   class="flex justify-center overflow-x-hidden fixed top-0 right-0 left-0 z-40 justify-center items-center w-full md:inset-0 h-full max-h-full rounded-lg shadow-2xl"
-  (click)="$event.stopPropagation();"
-  [productOff]="productOff"
-  [prodSpec]="prodSpec"
-  [orgInfo]="orgInfo"
-  [customerId]="customerId"
-  [isOpen]="showQuoteModal"
-  ></app-quote-request-modal>
+  (click)="$event.stopPropagation();" [productOff]="productOff" [prodSpec]="prodSpec" [orgInfo]="orgInfo"
+  [customerId]="customerId" [isOpen]="showQuoteModal"></app-quote-request-modal>
 }
 
 @if (showDescriptionModal) {
-  <div (click)="closeDescriptionModal()" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-    <div (click)="$event.stopPropagation()" class="relative w-full max-w-2xl max-h-[80vh] bg-white rounded-2xl shadow-2xl flex flex-col">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-[#EBECEE]">
-        <h3 class="text-[20px] font-bold text-[#14274A] break-words pr-8">{{productOff?.name}}</h3>
-        <button (click)="closeDescriptionModal()" class="flex items-center justify-center h-8 w-8 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors">
-          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-          </svg>
-        </button>
-      </div>
-      <div class="px-6 py-4 overflow-y-auto">
-        <markdown [ngClass]="{
+<div (click)="closeDescriptionModal()"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  <div (click)="$event.stopPropagation()"
+    class="relative w-full max-w-2xl max-h-[80vh] bg-white rounded-2xl shadow-2xl flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-[#EBECEE]">
+      <h3 class="text-[20px] font-bold text-[#14274A] break-words pr-8">{{productOff?.name}}</h3>
+      <button (click)="closeDescriptionModal()"
+        class="flex items-center justify-center h-8 w-8 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+        </svg>
+      </button>
+    </div>
+    <div class="px-6 py-4 overflow-y-auto">
+      <markdown [ngClass]="{
             'break-all': hasLongWord(productOff?.description, 20),
             'break-words': !hasLongWord(productOff?.description, 20)
           }" class="text-[16px] leading-[26px] text-[#0B1528]" [data]="productOff?.description"></markdown>
-      </div>
     </div>
   </div>
+</div>
 }
 
-<app-price-plan-drawer
-  data-cy="pricePlanDrawer"
-  [drawerId]="'drawer-product'"
-  [productOff]="productOff"
-  [prodSpec]="prodSpec"
-  [isOpen]="isDrawerOpen"
-  [width]="'w-2/3'"
-  (closeDrawer)="closeDrawer()">
+<app-price-plan-drawer data-cy="pricePlanDrawer" [drawerId]="'drawer-product'" [productOff]="productOff"
+  [prodSpec]="prodSpec" [isOpen]="isDrawerOpen" [width]="'w-2/3'" (closeDrawer)="closeDrawer()">
 </app-price-plan-drawer>

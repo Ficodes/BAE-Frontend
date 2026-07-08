@@ -6,7 +6,6 @@ import { BrowserModule } from '@angular/platform-browser';
 import { PickerComponent } from '@ctrl/ngx-emoji-mart';
 import { FaIconComponent, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
-import { TranslateHttpLoader } from "@ngx-translate/http-loader";
 import { NgxFileDropModule } from 'ngx-file-drop';
 import { NotificationComponent } from './shared/notification/notification.component';
 import { MarkdownModule } from 'ngx-markdown';
@@ -72,6 +71,11 @@ import { AppInitService } from './services/app-init.service';
 import { GoogleTagManagerService } from './services/google-tag-manager.service';
 import { ThemeAwareTranslateLoader } from './services/theme-aware-translate.loader';
 import { ThemeService } from './services/theme.service';
+
+export function createThemeAwareLoader(http: HttpClient, themeService: ThemeService) {
+  return new ThemeAwareTranslateLoader(http, themeService);
+}
+
 import { BadgeComponent } from "./shared/badge/badge.component";
 import { BillingAccountFormComponent } from "./shared/billing-account-form/billing-account-form.component";
 import { CardComponent } from "./shared/card/card.component";
@@ -87,10 +91,6 @@ import { PricePlanDrawerComponent } from "./shared/price-plan-drawer/price-plan-
 import { RevenueReportComponent } from './shared/revenue-report/revenue-report.component';
 import { SharedModule } from "./shared/shared.module";
 
-// Función Factory requerida para crear el cargador con sus dependencias
-export function createThemeAwareLoader(http: HttpClient, themeService: ThemeService) {
-  return new ThemeAwareTranslateLoader(http, themeService);
-}
 
 import { QuotesModule } from "src/app/features/quotes/quotes.module";
 import { AboutDomeComponent } from "src/app/pages/about-dome/about-dome.component";
@@ -180,10 +180,9 @@ import { RequestValidationModalComponent } from './pages/seller-offerings/offeri
     QuotesModule,
     MarkdownModule.forRoot(),
     TranslateModule.forRoot({
-      defaultLanguage: 'en',
       loader: {
         provide: TranslateLoader,
-        useFactory: (createThemeAwareLoader),
+        useFactory: createThemeAwareLoader,
         deps: [HttpClient, ThemeService]
       }
     }),
@@ -223,6 +222,3 @@ import { RequestValidationModalComponent } from './pages/seller-offerings/offeri
 })
 export class AppModule { }
 
-export function HttpLoaderFactory(http: HttpClient) {
-  return new TranslateHttpLoader(http, './assets/i18n/');
-}
