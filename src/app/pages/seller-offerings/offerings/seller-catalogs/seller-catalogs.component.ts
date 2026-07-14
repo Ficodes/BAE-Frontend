@@ -35,8 +35,15 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
   page_check:boolean = true;
   filter:any=undefined;
   partyId:any;
-  status:any[]=['Active','Launched'];
-  readonly statusOptions = ['Active', 'Launched', 'Retired', 'Obsolete'];
+  status:any[]=['Active'];
+  selectedTab: string = 'Draft';
+  tabStatusMap: { [k: string]: string[] } = {
+    Draft: ['Active'],
+    Published: ['Launched'],
+    Unpublished: ['Retired'],
+    Archived: ['Obsolete']
+  };
+  statusCounts: { [k: string]: number } = { Draft: 0, Published: 0, Unpublished: 0, Archived: 0 };
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -86,6 +93,7 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
     }
 
     this.getCatalogs(false);
+    this.loadStatusCounts();
     let input = document.querySelector('[type=search]')
     if(input!=undefined){
       input.addEventListener('input', e => {
@@ -153,8 +161,58 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
     this.getCatalogs(false);
   }
 
-  isStatusSelected(status: string): boolean {
-    return this.status.includes(status);
+  selectTab(tab: string) {
+    if (tab === this.selectedTab) return;
+    this.selectedTab = tab;
+    this.status = [...this.tabStatusMap[tab]];
+    this.loading=true;
+    this.page=0;
+    this.catalogs=[];
+    this.nextCatalogs=[];
+    this.getCatalogs(false);
+  }
+
+  async loadStatusCounts() {
+    try {
+      const all: any[] = [];
+      let offset = 0;
+      while (offset < 10000) {
+        const page = await this.api.getCatalogsByUser(offset, undefined, [], this.partyId);
+        const items = Array.isArray(page) ? page : [];
+        all.push(...items);
+        if (items.length < this.CATALOG_LIMIT) break;
+        offset += this.CATALOG_LIMIT;
+      }
+      const counts: { [k: string]: number } = {};
+      for (const tab of Object.keys(this.tabStatusMap)) counts[tab] = 0;
+      for (const item of all) {
+        const status = item?.lifecycleStatus;
+        for (const tab of Object.keys(this.tabStatusMap)) {
+          if (this.tabStatusMap[tab].includes(status)) {
+            counts[tab]++;
+            break;
+          }
+        }
+      }
+      this.statusCounts = counts;
+    } catch {
+    }
+    this.cdr.detectChanges();
+  }
+
+  rowStatusBadge(cat: any): { text: string, bg: string, color: string } {
+    switch (cat?.lifecycleStatus) {
+      case 'Active':
+        return { text: 'Draft', bg: '#FEF3C7', color: '#92400E' };
+      case 'Launched':
+        return { text: 'Published', bg: '#BBF7D0', color: '#052E16' };
+      case 'Retired':
+        return { text: 'Unpublished', bg: '#FEF3C7', color: '#92400E' };
+      case 'Obsolete':
+        return { text: 'Archived', bg: '#FEE2E2', color: '#991B1B' };
+      default:
+        return { text: cat?.lifecycleStatus || '-', bg: '#F3F4F6', color: '#374151' };
+    }
   }
 
   getStatusBadgeClass(status: string | undefined): string {

@@ -46,18 +46,25 @@ describe('SellerCatalogsComponent', () => {
     expect(eventMessage.emitSellerUpdateCatalog).toHaveBeenCalledWith(cat);
   });
 
-  it('onStateFilterChange should remove existing filter and reload catalogs', () => {
-    component.status = ['Active', 'Launched'];
+  it('selectTab should set status filter and reload catalogs', () => {
     const getCatalogsSpy = spyOn(component, 'getCatalogs');
 
-    component.onStateFilterChange('Active');
+    component.selectTab('Published');
 
     expect(component.status).toEqual(['Launched']);
+    expect(component.selectedTab).toBe('Published');
     expect(component.loading).toBeTrue();
     expect(component.page).toBe(0);
     expect(component.catalogs).toEqual([]);
     expect(component.nextCatalogs).toEqual([]);
     expect(getCatalogsSpy).toHaveBeenCalledWith(false);
+  });
+
+  it('rowStatusBadge should map catalog lifecycle status to tab label', () => {
+    expect(component.rowStatusBadge({ lifecycleStatus: 'Active' }).text).toBe('Draft');
+    expect(component.rowStatusBadge({ lifecycleStatus: 'Launched' }).text).toBe('Published');
+    expect(component.rowStatusBadge({ lifecycleStatus: 'Retired' }).text).toBe('Unpublished');
+    expect(component.rowStatusBadge({ lifecycleStatus: 'Obsolete' }).text).toBe('Archived');
   });
 
   it('hasLongWord should detect long words and handle undefined', () => {

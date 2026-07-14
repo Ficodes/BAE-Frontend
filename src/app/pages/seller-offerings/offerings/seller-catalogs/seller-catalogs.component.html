@@ -1,127 +1,120 @@
-<div class="w-full">
-  <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+<div class="bg-white rounded-2xl border border-[#EBECEE] shadow-sm p-6 w-full flex-1 flex flex-col gap-8">
+  <div class="flex items-start justify-between">
     <div>
-      <p class="text-sm font-semibold uppercase tracking-wide text-secondary-100">{{ 'OFFERINGS._my_offerings' | translate }}</p>
-      <h2 class="mt-1 text-3xl font-extrabold text-gray-900">{{ 'OFFERINGS._catalogs' | translate }}</h2>
+      <h2 class="text-2xl font-extrabold text-gray-900">{{ 'OFFERINGS._catalogs' | translate }}</h2>
+      <p class="text-sm text-gray-500 mt-1">{{ 'OFFERINGS._manage_catalogs_subtitle' | translate }}</p>
     </div>
-
     <button data-cy="newCatalog" type="button" (click)="goToCreate()"
-      class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary-100 px-5 text-sm font-semibold text-white hover:bg-primary-50 focus:outline-none focus:ring-4 focus:ring-primary-100/20">
-      <span>{{ 'OFFERINGS._add_new_catalog' | translate }}</span>
-      <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5"/>
+      class="inline-flex items-center gap-2 bg-primary-100 hover:bg-primary-50 text-white text-sm font-semibold rounded-lg h-10 px-4">
+      <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.4" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
       </svg>
+      {{ 'OFFERINGS._add_new_catalog' | translate }}
     </button>
   </div>
 
-  <div class="mb-5 rounded-lg border border-gray-200 bg-white p-4">
-    <div class="mb-3 flex items-center gap-2">
-      <fa-icon [icon]="faSwatchbook" class="text-secondary-100"></fa-icon>
-      <h3 class="text-sm font-bold text-gray-900">{{ 'OFFERINGS._filter_state' | translate }}</h3>
-    </div>
-
-    <div class="flex flex-wrap gap-2">
-      @for (option of statusOptions; track option) {
-        <button type="button" (click)="onStateFilterChange(option)"
-          [ngClass]="isStatusSelected(option) ? 'border-secondary-100 bg-secondary-50 text-gray-950' : 'border-gray-200 bg-white text-gray-600 hover:border-secondary-100/60 hover:bg-secondary-50/40'"
-          class="min-h-10 rounded-lg border px-4 text-sm font-semibold transition-colors">
-          @if(option === 'Active') {
-            {{ 'OFFERINGS._active' | translate }}
-          } @else if(option === 'Launched') {
-            {{ 'OFFERINGS._launched' | translate }}
-          } @else if(option === 'Retired') {
-            {{ 'OFFERINGS._retired' | translate }}
-          } @else {
-            {{ 'OFFERINGS._obsolete' | translate }}
-          }
-        </button>
-      }
-    </div>
+  <div class="border-b border-[#EBECEE] flex items-stretch overflow-x-auto">
+    @for (tab of ['Draft','Published','Unpublished','Archived']; track tab) {
+      <button type="button" (click)="selectTab(tab)"
+        class="w-56 flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold tracking-[0.5px] leading-6 border-b-[3px] -mb-px transition-colors"
+        [ngClass]="selectedTab === tab ? 'text-[#131B25] border-[#2D58A7]' : 'text-gray-500 border-transparent hover:text-gray-700'">
+        {{ ('OFFERINGS._' + tab.toLowerCase()) | translate }}
+        <span class="inline-flex items-center justify-center min-w-[28px] h-6 px-2 rounded-full text-sm font-semibold"
+          [style.background-color]="selectedTab === tab ? '#DDE6F6' : '#EBECEE'"
+          [style.color]="selectedTab === tab ? '#14274a' : '#374151'">{{ statusCounts[tab] }}</span>
+      </button>
+    }
   </div>
 
-  @if(loading){
-    <div role="status" class="flex min-h-72 w-full items-center justify-center rounded-lg border border-gray-200 bg-white">
-      <svg aria-hidden="true" class="h-10 w-10 animate-spin fill-secondary-100 text-gray-200" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
-      </svg>
-      <span class="sr-only">{{ 'COMMON._loading' | translate }}</span>
-    </div>
-  } @else {
-    <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
-      <div class="overflow-x-auto">
-        <table class="w-full min-w-[760px] text-left text-sm text-gray-600">
-          <thead class="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-            <tr>
-              <th scope="col" class="px-6 py-4">{{ 'OFFERINGS._name' | translate }}</th>
-              <th scope="col" class="px-6 py-4">{{ 'OFFERINGS._status' | translate }}</th>
-              <th scope="col" class="px-6 py-4">{{ 'OFFERINGS._role' | translate }}</th>
-              <th scope="col" class="px-6 py-4 text-right">{{ 'OFFERINGS._actions' | translate }}</th>
-            </tr>
-          </thead>
-          <tbody data-cy="catalogTable" class="divide-y divide-gray-100">
-            @for (cat of catalogs; track cat.id) {
-              <tr data-cy="catalogRow" class="hover:bg-secondary-50/30">
-                <td data-cy="catalogName" [ngClass]="{
-                    'break-all': hasLongWord(cat.name, 20),
-                    'break-words': !hasLongWord(cat.name, 20)
-                  }" class="max-w-[360px] px-6 py-5 font-semibold text-gray-950">
-                  {{cat.name}}
-                </td>
-                <td data-cy="catalogStatus" class="px-6 py-5">
-                  <span [ngClass]="getStatusBadgeClass(cat.lifecycleStatus)"
-                    class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold">
-                    {{cat.lifecycleStatus || '-'}}
-                  </span>
-                </td>
-                <td class="px-6 py-5 text-gray-700">
-                  {{cat.relatedParty?.at(0)?.role || '-'}}
-                </td>
-                <td class="px-6 py-5 text-right">
-                  <button data-cy="catalogEdit" type="button" (click)="goToUpdate(cat)"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 hover:border-secondary-100 hover:bg-secondary-50 focus:outline-none focus:ring-4 focus:ring-secondary-100/20"
-                    [attr.aria-label]="'OFFERINGS._edit' | translate">
-                    <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L9.32 17.332 4 18.75l1.418-5.32L16.862 4.487Z"/>
-                    </svg>
-                  </button>
-                </td>
+  <div class="rounded-2xl flex-1" [class.dashed-pane]="loading || catalogs.length === 0">
+    @if(loading){
+      <div role="status" class="w-full flex justify-center items-center py-24">
+        <svg aria-hidden="true" class="w-10 h-10 text-gray-200 animate-spin fill-primary-100" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+          <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+        </svg>
+        <span class="sr-only">{{ 'COMMON._loading' | translate }}</span>
+      </div>
+    } @else if (catalogs.length === 0) {
+      <div class="flex flex-col items-center justify-center flex-1 py-12 px-6">
+        <div class="w-[72px] h-[72px] rounded-full flex items-center justify-center mb-5 p-4" style="background-color: #DDE6F6;">
+          <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#2D58A7">
+            <path d="M12.378 1.602a.75.75 0 00-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03zM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 00.372-.648V7.93zM11.25 22.18v-9l-9-5.25v8.57a.75.75 0 00.372.648l8.628 5.033z"/>
+          </svg>
+        </div>
+        <p class="text-base font-bold text-gray-900 mb-1">{{ 'OFFERINGS._no_cat' | translate }}</p>
+        <p class="text-sm text-gray-500 mb-6">{{ 'OFFERINGS._add_new_to_collect' | translate }}</p>
+        <button type="button" (click)="goToCreate()"
+          class="inline-flex items-center gap-2 bg-primary-100 hover:bg-primary-50 text-white text-sm font-semibold rounded-lg h-10 px-4">
+          <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.4" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          {{ 'OFFERINGS._add_new_catalog' | translate }}
+        </button>
+      </div>
+    } @else {
+      <div class="rounded-2xl overflow-visible bg-white" style="border: 1px solid #D8DADE;">
+        <div class="overflow-x-auto">
+          <table data-cy="catalogTable" class="w-full min-w-[760px] text-sm text-left text-gray-700">
+            <thead class="text-xs text-gray-500 uppercase bg-white" style="border-bottom: 1px solid #EBECEE;">
+              <tr class="h-[56px]">
+                <th scope="col" class="px-6 font-semibold rounded-tl-2xl">{{ 'OFFERINGS._name' | translate }}</th>
+                <th scope="col" class="px-6 font-semibold">{{ 'OFFERINGS._status' | translate }}</th>
+                <th scope="col" class="hidden md:table-cell px-6 font-semibold">{{ 'OFFERINGS._last_update' | translate }}</th>
+                <th scope="col" class="px-6 font-semibold text-right rounded-tr-2xl">{{ 'OFFERINGS._actions' | translate }}</th>
               </tr>
-            } @empty {
-              <tr>
-                <td colspan="4" class="px-6 py-14 text-center">
-                  <div class="mx-auto max-w-md">
-                    <h3 class="text-base font-bold text-gray-900">{{ 'OFFERINGS._no_cat' | translate }}</h3>
-                    <p class="mt-2 text-sm text-gray-500">{{ 'OFFERINGS._filter_state' | translate }}</p>
-                  </div>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (cat of catalogs; track cat.id; let last = $last) {
+                <tr data-cy="catalogRow" class="h-[56px] group" [style.border-bottom]="!last ? '1px solid #EBECEE' : null">
+                  <td data-cy="catalogName" [ngClass]="{
+                      'break-all': hasLongWord(cat.name, 20),
+                      'break-words': !hasLongWord(cat.name, 20),
+                      'rounded-bl-2xl': last
+                    }" class="px-6 text-gray-900 group-hover:bg-gray-50">
+                    {{cat.name}}
+                  </td>
+                  <td data-cy="catalogStatus" class="px-6 group-hover:bg-gray-50">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                      [style.background-color]="rowStatusBadge(cat).bg"
+                      [style.color]="rowStatusBadge(cat).color">{{ rowStatusBadge(cat).text }}</span>
+                  </td>
+                  <td class="hidden md:table-cell px-6 text-gray-500 whitespace-nowrap group-hover:bg-gray-50">
+                    {{ cat.lastUpdate | date:'dd/MM/yyyy - HH:mm' }}
+                  </td>
+                  <td class="px-6 text-right group-hover:bg-gray-50" [ngClass]="{'rounded-br-2xl': last}">
+                    <button data-cy="catalogEdit" type="button" (click)="goToUpdate(cat)" class="p-1 hover:bg-gray-100 rounded text-gray-500"
+                      [attr.aria-label]="'OFFERINGS._edit' | translate">
+                      <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/>
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      @if (!loading_more) {
-        @if (page_check) {
-          <div class="flex justify-center border-t border-gray-100 px-6 py-5">
-            <button data-cy="loadMore" (click)="next()"
-              class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 hover:border-secondary-100 hover:bg-secondary-50">
-              {{ 'OFFERINGS._load_more' | translate }}
-              <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5"/>
-              </svg>
-            </button>
-          </div>
-        }
-      } @else {
-        <div role="status" class="flex justify-center border-t border-gray-100 px-6 py-5">
-          <svg aria-hidden="true" class="h-8 w-8 animate-spin fill-secondary-100 text-gray-200" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+      @if (!loading_more && page_check) {
+        <div class="flex pt-4 justify-center">
+          <button data-cy="loadMore" (click)="next()" class="inline-flex items-center px-4 h-9 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+            {{ 'OFFERINGS._load_more' | translate }}
+            <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+            </svg>
+          </button>
+        </div>
+      } @else if (loading_more) {
+        <div role="status" class="flex justify-center pt-4">
+          <svg aria-hidden="true" class="h-8 w-8 animate-spin fill-primary-100 text-gray-200" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908Z" fill="currentColor"/>
+            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289Z" fill="currentFill"/>
           </svg>
           <span class="sr-only">{{ 'COMMON._loading' | translate }}</span>
         </div>
       }
-    </div>
-  }
+    }
+  </div>
 </div>
