@@ -62,6 +62,16 @@ export interface DashboardConfig {
   // Add more sections
 }
 
+export interface WorkspaceHelpConfig {
+  title: string;
+  description: string;
+  actionLabel: string;
+}
+
+export interface WorkspaceConfig {
+  sellerOfferingsHelp?: WorkspaceHelpConfig;
+}
+
 export interface ThemeMetaTagConfig {
   name?: string;
   property?: string;
@@ -79,6 +89,7 @@ export interface ThemeConfig {
   authUrls?: ThemeAuthUrlsConfig;
   colors?: ThemeColorsConfig;
   dashboard?: DashboardConfig;
+  workspace?: WorkspaceConfig;
   metaTags?: ThemeMetaTagConfig[];
   // More theme specific propierties
 }

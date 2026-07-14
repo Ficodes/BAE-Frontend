@@ -326,15 +326,10 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   }
 
   goToResources() {
-    const link = this.currentTheme?.links?.footerLinks
-      ?.flatMap(group => group.navLinks ?? [])
-      .find(l => l.label === 'FOOTER.documentation');
-    if (!link?.url) return;
-    if (link.isRouterLink) {
-      this.router.navigate([link.url]);
-    } else {
-      window.open(link.url, '_blank', 'noopener');
-    }
+    const targetUrl = environment.KNOWLEDGE_BASE_URL || environment.KB_GUIDELNES_URL;
+    if (!targetUrl) return;
+
+    window.open(targetUrl, '_blank', 'noopener');
   }
 
   goTo(path: string, id?: string) {

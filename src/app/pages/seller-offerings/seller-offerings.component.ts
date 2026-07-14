@@ -16,6 +16,7 @@ import { firstValueFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { QuoteService } from 'src/app/features/quotes/services/quote.service';
 import { ThemeService } from 'src/app/services/theme.service';
+import { WorkspaceHelpConfig } from 'src/app/themes';
 
 type SellerWorkspaceSection = 'catalogs' | 'offers' | 'productspec' | 'servicespec' | 'resourcespec' | 'usagespec';
 type SellerWorkspaceView =
@@ -61,6 +62,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   usageSpecsCount: number = 0;
   workspaceLogoUrl: string | null = null;
   workspaceThemeName: string = 'DOME';
+  workspaceHelpAction?: WorkspaceHelpConfig;
   userInitials: string = '';
   activeSection: SellerWorkspaceSection = this.catalogManagementEnabled ? 'catalogs' : 'offers';
   toastMessage: string | null = null;
@@ -204,16 +206,10 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToResources() {
-    const groups = this.themeService.getCurrentThemeConfig()?.links?.footerLinks || [];
-    const link = groups
-      .flatMap((group: any) => group.navLinks ?? [])
-      .find((l: any) => l.label === 'FOOTER.documentation');
-    if (!link?.url) return;
-    if (link.isRouterLink) {
-      this.router.navigate([link.url]);
-    } else {
-      window.open(link.url, '_blank', 'noopener');
-    }
+    const targetUrl = environment.KNOWLEDGE_BASE_URL || environment.KB_GUIDELNES_URL;
+    if (!targetUrl) return;
+
+    window.open(targetUrl, '_blank', 'noopener');
   }
 
   async ngOnInit() {
@@ -221,6 +217,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     const theme = this.themeService.getCurrentThemeConfig();
     this.workspaceLogoUrl = theme?.assets?.logoUrl ?? null;
     this.workspaceThemeName = theme?.displayName ?? 'DOME';
+    this.workspaceHelpAction = theme?.workspace?.sellerOfferingsHelp;
     this.userInitials = this.computeInitials(this.userInfo);
     const saved = localStorage.getItem('activeSection') as SellerWorkspaceSection | null;
     const initialSection = this.normalizeSection(saved) || this.activeSection;

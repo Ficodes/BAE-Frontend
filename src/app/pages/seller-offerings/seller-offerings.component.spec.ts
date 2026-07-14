@@ -6,6 +6,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { EventMessageService } from '../../services/event-message.service';
 import { QuoteService } from 'src/app/features/quotes/services/quote.service';
 import { ApiServiceService } from 'src/app/services/product-service.service';
+import { environment } from 'src/environments/environment';
 
 import { SellerOfferingsComponent } from './seller-offerings.component';
 
@@ -139,4 +140,33 @@ describe('SellerOfferingsComponent', () => {
 
     expect(component.feedback).toBeFalse();
   });
+
+  it('should hide workspace help box when theme does not configure it', () => {
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-cy="sellerWorkspaceHelp"]')).toBeNull();
+  });
+
+  it('should show workspace help box when theme configures it', () => {
+    fixture.detectChanges();
+
+    component.workspaceHelpAction = {
+      title: 'OFFERINGS._need_help',
+      description: 'OFFERINGS._explore_guidelines',
+      actionLabel: 'OFFERINGS._view_kb'
+    };
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-cy="sellerWorkspaceHelp"]')).not.toBeNull();
+  });
+
+  it('goToResources should open configured knowledge base URL', () => {
+    const openSpy = spyOn(window, 'open');
+    const fallbackUrl = environment.KNOWLEDGE_BASE_URL || environment.KB_GUIDELNES_URL;
+
+    component.goToResources();
+
+    expect(openSpy).toHaveBeenCalledWith(fallbackUrl, '_blank', 'noopener');
+  });
+
 });

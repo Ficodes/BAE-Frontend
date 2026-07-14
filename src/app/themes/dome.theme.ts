@@ -138,6 +138,13 @@ export const DOME_THEME_CONFIG: ThemeConfig = {
     showFeaturedOfferings: true,
     showPlatformBenefits: true,
   },
+  workspace: {
+    sellerOfferingsHelp: {
+      title: 'OFFERINGS._need_help',
+      description: 'OFFERINGS._explore_guidelines',
+      actionLabel: 'OFFERINGS._view_kb'
+    }
+  },
   metaTags: [
     { property: 'og:title', content: 'DOME Marketplace - Dashboard' },
     { property: 'og:description', content: 'The European federated ecosystem for secure and trusted Cloud and Edge service procurement.' },

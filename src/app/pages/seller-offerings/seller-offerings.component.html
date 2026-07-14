@@ -134,15 +134,17 @@
           </button>
         </div>
 
-        <div class="mt-auto pt-8 pb-2 pl-16 lg:sticky lg:bottom-2">
-          <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
-            <h3 class="text-base font-bold text-gray-900 mb-1.5">{{ 'OFFERINGS._need_help' | translate }}</h3>
-            <p class="text-sm text-gray-600 mb-3">{{ 'OFFERINGS._explore_guidelines' | translate }}</p>
-            <button type="button" (click)="goToResources()" class="w-full px-3 py-2 bg-white border border-secondary-100 rounded-lg text-sm font-semibold text-secondary-100 hover:bg-secondary-50/50">
-              {{ 'OFFERINGS._view_kb' | translate }}
-            </button>
+        @if(workspaceHelpAction; as helpAction) {
+          <div data-cy="sellerWorkspaceHelp" class="mt-auto pt-8 pb-2 pl-16 lg:sticky lg:bottom-2">
+            <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+              <h3 class="text-base font-bold text-gray-900 mb-1.5">{{ helpAction.title | translate }}</h3>
+              <p class="text-sm text-gray-600 mb-3">{{ helpAction.description | translate }}</p>
+              <button type="button" (click)="goToResources()" class="w-full px-3 py-2 bg-white border border-secondary-100 rounded-lg text-sm font-semibold text-secondary-100 hover:bg-secondary-50/50">
+                {{ helpAction.actionLabel | translate }}
+              </button>
+            </div>
           </div>
-        </div>
+        }
       </div>
       }
 

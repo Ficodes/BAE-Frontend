@@ -4,6 +4,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { environment } from 'src/environments/environment';
 
 import { HeaderComponent } from './header.component';
 
@@ -50,5 +51,14 @@ describe('HeaderComponent', () => {
     component.ngOnInit();
 
     expect(component.isWorkspace).toBeFalse();
+  });
+
+  it('goToResources should open configured knowledge base URL', () => {
+    const openSpy = spyOn(window, 'open');
+    const fallbackUrl = environment.KNOWLEDGE_BASE_URL || environment.KB_GUIDELNES_URL;
+
+    component.goToResources();
+
+    expect(openSpy).toHaveBeenCalledWith(fallbackUrl, '_blank', 'noopener');
   });
 });
