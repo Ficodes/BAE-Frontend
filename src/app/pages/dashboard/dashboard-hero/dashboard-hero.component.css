@@ -4,7 +4,7 @@
 
 .hero-shell {
   height: calc(100vh - 88px);
-  min-height: 640px;
+  min-height: 700px;
   background: linear-gradient(180deg, #0b1528 0%, rgb(var(--theme-secondary-100)) 100%);
 }
 
@@ -116,6 +116,7 @@
 .hero-marquee {
   position: relative;
   z-index: 6;
+  flex: none;
   width: 100%;
   max-width: 1050px;
   margin-inline: auto;
@@ -193,7 +194,7 @@
 @media (max-width: 1279px) {
   .hero-shell {
     height: calc(100vh - 88px);
-    min-height: 640px;
+    min-height: 700px;
   }
 
   .hero-title,
@@ -226,7 +227,7 @@
 @media (max-width: 1023px) {
   .hero-shell {
     height: calc(100vh - 88px);
-    min-height: 640px;
+    min-height: 700px;
   }
 
   .hero-title,
