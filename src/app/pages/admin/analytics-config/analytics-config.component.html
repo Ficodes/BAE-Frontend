@@ -62,63 +62,11 @@
       </section>
 
       <section formGroupName="analyticsSuperset" class="space-y-4">
-        <h3 class="text-xl font-bold text-primary-100 dark:text-white">Superset service account</h3>
-        <div class="grid gap-4 xl:grid-cols-2">
-          <div>
-            <label for="superset-provider" class="font-semibold text-sm dark:text-white">Provider</label>
-            <input id="superset-provider" formControlName="provider" type="text"
-              class="mt-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg block w-full p-2.5" />
-          </div>
-          <div>
-            <label for="superset-username" class="font-semibold text-sm dark:text-white">Username</label>
-            <input id="superset-username" formControlName="username" type="text"
-              class="mt-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg block w-full p-2.5" />
-          </div>
-          <div>
-            <label for="superset-password" class="font-semibold text-sm dark:text-white">Password</label>
-            <input id="superset-password" formControlName="password" type="password" autocomplete="new-password"
-              class="mt-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg block w-full p-2.5" />
-            @if(passwordConfigured !== null){
-              <p class="mt-1 text-xs text-gray-500 dark:text-gray-300">passwordConfigured: {{ passwordConfigured }}</p>
-            }
-          </div>
-        </div>
-
-        <div formGroupName="rls" class="space-y-5">
-          <h3 class="text-xl font-bold text-primary-100 dark:text-white">RLS configuration</h3>
-          @for(section of dashboardSections; track section.key){
-            <div class="space-y-3">
-              <div class="flex items-center justify-between gap-4">
-                <h4 class="font-bold text-gray-900 dark:text-white">{{ section.label }}</h4>
-                <button type="button" (click)="addRlsRule(section.key)"
-                  class="text-primary-100 border border-primary-100 hover:bg-primary-50 rounded-lg text-sm px-4 py-2">
-                  Add rule
-                </button>
-              </div>
-
-              <div [formArrayName]="section.key" class="space-y-3">
-                @for(ruleControl of rlsArray(section.key).controls; track ruleIndex; let ruleIndex = $index){
-                  <div [formGroupName]="ruleIndex" class="p-4 border border-gray-200 rounded-lg bg-white dark:bg-secondary-300 dark:border-secondary-200">
-                    <div class="flex items-start justify-between gap-4">
-                      <p class="font-semibold text-sm text-gray-900 dark:text-white">Rule {{ ruleIndex + 1 }}</p>
-                      <button type="button" (click)="removeRlsRule(section.key, ruleIndex)"
-                        class="text-red-700 border border-red-300 hover:bg-red-50 rounded-lg text-sm px-4 py-2">
-                        Remove
-                      </button>
-                    </div>
-
-                    <label class="block mt-3 font-semibold text-sm dark:text-white">Dataset IDs</label>
-                    <input formControlName="datasets" type="text" placeholder="75, 81, 83"
-                      class="mt-1 bg-gray-50 dark:bg-secondary-200 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg block w-full p-2.5" />
-
-                    <label class="block mt-3 font-semibold text-sm dark:text-white">Clause template</label>
-                    <textarea formControlName="clauseTemplate" rows="3"
-                      class="mt-1 bg-gray-50 dark:bg-secondary-200 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg block w-full p-2.5"></textarea>
-                  </div>
-                }
-              </div>
-            </div>
-          }
+        <h3 class="text-xl font-bold text-primary-100 dark:text-white">Superset guest token</h3>
+        <div>
+          <label for="superset-guest-token-path" class="font-semibold text-sm dark:text-white">Guest token path</label>
+          <input id="superset-guest-token-path" formControlName="guestTokenPath" type="text"
+            class="mt-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg block w-full p-2.5" />
         </div>
       </section>
     </form>

@@ -20,6 +20,14 @@ export const init_config = {
     'searchEnabled': true,
     'analyticsEnabled': true,
     'analytics': 'https://analytics.dome-marketplace-sbx.org',
+    'analyticsDashboards': {
+        'businessInsightsNonLear': 'business-insights-non-lear',
+        'businessInsightsLear': 'business-insights-lear',
+        'usageMonitor': 'usage-monitor'
+    },
+    'analyticsSuperset': {
+        'guestTokenPath': '/api/v1/dome/guest_token/'
+    },
     'quotesEnabled': false,
     'tenderingEnabled': false,
     'dataSpaceEnabled': false,
