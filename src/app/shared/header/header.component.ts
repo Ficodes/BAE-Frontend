@@ -112,7 +112,16 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
       default:             return 'OFFERINGS._back_to_marketplace';
     }
   }
-  private workspaceRoutes = ['/my-offerings'];
+  private workspaceRoutes = [
+    '/profile',
+    '/my-offerings',
+    '/admin',
+    '/product-orders',
+    '/quote-list',
+    '/tenders',
+    '/analytics',
+    '/product-inventory'
+  ];
 
   cartCount = 0;
   scrolled = false;

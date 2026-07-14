@@ -1,7 +1,6 @@
 <nav class="sticky top-0 z-50 w-full text-white transition-all duration-300"
-  [class.header-top]="!isWorkspace && !scrolled && !isNavBarOpen"
-  [class.header-glass]="!isWorkspace && (scrolled || isNavBarOpen)"
-  [class.bg-secondary-100]="isWorkspace">
+  [class.header-top]="!scrolled && !isNavBarOpen"
+  [class.header-glass]="scrolled || isNavBarOpen">
   <div class="mx-auto max-w-[1180px] px-6 sm:px-10">
     <div class="flex h-[88px] items-center" [class.justify-between]="!isWorkspace">
       @if (isWorkspace) {
@@ -21,15 +20,15 @@
 
         <div class="flex items-center gap-3">
           <button id="workspaceSupport" type="button" (click)="goToResources()"
-            class="h-[26px] w-[26px] rounded-full bg-white flex items-center justify-center text-secondary-100 hover:bg-gray-100" aria-label="Help">
-            <span class="font-black text-[13px] leading-none" style="font-family: Arial, Helvetica, sans-serif">?</span>
+            class="inline-flex h-[44px] w-[44px] items-center justify-center rounded-[10px] text-white/90 hover:text-white hover:bg-white/10 transition" aria-label="Help">
+            <span class="font-black text-[17px] leading-none" style="font-family: Arial, Helvetica, sans-serif">?</span>
           </button>
 
           @if (is_logged) {
             <div data-cy="loggedAcc" id="loggedAcc" data-dropdown-toggle="userDropdown" data-dropdown-placement="bottom-end"
-              class="h-[44px] w-[44px] rounded-full bg-[#EBF0F7] text-[#2D58A7] flex items-center justify-center cursor-pointer select-none font-bold text-sm tracking-wide"
+              class="inline-flex h-[44px] w-[44px] items-center justify-center rounded-full bg-white/15 text-white cursor-pointer select-none"
               aria-label="User menu">
-              {{ usercharacters }}
+              <span class="text-[14px] font-bold tracking-wide">{{ usercharacters }}</span>
             </div>
           } @else {
             <button data-cy="login" id="login" type="button"
