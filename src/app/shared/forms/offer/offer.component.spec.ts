@@ -5,7 +5,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { OfferComponent } from './offer.component';
-import { availableFilters } from 'src/app/data/availableFilters';
+import { availableFilters, searchCategoriesConfig } from 'src/app/data/availableFilters';
 
 describe('OfferComponent', () => {
   let component: OfferComponent;
@@ -13,6 +13,8 @@ describe('OfferComponent', () => {
 
   beforeEach(async () => {
     availableFilters.splice(0, availableFilters.length);
+    searchCategoriesConfig.primaryCategoriesMode = 'catalogFirstLevel';
+    searchCategoriesConfig.primaryRootName = '';
 
     await TestBed.configureTestingModule({
       schemas: [NO_ERRORS_SCHEMA],
@@ -26,6 +28,8 @@ describe('OfferComponent', () => {
 
   afterEach(() => {
     availableFilters.splice(0, availableFilters.length);
+    searchCategoriesConfig.primaryCategoriesMode = 'catalogFirstLevel';
+    searchCategoriesConfig.primaryRootName = '';
   });
 
   it('should create', () => {
@@ -159,6 +163,40 @@ describe('OfferComponent', () => {
 
     expect(component.generalInfoCategoryFilterLabel).toBe('Business domain');
     expect(component.generalInfoCategoryFilterOptions).toEqual([{ id: 'health', name: 'Health' }]);
+  });
+
+  it('should use default catalog categories directly when primary categories mode is catalogFirstLevel', async () => {
+    searchCategoriesConfig.primaryCategoriesMode = 'catalogFirstLevel';
+    const categories = [
+      { id: 'cat-1', name: 'Category 1' },
+      { id: 'cat-2', name: 'Category 2' }
+    ];
+    const api = (component as any).api;
+    spyOn(api, 'getDefaultCategories').and.returnValue(Promise.resolve(categories));
+    const getCategoriesByParentIdSpy = spyOn(api, 'getCategoriesByParentId');
+
+    await component.loadCategories();
+
+    expect(component.availableRootCategories).toEqual(categories);
+    expect(getCategoriesByParentIdSpy).not.toHaveBeenCalled();
+  });
+
+  it('should use the configured primary root when primary categories mode is rooted', async () => {
+    searchCategoriesConfig.primaryCategoriesMode = 'rooted';
+    searchCategoriesConfig.primaryRootName = 'Service Categories';
+    const api = (component as any).api;
+    spyOn(api, 'getDefaultCategories').and.returnValue(Promise.resolve([
+      { id: 'root-1', name: 'Service Categories' },
+      { id: 'root-2', name: 'Other Root' }
+    ]));
+    spyOn(api, 'getCategoriesByParentId').and.returnValue(Promise.resolve([
+      { id: 'compute', name: 'Compute' }
+    ]));
+
+    await component.loadCategories();
+
+    expect(api.getCategoriesByParentId).toHaveBeenCalledOnceWith('root-1');
+    expect(component.availableRootCategories).toEqual([{ id: 'compute', name: 'Compute' }]);
   });
 
   it('should not submit an incomplete offer', () => {

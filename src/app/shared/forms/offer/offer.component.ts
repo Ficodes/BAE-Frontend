@@ -23,7 +23,7 @@ import { PricePlansComponent } from "./price-plans/price-plans.component";
 import { ProcurementModeComponent } from "./procurement-mode/procurement-mode.component";
 import { ProdSpecComponent } from "./prod-spec/prod-spec.component";
 import { ReplicationVisibilityComponent } from "./replication-visibility/replication-visibility.component";
-import { availableFilters, type Filter } from "src/app/data/availableFilters";
+import { availableFilters, searchCategoriesConfig, type Filter } from "src/app/data/availableFilters";
 
 type ProductOffering_Create = components["schemas"]["ProductOffering_Create"];
 type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
@@ -562,9 +562,19 @@ export class OfferComponent implements OnInit, OnDestroy {
     try {
       const roots = await this.api.getDefaultCategories();
       const list = Array.isArray(roots) ? roots : [];
-      const domeRoot = list.find((c: any) => c?.isRoot && c?.name === 'DOME Categories');
-      if (domeRoot?.id) {
-        const children = await this.api.getCategoriesByParentId(domeRoot.id);
+
+      if (searchCategoriesConfig.primaryCategoriesMode === 'catalogFirstLevel') {
+        this.availableRootCategories = list;
+        return;
+      }
+
+      const configuredRootName = searchCategoriesConfig.primaryRootName;
+      const primaryCategoryRoot = configuredRootName
+        ? list.find((c: any) => c?.name === configuredRootName)
+        : null;
+
+      if (primaryCategoryRoot?.id) {
+        const children = await this.api.getCategoriesByParentId(primaryCategoryRoot.id);
         this.availableRootCategories = Array.isArray(children) ? children : [];
       } else {
         this.availableRootCategories = [];
