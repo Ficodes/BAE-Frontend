@@ -115,18 +115,21 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
       "partyId": this.partyId
     }
 
-    this.paginationService.getItemsPaginated(this.page, this.CATALOG_LIMIT, next, this.catalogs, this.nextCatalogs, options,
-      this.api.getCatalogsByUser.bind(this.api)).then(data => {
-      this.page_check=data.page_check;      
+    try {
+      const data = await this.paginationService.getItemsPaginated(this.page, this.CATALOG_LIMIT, next, this.catalogs, this.nextCatalogs, options,
+        this.api.getCatalogsByUser.bind(this.api));
+      this.page_check=data.page_check;
       this.catalogs=data.items;
       this.nextCatalogs=data.nextItems;
       this.page=data.page;
+    } finally {
       this.loading=false;
       this.loading_more=false;
-    })
+    }
   }
 
   async next(){
+    this.loading_more = true;
     await this.getCatalogs(true);
   }
 

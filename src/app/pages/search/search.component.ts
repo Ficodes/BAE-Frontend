@@ -560,6 +560,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   }
 
   async next() {
+    this.loading_more = true;
     await this.getProducts(true);
   }
 

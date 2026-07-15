@@ -757,18 +757,21 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       //"isBundle": false
     }
 
-    this.paginationService.getItemsPaginated(this.resourceSpecPage, this.RES_SPEC_LIMIT, next, this.resourceSpecs, this.nextResourceSpecs, options,
-      this.resSpecService.getResourceSpecByUser.bind(this.resSpecService)).then(data => {
-        this.resourceSpecPageCheck = data.page_check;
-        this.resourceSpecs = data.items;
-        this.nextResourceSpecs = data.nextItems;
-        this.resourceSpecPage = data.page;
-        this.loadingResourceSpec = false;
-        this.loadingResourceSpec_more = false;
-      })
+    try {
+      const data = await this.paginationService.getItemsPaginated(this.resourceSpecPage, this.RES_SPEC_LIMIT, next, this.resourceSpecs, this.nextResourceSpecs, options,
+        this.resSpecService.getResourceSpecByUser.bind(this.resSpecService));
+      this.resourceSpecPageCheck = data.page_check;
+      this.resourceSpecs = data.items;
+      this.nextResourceSpecs = data.nextItems;
+      this.resourceSpecPage = data.page;
+    } finally {
+      this.loadingResourceSpec = false;
+      this.loadingResourceSpec_more = false;
+    }
   }
 
   async nextRes() {
+    this.loadingResourceSpec_more = true;
     await this.getResSpecs(true);
   }
 

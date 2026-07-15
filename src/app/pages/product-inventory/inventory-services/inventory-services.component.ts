@@ -98,17 +98,20 @@ export class InventoryServicesComponent implements OnInit, OnDestroy {
       "filters": this.status
     }
     
-    this.paginationService.getItemsPaginated(this.page, this.INVENTORY_LIMIT, next, this.services, this.nextServices, options,
-      this.inventoryService.getServiceInventory.bind(this.inventoryService)).then(data => {
-      this.page_check=data.page_check;      
+    try {
+      const data = await this.paginationService.getItemsPaginated(this.page, this.INVENTORY_LIMIT, next, this.services, this.nextServices, options,
+        this.inventoryService.getServiceInventory.bind(this.inventoryService));
+      this.page_check=data.page_check;
       this.services=data.items;
       this.nextServices=data.nextItems;
       this.page=data.page;
+    } finally {
       this.loading=false;
       this.loading_more=false;
-    })
+    }
   }
   async next(){
+    this.loading_more = true;
     await this.getInventory(true);
   }
 

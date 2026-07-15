@@ -208,7 +208,12 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
   }
 
   async next(){
-    await this.getInventory(true);
+    this.loading_more = true;
+    try {
+      await this.getInventory(true);
+    } finally {
+      this.loading_more = false;
+    }
   }
 
   filterInventoryByKeywords(){

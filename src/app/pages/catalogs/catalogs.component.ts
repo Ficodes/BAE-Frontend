@@ -63,21 +63,23 @@ export class CatalogsComponent implements OnInit{
   async getCatalogs(next:boolean){
     if(next==false){
       this.loading=true;
-    }    
+    }
 
     let options = {
       "keywords": this.filter
     }
-    this.paginationService.getItemsPaginated(this.page,this.CATALOG_LIMIT,next,this.catalogs,this.nextCatalogs, options,
-      this.api.getCatalogs.bind(this.api)).then(data => {
-      this.page_check=data.page_check;      
+    try {
+      const data = await this.paginationService.getItemsPaginated(this.page,this.CATALOG_LIMIT,next,this.catalogs,this.nextCatalogs, options,
+        this.api.getCatalogs.bind(this.api));
+      this.page_check=data.page_check;
       this.catalogs=data.items.filter((catalog:Catalog) => (catalog.id !== environment.DFT_CATALOG_ID)
       );
       this.nextCatalogs=data.nextItems;
       this.page=data.page;
+    } finally {
       this.loading=false;
       this.loading_more=false;
-    })
+    }
   }
 
   filterCatalogs(){
@@ -91,6 +93,7 @@ export class CatalogsComponent implements OnInit{
   }
 
   async next(){
+    this.loading_more = true;
     await this.getCatalogs(true);
   }
 
