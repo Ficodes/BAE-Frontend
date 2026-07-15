@@ -69,7 +69,7 @@
                 </div>
                 <div>
                   <label class="font-semibold text-sm dark:text-white">Source</label>
-                  <select formControlName="source" (change)="clearOptionsForCategoryRoot(i)"
+                  <select formControlName="source" (change)="onFilterSourceChange(i)"
                     class="mt-1 bg-gray-50 dark:bg-secondary-200 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg block w-full p-2.5">
                     <option value="configured">configured</option>
                     <option value="categoryRoot">categoryRoot</option>
@@ -80,6 +80,15 @@
                     <label class="font-semibold text-sm dark:text-white">Root name</label>
                     <input formControlName="rootName" type="text"
                       class="mt-1 bg-gray-50 dark:bg-secondary-200 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg block w-full p-2.5" />
+                  </div>
+                  <div>
+                    <label class="font-semibold text-sm dark:text-white">Offer form placement</label>
+                    <select formControlName="offerFormPlacement"
+                      class="mt-1 bg-gray-50 dark:bg-secondary-200 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg block w-full p-2.5">
+                      <option value="none">none</option>
+                      <option value="generalInfo">generalInfo</option>
+                      <option value="categorySection">categorySection</option>
+                    </select>
                   </div>
                 }
               </div>

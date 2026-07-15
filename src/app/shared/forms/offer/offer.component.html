@@ -103,27 +103,29 @@
                   }
                 </div>
 
-                <div>
-                  <label for="marketSector" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._market_sector' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
-                  @if(loadingSectors){
-                    <div class="text-sm text-gray-500 p-3">{{ 'CREATE_OFFER._loading' | translate }}</div>
-                  } @else {
-                    <select id="marketSector"
-                      [value]="selectedSectorId"
-                      (change)="onSectorChange($event)"
-                      class="block w-full p-3 bg-white border text-sm text-gray-900 rounded-lg focus:ring-primary-100 focus:border-primary-100"
-                      [class.border-gray-300]="!(shouldShowRequiredErrors() && !selectedSectorId)"
-                      [class.border-red-500]="shouldShowRequiredErrors() && !selectedSectorId">
-                      <option value="" [selected]="!selectedSectorId">{{ 'CREATE_OFFER._select' | translate }}</option>
-                      @for(s of availableSectors; track s.id){
-                        <option [value]="s.id" [selected]="s.id === selectedSectorId">{{ s.name }}</option>
+                @if(generalInfoCategoryFilter){
+                  <div>
+                    <label for="generalInfoCategoryFilter" class="block text-sm font-semibold text-gray-900 mb-2">{{ generalInfoCategoryFilterLabel }}<span class="text-red-600 ml-0.5">*</span></label>
+                    @if(loadingGeneralInfoCategoryFilter){
+                      <div class="text-sm text-gray-500 p-3">{{ 'CREATE_OFFER._loading' | translate }}</div>
+                    } @else {
+                      <select id="generalInfoCategoryFilter"
+                        [value]="selectedGeneralInfoCategoryFilterOptionId"
+                        (change)="onGeneralInfoCategoryFilterChange($event)"
+                        class="block w-full p-3 bg-white border text-sm text-gray-900 rounded-lg focus:ring-primary-100 focus:border-primary-100"
+                        [class.border-gray-300]="!(shouldShowRequiredErrors() && !selectedGeneralInfoCategoryFilterOptionId)"
+                        [class.border-red-500]="shouldShowRequiredErrors() && !selectedGeneralInfoCategoryFilterOptionId">
+                        <option value="" [selected]="!selectedGeneralInfoCategoryFilterOptionId">{{ 'CREATE_OFFER._select' | translate }}</option>
+                        @for(option of generalInfoCategoryFilterOptions; track option.id){
+                          <option [value]="option.id" [selected]="option.id === selectedGeneralInfoCategoryFilterOptionId">{{ option.name }}</option>
+                        }
+                      </select>
+                      @if(shouldShowRequiredErrors() && !selectedGeneralInfoCategoryFilterOptionId){
+                        <p class="mt-1 text-xs text-red-600">{{ 'CREATE_OFFER._mandatory_field' | translate }}</p>
                       }
-                    </select>
-                    @if(shouldShowRequiredErrors() && !selectedSectorId){
-                      <p class="mt-1 text-xs text-red-600">{{ 'CREATE_OFFER._mandatory_field' | translate }}</p>
                     }
-                  }
-                </div>
+                  </div>
+                }
               </div>
 
               <div>

@@ -8,6 +8,7 @@ export type Filter = {
   label?: string
   source?: 'configured' | 'categoryRoot'
   rootName?: string
+  offerFormPlacement?: 'none' | 'generalInfo' | 'categorySection'
   children?: FilterOption[]
 }
 
@@ -42,6 +43,7 @@ type RuntimeSearchFiltersConfig = {
 function cloneFilters(filters: Filter[]): Filter[] {
   return (filters || []).map(filter => ({
     ...filter,
+    offerFormPlacement: filter.offerFormPlacement,
     children: filter.children
       ? filter.children.map(child => ({
           name: child.name,
@@ -68,11 +70,17 @@ function normalizeFilter(raw: any): Filter | null {
   }
 
   const source = raw.source === 'categoryRoot' ? 'categoryRoot' : 'configured'
+  const offerFormPlacement = source === 'categoryRoot' && (
+    raw.offerFormPlacement === 'generalInfo' || raw.offerFormPlacement === 'categorySection'
+  )
+    ? raw.offerFormPlacement
+    : 'none'
   const filter: Filter = {
     name: raw.name.trim(),
     label: typeof raw.label === 'string' ? raw.label : undefined,
     source,
     rootName: source === 'categoryRoot' && typeof raw.rootName === 'string' ? raw.rootName : undefined,
+    offerFormPlacement,
     children: source === 'configured' && Array.isArray(raw.children)
       ? raw.children.map(normalizeFilterOption).filter((child: FilterOption | null): child is FilterOption => !!child)
       : undefined,

@@ -23,6 +23,7 @@ import { PricePlansComponent } from "./price-plans/price-plans.component";
 import { ProcurementModeComponent } from "./procurement-mode/procurement-mode.component";
 import { ProdSpecComponent } from "./prod-spec/prod-spec.component";
 import { ReplicationVisibilityComponent } from "./replication-visibility/replication-visibility.component";
+import { availableFilters, type Filter } from "src/app/data/availableFilters";
 
 type ProductOffering_Create = components["schemas"]["ProductOffering_Create"];
 type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
@@ -81,9 +82,10 @@ export class OfferComponent implements OnInit, OnDestroy {
   loadingProdSpecs: boolean = false;
   selectedProdSpecId: string = '';
 
-  availableSectors: any[] = [];
-  loadingSectors: boolean = false;
-  selectedSectorId: string = '';
+  generalInfoCategoryFilter: Filter | null = null;
+  generalInfoCategoryFilterOptions: any[] = [];
+  loadingGeneralInfoCategoryFilter: boolean = false;
+  selectedGeneralInfoCategoryFilterOptionId: string = '';
 
   availableRootCategories: any[] = [];
   availableSubcategories: any[] = [];
@@ -311,7 +313,7 @@ export class OfferComponent implements OnInit, OnDestroy {
       case 0:
         return (this.productOfferForm.get('generalInfo')?.valid || false)
           && !!this.productOfferForm.get('prodSpec')?.value
-          && !!this.selectedSectorId;
+          && (!this.generalInfoCategoryFilter || !!this.selectedGeneralInfoCategoryFilterOptionId);
       case 1:
         return !!this.selectedRootCategoryId;
       case 2:
@@ -502,34 +504,56 @@ export class OfferComponent implements OnInit, OnDestroy {
     }
   }
 
-  async loadAvailableSectors(): Promise<void> {
-    this.loadingSectors = true;
+  async loadGeneralInfoCategoryFilterOptions(): Promise<void> {
+    this.loadingGeneralInfoCategoryFilter = true;
     try {
+      const filter = availableFilters.find(item =>
+        item.source === 'categoryRoot'
+        && item.offerFormPlacement === 'generalInfo'
+        && !!item.rootName
+      );
+      this.generalInfoCategoryFilter = filter || null;
+      this.selectedGeneralInfoCategoryFilterOptionId = '';
+
+      if (!filter?.rootName) {
+        this.generalInfoCategoryFilterOptions = [];
+        return;
+      }
+
       const roots = await this.api.getDefaultCategories();
       const list = Array.isArray(roots) ? roots : [];
-      const sectorRoot = list.find((c: any) => c?.name === 'Sector');
-      if (sectorRoot?.id) {
-        const children = await this.api.getCategoriesByParentId(sectorRoot.id);
-        this.availableSectors = Array.isArray(children) ? children : [];
+      const categoryRoot = list.find((c: any) => c?.name === filter.rootName);
+      if (categoryRoot?.id) {
+        const children = await this.api.getCategoriesByParentId(categoryRoot.id);
+        this.generalInfoCategoryFilterOptions = Array.isArray(children) ? children : [];
+        if (this.generalInfoCategoryFilterOptions.length === 0) {
+          this.generalInfoCategoryFilter = null;
+        }
       } else {
-        this.availableSectors = [];
+        this.generalInfoCategoryFilterOptions = [];
+        this.generalInfoCategoryFilter = null;
       }
     } catch (err) {
-      console.error('Failed to load market sectors', err);
-      this.availableSectors = [];
+      console.error('Failed to load general info category filter options', err);
+      this.generalInfoCategoryFilter = null;
+      this.generalInfoCategoryFilterOptions = [];
     } finally {
-      this.loadingSectors = false;
+      this.loadingGeneralInfoCategoryFilter = false;
     }
   }
 
-  onSectorChange(event: Event): void {
+  get generalInfoCategoryFilterLabel(): string {
+    return this.generalInfoCategoryFilter?.label || this.generalInfoCategoryFilter?.name || '';
+  }
+
+  onGeneralInfoCategoryFilterChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
-    this.selectedSectorId = value;
-    const sectorIds = new Set(this.availableSectors.map(s => s.id));
+    this.selectedGeneralInfoCategoryFilterOptionId = value;
+    const optionIds = new Set(this.generalInfoCategoryFilterOptions.map(s => s.id));
     const current = this.productOfferForm.get('category')?.value || [];
-    const withoutSectors = (Array.isArray(current) ? current : []).filter((c: any) => !sectorIds.has(c?.id));
-    const chosen = this.availableSectors.find(s => s.id === value);
-    const next = chosen ? [...withoutSectors, chosen] : withoutSectors;
+    const withoutPriorSelection = (Array.isArray(current) ? current : []).filter((c: any) => !optionIds.has(c?.id));
+    const chosen = this.generalInfoCategoryFilterOptions.find(s => s.id === value);
+    const next = chosen ? [...withoutPriorSelection, chosen] : withoutPriorSelection;
     this.productOfferForm.patchValue({ category: next });
   }
 
@@ -1514,7 +1538,7 @@ export class OfferComponent implements OnInit, OnDestroy {
 
     if (this.formType === 'update' && this.offer) {
       this.loadingData = true;
-      await Promise.all([this.loadAvailableProdSpecs(), this.loadAvailableSectors(), this.loadCategories()]);
+      await Promise.all([this.loadAvailableProdSpecs(), this.loadGeneralInfoCategoryFilterOptions(), this.loadCategories()]);
       await this.loadOfferData();
       if (this.offer.productSpecification?.id) {
         this.selectedProdSpecId = this.offer.productSpecification.id;
@@ -1523,9 +1547,9 @@ export class OfferComponent implements OnInit, OnDestroy {
           this.availableProdSpecs = [...this.availableProdSpecs, { id: this.selectedProdSpecId, name: fallback?.name || this.offer.productSpecification.name || this.selectedProdSpecId }];
         }
       }
-      const sectorIds = new Set(this.availableSectors.map(s => s.id));
-      const existingSector = (this.offer.category || []).find((c: any) => sectorIds.has(c?.id));
-      if (existingSector) this.selectedSectorId = existingSector.id;
+      const generalInfoCategoryFilterOptionIds = new Set(this.generalInfoCategoryFilterOptions.map(s => s.id));
+      const existingGeneralInfoCategoryFilterOption = (this.offer.category || []).find((c: any) => generalInfoCategoryFilterOptionIds.has(c?.id));
+      if (existingGeneralInfoCategoryFilterOption) this.selectedGeneralInfoCategoryFilterOptionId = existingGeneralInfoCategoryFilterOption.id;
 
       const rootIds = new Set(this.availableRootCategories.map(c => c.id));
       const existingRoot = (this.offer.category || []).find((c: any) => rootIds.has(c?.id));
@@ -1540,7 +1564,7 @@ export class OfferComponent implements OnInit, OnDestroy {
       this.loadingData = false;
     } else {
       this.loadAvailableProdSpecs();
-      this.loadAvailableSectors();
+      this.loadGeneralInfoCategoryFilterOptions();
       this.loadCategories();
       this.ensureCatalogue();
     }

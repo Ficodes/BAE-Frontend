@@ -5,12 +5,15 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { OfferComponent } from './offer.component';
+import { availableFilters } from 'src/app/data/availableFilters';
 
 describe('OfferComponent', () => {
   let component: OfferComponent;
   let fixture: ComponentFixture<OfferComponent>;
 
   beforeEach(async () => {
+    availableFilters.splice(0, availableFilters.length);
+
     await TestBed.configureTestingModule({
       schemas: [NO_ERRORS_SCHEMA],
       imports: [OfferComponent, HttpClientTestingModule, RouterTestingModule, TranslateModule.forRoot()]
@@ -21,18 +24,29 @@ describe('OfferComponent', () => {
     component = fixture.componentInstance;
   });
 
+  afterEach(() => {
+    availableFilters.splice(0, availableFilters.length);
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
   it('should block forward navigation when the current required step is incomplete', () => {
     component.currentStep = 0;
+    component.generalInfoCategoryFilter = {
+      name: 'businessDomain',
+      label: 'Business domain',
+      source: 'categoryRoot',
+      rootName: 'Business Domains',
+      offerFormPlacement: 'generalInfo'
+    };
 
     expect(component.canNavigate(1)).toBeFalse();
 
     component.productOfferForm.get('generalInfo')?.patchValue({ name: 'Offer name' });
     component.productOfferForm.patchValue({ prodSpec: { id: 'prod-spec-1' } });
-    component.selectedSectorId = 'sector-1';
+    component.selectedGeneralInfoCategoryFilterOptionId = 'filter-option-1';
 
     expect(component.canNavigate(1)).toBeTrue();
   });
@@ -73,6 +87,80 @@ describe('OfferComponent', () => {
     expect(component.completedStep(3)).toBeTrue();
   });
 
+  it('should not require a general info category filter when no generalInfo placement is configured', async () => {
+    availableFilters.splice(
+      0,
+      availableFilters.length,
+      {
+        name: 'businessDomain',
+        label: 'Business domain',
+        source: 'categoryRoot',
+        rootName: 'Business Domains'
+      },
+      {
+        name: 'deploymentModel',
+        label: 'Deployment model',
+        source: 'categoryRoot',
+        rootName: 'Deployment Models',
+        offerFormPlacement: 'categorySection'
+      }
+    );
+    const api = (component as any).api;
+    const getDefaultCategoriesSpy = spyOn(api, 'getDefaultCategories');
+
+    await component.loadGeneralInfoCategoryFilterOptions();
+
+    expect(getDefaultCategoriesSpy).not.toHaveBeenCalled();
+    expect(component.generalInfoCategoryFilter).toBeNull();
+    expect(component.generalInfoCategoryFilterOptions).toEqual([]);
+
+    component.currentStep = 0;
+    component.productOfferForm.get('generalInfo')?.patchValue({ name: 'Offer name' });
+    component.productOfferForm.patchValue({ prodSpec: { id: 'prod-spec-1' } });
+
+    expect(component.validateCurrentStep()).toBeTrue();
+  });
+
+  it('should load the category root filter configured for the general info slot', async () => {
+    availableFilters.splice(
+      0,
+      availableFilters.length,
+      {
+        name: 'derivedOnly',
+        label: 'Derived only',
+        source: 'configured',
+        children: [{ name: 'derived-value' }]
+      },
+      {
+        name: 'deploymentModel',
+        label: 'Deployment model',
+        source: 'categoryRoot',
+        rootName: 'Deployment Models',
+        offerFormPlacement: 'categorySection'
+      },
+      {
+        name: 'businessDomain',
+        label: 'Business domain',
+        source: 'categoryRoot',
+        rootName: 'Business Domains',
+        offerFormPlacement: 'generalInfo'
+      }
+    );
+
+    const api = (component as any).api;
+    spyOn(api, 'getDefaultCategories').and.returnValue(Promise.resolve([
+      { id: 'business-domain-root', name: 'Business Domains' }
+    ]));
+    spyOn(api, 'getCategoriesByParentId').and.returnValue(Promise.resolve([
+      { id: 'health', name: 'Health' }
+    ]));
+
+    await component.loadGeneralInfoCategoryFilterOptions();
+
+    expect(component.generalInfoCategoryFilterLabel).toBe('Business domain');
+    expect(component.generalInfoCategoryFilterOptions).toEqual([{ id: 'health', name: 'Health' }]);
+  });
+
   it('should not submit an incomplete offer', () => {
     const createSpy = spyOn(component, 'createOffer');
     component.currentStep = 4;
@@ -85,9 +173,16 @@ describe('OfferComponent', () => {
 
   it('should submit when all required wizard steps are complete', () => {
     const createSpy = spyOn(component, 'createOffer');
+    component.generalInfoCategoryFilter = {
+      name: 'businessDomain',
+      label: 'Business domain',
+      source: 'categoryRoot',
+      rootName: 'Business Domains',
+      offerFormPlacement: 'generalInfo'
+    };
     component.productOfferForm.get('generalInfo')?.patchValue({ name: 'Offer name' });
     component.productOfferForm.patchValue({ prodSpec: { id: 'prod-spec-1' } });
-    component.selectedSectorId = 'sector-1';
+    component.selectedGeneralInfoCategoryFilterOptionId = 'filter-option-1';
     component.selectedRootCategoryId = 'category-1';
     component.selectedPriceTier = 'free';
 

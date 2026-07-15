@@ -6,6 +6,7 @@ import { applyRuntimeSearchFiltersConfig } from 'src/app/data/availableFilters';
 import { environment } from 'src/environments/environment';
 
 type PrimaryCategoriesMode = 'catalogFirstLevel' | 'rooted';
+type OfferFormPlacement = 'none' | 'generalInfo' | 'categorySection';
 
 @Component({
   selector: 'search-filters-config',
@@ -189,9 +190,12 @@ export class SearchFiltersConfigComponent implements OnInit, OnDestroy {
     this.getOptionsArray(filterIndex).removeAt(optionIndex);
   }
 
-  clearOptionsForCategoryRoot(filterIndex: number): void {
+  onFilterSourceChange(filterIndex: number): void {
     const source = this.filtersArray.at(filterIndex).get('source')?.value;
+    const filterControl = this.filtersArray.at(filterIndex);
+
     if (source !== 'categoryRoot') {
+      filterControl.patchValue({ offerFormPlacement: 'none' });
       return;
     }
 
@@ -216,9 +220,15 @@ export class SearchFiltersConfigComponent implements OnInit, OnDestroy {
     label: string;
     source: 'configured' | 'categoryRoot';
     rootName: string;
+    offerFormPlacement: OfferFormPlacement;
     options: Array<{ name: string; label: string }>;
   } {
     const source: 'configured' | 'categoryRoot' = raw?.source === 'categoryRoot' ? 'categoryRoot' : 'configured';
+    const offerFormPlacement: OfferFormPlacement = source === 'categoryRoot' && (
+      raw?.offerFormPlacement === 'generalInfo' || raw?.offerFormPlacement === 'categorySection'
+    )
+      ? raw.offerFormPlacement
+      : 'none';
     const options = source === 'configured' && Array.isArray(raw?.children)
       ? raw.children
           .filter((child: any) => typeof child?.name === 'string' && child.name.trim() !== '')
@@ -233,6 +243,7 @@ export class SearchFiltersConfigComponent implements OnInit, OnDestroy {
       label: typeof raw?.label === 'string' ? raw.label : '',
       source,
       rootName: typeof raw?.rootName === 'string' ? raw.rootName : '',
+      offerFormPlacement,
       options
     };
   }
@@ -242,6 +253,7 @@ export class SearchFiltersConfigComponent implements OnInit, OnDestroy {
     label: string;
     source: 'configured' | 'categoryRoot';
     rootName: string;
+    offerFormPlacement: OfferFormPlacement;
     options: Array<{ name: string; label: string }>;
   }): FormGroup {
     return new FormGroup({
@@ -249,6 +261,7 @@ export class SearchFiltersConfigComponent implements OnInit, OnDestroy {
       label: new FormControl<string>(filter?.label ?? ''),
       source: new FormControl<'configured' | 'categoryRoot'>(filter?.source ?? 'configured', [Validators.required]),
       rootName: new FormControl<string>(filter?.rootName ?? ''),
+      offerFormPlacement: new FormControl<OfferFormPlacement>(filter?.offerFormPlacement ?? 'none', [Validators.required]),
       options: new FormArray<FormGroup>(
         (filter?.options ?? []).map(option => this.createOptionGroup(option))
       )
@@ -263,11 +276,17 @@ export class SearchFiltersConfigComponent implements OnInit, OnDestroy {
   }
 
   private buildFiltersPayload(): any[] {
-    return this.filtersArray.controls.map((filterControl, filterIndex) => {
+    const payloads = this.filtersArray.controls.map((filterControl, filterIndex) => {
       const name = (filterControl.get('name')?.value ?? '').trim();
       const label = (filterControl.get('label')?.value ?? '').trim();
       const source = filterControl.get('source')?.value === 'categoryRoot' ? 'categoryRoot' : 'configured';
       const rootName = (filterControl.get('rootName')?.value ?? '').trim();
+      const selectedOfferFormPlacement = filterControl.get('offerFormPlacement')?.value;
+      const offerFormPlacement: OfferFormPlacement = source === 'categoryRoot' && (
+        selectedOfferFormPlacement === 'generalInfo' || selectedOfferFormPlacement === 'categorySection'
+      )
+        ? selectedOfferFormPlacement
+        : 'none';
 
       if (!name) {
         throw new Error(`Filter ${filterIndex + 1}: name is required.`);
@@ -286,6 +305,9 @@ export class SearchFiltersConfigComponent implements OnInit, OnDestroy {
           throw new Error(`Filter "${name}": root name is required when source is categoryRoot.`);
         }
         payload.rootName = rootName;
+        if (offerFormPlacement !== 'none') {
+          payload.offerFormPlacement = offerFormPlacement;
+        }
       } else {
         const options = this.getOptionsArray(filterIndex).controls
           .map((optionControl, optionIndex) => {
@@ -305,6 +327,10 @@ export class SearchFiltersConfigComponent implements OnInit, OnDestroy {
 
       return payload;
     });
+
+    this.assertSingleGeneralInfoPlacement(payloads);
+
+    return payloads;
   }
 
   private normalizeRuntimeSearchFilters(runtime: any): {
@@ -329,6 +355,25 @@ export class SearchFiltersConfigComponent implements OnInit, OnDestroy {
       primaryRootName: typeof runtime?.primaryRootName === 'string' ? runtime.primaryRootName.trim() : '',
       filters: Array.isArray(runtime?.filters) ? runtime.filters : []
     };
+  }
+
+  private assertSingleGeneralInfoPlacement(filters: any[]): void {
+    const invalidPlacement = (filters || []).find((filter: any) =>
+      filter?.source !== 'categoryRoot'
+      && (filter?.offerFormPlacement === 'generalInfo' || filter?.offerFormPlacement === 'categorySection')
+    );
+
+    if (invalidPlacement) {
+      throw new Error(`Filter "${invalidPlacement.name || 'unnamed'}": offer form placement is only supported for categoryRoot filters.`);
+    }
+
+    const generalInfoFilters = (filters || []).filter((filter: any) =>
+      filter?.source === 'categoryRoot' && filter?.offerFormPlacement === 'generalInfo'
+    );
+
+    if (generalInfoFilters.length > 1) {
+      throw new Error('Only one categoryRoot filter can be placed in the offer General Info section.');
+    }
   }
 
   private requirePrimaryRootName(): string {
@@ -365,7 +410,10 @@ export class SearchFiltersConfigComponent implements OnInit, OnDestroy {
       throw new Error('Provide only the searchFilters JSON object, not the full /config payload.');
     }
 
-    return this.normalizeRuntimeSearchFilters(parsed);
+    const normalized = this.normalizeRuntimeSearchFilters(parsed);
+    this.assertSingleGeneralInfoPlacement(normalized.filters);
+
+    return normalized;
   }
 
   private handleError(error: any, fallbackMessage: string): void {
