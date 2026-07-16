@@ -205,6 +205,21 @@ describe('OfferComponent', () => {
     expect(component.getConfigProfileRangeDisplayValue(0)).toBe('5 GB');
   });
 
+  it('should allow saving a flex price component without a configuration option', () => {
+    component.pricePlanFormType = 'flex';
+    component.openAddPriceComponentModal();
+
+    component.priceComponentForm.patchValue({
+      name: 'Base price',
+      basePrice: 10,
+      priceType: 'one time',
+      configOption: ''
+    });
+
+    expect(component.selectedConfigOption).toBeNull();
+    expect(component.canSavePriceComponent()).toBeTrue();
+  });
+
   it('should allow the free price tier without price plans', () => {
     component.currentStep = 3;
     component.selectedPriceTier = 'free';
