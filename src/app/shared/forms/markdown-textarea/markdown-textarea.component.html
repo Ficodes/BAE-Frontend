@@ -88,7 +88,7 @@
       </div>
     </div>
     <div class="relative px-4 py-2 bg-white rounded-b-lg">
-      <label for="editor" class="sr-only">Publish post</label>
+      <label [for]="editorId" class="sr-only">Publish post</label>
       @if(showPreview){
         <markdown [ngClass]="{
           'break-all': hasLongWord(value, 20),
@@ -97,13 +97,13 @@
                   [data]="value"></markdown>
 
       }@else{
-        <textarea id="editor"
+        <textarea [id]="editorId"
                   data-cy="textArea"
                   class="block w-full h-fit px-0 text-sm text-gray-800 bg-white border-0"
                   placeholder="{{placeholder}}"
                   [value]="value"
-                  rows="8"
-                  maxLength="100000"
+                  [rows]="rows"
+                  [attr.maxLength]="maxLength"
                   (input)="updateValue($event)"></textarea>
       }
       @if(showEmoji){

@@ -140,17 +140,19 @@
 
           <form [formGroup]="generalForm" class="flex flex-col gap-6">
             <div>
-              <label for="prod-description" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_PROD_SPEC._product_description_label' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
-              <textarea data-cy="prodSpecDescription" formControlName="description" id="prod-description" rows="5" maxLength="2000"
-                placeholder="{{ 'CREATE_PROD_SPEC._product_description_placeholder' | translate }}"
-                class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3 resize-none"></textarea>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_PROD_SPEC._product_description_label' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+              <app-markdown-textarea data-cy="prodSpecDescription" formControlName="description"
+                [rows]="5"
+                [maxLength]="2000"
+                [placeholder]="'CREATE_PROD_SPEC._product_description_placeholder' | translate"></app-markdown-textarea>
             </div>
 
             <div>
-              <label for="prod-how" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_PROD_SPEC._how_it_works' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
-              <textarea [(ngModel)]="howItWorks" [ngModelOptions]="{standalone: true}" id="prod-how" rows="5" maxLength="2000"
-                placeholder="{{ 'CREATE_PROD_SPEC._how_it_works_placeholder' | translate }}"
-                class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3 resize-none"></textarea>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_PROD_SPEC._how_it_works' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+              <app-markdown-textarea data-cy="prodSpecHowItWorks" [(ngModel)]="howItWorks" [ngModelOptions]="{standalone: true}"
+                [rows]="5"
+                [maxLength]="2000"
+                [placeholder]="'CREATE_PROD_SPEC._how_it_works_placeholder' | translate"></app-markdown-textarea>
             </div>
           </form>
 
