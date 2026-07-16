@@ -18,6 +18,7 @@ import { UsageServiceService } from "../../../services/usage-service.service";
 import { CatalogueComponent } from "./catalogue/catalogue.component";
 import { GeneralInfoComponent } from "./general-info/general-info.component";
 import { LicenseComponent } from "./license/license.component";
+import { MarkdownTextareaComponent } from "../markdown-textarea/markdown-textarea.component";
 import { OfferSummaryComponent } from "./offer-summary/offer-summary.component";
 import { PricePlansComponent } from "./price-plans/price-plans.component";
 import { ProcurementModeComponent } from "./procurement-mode/procurement-mode.component";
@@ -33,6 +34,7 @@ type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
   standalone: true,
   imports: [
     GeneralInfoComponent,
+    MarkdownTextareaComponent,
     TranslateModule,
     ProdSpecComponent,
     ReactiveFormsModule,
