@@ -827,13 +827,14 @@ export class OfferComponent implements OnInit, OnDestroy {
     const index = plans.findIndex((p: any) => p?.id === plan?.id);
     if (index === -1) return;
     this.editingPricePlanIndex = index;
-    this.pricePlanFormType = (plan?.planSubType as 'standard' | 'flex') || 'standard';
+    this.pricePlanFormType = this.getPaidPlanSubType(plan);
+    const priceComponents = this.normalizeLoadedPriceComponents(plan?.priceComponents || []);
     this.paidPricePlanForm.reset({
       name: plan?.name || '',
       description: plan?.description || '',
       currency: plan?.currency || 'EUR',
       productProfile: plan?.productProfile || { selectedValues: [] },
-      priceComponents: plan?.priceComponents || []
+      priceComponents
     });
     this.paidProductProfile.clear();
     ((plan?.productProfile?.selectedValues) || []).forEach((sv: any) => {
@@ -843,7 +844,7 @@ export class OfferComponent implements OnInit, OnDestroy {
         selectedValue: [sv?.selectedValue ?? null]
       }));
     });
-    this.paidPriceComponents = (plan?.priceComponents || []).slice();
+    this.paidPriceComponents = priceComponents.slice();
     this.openActionMenuIndex = null;
     this.pricePlanFormMode = 'form';
   }
@@ -878,6 +879,7 @@ export class OfferComponent implements OnInit, OnDestroy {
         name,
         description,
         currency,
+        planSubType: this.pricePlanFormType,
         productProfile,
         priceComponents: this.paidPriceComponents.slice()
       };
@@ -887,7 +889,6 @@ export class OfferComponent implements OnInit, OnDestroy {
         name,
         description,
         currency,
-        isBundle: this.pricePlanFormType !== 'standard',
         priceType: 'one time',
         paymentOnline: true,
         lifecycleStatus: 'Active',
@@ -901,6 +902,36 @@ export class OfferComponent implements OnInit, OnDestroy {
   }
 
   paidPriceComponents: any[] = [];
+
+  private getPaidPlanSubType(plan: any): 'standard' | 'flex' {
+    if (plan?.planSubType === 'standard' || plan?.planSubType === 'flex') {
+      return plan.planSubType;
+    }
+
+    return this.hasPlanConfigurationProfile(plan) ? 'standard' : 'flex';
+  }
+
+  private hasPlanConfigurationProfile(plan: any): boolean {
+    if (Array.isArray(plan?.prodSpecCharValueUse) && plan.prodSpecCharValueUse.length > 0) {
+      return true;
+    }
+
+    const profile = plan?.productProfile;
+    if (Array.isArray(profile)) {
+      return profile.length > 0;
+    }
+    if (Array.isArray(profile?.selectedValues)) {
+      return profile.selectedValues.length > 0;
+    }
+    if (typeof profile?.get === 'function') {
+      const selectedValues = profile.get('selectedValues');
+      return Array.isArray(selectedValues?.value)
+        ? selectedValues.value.length > 0
+        : Number(selectedValues?.length || 0) > 0;
+    }
+
+    return false;
+  }
 
   get paidProductProfile(): FormArray {
     return (this.paidPricePlanForm.get('productProfile') as FormGroup).get('selectedValues') as FormArray;
@@ -1110,6 +1141,7 @@ export class OfferComponent implements OnInit, OnDestroy {
     this.editingPriceComponentIndex = index;
     this.selectedUsageSpec = this.usageSpecs.find(s => s.id === comp?.usageSpecId) || null;
     this.flexTiers = Array.isArray(comp?.tiers) ? [...comp.tiers] : [];
+    const configuration = this.getPriceComponentConfiguration(comp);
     this.showTierForm = false;
     this.editingTierIndex = null;
     this.priceComponentForm.reset({
@@ -1117,8 +1149,8 @@ export class OfferComponent implements OnInit, OnDestroy {
       description: comp?.description || '',
       basePrice: comp?.price ?? null,
       priceType: comp?.priceType || '',
-      configOption: comp?.configOption || '',
-      configValue: comp?.configValue || '',
+      configOption: configuration.configOption,
+      configValue: configuration.configValue,
       recurringPeriod: comp?.recurringPeriod || 'month',
       usageSpecId: comp?.usageSpecId || '',
       usageUnit: comp?.usageUnit || '',
@@ -1131,6 +1163,105 @@ export class OfferComponent implements OnInit, OnDestroy {
     this.openPriceCompMenuIndex = null;
     this.applyPriceComponentValidators();
     this.openPriceDrawer();
+  }
+
+  private getPriceComponentConfiguration(component: any): { configOption: string, configValue: any } {
+    if (component?.configOption) {
+      return {
+        configOption: component.configOption,
+        configValue: component.configValue ?? ''
+      };
+    }
+
+    const selectedCharacteristic = this.getFirstSelectedCharacteristic(component);
+    if (!selectedCharacteristic?.id) {
+      return { configOption: '', configValue: '' };
+    }
+
+    const selectedValue = selectedCharacteristic.productSpecCharacteristicValue?.[0];
+    return {
+      configOption: selectedCharacteristic.id,
+      configValue: selectedValue?.value ?? ''
+    };
+  }
+
+  private getFirstSelectedCharacteristic(component: any): any {
+    const selectedCharacteristic = component?.selectedCharacteristic ?? component?.prodSpecCharValueUse;
+    return Array.isArray(selectedCharacteristic) ? selectedCharacteristic[0] : null;
+  }
+
+  private normalizeLoadedPriceComponents(components: any[]): any[] {
+    const normalized: any[] = [];
+    const rangeGroups = new Map<string, any>();
+
+    components.forEach((component: any) => {
+      if (Array.isArray(component?.tiers) && component.tiers.length > 0) {
+        normalized.push(component);
+        return;
+      }
+
+      const selectedCharacteristic = this.getFirstSelectedCharacteristic(component);
+      const selectedValue = selectedCharacteristic?.productSpecCharacteristicValue?.[0];
+      const isRange = !!selectedValue &&
+        Object.prototype.hasOwnProperty.call(selectedValue, 'valueFrom') &&
+        Object.prototype.hasOwnProperty.call(selectedValue, 'valueTo');
+
+      if (!isRange) {
+        const configuration = this.getPriceComponentConfiguration(component);
+        normalized.push({
+          ...component,
+          configOption: component?.configOption || configuration.configOption,
+          configValue: component?.configValue ?? configuration.configValue
+        });
+        return;
+      }
+
+      const groupKey = selectedCharacteristic?.id || component?.id;
+      if (!rangeGroups.has(groupKey)) {
+        const group = {
+          id: `tier-group:${groupKey}`,
+          name: selectedCharacteristic?.name || component?.name || '',
+          description: selectedCharacteristic?.description || component?.description || '',
+          lifecycleStatus: component?.lifecycleStatus || 'Active',
+          paymentOnline: component?.paymentOnline,
+          currency: component?.currency,
+          configOption: selectedCharacteristic?.id || '',
+          configOptionName: selectedCharacteristic?.name || component?.name || '',
+          selectedCharacteristic: selectedCharacteristic ? [selectedCharacteristic] : null,
+          tiers: []
+        };
+        rangeGroups.set(groupKey, group);
+        normalized.push(group);
+      }
+
+      rangeGroups.get(groupKey).tiers.push(this.mapLoadedRangeComponentToTier(component, selectedValue));
+    });
+
+    return normalized;
+  }
+
+  private mapLoadedRangeComponentToTier(component: any, rangeValue: any): any {
+    const tier: any = {
+      id: component?.id,
+      name: component?.name || '',
+      description: component?.description || '',
+      min: rangeValue?.valueFrom,
+      max: rangeValue?.valueTo,
+      price: component?.price,
+      priceType: component?.priceType
+    };
+
+    if (this.isRecurringPriceType(component?.priceType)) {
+      tier.recurringPeriod = component?.recurringPeriod || 'month';
+    }
+    if (component?.discountValue != null) {
+      tier.discountValue = component.discountValue;
+      tier.discountUnit = component.discountUnit;
+      tier.discountDuration = component.discountDuration;
+      tier.discountDurationUnit = component.discountDurationUnit;
+    }
+
+    return tier;
   }
 
   private openPriceDrawer(): void {
@@ -1267,7 +1398,9 @@ export class OfferComponent implements OnInit, OnDestroy {
       return;
     }
     const v = this.tierForm.value;
+    const existingTier = this.editingTierIndex !== null ? this.flexTiers[this.editingTierIndex] : null;
     const tier: any = {
+      id: existingTier?.id,
       min: v.min, max: v.max, price: v.price, priceType: v.priceType,
       name: v.name, description: v.description
     };
@@ -1456,6 +1589,7 @@ export class OfferComponent implements OnInit, OnDestroy {
         component.tiers = [...this.flexTiers];
       } else {
         component.configValue = configValue;
+        component.selectedCharacteristic = this.buildConfigValueSelectedCharacteristic(configOption, configValue);
       }
     }
     if (this.isRecurringPriceType(priceType)) {
@@ -1869,7 +2003,8 @@ export class OfferComponent implements OnInit, OnDestroy {
           }
         }
 
-        priceInfo.priceComponents = relatedPrices;
+        priceInfo.priceComponents = this.normalizeLoadedPriceComponents(relatedPrices);
+        priceInfo.planSubType = this.getPaidPlanSubType(priceInfo);
         console.log(priceInfo)
         //}
 
@@ -1941,54 +2076,120 @@ export class OfferComponent implements OnInit, OnDestroy {
     return await lastValueFrom(this.api.postOfferingPrice(priceAlter));
   }
 
+  private expandPriceComponentsForApi(components: any[]): any[] {
+    return components.flatMap((component: any) => {
+      if (!Array.isArray(component?.tiers) || component.tiers.length === 0) {
+        return [component];
+      }
+
+      return component.tiers.map((tier: any, index: number) => ({
+        id: tier.id || `temp-tier:${component.id || component.configOption || index}:${index}`,
+        name: tier.name || `${component.configOptionName || component.name || 'Tier'} ${tier.min}-${tier.max}`,
+        description: tier.description || '',
+        lifecycleStatus: component.lifecycleStatus || 'Active',
+        price: tier.price,
+        priceType: tier.priceType,
+        recurringPeriod: tier.recurringPeriod,
+        discountValue: tier.discountValue,
+        discountUnit: tier.discountUnit,
+        discountDuration: tier.discountDuration,
+        discountDurationUnit: tier.discountDurationUnit,
+        selectedCharacteristic: this.buildTierSelectedCharacteristic(component, tier)
+      }));
+    });
+  }
+
+  private buildTierSelectedCharacteristic(component: any, tier: any): any[] {
+    const characteristic = this.prodSpecCharacteristics.find((char: any) => char?.id === component?.configOption);
+    const sourceRange = characteristic?.productSpecCharacteristicValue?.find((value: any) =>
+      Object.prototype.hasOwnProperty.call(value || {}, 'valueFrom')
+    ) || {};
+    const rangeValue: any = {
+      valueFrom: tier.min,
+      valueTo: tier.max,
+      isDefault: true
+    };
+    if (sourceRange.unitOfMeasure) {
+      rangeValue.unitOfMeasure = sourceRange.unitOfMeasure;
+    }
+
+    return [{
+      id: characteristic?.id || component?.configOption,
+      name: characteristic?.name || component?.configOptionName || component?.name || '',
+      description: characteristic?.description || '',
+      valueType: characteristic?.valueType,
+      productSpecCharacteristicValue: [rangeValue]
+    }];
+  }
+
+  private buildConfigValueSelectedCharacteristic(configOptionId: string, configValue: any): any[] {
+    const characteristic = this.prodSpecCharacteristics.find((char: any) => char?.id === configOptionId);
+    const selectedValue = characteristic?.productSpecCharacteristicValue?.find((value: any) =>
+      String(value?.value) === String(configValue)
+    );
+
+    if (!characteristic || !selectedValue) {
+      return [];
+    }
+
+    return [{
+      id: characteristic.id,
+      name: characteristic.name,
+      description: characteristic.description || '',
+      valueType: characteristic.valueType,
+      productSpecCharacteristicValue: [selectedValue]
+    }];
+  }
+
   private async createPriceComponent(component: any, currency: string): Promise<any> {
     console.log('component format')
     console.log(component)
+    const value = component?.newValue || component;
     let priceComp: ProductOfferingPrice = {
-      name: component.name,
+      name: value.name,
       isBundle: false,
-      description: component.description ?? component?.newValue.description,
-      lifecycleStatus: component?.lifecycleStatus ?? component?.newValue?.lifecycleStatus ?? 'Active',
-      priceType: component.priceType ?? component?.newValue?.priceType,
-      price: { unit: currency, value: component?.price ?? component?.newValue.price },
+      description: value.description,
+      lifecycleStatus: value.lifecycleStatus ?? 'Active',
+      priceType: value.priceType,
+      price: { unit: currency, value: value.price },
       recurringChargePeriodType: undefined,
       recurringChargePeriodLength: undefined,
       unitOfMeasure: undefined,
       prodSpecCharValueUse: undefined
     };
 
-    let priceType = component.priceType ?? component?.newValue?.priceType;
+    let priceType = value.priceType;
 
     if (['recurring', 'recurring-prepaid'].includes(priceType)) {
-      priceComp.recurringChargePeriodType = component.recurringPeriod;
+      priceComp.recurringChargePeriodType = value.recurringPeriod;
       priceComp.recurringChargePeriodLength = 1;
     }
 
     if (priceType === 'usage') {
-      console.log(component.newValue)
+      console.log(value)
       priceComp.unitOfMeasure = {
         amount: 1,
-        units: component.usageUnit ?? component.newValue.usageUnit
+        units: value.usageUnit
       }
       priceComp['@baseType'] = "ProductOfferingPrice";
       priceComp['@schemaLocation'] = "https://raw.githubusercontent.com/laraminones/tmf-new-schemas/main/UsageSpecId.json";
-      (priceComp as any).usageSpecId = component.usageSpecId ?? component?.newValue?.usageSpecId;
+      (priceComp as any).usageSpecId = value.usageSpecId;
 
 
       console.log('-- here')
       console.log(priceComp)
     }
 
-    if (component?.selectedCharacteristic || component?.newValue?.selectedCharacteristic) {
-      priceComp.prodSpecCharValueUse = component.selectedCharacteristic ?? component.newValue.selectedCharacteristic;
+    if (value.selectedCharacteristic) {
+      priceComp.prodSpecCharValueUse = value.selectedCharacteristic;
     }
 
-    if (component?.unitOfMeasure) {
-      priceComp.unitOfMeasure = component.usageUnit;
+    if (value.unitOfMeasure) {
+      priceComp.unitOfMeasure = value.usageUnit;
     }
 
-    if (component?.discountValue != null) {
-      const discount = await this.createPriceAlteration(component, currency);
+    if (value.discountValue != null) {
+      const discount = await this.createPriceAlteration(value, currency);
       priceComp.popRelationship = [{ id: discount.id, href: discount.id, name: discount.name }];
     }
     console.log('create price comp')
@@ -2134,6 +2335,90 @@ export class OfferComponent implements OnInit, OnDestroy {
     return updatedPrice;
   }
 
+  private async persistCurrentFormPricePlans(plans: any[], persistExistingPlans: boolean): Promise<any[]> {
+    const priceRefs: any[] = [];
+
+    for (const plan of plans) {
+      if (this.isPersistedId(plan?.id)) {
+        if (persistExistingPlans) {
+          const compRel = await this.persistPricePlanComponents(plan);
+          await this.updateCurrentFormPricePlan(plan, compRel);
+        }
+        priceRefs.push({ id: plan.id, href: plan.id });
+      } else {
+        const compRel = await this.persistPricePlanComponents(plan);
+        const bundledPlan = this.createBundledPricePlan(plan, compRel);
+        const created = await lastValueFrom(this.api.postOfferingPrice(bundledPlan));
+        priceRefs.push({ id: created.id, href: created.id });
+      }
+    }
+
+    return priceRefs;
+  }
+
+  private async persistPricePlanComponents(plan: any): Promise<any[]> {
+    const components = this.expandPriceComponentsForApi(plan?.priceComponents || []);
+    const currency = plan?.currency || 'EUR';
+    const relations: any[] = [];
+
+    for (const component of components) {
+      relations.push(await this.persistPriceComponent(component, currency));
+    }
+
+    return relations;
+  }
+
+  private async persistPriceComponent(component: any, currency: string): Promise<any> {
+    if (this.isPersistedId(component?.id)) {
+      return this.updatePriceComponent({ id: component.id, newValue: component }, currency);
+    }
+
+    return this.createPriceComponent(component, currency);
+  }
+
+  private async updateCurrentFormPricePlan(plan: any, compRel: any[]): Promise<ProductOfferingPrice> {
+    const price: ProductOfferingPrice = {
+      name: plan?.name,
+      isBundle: true,
+      description: plan?.description,
+      lifecycleStatus: plan?.lifecycleStatus || 'Active',
+      bundledPopRelationship: compRel
+    };
+
+    const productProfile = Array.isArray(plan?.productProfile?.selectedValues)
+      ? plan.productProfile.selectedValues
+      : [];
+    if (productProfile.length > 0) {
+      price.prodSpecCharValueUse = productProfile.map((item: any) =>
+        this.buildProductProfileCharacteristicUse(item)
+      );
+    }
+
+    return lastValueFrom(this.api.updateOfferingPrice(price, plan.id));
+  }
+
+  private buildProductProfileCharacteristicUse(item: any): any {
+    const characteristic = this.prodSpecCharacteristics.find((char: any) => char?.id === item?.id);
+    const selectedValue = characteristic?.productSpecCharacteristicValue?.find((value: any) =>
+      String(value?.value) === String(item?.selectedValue)
+    );
+
+    return {
+      id: item?.id,
+      name: item?.name || characteristic?.name || '',
+      description: characteristic?.description || '',
+      valueType: characteristic?.valueType,
+      productSpecCharacteristicValue: selectedValue ? [{ ...selectedValue, isDefault: true }] : []
+    };
+  }
+
+  private isPersistedId(id: any): boolean {
+    return !!id &&
+      !String(id).startsWith('temp-id') &&
+      !String(id).startsWith('temp-tier') &&
+      !String(id).startsWith('tier-group');
+  }
+
   async createOffer() {
     this.loading = true;
     const plans = this.productOfferForm.value.pricePlans;
@@ -2145,7 +2430,7 @@ export class OfferComponent implements OnInit, OnDestroy {
 
     for (let i = 0; i < plans.length; i++) {
       const plan = plans[i];
-      const components = plan.priceComponents || [];
+      const components = this.expandPriceComponentsForApi(plan.priceComponents || []);
 
       try {
         let createdPriceId: string;
@@ -2383,9 +2668,10 @@ export class OfferComponent implements OnInit, OnDestroy {
             let finalPriceComps: any[] = [];
             if (pricePlanChangeInfo[i].priceComponents.added.length > 0) {
               //Crear price comp
-              for (let j = 0; j < pricePlanChangeInfo[i].priceComponents.added.length; j++) {
+              const addedComponents = this.expandPriceComponentsForApi(pricePlanChangeInfo[i].priceComponents.added);
+              for (let j = 0; j < addedComponents.length; j++) {
                 //finalPriceComps.push(this.createPriceComponent(pricePlanChangeInfo[i].priceComponents.added[j],change.currentValue.currency))
-                let compCreated = await this.createPriceComponent(pricePlanChangeInfo[i].priceComponents.added[j], pricePlanChangeInfo[i]?.newValue.currency)
+                let compCreated = await this.createPriceComponent(addedComponents[j], pricePlanChangeInfo[i]?.newValue.currency)
                 finalPriceComps.push(compCreated)
               }
               console.log('The following price comps has been created:')
@@ -2402,8 +2688,11 @@ export class OfferComponent implements OnInit, OnDestroy {
                 console.log(pricePlanChangeInfo[i].priceComponents.modified[j].id == pricePlanChangeInfo[i].id)
                 if ((pricePlanChangeInfo[i].priceComponents.modified[j].id == pricePlanChangeInfo[i].id) && (!pricePlanChangeInfo[i]?.oldValue.isBundle && pricePlanChangeInfo[i].priceComponents.added.length > 0)) {
                   console.log('Si entra en el check')
-                  let compUpdated = await this.createPriceComponent(pricePlanChangeInfo[i].priceComponents.modified[j], pricePlanChangeInfo[i]?.newValue.currency)
-                  finalPriceComps.push(compUpdated)
+                  const modifiedComponents = this.expandPriceComponentsForApi([pricePlanChangeInfo[i].priceComponents.modified[j]]);
+                  for (const modifiedComponent of modifiedComponents) {
+                    let compUpdated = await this.createPriceComponent(modifiedComponent, pricePlanChangeInfo[i]?.newValue.currency)
+                    finalPriceComps.push(compUpdated)
+                  }
                 } else if (pricePlanChangeInfo[i].priceComponents.modified[j].id != pricePlanChangeInfo[i].id) {
                   let compUpdated = await this.updatePriceComponent(pricePlanChangeInfo[i].priceComponents.modified[j], pricePlanChangeInfo[i]?.newValue.currency)
                   finalPriceComps.push(compUpdated)
@@ -2487,27 +2776,16 @@ export class OfferComponent implements OnInit, OnDestroy {
     }*/
 
     if (formPricePlans.length > 0) {
-      const priceRefs: any[] = [];
-      for (const plan of formPricePlans) {
-        if (plan.id && !String(plan.id).startsWith('temp-id')) {
-          priceRefs.push({ id: plan.id, href: plan.id });
-        } else {
-          try {
-            const components = plan.priceComponents || [];
-            const compRel = await Promise.all(
-              components.map((comp: any) => this.createPriceComponent(comp, plan.currency))
-            );
-            const bundledPlan = this.createBundledPricePlan(plan, compRel);
-            const created = await lastValueFrom(this.api.postOfferingPrice(bundledPlan));
-            priceRefs.push({ id: created.id, href: created.id });
-          } catch (error: any) {
-            this.handleApiError(error);
-            this.loading = false;
-            return;
-          }
-        }
+      try {
+        basePayload.productOfferingPrice = await this.persistCurrentFormPricePlans(
+          formPricePlans,
+          !this.formChanges['pricePlans']
+        );
+      } catch (error: any) {
+        this.handleApiError(error);
+        this.loading = false;
+        return;
       }
-      basePayload.productOfferingPrice = priceRefs;
     } else {
       basePayload.productOfferingPrice = [];
     }
