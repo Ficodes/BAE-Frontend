@@ -152,6 +152,59 @@ describe('OfferComponent', () => {
     expect(component.canSaveConfigProfile()).toBeTrue();
   });
 
+  it('should treat boolean configuration profile values as switch values', () => {
+    component.productOfferForm.patchValue({
+      prodSpec: {
+        productSpecCharacteristic: [
+          {
+            id: 'char-bool',
+            name: 'Managed service',
+            productSpecCharacteristicValue: [{ value: true }, { value: false }]
+          }
+        ]
+      }
+    });
+
+    component.openConfigProfileModal();
+
+    expect(component.isConfigProfileBoolean(0)).toBeTrue();
+    expect(component.isConfigProfileRange(0)).toBeFalse();
+    expect(component.getConfigProfileSelectedValue(0)).toBeFalse();
+    expect(component.canSaveConfigProfile()).toBeTrue();
+
+    component.toggleConfigProfileBoolean(0);
+
+    expect(component.getConfigProfileSelectedValue(0)).toBeTrue();
+    expect(component.canSaveConfigProfile()).toBeTrue();
+  });
+
+  it('should treat range configuration profile values as slider values', () => {
+    component.productOfferForm.patchValue({
+      prodSpec: {
+        productSpecCharacteristic: [
+          {
+            id: 'char-range',
+            name: 'Storage',
+            productSpecCharacteristicValue: [{ valueFrom: 1, valueTo: 10, unitOfMeasure: 'GB' }]
+          }
+        ]
+      }
+    });
+
+    component.openConfigProfileModal();
+
+    expect(component.isConfigProfileRange(0)).toBeTrue();
+    expect(component.isConfigProfileBoolean(0)).toBeFalse();
+    expect(component.getConfigProfileRangeBounds(0)).toEqual({ min: 1, max: 10, unitOfMeasure: 'GB' });
+    expect(component.getConfigProfileSelectedValue(0)).toBe(1);
+    expect(component.canSaveConfigProfile()).toBeTrue();
+
+    component.onConfigProfileRangeChange(0, { target: { value: '5' } } as unknown as Event);
+
+    expect(component.getConfigProfileSelectedValue(0)).toBe(5);
+    expect(component.getConfigProfileRangeDisplayValue(0)).toBe('5 GB');
+  });
+
   it('should allow the free price tier without price plans', () => {
     component.currentStep = 3;
     component.selectedPriceTier = 'free';

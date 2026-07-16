@@ -1,6 +1,6 @@
 import { DecimalPipe, LowerCasePipe, NgClass } from "@angular/common";
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from "@angular/forms";
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
 import * as moment from 'moment';
 import { lastValueFrom, Subject, Subscription } from 'rxjs';
@@ -925,7 +925,7 @@ export class OfferComponent implements OnInit, OnDestroy {
       this.configProfileSelectedValues.push(this.fb.group({
         id: [char?.id],
         name: [char?.name || ''],
-        selectedValue: [prev?.selectedValue ?? null, Validators.required]
+        selectedValue: [this.getInitialConfigProfileValue(char, prev), this.requiredConfigProfileValue]
       }));
     });
     this.showConfigProfileModal = true;
@@ -980,9 +980,94 @@ export class OfferComponent implements OnInit, OnDestroy {
 
   onConfigProfileValueChange(controlIndex: number, event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
-    const control = this.configProfileSelectedValues.at(controlIndex);
-    control.patchValue({ selectedValue: value || null });
-    control.get('selectedValue')?.markAsTouched();
+    this.setConfigProfileSelectedValue(controlIndex, value || null);
+  }
+
+  onConfigProfileRangeChange(controlIndex: number, event: Event): void {
+    const rawValue = (event.target as HTMLInputElement).value;
+    this.setConfigProfileSelectedValue(controlIndex, rawValue === '' ? null : Number(rawValue));
+  }
+
+  toggleConfigProfileBoolean(controlIndex: number): void {
+    const control = this.configProfileSelectedValues.at(controlIndex)?.get('selectedValue');
+    const currentValue = control?.value === true || control?.value === 'true';
+    this.setConfigProfileSelectedValue(controlIndex, !currentValue);
+  }
+
+  isConfigProfileRange(controlIndex: number): boolean {
+    return this.getCharacteristicValuesForConfigProfileControl(controlIndex)
+      .some((value: any) => Object.prototype.hasOwnProperty.call(value || {}, 'valueFrom'));
+  }
+
+  isConfigProfileBoolean(controlIndex: number): boolean {
+    const values = this.getCharacteristicValuesForConfigProfileControl(controlIndex);
+    return values.length > 0 &&
+      !this.isConfigProfileRange(controlIndex) &&
+      values.every((value: any) => this.isBooleanLike(value?.value));
+  }
+
+  getConfigProfileRangeBounds(controlIndex: number): { min: number, max: number, unitOfMeasure: string } {
+    const rangeValue = this.getCharacteristicValuesForConfigProfileControl(controlIndex)
+      .find((value: any) => Object.prototype.hasOwnProperty.call(value || {}, 'valueFrom')) || {};
+    return {
+      min: Number(rangeValue?.valueFrom ?? 0),
+      max: Number(rangeValue?.valueTo ?? 100),
+      unitOfMeasure: rangeValue?.unitOfMeasure || ''
+    };
+  }
+
+  getConfigProfileSelectedValue(controlIndex: number): any {
+    return this.configProfileSelectedValues.at(controlIndex)?.get('selectedValue')?.value;
+  }
+
+  getConfigProfileRangeDisplayValue(controlIndex: number): string {
+    const bounds = this.getConfigProfileRangeBounds(controlIndex);
+    const value = this.getConfigProfileSelectedValue(controlIndex) ?? bounds.min;
+    return `${value}${bounds.unitOfMeasure ? ' ' + bounds.unitOfMeasure : ''}`;
+  }
+
+  private setConfigProfileSelectedValue(controlIndex: number, value: any): void {
+    const control = this.configProfileSelectedValues.at(controlIndex)?.get('selectedValue');
+    control?.setValue(value);
+    control?.markAsTouched();
+    control?.markAsDirty();
+  }
+
+  private getCharacteristicValuesForConfigProfileControl(controlIndex: number): any[] {
+    const id = this.configProfileSelectedValues.at(controlIndex)?.get('id')?.value;
+    return id ? this.getCharacteristicValues(id) : [];
+  }
+
+  private getInitialConfigProfileValue(char: any, previousValue: any): any {
+    if (previousValue && previousValue.selectedValue !== null && previousValue.selectedValue !== undefined && previousValue.selectedValue !== '') {
+      return previousValue.selectedValue;
+    }
+
+    const values = Array.isArray(char?.productSpecCharacteristicValue) ? char.productSpecCharacteristicValue : [];
+    const defaultOption = values.find((value: any) => value?.isDefault);
+    if (defaultOption) {
+      return defaultOption.value ?? defaultOption.valueFrom ?? null;
+    }
+
+    const rangeOption = values.find((value: any) => Object.prototype.hasOwnProperty.call(value || {}, 'valueFrom'));
+    if (rangeOption) {
+      return Number(rangeOption.valueFrom ?? 0);
+    }
+
+    if (values.length > 0 && values.every((value: any) => this.isBooleanLike(value?.value))) {
+      return false;
+    }
+
+    return null;
+  }
+
+  private requiredConfigProfileValue(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    return value === null || value === undefined || value === '' ? { required: true } : null;
+  }
+
+  private isBooleanLike(value: any): boolean {
+    return value === true || value === false || value === 'true' || value === 'false';
   }
 
   private async loadUsageSpecs(): Promise<void> {

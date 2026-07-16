@@ -1245,18 +1245,57 @@
         @for(ctrl of configProfileSelectedValues.controls; track ctrl.value.id; let i = $index){
           <div>
             <label class="block text-sm font-semibold text-gray-900 mb-2">{{ ctrl.value.name }}</label>
-            <select
-              [value]="ctrl.value.selectedValue || ''"
-              (change)="onConfigProfileValueChange(i, $event)"
-              (blur)="ctrl.get('selectedValue')?.markAsTouched()"
-              class="block w-full p-3 bg-white border rounded-lg text-sm text-gray-900 focus:ring-primary-100 focus:border-primary-100"
-              [class.border-gray-300]="!(ctrl.get('selectedValue')?.touched && ctrl.get('selectedValue')?.invalid)"
-              [class.border-red-500]="ctrl.get('selectedValue')?.touched && ctrl.get('selectedValue')?.invalid">
-              <option value="">{{ 'CREATE_OFFER._select' | translate }}</option>
-              @for(opt of getCharacteristicValues(ctrl.value.id); track opt.value){
-                <option [value]="opt.value">{{ opt.value }}{{ opt.unitOfMeasure ? ' ' + opt.unitOfMeasure : '' }}</option>
-              }
-            </select>
+            @if(isConfigProfileRange(i)){
+              <div class="rounded-lg border p-4 bg-white"
+                [class.border-gray-300]="!(ctrl.get('selectedValue')?.touched && ctrl.get('selectedValue')?.invalid)"
+                [class.border-red-500]="ctrl.get('selectedValue')?.touched && ctrl.get('selectedValue')?.invalid">
+                <div class="flex items-center justify-between mb-3">
+                  <span class="text-xs font-medium text-gray-500">{{ getConfigProfileRangeBounds(i).min }}</span>
+                  <span class="text-sm font-semibold text-primary-100">{{ getConfigProfileRangeDisplayValue(i) }}</span>
+                  <span class="text-xs font-medium text-gray-500">{{ getConfigProfileRangeBounds(i).max }}</span>
+                </div>
+                <input
+                  type="range"
+                  [min]="getConfigProfileRangeBounds(i).min"
+                  [max]="getConfigProfileRangeBounds(i).max"
+                  [value]="getConfigProfileSelectedValue(i) ?? getConfigProfileRangeBounds(i).min"
+                  (input)="onConfigProfileRangeChange(i, $event)"
+                  (blur)="ctrl.get('selectedValue')?.markAsTouched()"
+                  class="w-full h-2 rounded-lg appearance-none cursor-pointer accent-primary-100 bg-gray-200">
+              </div>
+            } @else if(isConfigProfileBoolean(i)){
+              <div class="flex items-center justify-between rounded-lg border p-3 bg-white"
+                [class.border-gray-300]="!(ctrl.get('selectedValue')?.touched && ctrl.get('selectedValue')?.invalid)"
+                [class.border-red-500]="ctrl.get('selectedValue')?.touched && ctrl.get('selectedValue')?.invalid">
+                <span class="text-sm text-gray-700">
+                  {{ (getConfigProfileSelectedValue(i) === true || getConfigProfileSelectedValue(i) === 'true') ? ('_yes' | translate) : ('_no' | translate) }}
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  [attr.aria-checked]="getConfigProfileSelectedValue(i) === true || getConfigProfileSelectedValue(i) === 'true'"
+                  (click)="toggleConfigProfileBoolean(i)"
+                  [ngClass]="(getConfigProfileSelectedValue(i) === true || getConfigProfileSelectedValue(i) === 'true') ? 'bg-primary-100' : 'bg-gray-300'"
+                  class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-100 focus:ring-offset-2">
+                  <span
+                    [ngClass]="(getConfigProfileSelectedValue(i) === true || getConfigProfileSelectedValue(i) === 'true') ? 'translate-x-6' : 'translate-x-1'"
+                    class="inline-block h-4 w-4 rounded-full bg-white transition-transform"></span>
+                </button>
+              </div>
+            } @else {
+              <select
+                [value]="ctrl.value.selectedValue || ''"
+                (change)="onConfigProfileValueChange(i, $event)"
+                (blur)="ctrl.get('selectedValue')?.markAsTouched()"
+                class="block w-full p-3 bg-white border rounded-lg text-sm text-gray-900 focus:ring-primary-100 focus:border-primary-100"
+                [class.border-gray-300]="!(ctrl.get('selectedValue')?.touched && ctrl.get('selectedValue')?.invalid)"
+                [class.border-red-500]="ctrl.get('selectedValue')?.touched && ctrl.get('selectedValue')?.invalid">
+                <option value="">{{ 'CREATE_OFFER._select' | translate }}</option>
+                @for(opt of getCharacteristicValues(ctrl.value.id); track opt.value){
+                  <option [value]="opt.value">{{ opt.value }}{{ opt.unitOfMeasure ? ' ' + opt.unitOfMeasure : '' }}</option>
+                }
+              </select>
+            }
             @if(ctrl.get('selectedValue')?.touched && ctrl.get('selectedValue')?.invalid){
               <p class="mt-1 text-xs text-red-600">{{ 'CREATE_OFFER._mandatory_field' | translate }}</p>
             }
