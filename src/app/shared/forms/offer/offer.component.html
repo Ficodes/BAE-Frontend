@@ -479,7 +479,7 @@
                                 <tr style="border-top: 1px solid #EBECEE;">
                                   <td class="pl-10 pr-4 py-4 text-sm text-[#324153]">{{ tier.name || (('CREATE_OFFER._pc_tier' | translate) + ' ' + (comp.tiers.length - ri)) }}</td>
                                   <td class="px-4 py-4 text-sm text-[#324153]">{{ priceTypeLabelKey(tier.priceType) | translate }}</td>
-                                  <td class="px-4 py-4 text-sm text-[#324153]">{{ tier.discountValue != null && periodLabelKey(tier.discountDurationUnit) ? ((periodLabelKey(tier.discountDurationUnit) | translate) | lowercase) : '-' }}</td>
+                                  <td class="px-4 py-4 text-sm text-[#324153]">{{ isRecurringPriceType(tier.priceType) && tier.recurringPeriod ? ((periodLabelKey(tier.recurringPeriod) | translate) | lowercase) : '-' }}</td>
                                   <td class="px-4 py-4 text-sm text-[#324153]">{{ tierFinalPrice(tier) | number:'1.2-2' }} {{ currencySymbol }}</td>
                                   <td class="px-4 py-4 text-sm text-[#324153]">{{ tier.discountValue != null ? discountLabel(tier) : '-' }}</td>
                                   <td class="px-4 py-4"></td>
@@ -1017,6 +1017,10 @@
                       <span class="w-px h-4 bg-[#B6CAEC]"></span>
                       <span>{{ priceTypeLabelKey(tier.priceType) | translate }}</span>
                     }
+                    @if(isRecurringPriceType(tier.priceType) && tier.recurringPeriod){
+                      <span class="w-px h-4 bg-[#B6CAEC]"></span>
+                      <span>{{ (recurringPeriodLabelKey(tier.recurringPeriod) | translate) | lowercase }}</span>
+                    }
                     @if(tier.discountValue != null){
                       <span class="w-px h-4 bg-[#B6CAEC]"></span>
                       <span>{{ (recurringPeriodLabelKey(tier.discountDurationUnit) | translate) | lowercase }}</span>
@@ -1108,6 +1112,21 @@
                     </select>
                   </div>
                 </div>
+
+                @if(isRecurringPriceType(tierForm.get('priceType')?.value)){
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-3">{{ 'CREATE_OFFER._pc_recurring_period' | translate }}</label>
+                    <div class="flex flex-wrap items-center gap-x-10 gap-y-3">
+                      @for(opt of recurringPeriodOptions; track opt.id){
+                        <label class="inline-flex items-center gap-3 cursor-pointer">
+                          <input type="radio" formControlName="recurringPeriod" [value]="opt.id" [attr.data-cy]="'tierRecurringPeriod-' + opt.id"
+                            class="w-5 h-5 cursor-pointer" style="accent-color: #2D58A7;"/>
+                          <span class="text-base text-gray-700">{{ opt.labelKey | translate }}</span>
+                        </label>
+                      }
+                    </div>
+                  </div>
+                }
 
                 <div>
                   <label for="tierName" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pc_tier_name' | translate }}</label>

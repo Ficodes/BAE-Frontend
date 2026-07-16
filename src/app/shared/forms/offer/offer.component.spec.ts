@@ -220,6 +220,38 @@ describe('OfferComponent', () => {
     expect(component.canSavePriceComponent()).toBeTrue();
   });
 
+  it('should store the recurring period selected for a recurring tier', () => {
+    component.pricePlanFormType = 'flex';
+    component.productOfferForm.patchValue({
+      prodSpec: {
+        productSpecCharacteristic: [
+          {
+            id: 'char-range',
+            name: 'Storage',
+            productSpecCharacteristicValue: [{ valueFrom: 1, valueTo: 10, unitOfMeasure: 'GB' }]
+          }
+        ]
+      }
+    });
+    component.openAddPriceComponentModal();
+    component.priceComponentForm.patchValue({ configOption: 'char-range' });
+    component.onConfigOptionChange();
+
+    component.addTier();
+    component.tierForm.patchValue({
+      min: 1,
+      max: 10,
+      price: 25,
+      priceType: 'recurring',
+      recurringPeriod: 'year'
+    });
+    component.saveTier();
+
+    expect(component.flexTiers.length).toBe(1);
+    expect(component.flexTiers[0].priceType).toBe('recurring');
+    expect(component.flexTiers[0].recurringPeriod).toBe('year');
+  });
+
   it('should allow the free price tier without price plans', () => {
     component.currentStep = 3;
     component.selectedPriceTier = 'free';

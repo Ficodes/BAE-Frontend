@@ -232,6 +232,7 @@ export class OfferComponent implements OnInit, OnDestroy {
       max: new FormControl(null, [Validators.required]),
       price: new FormControl(null, [Validators.required, Validators.min(0)]),
       priceType: new FormControl('', [Validators.required]),
+      recurringPeriod: new FormControl('month'),
       name: new FormControl('', [Validators.maxLength(100)]),
       description: new FormControl('', [Validators.maxLength(200)]),
       includeDiscount: new FormControl(false),
@@ -1230,7 +1231,7 @@ export class OfferComponent implements OnInit, OnDestroy {
     const b = this.rangeBounds;
     const gap = this.tierCoverageGaps[0] ?? { from: b.min, to: b.max };
     this.tierForm.reset({
-      min: gap.from, max: gap.to, price: null, priceType: '', name: '', description: '',
+      min: gap.from, max: gap.to, price: null, priceType: '', recurringPeriod: 'month', name: '', description: '',
       includeDiscount: false, discountValue: null, discountUnit: 'percentage',
       discountDuration: null, discountDurationUnit: 'month'
     });
@@ -1242,7 +1243,7 @@ export class OfferComponent implements OnInit, OnDestroy {
     if (!t) return;
     this.editingTierIndex = index;
     this.tierForm.reset({
-      min: t.min, max: t.max, price: t.price, priceType: t.priceType || '',
+      min: t.min, max: t.max, price: t.price, priceType: t.priceType || '', recurringPeriod: t.recurringPeriod || 'month',
       name: t.name || '', description: t.description || '',
       includeDiscount: !!t.discountValue, discountValue: t.discountValue ?? null,
       discountUnit: t.discountUnit || 'percentage', discountDuration: t.discountDuration ?? null,
@@ -1254,7 +1255,7 @@ export class OfferComponent implements OnInit, OnDestroy {
   resetTierForm(): void {
     const b = this.rangeBounds;
     this.tierForm.reset({
-      min: b.min, max: b.max, price: null, priceType: '', name: '', description: '',
+      min: b.min, max: b.max, price: null, priceType: '', recurringPeriod: 'month', name: '', description: '',
       includeDiscount: false, discountValue: null, discountUnit: 'percentage',
       discountDuration: null, discountDurationUnit: 'days'
     });
@@ -1270,6 +1271,9 @@ export class OfferComponent implements OnInit, OnDestroy {
       min: v.min, max: v.max, price: v.price, priceType: v.priceType,
       name: v.name, description: v.description
     };
+    if (this.isRecurringPriceType(v.priceType)) {
+      tier.recurringPeriod = v.recurringPeriod;
+    }
     if (v.includeDiscount && v.discountValue != null) {
       tier.discountValue = v.discountValue;
       tier.discountUnit = v.discountUnit;
@@ -1378,8 +1382,12 @@ export class OfferComponent implements OnInit, OnDestroy {
     }
   }
 
+  isRecurringPriceType(priceType: any): boolean {
+    return ['recurring', 'recurring-prepaid'].includes(priceType);
+  }
+
   componentPeriodKey(comp: any): string {
-    if (['recurring', 'recurring-prepaid'].includes(comp?.priceType)) return this.periodLabelKey(comp?.recurringPeriod);
+    if (this.isRecurringPriceType(comp?.priceType)) return this.periodLabelKey(comp?.recurringPeriod);
     if (comp?.discountValue != null) return this.periodLabelKey(comp?.discountDurationUnit);
     return '';
   }
@@ -1450,7 +1458,7 @@ export class OfferComponent implements OnInit, OnDestroy {
         component.configValue = configValue;
       }
     }
-    if (['recurring', 'recurring-prepaid'].includes(priceType)) {
+    if (this.isRecurringPriceType(priceType)) {
       component.recurringPeriod = recurringPeriod;
     }
     if (priceType === 'usage') {
