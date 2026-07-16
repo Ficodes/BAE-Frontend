@@ -26,4 +26,22 @@ describe('CardComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should hide offer tag metadata from the card description', () => {
+    component.productOff = {
+      description: 'Visible description\n\n[TAGS]:["cloud","ai"]'
+    };
+
+    expect(component.getVisibleDescription()).toBe('Visible description');
+    expect(component.getShortDescription()).toBe('Visible description');
+  });
+
+  it('should keep normal descriptions unchanged', () => {
+    component.productOff = {
+      description: 'Visible <strong>description</strong>'
+    };
+
+    expect(component.getVisibleDescription()).toBe('Visible <strong>description</strong>');
+    expect(component.getShortDescription()).toBe('Visible description');
+  });
 });

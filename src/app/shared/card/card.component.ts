@@ -76,6 +76,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   descLineClamp = 2;
   descLineClampList = 2;
   private descResizeObserver?: ResizeObserver;
+  private static readonly HIDDEN_TAGS_REGEX = /\n*\[TAGS\]:(\[.*\])\s*$/;
   check_logged:boolean=false;
   protected readonly faAtom = faAtom;
   protected readonly faClose = faClose;
@@ -317,13 +318,17 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getShortDescription(): string {
-    const raw = this.productOff?.description ?? '';
+    const raw = this.getVisibleDescription();
     if (!raw) return '';
     const withoutTags = raw.replace(/<[^>]*>/g, ' ');
     const textarea = document.createElement('textarea');
     textarea.innerHTML = withoutTags;
     const decoded = textarea.value;
     return decoded.replace(/\s+/g, ' ').trim();
+  }
+
+  getVisibleDescription(): string {
+    return (this.productOff?.description ?? '').replace(CardComponent.HIDDEN_TAGS_REGEX, '').trimEnd();
   }
   
 

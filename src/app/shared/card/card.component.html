@@ -205,7 +205,7 @@
                   <markdown [ngClass]="{
                     'break-all': hasLongWord(productOff?.description, 20),
                     'break-words': !hasLongWord(productOff?.description, 20)
-                  }" class="min-h-19 h-19 dark:text-secondary-50 line-clamp-6 text-wrap break-words" [data]="productOff?.description"></markdown>
+                  }" class="min-h-19 h-19 dark:text-secondary-50 line-clamp-6 text-wrap break-words" [data]="getVisibleDescription()"></markdown>
               </div>
               <!--<div class="justify-start">
                 <h5 class="font-semibold tracking-tight text-lg text-primary-100 dark:text-primary-50">{{ 'CARD._comp_profile' | translate }}:</h5>
