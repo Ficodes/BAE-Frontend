@@ -55,6 +55,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   productImageUrl: string | null = null;
   productImageRef: any | null = null;
   uploadingImage: boolean = false;
+  productImageTouched: boolean = false;
   attachments: any[] = [];
   uploadingAttachment: boolean = false;
 
@@ -698,6 +699,13 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   createProduct(){
+    this.productImageTouched = true;
+    if (!this.isGeneralInfoStepValid()) {
+      this.currentStep = 0;
+      this.highestStep = Math.max(this.highestStep, 0);
+      return;
+    }
+
     if (this.isEditMode) {
       this.productSpecToUpdate = this.buildProductUpdatePatch(false);
     } else {
@@ -791,6 +799,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     const input = event.target as HTMLInputElement;
     if(input.files && input.files.length > 0){
       const file = input.files[0];
+      this.productImageTouched = true;
       this.productImage = { name: file.name, size: file.size };
       this.uploadingImage = true;
       const reader = new FileReader();
@@ -841,6 +850,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     this.productImage = null;
     this.productImageUrl = null;
     this.productImageRef = null;
+    this.productImageTouched = true;
   }
 
   onAttachmentSelected(event: Event){
@@ -1182,6 +1192,10 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     if (index > this.currentStep) {
       const currentStepValid = this.validateCurrentStep();
       if (!currentStepValid) {
+        if (this.currentStep === 0) {
+          this.productImageTouched = true;
+          this.generalForm.markAllAsTouched();
+        }
         return;
       }
     }
@@ -1196,7 +1210,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   validateCurrentStep(): boolean {
     switch (this.currentStep) {
       case 0:
-        return this.generalForm?.valid || false;
+        return this.isGeneralInfoStepValid();
       default:
         return true;
     }
@@ -1204,7 +1218,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
 
   canNavigate(index: number) {
     if (index === this.currentStep || index === 0) return true;
-    return !!this.generalForm?.valid;
+    return this.isGeneralInfoStepValid();
   }
 
   handleStepClick(index: number): void {
@@ -1222,9 +1236,21 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   completedStep(index: number): boolean {
     if (this.isOptionalStep(index)) return this.isEditMode || this.stepHasContent(index) || index < this.highestStep;
     switch (index) {
-      case 0: return !!this.generalForm?.valid;
+      case 0: return this.isGeneralInfoStepValid();
       default: return this.stepHasContent(index);
     }
+  }
+
+  isGeneralInfoStepValid(): boolean {
+    return !!this.generalForm?.valid && this.isProductImageValid();
+  }
+
+  isProductImageValid(): boolean {
+    return !!this.productImageRef?.url && !this.uploadingImage;
+  }
+
+  showProductImageRequiredError(): boolean {
+    return this.productImageTouched && !this.uploadingImage && !this.isProductImageValid();
   }
 
   private stepHasContent(index: number): boolean {

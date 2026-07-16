@@ -137,6 +137,32 @@ describe('CreateProductSpecComponent', () => {
     expect(backendOnly.description).toBe('Not represented by upload UI');
   });
 
+  it('should require a product image to complete the general info step', () => {
+    component.generalForm.patchValue({ name: 'Product' });
+
+    expect(component.isGeneralInfoStepValid()).toBeFalse();
+    expect(component.validateCurrentStep()).toBeFalse();
+
+    component.productImageRef = {
+      name: 'Profile Picture',
+      url: 'https://example.test/image.png',
+      attachmentType: 'image/png'
+    };
+
+    expect(component.isGeneralInfoStepValid()).toBeTrue();
+    expect(component.validateCurrentStep()).toBeTrue();
+  });
+
+  it('should not open the ready modal when creating without a product image', () => {
+    component.generalForm.patchValue({ name: 'Product' });
+
+    component.createProduct();
+
+    expect(component.showSuccessModal).toBeFalse();
+    expect(component.productImageTouched).toBeTrue();
+    expect(component.currentStep).toBe(0);
+  });
+
   it('should preserve unchanged service and resource reference metadata in update patches', () => {
     component.prod = {
       id: 'prod-1',
