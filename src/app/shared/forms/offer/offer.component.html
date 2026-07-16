@@ -312,10 +312,15 @@
                 </div>
 
                 <div>
-                  <label for="paidDescription" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pp_col_description' | translate }}</label>
+                  <label for="paidDescription" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._pp_col_description' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
                   <textarea data-cy="paidDescription" id="paidDescription" formControlName="description" rows="6" maxlength="300"
                     placeholder="{{ 'CREATE_OFFER._pp_form_description_placeholder' | translate }}"
-                    class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3 resize-none"></textarea>
+                    class="bg-white border text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3 resize-none"
+                    [class.border-gray-300]="!(paidPricePlanForm.get('description')?.touched && paidPricePlanForm.get('description')?.invalid)"
+                    [class.border-red-500]="paidPricePlanForm.get('description')?.touched && paidPricePlanForm.get('description')?.invalid"></textarea>
+                  @if(paidPricePlanForm.get('description')?.touched && paidPricePlanForm.get('description')?.invalid){
+                    <p class="mt-1 text-xs text-red-600">{{ 'CREATE_OFFER._mandatory_field' | translate }}</p>
+                  }
                   <p class="mt-1 text-xs text-gray-500">{{ (paidPricePlanForm.get('description')?.value?.length || 0) }}/300</p>
                 </div>
 
@@ -350,6 +355,7 @@
                         </svg>
                         {{ 'CREATE_OFFER._set_configuration_profile' | translate }}
                       </button>
+                      <p class="mt-3 text-xs text-red-600">{{ 'CREATE_OFFER._mandatory_field' | translate }}</p>
                     </div>
                   } @else {
                     <div class="border border-gray-200 rounded-lg overflow-hidden">
@@ -403,6 +409,7 @@
                         </svg>
                         {{ 'CREATE_OFFER._add_price_component' | translate }}
                       </button>
+                      <p class="mt-3 text-xs text-red-600">{{ 'CREATE_OFFER._mandatory_field' | translate }}</p>
                     </div>
                   } @else {
                     <div class="flex justify-end">
@@ -626,8 +633,8 @@
               {{ 'CREATE_OFFER._pp_go_back' | translate }}
             </button>
             <button data-cy="ppSave" type="button" (click)="saveCurrentPricePlanForm()"
-              [disabled]="currentPricePlanForm.invalid"
-              [ngClass]="currentPricePlanForm.invalid ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
+              [disabled]="!canSaveCurrentPricePlanForm()"
+              [ngClass]="!canSaveCurrentPricePlanForm() ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
               class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg bg-primary-100">
               {{ 'CREATE_OFFER._pp_save' | translate }}
             </button>
@@ -1241,12 +1248,18 @@
             <select
               [value]="ctrl.value.selectedValue || ''"
               (change)="onConfigProfileValueChange(i, $event)"
-              class="block w-full p-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-primary-100 focus:border-primary-100">
+              (blur)="ctrl.get('selectedValue')?.markAsTouched()"
+              class="block w-full p-3 bg-white border rounded-lg text-sm text-gray-900 focus:ring-primary-100 focus:border-primary-100"
+              [class.border-gray-300]="!(ctrl.get('selectedValue')?.touched && ctrl.get('selectedValue')?.invalid)"
+              [class.border-red-500]="ctrl.get('selectedValue')?.touched && ctrl.get('selectedValue')?.invalid">
               <option value="">{{ 'CREATE_OFFER._select' | translate }}</option>
               @for(opt of getCharacteristicValues(ctrl.value.id); track opt.value){
                 <option [value]="opt.value">{{ opt.value }}{{ opt.unitOfMeasure ? ' ' + opt.unitOfMeasure : '' }}</option>
               }
             </select>
+            @if(ctrl.get('selectedValue')?.touched && ctrl.get('selectedValue')?.invalid){
+              <p class="mt-1 text-xs text-red-600">{{ 'CREATE_OFFER._mandatory_field' | translate }}</p>
+            }
           </div>
         }
       </div>
@@ -1257,7 +1270,9 @@
           {{ 'CREATE_OFFER._cancel' | translate }}
         </button>
         <button data-cy="configProfileSave" type="button" (click)="saveConfigProfile()"
-          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg bg-primary-100 hover:bg-primary-50">
+          [disabled]="!canSaveConfigProfile()"
+          [ngClass]="!canSaveConfigProfile() ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
+          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg bg-primary-100">
           {{ 'CREATE_OFFER._save' | translate }}
         </button>
       </div>

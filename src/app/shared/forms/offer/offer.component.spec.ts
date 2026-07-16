@@ -83,6 +83,75 @@ describe('OfferComponent', () => {
     expect(component.validateCurrentStep()).toBeTrue();
   });
 
+  it('should block saving a standard paid plan without description, complete profile, and price component', () => {
+    component.pricePlanFormType = 'standard';
+    component.paidPricePlanForm.patchValue({
+      name: 'Basic plan',
+      description: '',
+      currency: 'EUR'
+    });
+    component.productOfferForm.patchValue({
+      prodSpec: {
+        productSpecCharacteristic: [
+          {
+            id: 'char-1',
+            name: 'Region',
+            productSpecCharacteristicValue: [{ value: 'EU' }]
+          }
+        ]
+      }
+    });
+
+    expect(component.canSavePaidPricePlan()).toBeFalse();
+
+    component.paidPricePlanForm.patchValue({ description: 'Basic plan description' });
+
+    expect(component.canSavePaidPricePlan()).toBeFalse();
+
+    component.paidProductProfile.push((component as any).fb.group({
+      id: ['char-1'],
+      name: ['Region'],
+      selectedValue: ['EU']
+    }));
+
+    expect(component.canSavePaidPricePlan()).toBeFalse();
+
+    component.paidPriceComponents = [{ id: 'pc-1', name: 'Monthly', price: 10, priceType: 'recurring' }];
+
+    expect(component.canSavePaidPricePlan()).toBeTrue();
+  });
+
+  it('should require every configuration profile value before saving the profile modal', () => {
+    component.productOfferForm.patchValue({
+      prodSpec: {
+        productSpecCharacteristic: [
+          {
+            id: 'char-1',
+            name: 'Region',
+            productSpecCharacteristicValue: [{ value: 'EU' }]
+          },
+          {
+            id: 'char-2',
+            name: 'Size',
+            productSpecCharacteristicValue: [{ value: 'Small' }]
+          }
+        ]
+      }
+    });
+
+    component.openConfigProfileModal();
+
+    expect(component.canSaveConfigProfile()).toBeFalse();
+
+    component.configProfileSelectedValues.at(0).patchValue({ selectedValue: 'EU' });
+
+    expect(component.canSaveConfigProfile()).toBeFalse();
+
+    component.configProfileSelectedValues.at(1).patchValue({ selectedValue: 'Small' });
+
+    expect(component.canSaveConfigProfile()).toBeTrue();
+  });
+
   it('should allow the free price tier without price plans', () => {
     component.currentStep = 3;
     component.selectedPriceTier = 'free';

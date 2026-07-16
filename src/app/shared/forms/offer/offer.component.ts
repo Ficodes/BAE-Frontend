@@ -200,7 +200,7 @@ export class OfferComponent implements OnInit, OnDestroy {
 
     this.paidPricePlanForm = this.fb.group({
       name: new FormControl('', [Validators.required, Validators.maxLength(100)]),
-      description: new FormControl('', [Validators.maxLength(300)]),
+      description: new FormControl('', [Validators.required, Validators.maxLength(300)]),
       currency: new FormControl('EUR', [Validators.required]),
       productProfile: this.fb.group({ selectedValues: this.fb.array([] as FormGroup[]) }),
       priceComponents: this.fb.control([] as any[])
@@ -299,6 +299,12 @@ export class OfferComponent implements OnInit, OnDestroy {
   saveCurrentPricePlanForm(): void {
     if (this.pricePlanFormType === 'tailored') this.saveTailoredPricePlan();
     else if (this.pricePlanFormType === 'standard' || this.pricePlanFormType === 'flex') this.savePaidPricePlan();
+  }
+
+  canSaveCurrentPricePlanForm(): boolean {
+    if (this.pricePlanFormType === 'tailored') return this.tailoredPricePlanForm.valid;
+    if (this.pricePlanFormType === 'standard' || this.pricePlanFormType === 'flex') return this.canSavePaidPricePlan();
+    return false;
   }
 
   get currentPricePlanForm(): FormGroup {
@@ -857,8 +863,9 @@ export class OfferComponent implements OnInit, OnDestroy {
   }
 
   savePaidPricePlan(): void {
-    if (this.paidPricePlanForm.invalid) {
+    if (!this.canSavePaidPricePlan()) {
       this.paidPricePlanForm.markAllAsTouched();
+      this.paidProductProfile.markAllAsTouched();
       return;
     }
     const { name, description, currency } = this.paidPricePlanForm.value;
@@ -918,7 +925,7 @@ export class OfferComponent implements OnInit, OnDestroy {
       this.configProfileSelectedValues.push(this.fb.group({
         id: [char?.id],
         name: [char?.name || ''],
-        selectedValue: [prev?.selectedValue ?? null]
+        selectedValue: [prev?.selectedValue ?? null, Validators.required]
       }));
     });
     this.showConfigProfileModal = true;
@@ -929,6 +936,10 @@ export class OfferComponent implements OnInit, OnDestroy {
   }
 
   saveConfigProfile(): void {
+    if (!this.canSaveConfigProfile()) {
+      this.configProfileForm.markAllAsTouched();
+      return;
+    }
     const values = this.configProfileSelectedValues.getRawValue();
     this.paidProductProfile.clear();
     values.forEach((v: any) => {
@@ -942,8 +953,24 @@ export class OfferComponent implements OnInit, OnDestroy {
   }
 
   hasConfiguredProfile(): boolean {
-    return this.paidProductProfile.length > 0 &&
-      this.paidProductProfile.getRawValue().some((v: any) => v?.selectedValue != null && v?.selectedValue !== '');
+    return this.hasCompleteConfiguredProfile();
+  }
+
+  canSaveConfigProfile(): boolean {
+    return this.configProfileSelectedValues.length > 0 && this.configProfileForm.valid;
+  }
+
+  canSavePaidPricePlan(): boolean {
+    if (this.paidPricePlanForm.invalid) return false;
+    if (this.pricePlanFormType === 'standard' && !this.hasCompleteConfiguredProfile()) return false;
+    return this.paidPriceComponents.length > 0;
+  }
+
+  hasCompleteConfiguredProfile(): boolean {
+    const selectedValues = this.paidProductProfile.getRawValue();
+    return this.prodSpecCharacteristics.length > 0 &&
+      selectedValues.length === this.prodSpecCharacteristics.length &&
+      selectedValues.every((v: any) => v?.selectedValue != null && v?.selectedValue !== '');
   }
 
   getCharacteristicValues(charId: string): any[] {
@@ -953,7 +980,9 @@ export class OfferComponent implements OnInit, OnDestroy {
 
   onConfigProfileValueChange(controlIndex: number, event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
-    this.configProfileSelectedValues.at(controlIndex).patchValue({ selectedValue: value || null });
+    const control = this.configProfileSelectedValues.at(controlIndex);
+    control.patchValue({ selectedValue: value || null });
+    control.get('selectedValue')?.markAsTouched();
   }
 
   private async loadUsageSpecs(): Promise<void> {
