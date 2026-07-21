@@ -326,7 +326,7 @@
       }
 
       @if (activeTab === 'pricing') {
-        <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._product_pricing' | translate }}</h2>
+        <h2 data-cy="pricePlanTitle" class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._product_pricing' | translate }}</h2>
         @if(productOff?.productOfferingPrice != undefined){
           @if(checkCustom){
             <div class="grid gap-4 mb-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">

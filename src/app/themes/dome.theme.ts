@@ -80,11 +80,6 @@ const domeFooterLinks: NavHeaderLink[] = [
         isRouterLink: false
       },
       {
-        label: 'FOOTER.support',
-        url: 'https://dome-marketplace.eu/contact-us',
-        isRouterLink: false
-      }
-      , {
         label: 'FOOTER.faqs',
         url: '/faq',
         isRouterLink: true

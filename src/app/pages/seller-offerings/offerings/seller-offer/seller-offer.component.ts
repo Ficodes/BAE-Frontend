@@ -123,24 +123,27 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
       "isBundle": this.isBundle
     }
     
-    this.paginationService.getItemsPaginated(this.page, this.PROD_SPEC_LIMIT, next, this.offers,this.nextOffers, options,
-      this.api.getProductOfferByOwner.bind(this.api)).then(async data => {
-      this.page_check=data.page_check;      
+    try {
+      const data = await this.paginationService.getItemsPaginated(this.page, this.PROD_SPEC_LIMIT, next, this.offers,this.nextOffers, options,
+        this.api.getProductOfferByOwner.bind(this.api));
+      this.page_check=data.page_check;
       this.offers=data.items;
       this.nextOffers=data.nextItems;
       this.page=data.page;
-      this.loading=false;
-      this.loading_more=false;
 
       this.customMap={}
       for (const offer of this.offers) {
         this.customMap[offer.id] = await this.priceService.isCustomOffering(offer);
       }
-    })
+    } finally {
+      this.loading=false;
+      this.loading_more=false;
+    }
 
   }
 
   async next(){
+    this.loading_more = true;
     await this.getOffers(true);
   }
 

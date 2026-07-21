@@ -54,8 +54,8 @@ export class ApiServiceService {
           offer.productSpecification?.id
             ? this.getProductSpecification(offer.productSpecification.id)
             : Promise.resolve(undefined),
-          offer.productOfferingPrice
-            ? Promise.all(offer.productOfferingPrice.map((p: { id: any; }) => this.getProductPrice(p.id)))
+          offer.productOfferingPrice?.length
+            ? this.getProductPrices(offer.productOfferingPrice.map((p: { id: any; }) => p.id))
             : Promise.resolve([])
         ]);
 
@@ -192,6 +192,17 @@ export class ApiServiceService {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOfferingPrice/${id}`
 
     return lastValueFrom(this.http.get<any>(url));
+  }
+
+  getProductPrices(ids: any[]): Promise<any[]> {
+    if (!ids || ids.length === 0) {
+      return Promise.resolve([]);
+    }
+    const url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOfferingPrice?id=${ids.join(',')}&limit=${ids.length}`;
+    return lastValueFrom(this.http.get<any[]>(url)).then(prices => {
+      const byId = new Map((prices ?? []).map((p: any) => [p.id, p]));
+      return ids.map(id => byId.get(id)).filter((p: any) => p != null);
+    });
   }
 
   getLaunchedCategories() {

@@ -69,6 +69,7 @@ import { OrgInfoComponent } from './pages/user-profile/profile-sections/org-info
 import { UserInfoComponent } from './pages/user-profile/profile-sections/user-info/user-info.component';
 import { UserProfileComponent } from "./pages/user-profile/user-profile.component";
 import { AppInitService } from './services/app-init.service';
+import { GoogleTagManagerService } from './services/google-tag-manager.service';
 import { ThemeAwareTranslateLoader } from './services/theme-aware-translate.loader';
 import { ThemeService } from './services/theme.service';
 import { BadgeComponent } from "./shared/badge/badge.component";
@@ -206,7 +207,7 @@ import { RequestValidationModalComponent } from './pages/seller-offerings/offeri
     {
       provide: APP_INITIALIZER,
       useFactory: appConfigFactory,
-      deps: [AppInitService, MatomoInitializerService],
+      deps: [AppInitService, MatomoInitializerService, GoogleTagManagerService],
       multi: true
     },
     {

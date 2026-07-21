@@ -88,6 +88,7 @@ export const environment = {
   },
   QUOTES_ENABLED: true,
   TENDER_ENABLED: true,
+  googleTagManagerId: '',
   analytics: '',
   feedbackCampaign: false,
   feedbackCampaignExpiration: 0,
