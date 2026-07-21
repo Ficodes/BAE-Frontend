@@ -15,6 +15,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { ContactUsService } from '../../services/contactUs.service';
 
 export interface IContactUs {
+  supportType: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -53,7 +54,10 @@ export class ContactUsFormComponent implements OnDestroy {
   submitted = false;
   submittedSuccessfully = false;
 
+  readonly supportOptions: string[] = ["general", "technical", "onboarding", "legal"];
+
   form: FormGroup<IContactUsForm> = this.fb.nonNullable.group({
+    supportType: ["", [Validators.required]],
     firstName: ["", [Validators.required]],
     lastName: ["", [Validators.required]],
     email: ["", [Validators.required, Validators.email]],
@@ -82,7 +86,9 @@ export class ContactUsFormComponent implements OnDestroy {
     }
 
 
-    this.contactUsService.sendEmail(this.form.getRawValue()).pipe(takeUntil(this.unsub)).subscribe({
+    const rawValue = this.form.getRawValue();
+
+    this.contactUsService.sendEmail(rawValue).pipe(takeUntil(this.unsub)).subscribe({
       next: () => {
         this.submittedSuccessfully = true;
       },
@@ -93,6 +99,7 @@ export class ContactUsFormComponent implements OnDestroy {
     this.submittedSuccessfully = false;
     this.submitted = false;
     this.form.reset({
+      supportType: "",
       firstName: "",
       lastName: "",
       email: "",

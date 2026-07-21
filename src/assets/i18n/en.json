@@ -245,6 +245,16 @@
       "subtitle": "Fill out the form and our team will be in touch as soon as possible."
     },
     "fields": {
+      "supportType": {
+        "label": "How can we help?",
+        "placeholder": "Select the type of support you need",
+        "options": {
+          "general": "General inquiries",
+          "technical": "Technical support",
+          "onboarding": "Onboarding support",
+          "legal": "Legal support"
+        }
+      },
       "firstName": {
         "label": "First name",
         "placeholder": "Enter your first name"

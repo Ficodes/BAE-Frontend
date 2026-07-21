@@ -121,6 +121,58 @@
   color: #858b99;
 }
 
+.contact-select-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.contact-select {
+  width: 100%;
+  height: 40px;
+  border: 1px solid #bcbfc7;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #131b25;
+  padding: 8px 40px 8px 12px;
+  font-size: clamp(0.95rem, 0.92rem + 0.1vw, 1rem);
+  line-height: 24px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.contact-select-placeholder {
+  color: #858b99;
+}
+
+.contact-select:hover {
+  border-color: #9da6b2;
+}
+
+.contact-select:focus {
+  border-color: #3d71cc;
+  box-shadow: 0 0 0 3px rgba(61, 113, 204, 0.14);
+}
+
+.contact-select-wrap::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 10px;
+  height: 10px;
+  transform: translateY(-70%) rotate(45deg);
+  border-right: 2px solid #4c5a6b;
+  border-bottom: 2px solid #4c5a6b;
+  pointer-events: none;
+}
+
 .contact-input:hover,
 .contact-textarea:hover {
   border-color: #9da6b2;
