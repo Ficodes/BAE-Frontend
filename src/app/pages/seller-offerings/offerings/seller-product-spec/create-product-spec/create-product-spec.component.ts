@@ -100,8 +100,11 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   newEndpointDescription: string = '';
   newEndpointName: string = '';
   endpointUrls: { url: string; description: string, name: string }[] = [];
+  readonly transferTypes: string[] = ['HttpData-PULL', 'HttpData-PUSH'];
   dspConfigForm = new FormGroup({
     upstreamAddress: new FormControl('', [Validators.required]),
+    transferPath: new FormControl(''),
+    transferType: new FormControl('HttpData-PULL', [Validators.required]),
     targetSpecification: new FormControl('', [Validators.required, jsonValidator]),
     serviceConfiguration: new FormControl('', [Validators.required, jsonValidator]),
     credentialsConfig: new FormControl('', [Validators.required, jsonValidator]),
@@ -754,18 +757,21 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
       //"isBundle": false
     }
 
-    this.paginationService.getItemsPaginated(this.resourceSpecPage, this.RES_SPEC_LIMIT, next, this.resourceSpecs, this.nextResourceSpecs, options,
-      this.resSpecService.getResourceSpecByUser.bind(this.resSpecService)).then(data => {
-        this.resourceSpecPageCheck = data.page_check;
-        this.resourceSpecs = data.items;
-        this.nextResourceSpecs = data.nextItems;
-        this.resourceSpecPage = data.page;
-        this.loadingResourceSpec = false;
-        this.loadingResourceSpec_more = false;
-      })
+    try {
+      const data = await this.paginationService.getItemsPaginated(this.resourceSpecPage, this.RES_SPEC_LIMIT, next, this.resourceSpecs, this.nextResourceSpecs, options,
+        this.resSpecService.getResourceSpecByUser.bind(this.resSpecService));
+      this.resourceSpecPageCheck = data.page_check;
+      this.resourceSpecs = data.items;
+      this.nextResourceSpecs = data.nextItems;
+      this.resourceSpecPage = data.page;
+    } finally {
+      this.loadingResourceSpec = false;
+      this.loadingResourceSpec_more = false;
+    }
   }
 
   async nextRes() {
+    this.loadingResourceSpec_more = true;
     await this.getResSpecs(true);
   }
 
@@ -1165,7 +1171,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   isTextCharacteristicType(type: string | undefined): boolean {
-    return type === 'string' || type === 'endpointUrl' || type === 'upstreamAddress' || type === 'endpointDescription';
+    return type === 'string' || type === 'endpointUrl' || type === 'upstreamAddress' || type === 'endpointDescription' || type === 'transferPath';
   }
 
   getFilteredCharacteristicsForCurrentStep(): ProductSpecificationCharacteristic[] {
@@ -1555,13 +1561,14 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
           ]
         })
       })
+      const dspConfigValue = this.dspConfigForm.value;
       this.productSpecToCreate!.productSpecCharacteristic!.push(
         {
           id: "upstreamAddress",
           name: "Address of the upstream serving the data",
           valueType: "upstreamAddress",
           productSpecCharacteristicValue: [
-            { value: this.dspConfigForm.value.upstreamAddress! as any, isDefault: true }
+            { value: dspConfigValue.upstreamAddress! as any, isDefault: true }
           ]
         },
         {
@@ -1569,7 +1576,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
           name: "Detailed specification of the ODRL target. Allows to over services via OID4VC",
           valueType: "targetSpecification",
           productSpecCharacteristicValue: [
-            { value: JSON.parse(this.dspConfigForm.value.targetSpecification!), isDefault: true }
+            { value: JSON.parse(dspConfigValue.targetSpecification!), isDefault: true }
           ]
         },
         {
@@ -1577,7 +1584,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
           name: "Service config to be used in the credentials config service when provisioning transfers through OID4VC",
           valueType: "serviceConfiguration",
           productSpecCharacteristicValue: [
-            { value: JSON.parse(this.dspConfigForm.value.serviceConfiguration!), isDefault: true }
+            { value: JSON.parse(dspConfigValue.serviceConfiguration!), isDefault: true }
           ]
         },
         {
@@ -1586,7 +1593,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
           valueType: "credentialsConfig",
           "@schemaLocation": "https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/main/schemas/credentials/credentialConfigCharacteristic.json",
           productSpecCharacteristicValue: [
-            { value: JSON.parse(this.dspConfigForm.value.credentialsConfig!), isDefault: true }
+            { value: JSON.parse(dspConfigValue.credentialsConfig!), isDefault: true }
           ]
         },
         {
@@ -1595,10 +1602,29 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
           valueType: "authorizationPolicy",
           "@schemaLocation": "https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/policy-support/schemas/odrl/policyCharacteristic.json",
           productSpecCharacteristicValue: [
-            { value: JSON.parse(this.dspConfigForm.value.policyConfig!), isDefault: true }
+            { value: JSON.parse(dspConfigValue.policyConfig!), isDefault: true }
           ]
         },
+        {
+          id: 'transferType',
+          name: 'transferType',
+          valueType: 'transferType',
+          productSpecCharacteristicValue: [
+            { value: dspConfigValue.transferType as any, isDefault: true }
+          ]
+        }
       )
+
+      if (dspConfigValue.transferPath) {
+        this.productSpecToCreate!.productSpecCharacteristic!.push({
+          id: 'transferPath',
+          name: 'transferPath',
+          valueType: 'transferPath',
+          productSpecCharacteristicValue: [
+            { value: dspConfigValue.transferPath as any, isDefault: true }
+          ]
+        })
+      }
     }
     console.log('PRODUCTO A CREAR:')
     console.log(this.productSpecToCreate)

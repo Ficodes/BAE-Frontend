@@ -31,7 +31,8 @@ type ProductSpecificationRelationship = components["schemas"]["ProductSpecificat
 type AttachmentRefOrValue = components["schemas"]["AttachmentRefOrValue"];
 type ProductSpecFormStep = 'general' | 'bundle' | 'compliance' | 'characteristics' | 'dataspace' | 'resource' | 'service' | 'attachments' | 'relationships' | 'summary' | 'dsp_config';
 
-const DSP_CHARS: string[] = ['endpointUrl', 'upstreamAddress', 'targetSpecification', 'serviceConfiguration', 'credentialsConfig', 'authorizationPolicy']
+const DSP_CHARS: string[] = ['endpointUrl', 'upstreamAddress', 'targetSpecification', 'serviceConfiguration', 'credentialsConfig', 'authorizationPolicy', 'transferPath', 'transferType']
+
 interface Step {
   label: string;
   id: ProductSpecFormStep;
@@ -92,8 +93,11 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   newEndpointDescription: string = '';
   newEndpointName: string = '';
   endpointUrls: { url: string; description: string; name: string, id?: string }[] = [];
+  readonly transferTypes: string[] = ['HttpData-PULL', 'HttpData-PUSH'];
   dspConfigForm = new FormGroup({
     upstreamAddress: new FormControl('', [Validators.required]),
+    transferPath: new FormControl(''),
+    transferType: new FormControl('HttpData-PULL', [Validators.required]),
     targetSpecification: new FormControl('', [Validators.required, jsonValidator]),
     serviceConfiguration: new FormControl('', [Validators.required, jsonValidator]),
     credentialsConfig: new FormControl('', [Validators.required, jsonValidator]),
@@ -1750,13 +1754,14 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
           ]
         })
       })
+      const dspConfigValue = this.dspConfigForm.value
       this.finishChars.push(
         {
           id: "upstreamAddress",
           name: "Address of the upstream serving the data",
           valueType: "upstreamAddress",
           productSpecCharacteristicValue: [
-            { value: this.dspConfigForm.value.upstreamAddress! as any, isDefault: true }
+            { value: dspConfigValue.upstreamAddress! as any, isDefault: true }
           ]
         },
         {
@@ -1764,7 +1769,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
           name: "Detailed specification of the ODRL target. Allows to over services via OID4VC",
           valueType: "targetSpecification",
           productSpecCharacteristicValue: [
-            { value: JSON.parse(this.dspConfigForm.value.targetSpecification!), isDefault: true }
+            { value: JSON.parse(dspConfigValue.targetSpecification!), isDefault: true }
           ]
         },
         {
@@ -1772,7 +1777,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
           name: "Service config to be used in the credentials config service when provisioning transfers through OID4VC",
           valueType: "serviceConfiguration",
           productSpecCharacteristicValue: [
-            { value: JSON.parse(this.dspConfigForm.value.serviceConfiguration!), isDefault: true }
+            { value: JSON.parse(dspConfigValue.serviceConfiguration!), isDefault: true }
           ]
         },
         {
@@ -1781,7 +1786,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
           valueType: "credentialsConfig",
           "@schemaLocation": "https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/main/schemas/credentials/credentialConfigCharacteristic.json",
           productSpecCharacteristicValue: [
-            { value: JSON.parse(this.dspConfigForm.value.credentialsConfig!), isDefault: true }
+            { value: JSON.parse(dspConfigValue.credentialsConfig!), isDefault: true }
           ]
         },
         {
@@ -1790,10 +1795,28 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
           valueType: "authorizationPolicy",
           "@schemaLocation": "https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/policy-support/schemas/odrl/policyCharacteristic.json",
           productSpecCharacteristicValue: [
-            { value: JSON.parse(this.dspConfigForm.value.policyConfig!), isDefault: true }
+            { value: JSON.parse(dspConfigValue.policyConfig!), isDefault: true }
           ]
         },
+        {
+          id: 'transferType',
+          name: 'transferType',
+          valueType: 'transferType',
+          productSpecCharacteristicValue: [
+            { value: dspConfigValue.transferType as any, isDefault: true }
+          ]
+        }
       )
+      if (dspConfigValue.transferPath) {
+        this.finishChars.push({
+          id: 'transferPath',
+          name: 'transferPath',
+          valueType: 'transferPath',
+          productSpecCharacteristicValue: [
+            { value: dspConfigValue.transferPath as any, isDefault: true }
+          ]
+        })
+      }
     }
 
     if (this.generalForm.value.name != null && this.generalForm.value.version != null && this.generalForm.value.brand != null) {
@@ -2122,6 +2145,8 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
             this.endpointUrls.push({ name: char.name ?? '', url: value, description: char.description ?? '', id: char.id });
             break;
           case 'upstreamAddress':
+          case 'transferPath':
+          case 'transferType':
             patch[char.valueType] = value;
             break;
           case 'targetSpecification':

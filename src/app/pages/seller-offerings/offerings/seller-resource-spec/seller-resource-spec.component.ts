@@ -109,25 +109,28 @@ export class SellerResourceSpecComponent implements OnInit, OnDestroy {
     if(next==false){
       this.loading=true;
     }
-    
+
     let options = {
       "filters": this.status,
       "partyId": this.partyId,
       "sort": this.sort
     }
-    
-    this.paginationService.getItemsPaginated(this.page, this.RES_SPEC_LIMIT, next, this.resSpecs,this.nextResSpecs, options,
-      this.resSpecService.getResourceSpecByUser.bind(this.resSpecService)).then(data => {
-      this.page_check=data.page_check;      
+
+    try {
+      const data = await this.paginationService.getItemsPaginated(this.page, this.RES_SPEC_LIMIT, next, this.resSpecs,this.nextResSpecs, options,
+        this.resSpecService.getResourceSpecByUser.bind(this.resSpecService));
+      this.page_check=data.page_check;
       this.resSpecs=data.items;
       this.nextResSpecs=data.nextItems;
       this.page=data.page;
+    } finally {
       this.loading=false;
       this.loading_more=false;
-    })
+    }
   }
 
   async next(){
+    this.loading_more = true;
     await this.getResSpecs(true);
   }
 

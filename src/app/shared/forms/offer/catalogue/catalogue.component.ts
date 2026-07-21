@@ -78,25 +78,28 @@ export class CatalogueComponent implements ControlValueAccessor, OnInit, AfterVi
     if(next==false){
       this.loadingCatalog=true;
     }
-    
+
     let options = {
       "keywords": undefined,
       "filters": ['Active','Launched'],
       "partyId": this.partyId
     }
 
-    this.paginationService.getItemsPaginated(this.catalogPage, this.CATALOG_LIMIT, next, this.catalogs,this.nextCatalogs, options,
-      this.api.getCatalogsByUser.bind(this.api)).then(data => {
-      this.catalogPageCheck=data.page_check;      
+    try {
+      const data = await this.paginationService.getItemsPaginated(this.catalogPage, this.CATALOG_LIMIT, next, this.catalogs,this.nextCatalogs, options,
+        this.api.getCatalogsByUser.bind(this.api));
+      this.catalogPageCheck=data.page_check;
       this.catalogs=data.items;
       this.nextCatalogs=data.nextItems;
       this.catalogPage=data.page;
+    } finally {
       this.loadingCatalog=false;
       this.loadingCatalog_more=false;
-    })
+    }
   }
 
   async nextCatalog(){
+    this.loadingCatalog_more=true;
     await this.getSellerCatalogs(true);
   }
 
