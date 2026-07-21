@@ -27,7 +27,7 @@
         </button>
 
         @if (showCategoryDropdown) {
-          <div (click)="$event.stopPropagation()" class="absolute top-full left-0 mt-2 z-50 w-[420px] rounded-2xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] max-h-[520px] overflow-hidden">
+          <div (click)="$event.stopPropagation()" class="absolute top-full left-0 mt-2 z-40 w-[420px] rounded-2xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] max-h-[520px] overflow-hidden">
             <div class="p-2 flex flex-col gap-2 max-h-[520px] overflow-y-auto overscroll-contain">
             <button data-cy="searchAllCategories" (mousedown)="selectCategory(null)"
               [ngClass]="!activeCategoryName ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'"
@@ -111,7 +111,7 @@
               }
             </button>
             @if (filter.open) {
-              <div (click)="$event.stopPropagation()" class="absolute top-full left-0 mt-2 z-[60] w-[260px] rounded-xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] overflow-hidden">
+              <div (click)="$event.stopPropagation()" class="absolute top-full left-0 mt-2 z-40 w-[260px] rounded-xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] overflow-hidden">
                 <div class="p-2 flex flex-col gap-1 max-h-[360px] overflow-y-auto">
                   @for (option of filter.options; track option.id) {
                     <button data-cy="searchToolbarFilterOption" [attr.data-option-id]="option.id" (click)="toggleToolbarOption(filter, option, $event)"

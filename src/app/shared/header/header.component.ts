@@ -332,11 +332,11 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
     window.open(targetUrl, '_blank', 'noopener');
   }
 
-  goTo(path: string, id?: string) {
+  goTo(path: string, dropdownMenuId?: string) {
     this.closeUserDropdown();
 
-    if (id) {
-      this.closeDropdown('dropdown-marketplaceMenu');
+    if (dropdownMenuId) {
+      this.closeDropdown(dropdownMenuId);
     }
 
     this.router.navigate([path]);

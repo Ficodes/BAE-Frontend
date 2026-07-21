@@ -1,28 +1,28 @@
-import { Component, OnInit, ElementRef, ViewChild, ChangeDetectorRef, OnDestroy, Input } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 
 import { ActivatedRoute, Router } from '@angular/router';
-import { ApiServiceService } from 'src/app/services/product-service.service';
-import {components} from "../../models/product-catalog";
+import { faArrowProgress, faArrowRightArrowLeft, faAtom, faBook, faDownload, faGlobe, faMinus, faObjectExclude, faPlus, faScaleBalanced, faShieldHalved, faSwap } from "@fortawesome/pro-solid-svg-icons";
 import { initFlowbite } from 'flowbite';
 import { PriceServiceService } from 'src/app/services/price-service.service';
-import {faScaleBalanced, faArrowProgress, faArrowRightArrowLeft, faObjectExclude, faSwap, faGlobe, faBook, faShieldHalved, faAtom, faDownload, faPlus, faMinus} from "@fortawesome/pro-solid-svg-icons";
+import { ApiServiceService } from 'src/app/services/product-service.service';
+import { components } from "../../models/product-catalog";
 type Product = components["schemas"]["ProductOffering"];
 type ProductSpecification = components["schemas"]["ProductSpecification"];
 type AttachmentRefOrValue = components["schemas"]["AttachmentRefOrValue"];
 //type CharacteristicValueSpecification = components["schemas"]["CharacteristicValueSpecification"];
-import { certifications } from 'src/app/models/certification-standards.const'
-import { LocalStorageService } from 'src/app/services/local-storage.service';
-import { LoginInfo, cartProduct,productSpecCharacteristicValueCart } from '../../models/interfaces';
-import { ShoppingCartServiceService } from 'src/app/services/shopping-cart-service.service';
-import { AccountServiceService } from 'src/app/services/account-service.service';
-import {EventMessageService} from "../../services/event-message.service";
-import * as moment from 'moment';
-import { environment } from 'src/environments/environment';
 import { Location } from '@angular/common';
-import {firstValueFrom, Subject} from "rxjs";
+import * as moment from 'moment';
+import { Subject } from "rxjs";
 import { takeUntil } from 'rxjs/operators';
-import { UsageServiceService } from 'src/app/services/usage-service.service';
 import { findIconByName } from 'src/app/config/popular-icons';
+import { certifications } from 'src/app/models/certification-standards.const';
+import { AccountServiceService } from 'src/app/services/account-service.service';
+import { LocalStorageService } from 'src/app/services/local-storage.service';
+import { ShoppingCartServiceService } from 'src/app/services/shopping-cart-service.service';
+import { UsageServiceService } from 'src/app/services/usage-service.service';
+import { environment } from 'src/environments/environment';
+import { cartProduct, LoginInfo, productSpecCharacteristicValueCart } from '../../models/interfaces';
+import { EventMessageService } from "../../services/event-message.service";
 
 interface UsageMetricCard {
   id: string;
@@ -61,50 +61,50 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
   providerThemeName = environment.providerThemeName;
   quotesEnabled = environment.QUOTES_ENABLED;
-  id:any;
+  id: any;
   productOff: Product | undefined;
   isPreview: boolean = false;
   category: string = 'none';
-  categories: any[] | undefined  = [];
+  categories: any[] | undefined = [];
   price: string = '';
-  images: AttachmentRefOrValue[]  = [];
-  attatchments: AttachmentRefOrValue[]  = [];
-  prodSpec:ProductSpecification = {};
-  complianceProf:any[] = [];
-  additionalCerts:any[] = [];
-  complianceLevel:string='NL';
-  complianceDescription:string='PRODUCT_DETAILS._compliance_no_level_desc'
-  serviceSpecs:any[] = [];
-  resourceSpecs:any[]=[];
-  check_logged:boolean=false;
+  images: AttachmentRefOrValue[] = [];
+  attatchments: AttachmentRefOrValue[] = [];
+  prodSpec: ProductSpecification = {};
+  complianceProf: any[] = [];
+  additionalCerts: any[] = [];
+  complianceLevel: string = 'NL';
+  complianceDescription: string = 'PRODUCT_DETAILS._compliance_no_level_desc'
+  serviceSpecs: any[] = [];
+  resourceSpecs: any[] = [];
+  check_logged: boolean = false;
   customersLink: string = environment.DOME_CUSTOMER_REGISTER_LINK;
-  cartSelection:boolean=false;
-  check_prices:boolean=false;
-  selected_price:any;
-  check_char:boolean=false;
-  check_terms:boolean=false;
-  selected_terms:boolean=false;
-  selected_chars:productSpecCharacteristicValueCart[]=[];
+  cartSelection: boolean = false;
+  check_prices: boolean = false;
+  selected_price: any;
+  check_char: boolean = false;
+  check_terms: boolean = false;
+  selected_terms: boolean = false;
+  selected_chars: productSpecCharacteristicValueCart[] = [];
   toastVisibility: boolean = false;
-  lastAddedProd:any | undefined;
-  checkCustom:boolean=false;
-  textDivHeight:any;
-  prodChars:any[]=[];
+  lastAddedProd: any | undefined;
+  checkCustom: boolean = false;
+  textDivHeight: any;
+  prodChars: any[] = [];
   usageMetrics: UsageMetricCard[] = [];
-  selfAtt:any='';
+  selfAtt: any = '';
 
-  errorMessage:any='';
-  showError:boolean=false;
-  showTermsMore:boolean=false;
+  errorMessage: any = '';
+  showError: boolean = false;
+  showTermsMore: boolean = false;
   PURCHASE_ENABLED: boolean = environment.PURCHASE_ENABLED;
-  showReadMoreButton:boolean=false;
-  showDescriptionReadMore:boolean=false;
-  showDescriptionModal:boolean=false;
-  customerId:string='';
+  showReadMoreButton: boolean = false;
+  showDescriptionReadMore: boolean = false;
+  showDescriptionModal: boolean = false;
+  customerId: string = '';
 
-  orgInfo:any=undefined;
-  showQuoteModal:boolean = false;
-  productAlreadyInCart:boolean=false;
+  orgInfo: any = undefined;
+  showQuoteModal: boolean = false;
+  productAlreadyInCart: boolean = false;
   activeTab: string = 'overview';
 
   resolveIcon = findIconByName;
@@ -133,10 +133,10 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   protected readonly faAtom = faAtom;
   protected readonly faDownload = faDownload;
 
-  stepsElements:string[]=['step-chars','step-price','step-terms','step-checkout'];
-  stepsText:string[]=['text-chars','text-price','text-terms','text-checkout'];
-  stepsCircles:string[]=['circle-chars','circle-price','circle-terms','circle-checkout'];
-  licenseTerm:any=undefined;
+  stepsElements: string[] = ['step-chars', 'step-price', 'step-terms', 'step-checkout'];
+  stepsText: string[] = ['text-chars', 'text-price', 'text-terms', 'text-checkout'];
+  stepsCircles: string[] = ['circle-chars', 'circle-price', 'circle-terms', 'circle-checkout'];
+  licenseTerm: any = undefined;
   isLoaded = false;
   private isManualScroll = false;
   private scrollTimeout: any;
@@ -156,58 +156,58 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     private usageService: UsageServiceService,
     private location: Location
   ) {
-    this.showTermsMore=false;
+    this.showTermsMore = false;
     this.eventMessage.messages$
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(ev => {
-      if(ev.type === 'CloseCartCard') {
-        this.hideCartSelection();
-        //TOGGLE TOAST
-        if(ev.value!=undefined){
-          this.lastAddedProd=ev.value;
-          this.toastVisibility=true;
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(ev => {
+        if (ev.type === 'CloseCartCard') {
+          this.hideCartSelection();
+          //TOGGLE TOAST
+          if (ev.value != undefined) {
+            this.lastAddedProd = ev.value;
+            this.toastVisibility = true;
+
+            this.cdr.detectChanges();
+            //document.getElementById("progress-bar")?.classList.toggle("hover:w-100");
+            let element = document.getElementById("progress-bar")
+            let parent = document.getElementById("toast-add-cart")
+            if (element != null && parent != null) {
+              element.style.width = '0%'
+              element.offsetWidth
+              element.style.width = '100%'
+              setTimeout(() => {
+                this.toastVisibility = false
+              }, 3500);
+            }
+          }
 
           this.cdr.detectChanges();
-          //document.getElementById("progress-bar")?.classList.toggle("hover:w-100");
-          let element = document.getElementById("progress-bar")
-          let parent = document.getElementById("toast-add-cart")
-          if (element != null && parent != null) {
-            element.style.width = '0%'
-            element.offsetWidth
-            element.style.width = '100%'
-            setTimeout(() => {
-              this.toastVisibility=false
-            }, 3500);
-          }
+        } else if (ev.type === 'CloseQuoteRequest') {
+          this.showQuoteModal = false;
+          this.cdr.detectChanges();
+        } else if (ev.type == 'RemovedCartItem') {
+          this.cartService.getShoppingCart().then(data => {
+            const exists = data.some((item: any) => item.id === this.productOff?.id);
+            if (exists) {
+              this.productAlreadyInCart = true;
+            } else {
+              this.productAlreadyInCart = false;
+            }
+          })
+        } else if (ev.type == 'AddedCartItem') {
+          this.cartService.getShoppingCart().then(data => {
+            const exists = data.some((item: any) => item.id === this.productOff?.id);
+            if (exists) {
+              this.productAlreadyInCart = true;
+            } else {
+              this.productAlreadyInCart = false;
+            }
+          })
         }
-
-        this.cdr.detectChanges();
-      } else if(ev.type === 'CloseQuoteRequest'){
-          this.showQuoteModal=false;
-          this.cdr.detectChanges();
-      } else if (ev.type == 'RemovedCartItem'){
-        this.cartService.getShoppingCart().then(data => {
-          const exists = data.some((item: any) => item.id === this.productOff?.id);
-          if (exists) {
-            this.productAlreadyInCart=true;
-          } else {
-            this.productAlreadyInCart=false;
-          }
-        })
-      } else if (ev.type == 'AddedCartItem'){
-        this.cartService.getShoppingCart().then(data => {
-          const exists = data.some((item: any) => item.id === this.productOff?.id);
-          if (exists) {
-            this.productAlreadyInCart=true;
-          } else {
-            this.productAlreadyInCart=false;
-          }
-        })
-      }
-    })
+      })
   }
 
-  ngOnDestroy(){
+  ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
     document.body.style.overflow = '';
@@ -221,11 +221,11 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       return;
     }
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
-    if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
-      this.check_logged=true;
+    if (JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix()) - 4) > 0)) {
+      this.check_logged = true;
       this.cdr.detectChanges();
 
-      if(aux.logged_as == aux.id){
+      if (aux.logged_as == aux.id) {
         this.customerId = aux.partyId;
       } else {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as)
@@ -233,8 +233,8 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       }
 
     } else {
-      this.check_logged=false,
-      this.cdr.detectChanges();
+      this.check_logged = false,
+        this.cdr.detectChanges();
     }
     window.scrollTo(0, 0);
 
@@ -243,22 +243,22 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     console.log(this.id)
     let prod = await this.api.getProductById(this.id);
     let spec = await this.api.getProductSpecification(prod.productSpecification.id);
-    this.prodSpec=spec;
+    this.prodSpec = spec;
     this.parseProductDetails(this.prodSpec.description);
     this.getOwner();
-    let prodPrices: any[] | undefined= prod.productOfferingPrice;
-    let prices: any[]=[];
-    if(prodPrices!== undefined){
+    let prodPrices: any[] | undefined = prod.productOfferingPrice;
+    let prices: any[] = [];
+    if (prodPrices !== undefined) {
       // Fetch all prices in one bulk request instead of one-by-one
       // (the sequential await loop was the bottleneck on /search/:id).
       prices = await this.api.getProductPrices(prodPrices.map(p => p.id));
-      if(prices.some(price => price?.priceType == 'custom')){
+      if (prices.some(price => price?.priceType == 'custom')) {
         this.checkCustom = true;
       }
     }
     await this.loadUsageMetrics(prices);
 
-    if(this.prodSpec.productSpecCharacteristic != undefined) {
+    if (this.prodSpec.productSpecCharacteristic != undefined) {
       // Avoid displaying the compliance credential && Avoid showing "- enabled" chars
       this.prodChars = this.prodSpec.productSpecCharacteristic.filter((char: any) => {
         return !char.name.startsWith('Compliance:') && !char.name?.endsWith(' - enabled')
@@ -306,20 +306,20 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
     }
 
-    if(this.prodSpec.serviceSpecification != undefined){
-      for(let j=0; j < this.prodSpec.serviceSpecification.length; j++){
+    if (this.prodSpec.serviceSpecification != undefined) {
+      for (let j = 0; j < this.prodSpec.serviceSpecification.length; j++) {
         let serv = await this.api.getServiceSpec(this.prodSpec.serviceSpecification[j].id);
         this.serviceSpecs.push(serv);
       }
     }
-    if(this.prodSpec.resourceSpecification != undefined){
-      for(let j=0; j < this.prodSpec.resourceSpecification.length; j++){
+    if (this.prodSpec.resourceSpecification != undefined) {
+      for (let j = 0; j < this.prodSpec.resourceSpecification.length; j++) {
         let res = await this.api.getResourceSpec(this.prodSpec.resourceSpecification[j].id);
         this.resourceSpecs.push(res);
       }
     }
 
-    this.productOff={
+    this.productOff = {
       id: prod.id,
       name: prod.name,
       category: prod.category,
@@ -342,7 +342,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     let profile = this.productOff?.attachment?.filter(item => item.name === 'Profile Picture') ?? [];
     console.log('profile...')
     console.log(profile)
-    if(profile.length==0){
+    if (profile.length == 0) {
       this.images = this.productOff?.attachment?.filter(item => item.attachmentType === 'Picture') ?? [];
       this.attatchments = this.productOff?.attachment?.filter(item => item.attachmentType != 'Picture') ?? [];
     } else {
@@ -354,14 +354,14 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       element => element.name === 'License'
     );
 
-    if(this.prodSpec.productSpecCharacteristic != undefined) {
+    if (this.prodSpec.productSpecCharacteristic != undefined) {
 
       // Find if there is a self attestement
       let selfAttObj = this.prodSpec.productSpecCharacteristic.find((p => {
         return p.name === `Compliance:SelfAtt`
       }));
 
-      if(selfAttObj){
+      if (selfAttObj) {
         this.selfAtt = selfAttObj.productSpecCharacteristicValue?.at(0)?.value
       }
     }
@@ -370,10 +370,10 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     this.complianceLevel = this.api.getComplianceLevel(this.prodSpec);
     this.complianceDescription = this.getComplianceDescription();
 
-    if(this.check_logged){
+    if (this.check_logged) {
       let cart = await this.cartService.getShoppingCart();
       const exists = cart.some((item: any) => item.id === this.productOff?.id);
-      this.productAlreadyInCart=exists;
+      this.productAlreadyInCart = exists;
       this.cdr.detectChanges();
     }
   }
@@ -489,7 +489,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     return '';
   }
 
-  toggleQuoteModal(){
+  toggleQuoteModal() {
     //Show quote modal
     this.showQuoteModal = true;
   }
@@ -562,44 +562,44 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     this.textDivHeight = this.textDiv.nativeElement.offsetHeight;
   }
 
-  toggleCartSelection(){
+  toggleCartSelection() {
     console.log('Add to cart...')
-    if (this.productOff?.productOfferingPrice != undefined){
-      if(this.productOff?.productOfferingPrice.length > 1){
-        this.check_prices=true;
-        this.selected_price=this.productOff?.productOfferingPrice[this.productOff?.productOfferingPrice.length-1]
+    if (this.productOff?.productOfferingPrice != undefined) {
+      if (this.productOff?.productOfferingPrice.length > 1) {
+        this.check_prices = true;
+        this.selected_price = this.productOff?.productOfferingPrice[this.productOff?.productOfferingPrice.length - 1]
       } else {
-        this.selected_price=this.productOff?.productOfferingPrice[0]
+        this.selected_price = this.productOff?.productOfferingPrice[0]
       }
 
       this.cdr.detectChanges();
     }
 
-    if(this.productOff?.productOfferingTerm != undefined){
+    if (this.productOff?.productOfferingTerm != undefined) {
       this.licenseTerm = this.productOff.productOfferingTerm.find(
         element => element.name === 'License'
       );
-      if(!this.licenseTerm){
-        this.check_terms=false;
+      if (!this.licenseTerm) {
+        this.check_terms = false;
       } else {
-        this.check_terms=true;
+        this.check_terms = true;
       }
     }
 
-    if(this.prodSpec.productSpecCharacteristic != undefined){
-      for(let i=0; i<this.prodSpec.productSpecCharacteristic.length; i++){
+    if (this.prodSpec.productSpecCharacteristic != undefined) {
+      for (let i = 0; i < this.prodSpec.productSpecCharacteristic.length; i++) {
         let charvalue = this.prodSpec.productSpecCharacteristic[i].productSpecCharacteristicValue;
-        if(charvalue != undefined){
-          if(charvalue?.length>1){
+        if (charvalue != undefined) {
+          if (charvalue?.length > 1) {
             this.check_char = true;
           }
-          for(let j=0; j<charvalue.length;j++){
-            if(charvalue[j]?.isDefault == true){
+          for (let j = 0; j < charvalue.length; j++) {
+            if (charvalue[j]?.isDefault == true) {
               this.selected_chars.push(
                 {
-                "characteristic": this.prodSpec.productSpecCharacteristic[i],
-                "value": charvalue[j]
-              });
+                  "characteristic": this.prodSpec.productSpecCharacteristic[i],
+                  "value": charvalue[j]
+                });
             }
           }
         }
@@ -607,10 +607,10 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       console.log(this.selected_chars)
     }
 
-    if (this.check_prices==false && this.check_char == false && this.check_terms == false){
-      this.addProductToCart(this.productOff,false);
+    if (this.check_prices == false && this.check_char == false && this.check_terms == false) {
+      this.addProductToCart(this.productOff, false);
     } else {
-      this.cartSelection=true;
+      this.cartSelection = true;
       this.cdr.detectChanges();
     }
   }
@@ -804,32 +804,32 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   }
 
 
-async deleteProduct(product: Product | undefined){
-    if(product !== undefined) {
+  async deleteProduct(product: Product | undefined) {
+    if (product !== undefined) {
       //this.localStorage.removeCartItem(product);
       await this.cartService.removeItemShoppingCart(product.id);
       console.log('removed');
       this.eventMessage.emitRemovedCartItem(product as Product);
     }
-    this.toastVisibility=false;
+    this.toastVisibility = false;
   }
 
-  hideCartSelection(){
-    this.cartSelection=false;
-    this.check_char=false;
-    this.check_terms=false;
-    this.check_prices=false;
-    this.selected_chars=[];
-    this.selected_price={};
-    this.selected_terms=false;
+  hideCartSelection() {
+    this.cartSelection = false;
+    this.check_char = false;
+    this.check_terms = false;
+    this.check_prices = false;
+    this.selected_chars = [];
+    this.selected_price = {};
+    this.selected_terms = false;
     this.cdr.detectChanges();
   }
 
-  goTo(path:string) {
+  goTo(path: string) {
     this.router.navigate([path]);
   }
 
-  back(){
+  back() {
     this.location.back();
   }
 
@@ -837,32 +837,32 @@ async deleteProduct(product: Product | undefined){
     return this.images.length > 0 ? this.images?.at(0)?.url : 'https://placehold.co/600x400/svg';
   }
 
-  removeClass(elem: HTMLElement, cls:string) {
+  removeClass(elem: HTMLElement, cls: string) {
     var str = " " + elem.className + " ";
     elem.className = str.replace(" " + cls + " ", " ").replace(/^\s+|\s+$/g, "");
   }
 
-  addClass(elem: HTMLElement, cls:string) {
-      elem.className += (" " + cls);
+  addClass(elem: HTMLElement, cls: string) {
+    elem.className += (" " + cls);
   }
 
-  goToDetails(){
+  goToDetails() {
     this.activeTab = 'overview';
   }
 
-  goToChars(){
+  goToChars() {
     this.activeTab = 'features';
   }
 
-  goToAttach(){
+  goToAttach() {
     this.activeTab = 'overview';
   }
 
-  goToAgreements(){
+  goToAgreements() {
     this.activeTab = 'compliance';
   }
 
-  goToRelationships(){
+  goToRelationships() {
     this.activeTab = 'overview';
   }
 
@@ -883,28 +883,35 @@ async deleteProduct(product: Product | undefined){
     }
   }
 
-  goToLink(url: any){
+  goToLink(url: any) {
     window.open(url, "_blank");
   }
 
-  getOwner(){
+  getOwner() {
     let parties = this.prodSpec?.relatedParty;
-    if(parties)
-    for(let i=0; i<parties.length;i++){
-      if(parties[i].role == environment.SELLER_ROLE){
-        if(parties[i].id.includes('organization')){
-          this.accService.getOrgInfo(parties[i].id).then(org => {
-            this.orgInfo = org;
-            console.log(this.orgInfo)
-          })
+    if (parties)
+      for (let i = 0; i < parties.length; i++) {
+        if (parties[i].role == environment.SELLER_ROLE) {
+          if (parties[i].id.includes('organization')) {
+            this.accService.getOrgInfo(parties[i].id).then(org => {
+              this.orgInfo = org;
+              console.log(this.orgInfo)
+            })
+          }
         }
       }
-    }
   }
 
-  goToOrgDetails(id:any) {
-    //document.querySelector("body > div[modal-backdrop]")?.remove()
-    this.router.navigate(['/org-details', id]);
+  async goToOrgDetails(id: any) {
+    try {
+      const catalogs = await this.api.getCatalogsByUser(0, undefined, ['Launched'], id);
+      const catalogId = Array.isArray(catalogs) ? catalogs[0]?.id : undefined;
+      if (catalogId) {
+        this.router.navigate(['/org-details', catalogId]);
+      }
+    } catch (err) {
+      console.error('Error resolving provider catalog:', err);
+    }
   }
 
   isDrawerOpen = false;
@@ -917,7 +924,7 @@ async deleteProduct(product: Product | undefined){
   }
 
   hasLongWord(str: string | undefined, threshold = 20) {
-    if(str){
+    if (str) {
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false

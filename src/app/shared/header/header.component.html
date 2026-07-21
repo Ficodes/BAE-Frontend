@@ -247,7 +247,7 @@
             } @else {
             <button type="button" class="dropdown-item text-left"
               [attr.data-cy]="(childLink.url === '/search' || childLink.url === '/browse') ? 'browseServices' : childLink.url === '/catalogues' ? 'browseCatalogs' : null"
-              (click)="goTo(childLink.url!, link.url!)">
+              (click)="goTo(childLink.url!, link.id + 'Menu')">
               {{ childLink.label | translate }}
             </button>
             }

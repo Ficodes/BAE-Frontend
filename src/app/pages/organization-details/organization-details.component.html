@@ -1,116 +1,343 @@
-<div class="container mx-auto pt-2 pb-8">
-    <!-- Breadcrumb -->
-    <div class="pb-4">
-        <nav class="flex px-5 py-3 text-gray-700 border border-secondary-50 rounded-lg bg-secondary-50 dark:bg-secondary-100 dark:border-gray-800" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-            <li class="inline-flex items-center">
-                <button (click)="back()" class="inline-flex items-center text-sm font-medium text-gray-500 dark:text-white hover:text-primary-100 dark:hover:text-primary-50">
-                <svg class="w-3 h-3 mr-2 text-gray-400 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 10">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 1 1 5l4 4m6-8L7 5l4 4"/>
-                </svg>
-                {{ 'PRODUCT_DETAILS._back' | translate }}
+<div class="min-h-screen w-full bg-white font-[Blinker]">
+  <div #summaryBar class="absolute left-0 right-0 top-full z-40 w-full border-b border-[#E5E7EB] bg-white transition-opacity duration-300 ease-out"
+       [ngClass]="showSummaryBar ? 'opacity-100' : 'pointer-events-none opacity-0'"
+       [attr.aria-hidden]="!showSummaryBar">
+    <div class="mx-auto flex w-full max-w-[1142px] flex-col gap-[12px] px-6 py-[12px] sm:flex-row sm:items-center sm:justify-between sm:gap-[16px]">
+      <div class="flex min-w-0 items-center gap-[16px]">
+        <div class="hidden sm:block h-[86.5px] w-[157.74px] shrink-0 rounded-[12px] bg-[#EBF0F7] bg-contain bg-center bg-no-repeat" [ngClass]="isDefaultLogo ? 'p-[14px] bg-origin-content' : ''" [style.background-image]="logo ? 'url(' + logo + ')' : null"></div>
+        <div class="flex min-w-0 flex-col gap-[4px]">
+          <h2 class="truncate text-[24px] font-bold leading-[28px] text-[#14274A]">{{ orgInfo?.tradingName }}</h2>
+          <div class="hidden sm:flex items-center gap-[16px]">
+            @if (country) {
+              <span class="text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-[#1A3360]">{{ country }}</span>
+              <span class="h-[16px] w-px bg-[#858B99]"></span>
+            }
+            <span class="flex items-center gap-[4px] text-[#1A3360]">
+              <span class="text-[14px] font-semibold leading-[16px] tracking-[0.5px]">{{ servicesCount }}</span>
+              <span class="text-[14px] font-normal leading-[24px]">{{ 'ORGANIZATION._services' | translate }}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <button (click)="browseServices()" class="flex h-[48px] w-full shrink-0 items-center justify-center rounded-[8px] bg-[#2D58A7] px-[24px] text-[18px] font-semibold leading-[22px] text-white sm:w-auto">{{ 'ORGANIZATION._browse_services' | translate }}</button>
+    </div>
+  </div>
+  <div class="mx-auto w-full max-w-[1440px] px-[24px] sm:px-[32px] pt-[24px]">
+    <nav class="flex min-w-0 items-center gap-[12px] sm:gap-[16px] py-[4px]">
+      <a [routerLink]="['/dashboard']" class="shrink-0 text-[14px] sm:text-[16px] font-semibold leading-[24px] tracking-[0.5px] text-[#2D58A7] hover:underline">{{ 'ORGANIZATION._bc_home' | translate }}</a>
+      <span class="shrink-0 text-[14px] sm:text-[16px] leading-[24px] text-[#4C5A6B]">/</span>
+      <a [routerLink]="['/catalogues']" class="shrink-0 text-[14px] sm:text-[16px] font-semibold leading-[24px] tracking-[0.5px] text-[#2D58A7] hover:underline">{{ 'ORGANIZATION._bc_marketplace' | translate }}</a>
+      <span class="shrink-0 text-[14px] sm:text-[16px] leading-[24px] text-[#4C5A6B]">/</span>
+      <span class="min-w-0 truncate text-[14px] sm:text-[16px] leading-[24px] text-[#4C5A6B]">{{ orgInfo?.tradingName }}</span>
+    </nav>
+  </div>
+
+  @if (notFound) {
+  <div class="mx-auto flex w-full max-w-[1142px] flex-col items-center gap-[16px] px-6 py-[120px] text-center">
+    <h1 class="text-[30px] font-bold leading-[36px] text-[#14274A]">{{ 'ORGANIZATION._not_found' | translate }}</h1>
+    <p class="text-[16px] font-normal leading-[24px] text-[#4C5A6B]">{{ 'ORGANIZATION._not_found_desc' | translate }}</p>
+    <a [routerLink]="['/catalogues']" class="mt-[8px] flex h-[48px] items-center justify-center rounded-[8px] bg-[#2D58A7] px-[24px] text-[18px] font-semibold leading-[22px] text-white">{{ 'ORGANIZATION._back_to_providers' | translate }}</a>
+  </div>
+  } @else {
+
+  <div #providerHero class="mx-auto w-full max-w-[1142px] px-6 pt-[24px] md:pt-[40px]">
+    <div class="flex flex-col gap-[24px] py-[24px] md:flex-row">
+      <div class="h-[189px] w-full md:h-[233px] md:w-[424px] shrink-0 rounded-[12px] bg-[#EBF0F7] bg-contain bg-center bg-no-repeat" [ngClass]="isDefaultLogo ? 'p-[40px] bg-origin-content' : ''" [style.background-image]="logo ? 'url(' + logo + ')' : null"></div>
+      <div class="flex flex-1 flex-col gap-[16px] md:h-[233px] md:justify-between md:gap-0">
+        <div class="flex flex-col gap-[12px]">
+          <h1 class="text-[24px] leading-[29px] md:text-[30px] font-bold md:leading-[36px] text-[#14274A]">{{ orgInfo?.tradingName }}</h1>
+          <p #descPara class="line-clamp-4 text-[16px] font-normal leading-[24px] text-[#4C5A6B]">{{ description || ('ORGANIZATION._no_desc' | translate) }}</p>
+          @if (descTruncated) {
+            <button (click)="openDescModal($event)" class="self-start text-[16px] font-semibold leading-[24px] tracking-[0.5px] text-[#2D58A7] hover:underline">{{ 'ORGANIZATION._read_all' | translate }}</button>
+          }
+        </div>
+        <div class="flex flex-col gap-[16px] md:flex-row md:items-center md:justify-between md:gap-[24px]">
+          <div class="flex items-center gap-[16px] md:gap-[24px]">
+            @if (country) {
+              <span class="text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-[#1A3360]">{{ country }}</span>
+              <span class="h-[16px] w-px bg-[#858B99]"></span>
+            }
+            <span class="flex items-center gap-[4px] text-[#1A3360]">
+              <span class="text-[14px] font-semibold leading-[16px] tracking-[0.5px]">{{ servicesCount }}</span>
+              <span class="text-[14px] font-normal leading-[24px]">{{ 'ORGANIZATION._services' | translate }}</span>
+            </span>
+          </div>
+          <button (click)="browseServices()" class="flex h-[48px] w-full items-center justify-center rounded-[8px] bg-[#2D58A7] px-[24px] text-[18px] font-semibold leading-[22px] text-white md:w-auto">{{ 'ORGANIZATION._browse_services' | translate }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mx-auto w-full max-w-[1142px] px-6 pt-[24px] pb-[48px]">
+    <div class="flex flex-col gap-[24px] md:flex-row md:items-stretch">
+      @if (hasContact) {
+      <div class="flex flex-1 flex-col">
+        <h2 class="text-[20px] font-bold leading-[24px] text-[#14274A]">{{ 'ORGANIZATION._support_contact' | translate }}</h2>
+        <div class="mt-[26px] flex flex-1 flex-col gap-[16px] rounded-[16px] border border-[#8EACE1] bg-white p-[24px]" [ngClass]="contactCount > 1 ? 'justify-between' : 'justify-center'">
+
+          @if (email) {
+          <div class="flex items-center gap-[16px]">
+            <div class="flex h-[48px] w-[48px] shrink-0 items-center justify-center rounded-[8px] bg-[#DDE6F6]">
+              <svg class="h-6 w-6 text-[#2D58A7]" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
+            </div>
+            <div class="flex min-w-0 flex-col">
+              <span class="text-[14px] font-normal leading-[24px] text-[#4C5A6B]">{{ 'ORGANIZATION._contact_mail' | translate }}</span>
+              <a [href]="'mailto:' + email" class="truncate text-[16px] font-semibold leading-[24px] tracking-[0.5px] text-[#2D58A7] underline">{{ email }}</a>
+            </div>
+          </div>
+          }
+
+          @if (website) {
+          <div class="flex items-center gap-[16px]">
+            <div class="flex h-[48px] w-[48px] shrink-0 items-center justify-center rounded-[8px] bg-[#DDE6F6]">
+              <svg class="h-6 w-6 text-[#2D58A7]" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m-8.716 6h17.432M3.284 15h17.432" /></svg>
+            </div>
+            <div class="flex min-w-0 flex-col">
+              <span class="text-[14px] font-normal leading-[24px] text-[#4C5A6B]">{{ 'ORGANIZATION._site' | translate }}</span>
+              <a [href]="website" target="_blank" rel="noopener" class="truncate text-[16px] font-semibold leading-[24px] tracking-[0.5px] text-[#2D58A7] underline">{{ website }}</a>
+            </div>
+          </div>
+          }
+
+          @if (address) {
+          <div class="flex items-center gap-[16px]">
+            <div class="flex h-[48px] w-[48px] shrink-0 items-center justify-center rounded-[8px] bg-[#DDE6F6]">
+              <svg class="h-6 w-6 text-[#2D58A7]" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-[14px] font-normal leading-[24px] text-[#4C5A6B]">{{ 'ORGANIZATION._address' | translate }}</span>
+              <span class="text-[16px] font-semibold leading-[24px] tracking-[0.5px] text-[#131B25]">{{ address }}</span>
+            </div>
+          </div>
+          }
+
+          @if (phone) {
+          <div class="flex items-center gap-[16px]">
+            <div class="flex h-[48px] w-[48px] shrink-0 items-center justify-center rounded-[8px] bg-[#DDE6F6]">
+              <svg class="h-6 w-6 text-[#2D58A7]" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" /></svg>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-[14px] font-normal leading-[24px] text-[#4C5A6B]">{{ 'ORGANIZATION._phone' | translate }}</span>
+              <span class="text-[16px] font-semibold leading-[24px] tracking-[0.5px] text-[#131B25]">{{ phone }}</span>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      <div class="flex flex-1 flex-col gap-[24px]">
+        <div>
+          <h2 class="text-[20px] font-bold leading-[24px] text-[#14274A]">{{ 'ORGANIZATION._key_numbers' | translate }}</h2>
+          <div class="mt-[24px] flex gap-[12px]">
+            <div class="flex w-full md:w-[267px] flex-col gap-[8px] rounded-[16px] bg-[#EBF0F7] px-[16px] pb-[16px] pt-[24px]">
+              <span class="text-[36px] font-bold leading-[43px] text-[#2D58A7]">{{ servicesCount }}</span>
+              <span class="text-[14px] font-normal leading-[24px] text-[#324153]">{{ 'ORGANIZATION._active_services' | translate }}</span>
+            </div>
+          </div>
+        </div>
+
+        @if (country) {
+        <div class="mt-auto">
+          <h2 class="text-[20px] font-bold leading-[24px] text-[#14274A]">{{ 'ORGANIZATION._region' | translate }}</h2>
+          <div class="relative mt-[24px] flex h-[72px] items-center gap-[24px] overflow-hidden rounded-[16px] border border-[#8EACE1] bg-white px-[24px]">
+            <fa-icon [icon]="faEarthAmericas" class="pointer-events-none absolute -bottom-7 right-1 text-[120px] leading-none text-[#DDE6F6] opacity-50"></fa-icon>
+            <span class="relative z-10 text-[16px] font-normal leading-[24px] text-[#0B1528]">{{ country }}</span>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div #servicesSection class="w-full bg-[#EBF0F7] shadow-[0_4px_4px_rgba(0,0,0,0.25)] font-[Blinker]">
+    <div class="mx-auto flex w-full max-w-[1142px] flex-col gap-[16px] px-6 pt-[40px] pb-[40px]">
+
+      <div class="flex flex-col gap-[16px] py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-[40px]">
+        <div class="relative flex items-center gap-[16px]">
+          <div class="flex h-[48px] w-[48px] items-center justify-center rounded-[4px] bg-[#DDE6F6]">
+            <svg class="h-8 w-8 text-[#2D58A7]" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h8v8H3V3Zm10 0h8v8h-8V3ZM3 13h8v8H3v-8Zm10 0h8v8h-8v-8Z"/></svg>
+          </div>
+          <button (click)="toggleCategoryDropdown($event)" class="flex min-w-0 items-center gap-[8px]">
+            <h2 class="truncate text-[20px] leading-[24px] sm:text-[30px] font-bold sm:leading-[36px] text-[#111827]">{{ activeCategoryName || ('ORGANIZATION._all_services' | translate) }}</h2>
+            <svg class="h-6 w-6 shrink-0 text-[#526179] transition-transform" [ngClass]="showCategoryDropdown ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+          </button>
+          @if (showCategoryDropdown) {
+            <div (click)="$event.stopPropagation()" class="absolute left-0 top-full z-40 mt-2 w-[420px] max-w-[90vw] overflow-hidden rounded-2xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+              <div class="flex max-h-[520px] flex-col gap-1 overflow-y-auto p-2">
+                <button (click)="selectCategory(null)" [ngClass]="!activeCategoryName ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex h-12 w-full items-center gap-3 rounded-lg px-4 text-[16px] font-medium text-[#0B1528]">
+                  <svg class="h-6 w-6 shrink-0 text-[#2D58A7]" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25a2.25 2.25 0 0 1-2.25-2.25v-2.25Z"/></svg>
+                  <span>{{ 'ORGANIZATION._all_services' | translate }}</span>
+                  @if (!activeCategoryName) {
+                    <svg class="ml-auto h-5 w-5 text-[#2D58A7]" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                  }
                 </button>
-            </li>
-            <li aria-current="page">
-                <div class="flex items-center">
-                <svg class="rtl:rotate-180  w-3 h-3 mx-1 text-gray-400 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-                </svg>
-                <span class="ms-1 text-sm font-medium text-gray-500 dark:text-white md:ms-2 ">{{ 'ORGANIZATION._details' | translate }}</span>
+                @for (cat of rootCategories; track cat.id) {
+                  <button (click)="selectCategory(cat)" [ngClass]="activeCategoryId === cat.id ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex h-12 w-full items-center gap-3 rounded-lg px-4 text-[16px] text-[#0B1528]">
+                    <fa-icon [icon]="iconForCategory(cat.name)" class="text-[20px] text-[#526179] shrink-0"></fa-icon>
+                    <span class="text-left">{{ cat.name }}</span>
+                    @if (activeCategoryId === cat.id) {
+                      <svg class="ml-auto h-5 w-5 text-[#2D58A7]" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                    }
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+        <form (ngSubmit)="filterServices()">
+          <div class="flex h-[56px] w-full sm:w-[443px] max-w-full items-center gap-[16px] rounded-[16px] border border-[#D8DADE] bg-white px-[16px]">
+            <input type="search" [formControl]="serviceSearch" class="flex-1 border-0 bg-transparent text-[16px] leading-[24px] text-[#131B25] outline-none focus:border-0 focus:ring-0 focus:shadow-none placeholder:text-[#858B99]" placeholder="{{ 'ORGANIZATION._search_keywords' | translate }}" />
+            <button type="submit" aria-label="Search"><svg class="h-6 w-6 text-[#202D3E]" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg></button>
+          </div>
+        </form>
+      </div>
+
+      <div class="flex flex-col gap-2 rounded-[16px] border border-[#EBECEE] bg-white p-[12px] shadow-[0_0_8px_rgba(45,88,167,0.1)] lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex flex-nowrap items-center gap-[12px] overflow-x-auto sm:flex-wrap sm:overflow-visible">
+          @for (f of toolbarFilters; track f.key) {
+            <div class="relative shrink-0">
+              <button (click)="toggleToolbarFilterDropdown(f, $event)" [ngClass]="f.selectedIds.length ? 'border-[#2D58A7] text-[#2D58A7]' : 'border-[#D8DADE] text-[#324153]'" class="flex h-[40px] items-center gap-[8px] rounded-[8px] border bg-white py-[8px] pl-[16px] pr-[12px]">
+                <span class="text-[16px] font-normal leading-[24px]">{{ f.label }}</span>
+                @if (f.selectedIds.length) {
+                  <span class="inline-flex h-[20px] min-w-[20px] items-center justify-center rounded-full bg-[#DDE6F6] px-1.5 text-[12px] font-semibold text-[#2D58A7]">{{ f.selectedIds.length }}</span>
+                }
+                <svg class="h-5 w-5 transition-transform" [ngClass]="f.open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+              </button>
+              @if (f.open) {
+                <div (click)="$event.stopPropagation()" [style.top.px]="f.dropTop" class="fixed inset-x-[24px] z-40 mt-2 overflow-hidden rounded-xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] sm:absolute sm:inset-x-auto sm:left-0 sm:top-full sm:w-[260px]">
+                  <div class="flex max-h-[360px] flex-col gap-1 overflow-y-auto p-2">
+                    @for (option of f.options; track option.id) {
+                      <button (click)="toggleToolbarOption(f, option, $event)" [ngClass]="isToolbarOptionSelected(f, option) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-[#0B1528]">
+                        <div class="flex h-4 w-4 shrink-0 items-center justify-center rounded border" [ngClass]="isToolbarOptionSelected(f, option) ? 'border-[#2D58A7] bg-[#2D58A7] text-white' : 'border-gray-300 bg-white'">
+                          @if (isToolbarOptionSelected(f, option)) {
+                            <svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                          }
+                        </div>
+                        <span class="text-left">{{ option.name }}</span>
+                      </button>
+                    } @empty {
+                      <span class="px-3 py-2 text-[14px] text-[#858B99]">{{ 'ORGANIZATION._no_options' | translate }}</span>
+                    }
+                  </div>
                 </div>
-            </li>
-            </ol>
-        </nav>
+              }
+            </div>
+          }
+        </div>
+        <button (click)="clearServiceFilters()" class="hidden lg:flex items-center gap-[8px] rounded-[8px] px-[16px] py-[8px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-[#2D58A7]">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"/></svg>
+          {{ 'ORGANIZATION._clear_all' | translate }}
+        </button>
+      </div>
+
+      <div class="flex items-center justify-between gap-[12px] lg:hidden">
+        @if (activeCategoryName) {
+          <button (click)="openCategoriesOverlay($event)" class="flex h-[40px] items-center gap-[8px] rounded-[8px] border-2 border-[#2D58A7] px-[16px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-[#2D58A7]">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"/></svg>
+            {{ 'ORGANIZATION._categories' | translate }}
+            @if (selectedCategoryCount) {
+              <span class="inline-flex h-[20px] min-w-[20px] items-center justify-center rounded-full bg-[#2D58A7] px-1.5 text-[12px] font-semibold text-white">{{ selectedCategoryCount }}</span>
+            }
+          </button>
+        }
+        <button (click)="clearServiceFilters()" class="ml-auto flex items-center gap-[8px] rounded-[8px] px-[16px] py-[8px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-[#2D58A7]">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"/></svg>
+          {{ 'ORGANIZATION._clear_all' | translate }}
+        </button>
+      </div>
     </div>
-    <!-- End Breadcrumb -->
-    <!-- START HEADER CARD -->
-    <div class="w-full lg:h-fit mb-4 bg-secondary-50 rounded-lg dark:bg-secondary-100 dark:border-gray-800 border-secondary-50 border lg:grid lg:grid-cols-60/40">
-        <div class="flex lg:hidden overflow-hidden justify-center items-center bg-white rounded-t-lg w-full">
-            <img class="rounded-t-lg object-contain dark:text-white" src="{{logo}}" alt="Organization profile image" />
-        </div>
-        <div class="grid grid-rows-auto p-4 md:p-8 h-fit">
-            <div class="mt-2 h-fit">
-                <!--<a href="#">-->
-                <h5 [ngClass]="{
-                    'break-all': hasLongWord(orgInfo?.tradingName, 20),
-                    'break-words': !hasLongWord(orgInfo?.tradingName, 20)
-                    }" class="text-3xl lg:text-4xl font-semibold tracking-tight text-primary-100 dark:text-white line-clamp-3 text-wrap break-words">{{orgInfo?.tradingName}}</h5>
-                <!--</a>-->
+
+    <div class="mx-auto flex w-full max-w-[1142px] gap-[24px] px-6 pb-[80px]">
+      @if (activeCategoryName) {
+        <aside class="hidden lg:block w-[441px] shrink-0 self-start">
+          <div class="rounded-xl border border-gray-200 bg-white p-5">
+            <div class="mb-4 flex items-center justify-between">
+              <h3 class="text-[18px] font-semibold text-[#0b1220]">{{ 'ORGANIZATION._filters' | translate }}</h3>
+              <button (click)="clearServiceFilters()" class="text-[14px] font-medium text-[#1f4fbf] hover:text-[#163b99] transition-colors">{{ 'ORGANIZATION._clear_all' | translate }}</button>
             </div>
-            <div class="pt-2 line-clamp-5 h-fit">
-                <a href="{{website}}" target="_blank" [ngClass]="{
-                    'break-all': hasLongWord(website, 20),
-                    'break-words': !hasLongWord(website, 20)
-                    }" class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline line-clamp-2 text-wrap break-words">{{website}}</a>
-            </div>
+            <bae-categories-filter [showTitle]="false" [simpleMode]="true" [catalogId]="id" [selectedRootId]="activeCategoryId" [selectedRootName]="activeCategoryName"></bae-categories-filter>
+          </div>
+        </aside>
+      }
+
+      <section class="flex-1">
+        <div class="mb-4 flex items-center gap-[24px]">
+          <span class="text-[16px] leading-[24px] text-[#4C5A6B]">{{ serviceCount }} {{ 'ORGANIZATION._results' | translate }}</span>
+          <div class="relative flex items-center gap-[4px]">
+            <span class="text-[14px] leading-[24px] text-[#0B1528]">{{ 'ORGANIZATION._sort_by' | translate }}:</span>
+            <button (click)="toggleServiceSort($event)" class="flex items-center gap-[4px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-[#2D58A7]">
+              {{ serviceSortLabel | translate }}
+              <svg class="h-5 w-5 transition-transform" [ngClass]="showServiceSort ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+            @if (showServiceSort) {
+              <div (click)="$event.stopPropagation()" class="absolute left-0 top-full z-40 mt-2 w-[200px] overflow-hidden rounded-xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                @for (opt of serviceSortOptions; track opt.value) {
+                  <button (click)="selectServiceSort(opt.value, $event)" [ngClass]="serviceSort === opt.value ? 'bg-[#DDE6F6] text-[#2D58A7]' : 'text-[#0B1528] hover:bg-[#EBF0F7]'" class="flex w-full items-center px-3 py-2.5 text-[14px]">{{ opt.label | translate }}</button>
+                }
+              </div>
+            }
+          </div>
         </div>
-        <div class="hidden lg:block overflow-hidden rounded-r-lg">
-            <div class="hidden lg:flex relative justify-center items-center w-full h-full">
-                <!-- Imagen de fondo difuminada -->
-                <div class="object-contain overflow-hidden absolute inset-0 bg-cover bg-center opacity-75" style="background-image: url({{logo}});filter: blur(20px);"></div>
-                <!-- Imagen superior -->
-                <img class="object-contain max-h-[300px] z-10 p-8 dark:text-white" src="{{logo}}" alt="Organization profile image">
-            </div>
-        </div>
+
+        @if (servicesLoading) {
+          <div role="status" class="flex w-full justify-center py-12">
+            <svg aria-hidden="true" class="h-10 w-10 animate-spin text-gray-200 fill-[#2D58A7]" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/><path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/></svg>
+          </div>
+        } @else if (!services.length) {
+          <div class="py-12 text-center text-[16px] leading-[24px] text-[#4C5A6B]">{{ 'ORGANIZATION._no_services' | translate }}</div>
+        } @else {
+          <div [ngClass]="activeCategoryName ? 'grid grid-cols-1 sm:grid-cols-2 gap-[24px]' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[24px]'">
+            @for (off of services; track off.id) {
+              <bae-off-card [productOff]="off" [cardId]="$index" [viewMode]="'grid'" class="w-full h-full"></bae-off-card>
+            }
+          </div>
+        }
+      </section>
     </div>
-    <div class="w-full h-full bg-secondary-50 rounded-lg p-4 dark:bg-secondary-100 dark:border-gray-800 border-secondary-50 border-b">
-        <div id="desc-container" class="w-full bg-secondary-50/95 dark:bg-secondary-100/95 rounded-lg p-4 lg:p-12">
-            <h2 class="text-2xl lg:text-4xl font-extrabold text-primary-100 dark:text-primary-50 text-center pb-4">{{ 'ORGANIZATION._details' | translate }}</h2>
-            <markdown [ngClass]="{
-                'break-all': hasLongWord(description, 20),
-                'break-words': !hasLongWord(description, 20)
-                }" class="dark:text-gray-200 text-wrap break-words" [data]="description"></markdown>
-            <h2 class="text-2xl lg:text-4xl font-extrabold text-primary-100 dark:text-primary-50 text-center pb-4">{{ 'PROFILE._contact_info' | translate }}</h2>
-            <div class="m-4 relative overflow-x-auto shadow-md sm:rounded-lg bg-gray-200 dark:bg-secondary-300">
-                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200 border dark:border-gray-700 border-gray-300">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white border-b border-gray-300 dark:border-gray-700">
-                        <tr>
-                            <th scope="col" class="px-6 py-3">
-                                {{ 'PROFILE._medium_type' | translate }}
-                            </th>
-                            <th scope="col" class="px-6 py-3">
-                                {{ 'PROFILE._contact_title' | translate }}
-                            </th>
-                            <th scope="col" class="px-6 py-3 hidden md:table-cell">
-                                {{ 'PROFILE._info' | translate }}
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for(medium of orgInfo?.contactMedium; track medium) {
-                            <tr class="border-b border-gray-300 dark:border-gray-700">
-                                <td class="px-6 py-4">
-                                    {{medium.mediumType}}
-                                </td>
-                                <td class="px-6 py-4">
-                                    {{medium.characteristic?.contactType || medium.mediumType}}
-                                </td>
-                                <td class="px-6 py-4 hidden md:table-cell">
-                                    @if(medium.mediumType == 'Email'){
-                                        <a class="cursor-pointer font-medium text-primary-100 dark:text-primary-50 hover:underline" href= "mailto: {{medium.characteristic.emailAddress}}"> {{medium.characteristic.emailAddress}} </a>
-                                        
-                                    } @else if(medium.mediumType == 'PostalAddress') {
-                                        {{medium.characteristic.street1}}, {{medium.characteristic.postCode}} ({{medium.characteristic.city}}) {{medium.characteristic.stateOrProvince}}
-                                    } @else {
-                                        {{medium.characteristic.phoneNumber}}
-                                    }                                
-                                </td>
-                            </tr>
-                        } @empty {
-                            <div class="flex justify-center w-full m-4">
-                                <div class="flex w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">
-                                  <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-                                  </svg>
-                                  <div>
-                                      {{ 'PROFILE._no_mediums' | translate }}
-                                  </div>
-                                </div>
-                            </div>                          
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
+
+  </div>
+
+  @if (showCategoriesOverlay) {
+    <div class="fixed inset-0 z-[70] flex flex-col bg-white font-[Blinker]">
+      <div class="flex items-center justify-end px-[24px] pt-[16px]">
+        <button (click)="cancelCategoriesOverlay()" [attr.aria-label]="'ORGANIZATION._close' | translate" class="rounded-[8px] p-[4px] text-[#0B1528] hover:bg-[#EBF0F7]">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="flex items-center justify-between px-[24px] py-[8px]">
+        <h2 class="text-[20px] font-bold leading-[24px] text-[#14274A]">{{ 'ORGANIZATION._categories' | translate }}</h2>
+        <button (click)="clearOverlayCategories()" class="flex items-center gap-[8px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-[#2D58A7]">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"/></svg>
+          {{ 'ORGANIZATION._clear_all' | translate }}
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto px-[24px] pb-[16px]">
+        @if (activeCategoryName) {
+          <bae-categories-filter [showTitle]="false" [simpleMode]="true" [catalogId]="id" [selectedRootId]="activeCategoryId" [selectedRootName]="activeCategoryName"></bae-categories-filter>
+        } @else {
+          <div class="py-[24px] text-center text-[14px] leading-[24px] text-[#4C5A6B]">{{ 'ORGANIZATION._no_options' | translate }}</div>
+        }
+      </div>
+      <div class="flex flex-col gap-[12px] border-t border-[#E5E7EB] px-[24px] py-[16px]">
+        <button (click)="cancelCategoriesOverlay()" class="flex h-[48px] items-center justify-center rounded-[8px] border border-[#2D58A7] text-[16px] font-semibold leading-[24px] tracking-[0.5px] text-[#2D58A7]">{{ 'ORGANIZATION._cancel' | translate }}</button>
+        <button (click)="applyCategoriesOverlay()" class="flex h-[48px] items-center justify-center rounded-[8px] bg-[#2D58A7] text-[16px] font-semibold leading-[24px] tracking-[0.5px] text-white">{{ 'ORGANIZATION._apply' | translate }}</button>
+      </div>
     </div>
+  }
+
+  @if (showDescModal) {
+    <div (click)="closeDescModal()" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-6">
+      <div (click)="$event.stopPropagation()" class="flex max-h-[80vh] w-full max-w-[720px] flex-col gap-[16px] rounded-[16px] bg-white p-[32px] shadow-[0_8px_24px_rgba(0,0,0,0.2)]">
+        <div class="flex items-start justify-between gap-[16px]">
+          <h2 class="text-[24px] font-bold leading-[28px] text-[#14274A]">{{ orgInfo?.tradingName }}</h2>
+          <button (click)="closeDescModal()" [attr.aria-label]="'ORGANIZATION._close' | translate" class="shrink-0 rounded-[8px] p-[4px] text-[#4C5A6B] hover:bg-[#EBF0F7]">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <p class="overflow-y-auto whitespace-pre-line text-[16px] font-normal leading-[24px] text-[#4C5A6B]">{{ description }}</p>
+      </div>
+    </div>
+  }
+  }
 </div>

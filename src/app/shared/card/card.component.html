@@ -23,12 +23,33 @@
       <p data-cy="searchOfferDescription" class="text-[16px] font-normal leading-[24px] text-[#0B1528]" [style.-webkit-line-clamp]="descLineClamp" style="display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;">{{ getShortDescription() }}</p>
     </div>
 
-    <div class="flex justify-end mt-4">
-      <button (click)="goToProductDetails(productOff); $event.stopPropagation();" class="flex items-center justify-center h-10 w-10 rounded-full hover:bg-gray-100 transition-colors text-[#526179]">
-        <svg class="h-7 w-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-        </svg>
-      </button>
+    <div class="mt-4">
+      @if (check_logged && !isCustom()) {
+        <button data-cy="addToCart" (click)="openDrawer(); $event.stopPropagation();" [disabled]="!PURCHASE_ENABLED || productAlreadyInCart"
+          [ngClass]="!PURCHASE_ENABLED || productAlreadyInCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#24478a]'"
+          type="button" class="flex w-full items-center justify-center gap-2 h-10 rounded-[8px] bg-[#2D58A7] px-4 text-[14px] font-semibold text-white transition-colors">
+          <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 21">
+            <path d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z"/>
+          </svg>
+          {{ 'CARD._add_cart' | translate }}
+        </button>
+      } @else if (check_logged && quotesEnabled) {
+        <button (click)="toggleQuoteModal(); $event.stopPropagation();" type="button"
+          class="flex w-full items-center justify-center gap-2 h-10 rounded-[8px] border border-[#2D58A7] px-4 text-[14px] font-semibold text-[#2D58A7] transition-colors hover:bg-[#EBF0F7]">
+          <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+          </svg>
+          {{ 'CARD._quote' | translate }}
+        </button>
+      } @else {
+        <div class="flex justify-end">
+          <button (click)="goToProductDetails(productOff); $event.stopPropagation();" class="flex items-center justify-center h-10 w-10 rounded-full hover:bg-gray-100 transition-colors text-[#526179]">
+            <svg class="h-7 w-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          </button>
+        </div>
+      }
     </div>
   </div>
 </div>
@@ -91,11 +112,30 @@
           </div>
         }
       </div>
-      <button (click)="goToProductDetails(productOff); $event.stopPropagation();" class="flex items-center justify-center h-10 w-10 rounded-full hover:bg-gray-100 transition-colors text-[#526179] shrink-0">
-        <svg class="h-7 w-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-        </svg>
-      </button>
+      @if (check_logged && !isCustom()) {
+        <button data-cy="addToCart" (click)="openDrawer(); $event.stopPropagation();" [disabled]="!PURCHASE_ENABLED || productAlreadyInCart"
+          [ngClass]="!PURCHASE_ENABLED || productAlreadyInCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#24478a]'"
+          type="button" class="flex shrink-0 items-center justify-center gap-2 h-10 rounded-[8px] bg-[#2D58A7] px-5 text-[14px] font-semibold text-white transition-colors">
+          <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 21">
+            <path d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z"/>
+          </svg>
+          {{ 'CARD._add_cart' | translate }}
+        </button>
+      } @else if (check_logged && quotesEnabled) {
+        <button (click)="toggleQuoteModal(); $event.stopPropagation();" type="button"
+          class="flex shrink-0 items-center justify-center gap-2 h-10 rounded-[8px] border border-[#2D58A7] px-5 text-[14px] font-semibold text-[#2D58A7] transition-colors hover:bg-[#EBF0F7]">
+          <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+          </svg>
+          {{ 'CARD._quote' | translate }}
+        </button>
+      } @else {
+        <button (click)="goToProductDetails(productOff); $event.stopPropagation();" class="flex items-center justify-center h-10 w-10 rounded-full hover:bg-gray-100 transition-colors text-[#526179] shrink-0">
+          <svg class="h-7 w-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+          </svg>
+        </button>
+      }
     </div>
   </div>
 </div>
