@@ -12,6 +12,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faThumbsUp } from '@fortawesome/pro-regular-svg-icons';
 import { TranslateModule } from "@ngx-translate/core";
 import { Subject, takeUntil } from 'rxjs';
+import { CONTACT_US_SUPPORT_TYPES } from "src/app/models/contact-us.constants";
 import { ContactUsService } from '../../services/contactUs.service';
 
 export interface IContactUs {
@@ -54,7 +55,7 @@ export class ContactUsFormComponent implements OnDestroy {
   submitted = false;
   submittedSuccessfully = false;
 
-  readonly supportOptions: string[] = ["general", "technical", "onboarding", "legal"];
+  readonly supportOptions = CONTACT_US_SUPPORT_TYPES;
 
   form: FormGroup<IContactUsForm> = this.fb.nonNullable.group({
     supportType: ["", [Validators.required]],
