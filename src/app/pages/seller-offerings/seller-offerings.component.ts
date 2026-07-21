@@ -6,8 +6,6 @@ import {components} from "src/app/models/product-catalog";
 type Catalog = components["schemas"]["Catalog"];
 import { environment } from 'src/environments/environment';
 import { ApiServiceService } from 'src/app/services/product-service.service';
-import {LocalStorageService} from "src/app/services/local-storage.service";
-import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "../../services/event-message.service";
 import moment from 'moment';
@@ -44,9 +42,6 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   offer_to_update:any;
   custom_offer_partyId:any=null;
   catalog_to_update:any;
-  feedback:boolean=false;
-  isDomeTheme: boolean = (environment.providerThemeName || '').toUpperCase() === 'DOME';
-  userInfo:any;
   activeSection: string = 'catalogs'; // default
   sectionActions : Record<string, () => void> = {
     catalogs: this.goToCatalogs,
@@ -60,7 +55,6 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor(
-    private localStorage: LocalStorageService,
     private cdr: ChangeDetectorRef,
     private eventMessage: EventMessageService,
     private router: Router,
@@ -70,32 +64,25 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
     .subscribe(ev => {
-      if(ev.type === 'SellerProductSpec') {   
-        if(
-          ev.value == true &&
-          this.isDomeTheme &&
-          (JSON.stringify(this.userInfo) != '{}' && (((this.userInfo.expire - moment().unix())-4) > 0))
-        ) {
-          this.feedback=true;
-        }  
+      if(ev.type === 'SellerProductSpec') {
         this.goToProdSpec();
       }
-      if(ev.type === 'SellerCreateProductSpec' && ev.value == true) {        
+      if(ev.type === 'SellerCreateProductSpec' && ev.value == true) {
         this.goToCreateProdSpec();
       }
-      if(ev.type === 'SellerServiceSpec' && ev.value == true) {             
+      if(ev.type === 'SellerServiceSpec' && ev.value == true) {
         this.goToServiceSpec();
       }
       if(ev.type === 'SellerCreateServiceSpec' && ev.value == true) {
         this.goToCreateServSpec();
       }
-      if(ev.type === 'SellerResourceSpec' && ev.value == true) {                
+      if(ev.type === 'SellerResourceSpec' && ev.value == true) {
         this.goToResourceSpec();
       }
-      if(ev.type === 'SellerCreateResourceSpec' && ev.value == true) {        
+      if(ev.type === 'SellerCreateResourceSpec' && ev.value == true) {
         this.goToCreateResSpec();
       }
-      if(ev.type === 'SellerOffer' && ev.value == true) {      
+      if(ev.type === 'SellerOffer' && ev.value == true) {
         this.goToOffers();
       }
       if(ev.type == 'SellerCatalog' && ev.value == true){
@@ -133,14 +120,10 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
         this.catalog_to_update=ev.value;
         this.goToUpdateCatalog();
       }
-      if(ev.type === 'CloseFeedback') {
-        this.feedback = false;
-      }
     })
   }
 
   async ngOnInit() {
-    this.userInfo = this.localStorage.getObject('login_items') as LoginInfo;
     const saved = localStorage.getItem('activeSection');
     console.log(saved)
     if (saved) this.activeSection = saved;
@@ -151,7 +134,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     const state = history.state as { quoteId?: string };
     console.log('Checking state')
     console.log(state)
-    
+
     if (state && state.quoteId) {
       // If there's a quoteId in the state, open the offers section
       const quote = await firstValueFrom(this.quoteService.getQuoteById(state.quoteId));
@@ -213,7 +196,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
-    this.cdr.detectChanges();  
+    this.cdr.detectChanges();
   }
 
   goToCreateCatalog(){
@@ -272,7 +255,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_offer=true;
     this.show_update_catalog=false;
     this.show_create_catalog=false;
-    this.cdr.detectChanges();  
+    this.cdr.detectChanges();
   }
 
   goToCreateCustomOffer(){
@@ -292,7 +275,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=true;
-    this.cdr.detectChanges();  
+    this.cdr.detectChanges();
   }
 
   goToUpdateServiceSpec(){
@@ -312,7 +295,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
-    this.cdr.detectChanges(); 
+    this.cdr.detectChanges();
   }
 
   goToUpdateResourceSpec(){
@@ -332,7 +315,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
-    this.cdr.detectChanges(); 
+    this.cdr.detectChanges();
   }
 
   goToCreateServSpec(){
@@ -395,8 +378,8 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  goToCatalogs(){  
-    this.setActiveSection('catalogs');  
+  goToCatalogs(){
+    this.setActiveSection('catalogs');
     this.selectCatalogs();
     this.show_catalogs=true;
     this.show_prod_specs=false;
@@ -432,7 +415,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToProdSpec(){
-    this.setActiveSection('productspec'); 
+    this.setActiveSection('productspec');
     this.selectProdSpec();
     this.show_catalogs=false;
     this.show_prod_specs=true;
@@ -468,7 +451,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToServiceSpec(){
-    this.setActiveSection('servicespec'); 
+    this.setActiveSection('servicespec');
     this.selectServiceSpec();
     this.show_catalogs=false;
     this.show_prod_specs=false;
@@ -504,7 +487,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToResourceSpec(){
-    this.setActiveSection('resourcespec'); 
+    this.setActiveSection('resourcespec');
     this.selectResourceSpec();
     this.show_catalogs=false;
     this.show_prod_specs=false;
@@ -540,7 +523,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToOffers(){
-    this.setActiveSection('offers'); 
+    this.setActiveSection('offers');
     this.selectOffers();
     this.show_catalogs=false;
     this.show_prod_specs=false;

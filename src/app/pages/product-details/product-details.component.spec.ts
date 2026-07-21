@@ -36,6 +36,7 @@ describe('ProductDetailsComponent', () => {
       'getProductById',
       'getProductSpecification',
       'getProductPrice',
+      'getProductPrices',
       'getOfferingPrice',
       'getServiceSpec',
       'getResourceSpec',
@@ -370,20 +371,23 @@ describe('ProductDetailsComponent', () => {
   });
 
   it('loadUsageMetrics should collect linked metrics and deduplicate by usageSpecId + metric name', async () => {
-    apiSpy.getOfferingPrice.and.callFake(async (id: string) => {
-      if (id === 'price-comp-1') {
-        return {
-          usageSpecId: 'usage-1',
-          unitOfMeasure: { units: 'RAM_gb_hour' },
-          description: 'Fallback RAM description',
-        };
-      }
-      return {
-        usageSpecId: 'usage-2',
-        unitOfMeasure: { units: 'CPU_core_hour' },
-        description: 'Fallback CPU description',
-      };
-    });
+    apiSpy.getProductPrices.and.callFake(async (ids: any[]) =>
+      ids.map((id: string) =>
+        id === 'price-comp-1'
+          ? {
+              id,
+              usageSpecId: 'usage-1',
+              unitOfMeasure: { units: 'RAM_gb_hour' },
+              description: 'Fallback RAM description',
+            }
+          : {
+              id,
+              usageSpecId: 'usage-2',
+              unitOfMeasure: { units: 'CPU_core_hour' },
+              description: 'Fallback CPU description',
+            }
+      )
+    );
     usageSpy.getUsageSpec.and.callFake(async (id: string) => {
       if (id === 'usage-1') {
         return { id: 'usage-1', description: 'RAM metric description' };
