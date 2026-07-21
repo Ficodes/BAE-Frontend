@@ -1,8 +1,6 @@
 import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
-import { LoginInfo, FeedbackInfo } from 'src/app/models/interfaces';
-
 import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import moment from 'moment';
 import { Subject } from 'rxjs';
