@@ -93,14 +93,30 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
     })
   }
 
+  private searchInputListener = (_e: Event) => {
+    console.log(`Input updated`)
+    if (this.searchField.value == '') {
+      this.keywordFilter = undefined;
+      this.getInventory(false);
+    }
+  }
+
   ngOnInit() {
     if(this.prodId==undefined){
       this.checkFrom=false;
     }
     this.initInventory();
+    const input = document.querySelector('[type=search]')
+    if (input != undefined) {
+      input.addEventListener('input', this.searchInputListener);
+    }
   }
 
   ngOnDestroy(){
+    const input = document.querySelector('[type=search]')
+    if (input != undefined) {
+      input.removeEventListener('input', this.searchInputListener);
+    }
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -117,17 +133,6 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
         this.partyId = loggedOrg.partyId
       }
       this.getInventory(false);
-    }
-    let input = document.querySelector('[type=search]')
-    if(input!=undefined){
-      input.addEventListener('input', e => {
-        // Easy way to get the value of the element who trigger the current `e` event
-        console.log(`Input updated`)
-        if(this.searchField.value==''){
-          this.keywordFilter=undefined;
-          this.getInventory(false);
-        }
-      });
     }
     initFlowbite();
   }
