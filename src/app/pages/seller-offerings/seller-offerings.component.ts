@@ -11,7 +11,6 @@ import {LocalStorageService} from "src/app/services/local-storage.service";
 import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "../../services/event-message.service";
-import * as moment from 'moment';
 import { firstValueFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { QuoteService } from 'src/app/features/quotes/services/quote.service';
@@ -51,8 +50,6 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   offer_to_update:any;
   custom_offer_partyId:any=null;
   catalog_to_update:any;
-  feedback:boolean=false;
-  isDomeTheme: boolean = (environment.providerThemeName || '').toUpperCase() === 'DOME';
   userInfo:any;
   productOffersCount: number = 0;
   catalogsCount: number = 0;
@@ -116,26 +113,19 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
     .subscribe(ev => {
-      if(ev.type === 'SellerProductSpec') {   
-        if(
-          ev.value == true &&
-          this.isDomeTheme &&
-          (JSON.stringify(this.userInfo) != '{}' && (((this.userInfo.expire - moment().unix())-4) > 0))
-        ) {
-          this.feedback=true;
-        }  
+      if(ev.type === 'SellerProductSpec') {
         this.goToProdSpec();
       }
-      if(ev.type === 'SellerCreateProductSpec' && ev.value == true) {        
+      if(ev.type === 'SellerCreateProductSpec' && ev.value == true) {
         this.goToCreateProdSpec();
       }
-      if(ev.type === 'SellerServiceSpec' && ev.value == true) {             
+      if(ev.type === 'SellerServiceSpec' && ev.value == true) {
         this.goToServiceSpec();
       }
       if(ev.type === 'SellerCreateServiceSpec' && ev.value == true) {
         this.goToCreateServSpec();
       }
-      if(ev.type === 'SellerResourceSpec' && ev.value == true) {                
+      if(ev.type === 'SellerResourceSpec' && ev.value == true) {
         this.goToResourceSpec();
       }
       if(ev.type === 'SellerCreateResourceSpec' && ev.value == true) {
@@ -151,7 +141,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
         this.usage_to_update = ev.value;
         this.goToUpdateUsage();
       }
-      if(ev.type === 'SellerOffer' && ev.value == true) {      
+      if(ev.type === 'SellerOffer' && ev.value == true) {
         this.goToOffers();
       }
       if(ev.type == 'SellerCatalog' && ev.value == true && this.catalogManagementEnabled){
@@ -188,9 +178,6 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
       if(ev.type === 'SellerCatalogUpdate' && this.catalogManagementEnabled) {
         this.catalog_to_update=ev.value;
         this.goToUpdateCatalog();
-      }
-      if(ev.type === 'CloseFeedback') {
-        this.feedback = false;
       }
       if(ev.type === 'SpecCreated' && ev.text) {
         this.toastMessage = ev.text;
@@ -231,7 +218,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     const state = history.state as { quoteId?: string };
     console.log('Checking state')
     console.log(state)
-    
+
     if (state && state.quoteId) {
       // If there's a quoteId in the state, open the offers section
       const quote = await firstValueFrom(this.quoteService.getQuoteById(state.quoteId));
@@ -386,7 +373,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.activateView('createOffer');
   }
 
-  goToCatalogs(){  
+  goToCatalogs(){
     this.activateView('catalogs', 'catalogs');
   }
 

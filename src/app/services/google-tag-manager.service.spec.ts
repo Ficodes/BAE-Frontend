@@ -4,9 +4,11 @@ import { GoogleTagManagerService } from './google-tag-manager.service';
 describe('GoogleTagManagerService', () => {
   let service: GoogleTagManagerService;
   let originalDataLayer: unknown;
+  let insertBeforeSpy: jasmine.Spy;
 
   beforeEach(() => {
     originalDataLayer = (window as any).dataLayer;
+    insertBeforeSpy = spyOn(document.head, 'insertBefore').and.callFake(<T extends Node>(newNode: T) => newNode);
 
     TestBed.configureTestingModule({});
     service = TestBed.inject(GoogleTagManagerService);
@@ -25,10 +27,11 @@ describe('GoogleTagManagerService', () => {
   it('inserts the Google Tag Manager script as the first head element', () => {
     service.init('GTM-WPKH4HCS');
 
-    const firstHeadElement = document.head.firstElementChild as HTMLScriptElement;
+    const insertedScript = insertBeforeSpy.calls.mostRecent().args[0] as HTMLScriptElement;
 
-    expect(firstHeadElement.tagName).toBe('SCRIPT');
-    expect(firstHeadElement.src).toBe('https://www.googletagmanager.com/gtm.js?id=GTM-WPKH4HCS');
+    expect(insertBeforeSpy).toHaveBeenCalledOnceWith(insertedScript, document.head.firstChild);
+    expect(insertedScript.tagName).toBe('SCRIPT');
+    expect(insertedScript.src).toBe('https://www.googletagmanager.com/gtm.js?id=GTM-WPKH4HCS');
     expect((window as any).dataLayer[0].event).toBe('gtm.js');
   });
 
@@ -37,5 +40,6 @@ describe('GoogleTagManagerService', () => {
     service.init('not-a-gtm-id');
 
     expect(document.querySelector('script[src^="https://www.googletagmanager.com/gtm.js"]')).toBeNull();
+    expect(insertBeforeSpy).not.toHaveBeenCalled();
   });
 });

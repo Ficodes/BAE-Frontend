@@ -33,6 +33,34 @@
       </div>
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="flex flex-col gap-6">
+        <div class="contact-field">
+          <label class="contact-label">
+            {{ "ContactUs.fields.supportType.label" | translate }}
+          </label>
+
+          <div class="contact-select-wrap">
+            <select formControlName="supportType" class="contact-select"
+              [class.contact-input-error]="hasError('supportType')"
+              [class.contact-select-placeholder]="!f.supportType.value">
+              <option value="" disabled>
+                {{ "ContactUs.fields.supportType.placeholder" | translate }}
+              </option>
+
+              @for (option of supportOptions; track option) {
+              <option [value]="option">
+                {{ "ContactUs.fields.supportType.options." + option | translate }}
+              </option>
+              }
+            </select>
+          </div>
+
+          @if (hasError('supportType')) {
+          <span class="contact-error">
+            {{ "ContactUs.validation.required" | translate }}
+          </span>
+          }
+        </div>
+
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="contact-field">
             <label class="contact-label">
