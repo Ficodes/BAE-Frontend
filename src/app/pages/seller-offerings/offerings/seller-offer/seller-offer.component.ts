@@ -60,11 +60,27 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     })
   }
 
+  private searchInputListener = (_e: Event) => {
+    console.log(`Input updated`)
+    if (this.searchField.value == '') {
+      this.filter = undefined;
+      this.getOffers(false);
+    }
+  }
+
   ngOnInit() {
     this.initOffers();
+    const input = document.querySelector('[type=search]')
+    if (input != undefined) {
+      input.addEventListener('input', this.searchInputListener);
+    }
   }
 
   ngOnDestroy(){
+    const input = document.querySelector('[type=search]')
+    if (input != undefined) {
+      input.removeEventListener('input', this.searchInputListener);
+    }
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -81,17 +97,6 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     this.offers=[];
     this.nextOffers=[];
     this.getOffers(false);
-    let input = document.querySelector('[type=search]')
-    if(input!=undefined){
-      input.addEventListener('input', e => {
-        // Easy way to get the value of the element who trigger the current `e` event
-        console.log(`Input updated`)
-        if(this.searchField.value==''){
-          this.filter=undefined;
-          this.getOffers(false);
-        }
-      });
-    }
     initFlowbite();
   }
 
