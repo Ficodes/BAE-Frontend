@@ -133,6 +133,14 @@ export class ApiServiceService {
     return lastValueFrom(this.http.get<any[]>(url));
   }
 
+  catalogHasLaunchedOffers(catalogId: any): Promise<boolean> {
+    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog/${catalogId}/productOffering?lifecycleStatus=Launched&limit=1`;
+
+    return lastValueFrom(this.http.get<any[]>(url))
+      .then(res => Array.isArray(res) && res.length > 0)
+      .catch(() => false);
+  }
+
   getProductsByCategoryAndCatalog(ids: Category[], catalogId: any, page: any) {
     let id_str = '';
     for (let i = 0; i < ids.length; i++) {

@@ -662,9 +662,17 @@ async deleteProduct(product: Product | undefined){
     this.router.navigate(['/search', productOff?.id]);
   }
 
-  goToOrgDetails(id:any) {
+  async goToOrgDetails(id:any) {
     document.querySelector("body > div[modal-backdrop]")?.remove()
-    this.router.navigate(['/org-details', id]);
+    try {
+      const catalogs = await this.api.getCatalogsByUser(0, undefined, ['Launched'], id);
+      const catalogId = Array.isArray(catalogs) ? catalogs[0]?.id : undefined;
+      if (catalogId) {
+        this.router.navigate(['/org-details', catalogId]);
+      }
+    } catch (err) {
+      console.error('Error resolving provider catalog:', err);
+    }
   }
 
   getOwner(){

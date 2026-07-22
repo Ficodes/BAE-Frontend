@@ -1,110 +1,159 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
-import { ApiServiceService } from 'src/app/services/product-service.service';
-import { PaginationService } from 'src/app/services/pagination.service';
-import {faEye} from "@fortawesome/pro-regular-svg-icons";
-import { Router } from '@angular/router';
-import {components} from "../../models/product-catalog";
-type Catalog = components["schemas"]["Catalog"];
-import { environment } from 'src/environments/environment';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AccountServiceService } from 'src/app/services/account-service.service';
+import { ApiServiceService } from 'src/app/services/product-service.service';
+import { environment } from 'src/environments/environment';
+
+interface ProviderCard { id: string; name: string; description: string; logo: string; }
 
 @Component({
   selector: 'app-catalogs',
   templateUrl: './catalogs.component.html',
   styleUrl: './catalogs.component.css'
 })
-export class CatalogsComponent implements OnInit{
-  catalogs:Catalog[]=[];
-  nextCatalogs:Catalog[]=[];
-  page:number=0;
-  CATALOG_LIMIT: number = environment.CATALOG_LIMIT;
-  loading: boolean = false;
-  loading_more: boolean = false;
-  page_check:boolean = true;
-  filter:any=undefined;
+export class CatalogsComponent implements OnInit {
+  private allProviders: ProviderCard[] = [];
+  providers: ProviderCard[] = [];
+  totalCount = 0;
+  page = 0;
+  readonly PAGE_SIZE = 12;
+  loading = false;
+  loading_more = false;
+  page_check = true;
+  filter: string | undefined;
   searchField = new FormControl();
-  protected readonly faEye = faEye;
-  showDesc:boolean=false;
-  showingCat:any;
-  
-  constructor(
-    private router: Router,
-    private api: ApiServiceService,
-    private cdr: ChangeDetectorRef,
-    private paginationService: PaginationService
-  ) {
+
+  viewMode: 'grid' | 'list' = 'grid';
+  readonly DEFAULT_LOGO = 'assets/images/Dome-Marketplace.svg';
+  isDefaultLogo(logo: string | undefined): boolean { return logo === this.DEFAULT_LOGO; }
+  sortOption: 'recent' | 'name_asc' | 'name_desc' = 'recent';
+  showSortDropdown = false;
+  sortOptions: { value: 'recent' | 'name_asc' | 'name_desc'; label: string }[] = [
+    { value: 'recent', label: 'CATALOGS._sort_recent' },
+    { value: 'name_asc', label: 'CATALOGS._sort_name_asc' },
+    { value: 'name_desc', label: 'CATALOGS._sort_name_desc' },
+  ];
+  get sortLabel() { return this.sortOptions.find(o => o.value === this.sortOption)?.label ?? ''; }
+
+  constructor(private router: Router, private accService: AccountServiceService, private api: ApiServiceService, private cdr: ChangeDetectorRef) { }
+
+  ngOnInit() {
+    this.getProviders();
+    this.searchField.valueChanges.subscribe(v => { if (!v) { this.filter = undefined; this.page = 0; this.applyView(); } });
   }
 
-  @HostListener('document:click')
-  onClick() {
-    if(this.showDesc==true){
-      this.showDesc=false;
+  async getProviders() {
+    this.loading = true;
+    const catalogs: any[] = [];
+    let offset = 0;
+    try {
+      while (offset < 10000) {
+        const batch = await this.api.getCatalogs(offset, undefined);
+        const items = Array.isArray(batch) ? batch : [];
+        catalogs.push(...items);
+        if (items.length < environment.CATALOG_LIMIT) break;
+        offset += items.length;
+      }
+    } catch (err) {
+      console.error('Error loading catalogs:', err);
+    }
+    // Only surface catalogs that have at least one launched (published) offer.
+    // Serialized on purpose: the dev gateway crosses concurrent productOffering
+    // responses, so each check must run in isolation.
+    const published: any[] = [];
+    for (const c of catalogs) {
+      if (await this.api.catalogHasLaunchedOffers(c?.id)) {
+        published.push(c);
+      }
+    }
+    this.allProviders = published.map(c => this.mapCatalog(c));
+    this.page = 0;
+    this.applyView();
+    this.loading = false;
+    this.fillOwnerLogos(published);
+  }
+
+  private mapCatalog(c: any): ProviderCard {
+    return { id: c?.id, name: c?.name ?? '', description: c?.description ?? '', logo: this.DEFAULT_LOGO };
+  }
+
+  private fillOwnerLogos(catalogs: any[]) {
+    const cardsByOwner = new Map<string, ProviderCard[]>();
+    for (const c of catalogs) {
+      const parties: any[] = c?.relatedParty ?? [];
+      const owner = parties.find((p: any) => p?.role === environment.SELLER_ROLE)
+        ?? parties.find((p: any) => p?.id && String(p.id).includes('organization'));
+      const card = this.allProviders.find(p => p.id === c?.id);
+      if (!owner?.id || !card || !String(owner.id).includes('organization')) continue;
+      cardsByOwner.set(owner.id, [...(cardsByOwner.get(owner.id) ?? []), card]);
+    }
+    for (const [ownerId, cards] of cardsByOwner) {
+      this.accService.getOrgInfo(ownerId).then(org => {
+        const logo = (org?.partyCharacteristic ?? []).find((ch: any) => ch?.name === 'logo')?.value;
+        if (!logo) return;
+        for (const card of cards) card.logo = logo;
+        this.cdr.detectChanges();
+      }).catch(() => { });
+    }
+  }
+
+  private applyView() {
+    let list = [...this.allProviders];
+    if (this.filter) {
+      const q = this.filter.toLowerCase();
+      list = list.filter(p => p.name.toLowerCase().includes(q));
+    }
+    if (this.sortOption === 'name_asc') list.sort((a, b) => a.name.localeCompare(b.name));
+    if (this.sortOption === 'name_desc') list.sort((a, b) => b.name.localeCompare(a.name));
+    this.totalCount = list.length;
+    const end = (this.page + 1) * this.PAGE_SIZE;
+    this.providers = list.slice(0, end);
+    this.page_check = end < list.length;
+    this.loading_more = false;
+  }
+
+  filterProviders() {
+    this.filter = this.searchField.value;
+    this.page = 0;
+    this.applyView();
+  }
+
+  toggleSortDropdown(e: Event) {
+    e.stopPropagation();
+    this.showSortDropdown = !this.showSortDropdown;
+  }
+
+  selectSort(v: 'recent' | 'name_asc' | 'name_desc', e: Event) {
+    e.stopPropagation();
+    this.sortOption = v;
+    this.showSortDropdown = false;
+    this.page = 0;
+    this.applyView();
+  }
+
+  next() {
+    this.loading_more = true;
+    this.page++;
+    this.applyView();
+  }
+
+  goToProvider(id: string) {
+    this.router.navigate(['/org-details', id]);
+  }
+
+  @HostListener('document:click') onClick() {
+    if (this.showSortDropdown) {
+      this.showSortDropdown = false;
       this.cdr.detectChanges();
     }
   }
 
-  ngOnInit() {
-    this.loading=true;
-    this.getCatalogs(false);
-    let input = document.querySelector('[type=search]')
-    if(input!=undefined){
-      input.addEventListener('input', e => {
-        // Easy way to get the value of the element who trigger the current `e` event
-        console.log(`Input updated`)
-        if(this.searchField.value==''){
-          this.filter=undefined;
-          this.getCatalogs(false);
-        }
-      });
-    }
-
-  }
-
-  async getCatalogs(next:boolean){
-    if(next==false){
-      this.loading=true;
-    }    
-
-    let options = {
-      "keywords": this.filter
-    }
-    this.paginationService.getItemsPaginated(this.page,this.CATALOG_LIMIT,next,this.catalogs,this.nextCatalogs, options,
-      this.api.getCatalogs.bind(this.api)).then(data => {
-      this.page_check=data.page_check;      
-      this.catalogs=data.items.filter((catalog:Catalog) => (catalog.id !== environment.DFT_CATALOG_ID)
-      );
-      this.nextCatalogs=data.nextItems;
-      this.page=data.page;
-      this.loading=false;
-      this.loading_more=false;
-    })
-  }
-
-  filterCatalogs(){
-    this.filter=this.searchField.value;
-    this.page=0;
-    this.getCatalogs(false);
-  }
-
-  goToCatalogSearch(id:any) {
-    this.router.navigate(['/search/catalogue', id]);
-  }
-
-  async next(){
-    await this.getCatalogs(true);
-  }
-
-  showFullDesc(cat:any){
-    this.showDesc=true;
-    this.showingCat=cat;
-  }
-
   hasLongWord(str: string | undefined, threshold = 20) {
-    if(str){
+    if (str) {
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
-    }   
+    }
   }
-
 }
