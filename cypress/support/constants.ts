@@ -32,6 +32,7 @@ export const init_config = {
     'quotesEnabled': false,
     'tenderingEnabled': false,
     'dataSpaceEnabled': false,
+    'dspEnabled': false,
     'launchValidationEnabled': false,
     'tenderDevButtonsOpenCloseEnabled': false,
     'aiEnabled': false,
