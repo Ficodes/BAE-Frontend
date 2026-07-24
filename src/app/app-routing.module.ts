@@ -104,6 +104,11 @@ const routes: Routes = [
     canActivate: [AuthGuard], data: { roles: [] }
   },
   {
+    path: 'analytics',
+    loadComponent: () => import('./pages/analytics/analytics.component').then(c => c.AnalyticsComponent),
+    canActivate: [AuthGuard], data: { roles: [] }
+  },
+  {
     path: 'quote-list',
     component: QuoteListComponent,
     canActivate: [AuthGuard, quoteGuardGuard], data: { roles: [] }

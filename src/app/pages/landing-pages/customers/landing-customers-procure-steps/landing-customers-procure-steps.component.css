@@ -82,6 +82,45 @@
   color: #0b1528;
 }
 
+.procure-steps-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  margin-top: 32px;
+  text-align: center;
+}
+
+.procure-steps-cta__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 28px;
+  border-radius: 6px;
+  background: #2d58a7;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.procure-steps-cta__button:hover {
+  background: #18b5d9;
+  color: #ffffff;
+}
+
+@media (min-width: 1024px) {
+  .procure-steps-cta {
+    margin-top: 48px;
+    gap: 24px;
+  }
+}
+
 .procure-step-connector {
   display: none;
   width: 56px;

@@ -16,7 +16,7 @@
                 <svg class="rtl:rotate-180  w-3 h-3 mx-1 text-gray-400 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
                 </svg>
-                <span class="ms-1 text-sm font-medium text-gray-500 dark:text-white md:ms-2 ">{{ 'ADMIN._verification' | translate }}</span>
+                <span class="ms-1 text-sm font-medium text-gray-500 dark:text-white md:ms-2 ">{{ 'ADMIN._email' | translate }}</span>
                 </div>
             </li>
             </ol>
@@ -26,7 +26,7 @@
 
 
     <div class="bg-secondary-50 dark:bg-secondary-100 border border-secondary-50 dark:border-gray-800 mt-4 p-8 rounded-lg">
-        <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white">{{ 'ADMIN._verification' | translate }}</h2>
+        <h2 class="text-3xl font-bold text-primary-100 ml-4 dark:text-white">{{ 'ADMIN._email' | translate }}</h2>
         <hr class="h-px m-4 bg-gray-300 dark:bg-gray-200 border-0">
 
         <div class="md:grid">
@@ -42,7 +42,7 @@
                             [ngClass]="emailForm.get('smtpPort')?.invalid == true && emailForm.value.smtpPort != '' ? 'border-red-600' : 'border-gray-300'"
                             class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
 
-                    <label for="email" class="font-bold text-lg dark:text-white">{{ 'ADMIN._email' | translate }}</label>
+                    <label for="email" class="font-bold text-lg dark:text-white">{{ 'ADMIN._sourceEmail' | translate }}</label>
                     <input formControlName="email" type="text" id="email"
                             [ngClass]="emailForm.get('email')?.invalid == true && emailForm.value.email != '' ? 'border-red-600' : 'border-gray-300'"
                             class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
@@ -56,6 +56,15 @@
                     <input formControlName="emailPassword" type="password" id="email-pass"
                             [ngClass]="emailForm.get('emailPassword')?.invalid == true && emailForm.value.emailPassword != '' ? 'border-red-600' : 'border-gray-300'"
                             class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+
+                    <h3 class="mt-6 mb-2 font-bold text-xl text-primary-100 dark:text-white">{{ 'ADMIN._contactUsDestinations' | translate }}</h3>
+
+                    @for(destination of contactUsDestinationFields; track destination.supportType) {
+                        <label [for]="'contact-us-' + destination.supportType + '-email'" class="font-bold text-lg dark:text-white">{{ destination.labelKey | translate }}</label>
+                        <input [formControlName]="destination.controlName" type="text" [id]="'contact-us-' + destination.supportType + '-email'"
+                                [ngClass]="emailForm.get(destination.controlName)?.invalid == true && emailForm.get(destination.controlName)?.value != '' ? 'border-red-600' : 'border-gray-300'"
+                                class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                    }
                 </form>
 
                 <div class="flex w-full justify-items-end justify-end ml-4">
@@ -73,4 +82,20 @@
 
 @if(showError){
     <error-message class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50" [message]="errorMessage"></error-message>
+}
+
+@if(showSuccess){
+    <div class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+        <div class="p-4 mb-4 text-white rounded-lg bg-primary-100" role="alert">
+            <div class="flex items-center">
+                <svg class="flex-shrink-0 w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                </svg>
+                <h3 class="text-lg font-medium">{{ 'ADMIN._updateSuccessTitle' | translate }}</h3>
+            </div>
+            <div class="mt-2 text-sm pr-8 pl-8">
+                {{ successMessage | translate }}
+            </div>
+        </div>
+    </div>
 }

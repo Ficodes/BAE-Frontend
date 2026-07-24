@@ -1,0 +1,44 @@
+.analytics-embed-shell {
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - 300px);
+  height: 760px;
+  background: #fff;
+}
+
+.analytics-embed-mount {
+  width: 100%;
+  height: 100%;
+}
+
+:host ::ng-deep .analytics-embed-mount iframe {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
+}
+
+.analytics-status,
+.analytics-error {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.86);
+  text-align: center;
+}
+
+.analytics-error {
+  padding: 24px;
+}
+
+@media (max-width: 768px) {
+  .analytics-embed-shell {
+    min-height: 620px;
+    height: calc(100vh - 260px);
+  }
+}

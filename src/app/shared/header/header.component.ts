@@ -67,6 +67,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   knowledge_guidelines = environment.KB_GUIDELNES_URL;
   registration = environment.REGISTRATION_FORM_URL;
   ticketing = environment.TICKETING_SYSTEM_URL;
+  analyticsEnabled = environment.analyticsEnabled;
   analytics = environment.analytics;
   domeAbout = environment.DOME_ABOUT_LINK;
   domePublish = environment.DOME_PUBLISH_LINK;

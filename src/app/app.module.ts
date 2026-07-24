@@ -25,10 +25,12 @@ import { GalleryComponent } from "./offerings/gallery/gallery.component";
 import { HowItWorksComponent } from "./offerings/how-it-works/how-it-works.component";
 import { PlatformBenefitsComponent } from "./offerings/platform-benefits/platform-benefits.component";
 import { AdminComponent } from './pages/admin/admin.component';
+import { AnalyticsConfigComponent } from './pages/admin/analytics-config/analytics-config.component';
 import { CategoriesComponent } from './pages/admin/categories/categories.component';
 import { CreateCategoryComponent } from './pages/admin/categories/create-category/create-category.component';
 import { UpdateCategoryComponent } from './pages/admin/categories/update-category/update-category.component';
 import { EmailComponent } from './pages/admin/email/email.component';
+import { FeaturesConfigComponent } from './pages/admin/features-config/features-config.component';
 import { DefaultCatalogComponent } from './pages/admin/default-catalog/default-catalog.component';
 import { SearchFiltersConfigComponent } from './pages/admin/search-filters-config/search-filters-config.component';
 import { VerificationComponent } from './pages/admin/verification/verification.component';
@@ -146,6 +148,7 @@ import { RequestValidationModalComponent } from './pages/seller-offerings/offeri
     ErrorMessageComponent,
     CartCardComponent,
     AdminComponent,
+    AnalyticsConfigComponent,
     CategoriesComponent,
     CreateCategoryComponent,
     UpdateCategoryComponent,
@@ -153,6 +156,7 @@ import { RequestValidationModalComponent } from './pages/seller-offerings/offeri
     ContactUsComponent,
     VerificationComponent,
     EmailComponent,
+    FeaturesConfigComponent,
     SearchFiltersConfigComponent,
     DefaultCatalogComponent,
     InventoryResourcesComponent,
