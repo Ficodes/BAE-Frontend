@@ -22,6 +22,8 @@ export class PaymentService {
 
     if (params.jwt) {
       body.jwt = params.jwt;
+    } else if (params.session_id) {
+      body.session_id = params.session_id;
     }
 
     // TODO: Different payment gatways may require extra params

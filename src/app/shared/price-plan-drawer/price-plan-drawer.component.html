@@ -8,7 +8,7 @@
 
 <!-- drawer component -->
 <div data-cy="toCartDrawer" [id]="drawerId"
-     class="fixed top-[75px] bottom-0 right-0 z-40 overflow-hidden transition-transform translate-x-full bg-secondary-50 dark:bg-gray-800 flex flex-col"
+     class="fixed top-[75px] bottom-0 right-0 z-40 overflow-clip transition-transform translate-x-full bg-secondary-50 dark:bg-gray-800 flex flex-col"
      [class.translate-x-0]="isOpen"
      [class.translate-x-full]="!isOpen"
      [ngClass]="width"
@@ -49,14 +49,21 @@
       <p class="mb-6 text-sm text-gray-500 dark:text-gray-400 text-wrap break-words">{{ mode === 'modify' ? 'Select the new price model and characteristics for' : 'In order to add' }} <b>{{productOff?.name}}</b>{{ mode === 'modify' ? '.' : ' to your cart you have to select the price model and the set of characteristics you prefer.' }}</p>
       <p class="mb-6 text-sm text-gray-500 dark:text-gray-400 text-wrap break-words">Please, select the price plan:</p>
       @for (pp of productOff?.productOfferingPrice; track pp.id){
-        <div class="price-plan flex flex-col rounded-lg border border-dashed border-primary-100 bg-white dark:bg-gray-800 p-2 m-2 gap-1 cursor-pointer hover:bg-sky-50 transition-all duration-200"
+        <div [attr.data-cy]="'pricePlan-' + pp.name" class="price-plan flex flex-col rounded-lg border border-dashed border-primary-100 bg-white dark:bg-gray-800 p-2 m-2 gap-1 cursor-pointer hover:bg-sky-50 transition-all duration-200"
             [ngClass]="{
-                    'border-primary-100 text-wrap border': pp.id !== form.get('selectedPricePlan')?.value,
-                    'border-transparent outline outline-2 outline-teal-500 bg-teal-50': pp.id === form.get('selectedPricePlan')?.value
+                    'border-primary-100 text-wrap border': pp.id !== form.get('selectedPricePlan')?.value?.id,
+                    'border-transparent outline outline-2 outline-teal-500 bg-teal-50 dark:bg-teal-900/40 ring-1 ring-teal-500': pp.id === form.get('selectedPricePlan')?.value?.id
               }"
             (click)="onPricePlanSelected(pp)">
           <div class="text-base font-semibold text-primary-100 dark:text-gray-400 flex justify-between content-center text-wrap break-words">
-            {{pp.name}}
+            <span class="flex items-center gap-1.5">
+              @if (pp.id === form.get('selectedPricePlan')?.value?.id){
+                <svg class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.5 7.5a1 1 0 01-1.42 0l-3.5-3.5a1 1 0 011.42-1.42l2.79 2.79 6.79-6.79a1 1 0 011.42 0z" clip-rule="evenodd" />
+                </svg>
+              }
+              {{pp.name}}
+            </span>
             @if (pp.prodSpecCharValueUse){
               <span class="bg-indigo-100 text-indigo-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-indigo-900 dark:text-indigo-300">PROFILE</span>
             }
@@ -84,7 +91,7 @@
         </div>
       } @else if(filteredCharacteristics.length > 0) {
         <p class="mt-6 text-sm text-gray-500 dark:text-gray-400">Please select the characteristics you need to suit this offer to you.</p>
-        <div class="rounded-lg border border-dashed border-primary-100 bg-white p-3 m-2 dark:bg-gray-800 space-y-4 mb-4">
+        <div data-cy="prdSpecMetrics" class="rounded-lg border border-dashed border-primary-100 bg-white p-3 m-2 dark:bg-gray-800 space-y-4 mb-4">
           @if (booleanCharacteristics.length > 0) {
             <div class="space-y-2">
               <p class="text-xs font-semibold uppercase tracking-wide text-primary-100 dark:text-gray-300">Boolean toggles</p>
@@ -199,7 +206,7 @@
     }
   </form>
 
-  <div class="shrink-0 p-4 w-full grid grid-cols-1 gap-4 bg-primary-100 text-white overflow-hidden transition-all duration-300 ease-in-out">
+  <div data-cy="bottom-banner" class="shrink-0 p-4 w-full grid grid-cols-1 gap-4 bg-primary-100 text-white overflow-hidden transition-all duration-300 ease-in-out">
     @if (isLoading) {
       <div role="status">
         <svg
@@ -233,7 +240,7 @@
         @for (item of price; track item) {
           <div data-cy="previewPrices" class="flex justify-between mb-2">
             <span class="font-medium capitalize">{{ item['priceType'] }}:</span>
-            <span class="font-bold">{{ item['price']['taxIncludedAmount']['value'] }} {{ item['price']['taxIncludedAmount']['unit'] }}
+            <span class="font-bold">{{ formatPrice(item['price']['taxIncludedAmount']['value']) }} {{ item['price']['taxIncludedAmount']['unit'] }}
               @if(hasKey(item, 'recurringChargePeriod')){
                 / {{ item['recurringChargePeriod'] }}
               }

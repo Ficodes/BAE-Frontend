@@ -512,6 +512,16 @@ export class PricePlanDrawerComponent implements OnInit, OnDestroy {
     return Object.values(obj);
   }
 
+  formatPrice(value: string | number): string {
+    const str = (typeof value === 'number' ? value.toString() : (value ?? '').toString()).trim();
+    const num = parseFloat(str);
+    if (isNaN(num)) {
+      return String(value ?? '');
+    }
+    const rounded = Math.round(Number(str + 'e2')) / 100;
+    return rounded.toFixed(2);
+  }
+
   updateOrderChars() {
     const selectedCharacteristics = this.form.get('characteristics')?.value;
 

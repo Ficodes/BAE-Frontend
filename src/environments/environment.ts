@@ -89,6 +89,7 @@ export const environment = {
   QUOTES_ENABLED: true,
   TENDER_ENABLED: true,
   analyticsEnabled: false,
+  googleTagManagerId: '',
   analytics: '',
   analyticsGuestTokenEndpoint: '/analytics/guest-token',
   feedbackCampaign: false,

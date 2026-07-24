@@ -12,9 +12,11 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faThumbsUp } from '@fortawesome/pro-regular-svg-icons';
 import { TranslateModule } from "@ngx-translate/core";
 import { Subject, takeUntil } from 'rxjs';
+import { CONTACT_US_SUPPORT_TYPES } from "src/app/models/contact-us.constants";
 import { ContactUsService } from '../../services/contactUs.service';
 
 export interface IContactUs {
+  supportType: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -53,7 +55,10 @@ export class ContactUsFormComponent implements OnDestroy {
   submitted = false;
   submittedSuccessfully = false;
 
+  readonly supportOptions = CONTACT_US_SUPPORT_TYPES;
+
   form: FormGroup<IContactUsForm> = this.fb.nonNullable.group({
+    supportType: ["", [Validators.required]],
     firstName: ["", [Validators.required]],
     lastName: ["", [Validators.required]],
     email: ["", [Validators.required, Validators.email]],
@@ -82,7 +87,9 @@ export class ContactUsFormComponent implements OnDestroy {
     }
 
 
-    this.contactUsService.sendEmail(this.form.getRawValue()).pipe(takeUntil(this.unsub)).subscribe({
+    const rawValue = this.form.getRawValue();
+
+    this.contactUsService.sendEmail(rawValue).pipe(takeUntil(this.unsub)).subscribe({
       next: () => {
         this.submittedSuccessfully = true;
       },
@@ -93,6 +100,7 @@ export class ContactUsFormComponent implements OnDestroy {
     this.submittedSuccessfully = false;
     this.submitted = false;
     this.form.reset({
+      supportType: "",
       firstName: "",
       lastName: "",
       email: "",

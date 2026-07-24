@@ -17,6 +17,7 @@ export const init_config = {
     'ticketingUrl': '',
     'matomoId': '',
     'matomoUrl': '',
+    'googleTagManagerId': '',
     'searchEnabled': true,
     'analyticsEnabled': true,
     'analytics': 'https://analytics.dome-marketplace-sbx.org',

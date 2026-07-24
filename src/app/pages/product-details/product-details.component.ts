@@ -223,13 +223,11 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     let prodPrices: any[] | undefined= prod.productOfferingPrice;
     let prices: any[]=[];
     if(prodPrices!== undefined){
-      for(let j=0; j < prodPrices.length; j++){
-        let price = await this.api.getProductPrice(prodPrices[j].id);
-        prices.push(price);
-        console.log(price)
-        if(price.priceType == 'custom'){
-          this.checkCustom = true;
-        }
+      // Fetch all prices in one bulk request instead of one-by-one
+      // (the sequential await loop was the bottleneck on /search/:id).
+      prices = await this.api.getProductPrices(prodPrices.map(p => p.id));
+      if(prices.some(price => price?.priceType == 'custom')){
+        this.checkCustom = true;
       }
     }
     await this.loadUsageMetrics(prices);
@@ -363,8 +361,27 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     const metricsMap = new Map<string, UsageMetricCard>();
     const usageSpecCache = new Map<string, any>();
 
+    // Bulk-fetch every linked component price (bundledPopRelationship) across all
+    // plans in a single request, instead of one HTTP call per component.
+    const linkedIds = Array.from(new Set(
+      prices.flatMap(price =>
+        (Array.isArray(price?.bundledPopRelationship) ? price.bundledPopRelationship : [])
+          .map((rel: any) => rel?.id)
+          .filter((id: any) => id != null)
+      )
+    ));
+    let linkedPrices: any[] = [];
+    if (linkedIds.length > 0) {
+      try {
+        linkedPrices = await this.api.getProductPrices(linkedIds);
+      } catch (error) {
+        console.error('Error loading linked product offering prices', error);
+      }
+    }
+    const linkedById = new Map<any, any>(linkedPrices.map((p: any) => [p.id, p]));
+
     for (const price of prices) {
-      await this.collectUsageMetricsFromPrice(price, metricsMap, usageSpecCache);
+      await this.collectUsageMetricsFromPrice(price, metricsMap, usageSpecCache, linkedById);
     }
 
     this.usageMetrics = Array.from(metricsMap.values());
@@ -373,7 +390,8 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   private async collectUsageMetricsFromPrice(
     price: any,
     metricsMap: Map<string, UsageMetricCard>,
-    usageSpecCache: Map<string, any>
+    usageSpecCache: Map<string, any>,
+    linkedById: Map<any, any>
   ): Promise<void> {
     if (!price) {
       return;
@@ -385,11 +403,10 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
         if (!relationship?.id) {
           continue;
         }
-        try {
-          const linkedPrice = await this.api.getOfferingPrice(relationship.id);
+        // Already fetched in bulk by loadUsageMetrics.
+        const linkedPrice = linkedById.get(relationship.id);
+        if (linkedPrice) {
           await this.addMetricFromPrice(linkedPrice, metricsMap, usageSpecCache);
-        } catch (error) {
-          console.error('Error loading linked product offering price', error);
         }
       }
       return;

@@ -50,6 +50,17 @@ describe('AppInitService runtime config', () => {
     expect(environment.documentApi).toBe('/document');
   });
 
+  it('stores the runtime Google Tag Manager container id', async () => {
+    const initPromise = service.init();
+
+    const req = httpMock.expectOne(`${environment.BASE_URL}/config`);
+    req.flush(buildConfig({ googleTagManagerId: 'GTM-WPKH4HCS' }));
+
+    await initPromise;
+
+    expect(environment.googleTagManagerId).toBe('GTM-WPKH4HCS');
+  });
+
   function buildConfig(overrides: Record<string, unknown> = {}): Record<string, unknown> {
     return {
       ai: {},

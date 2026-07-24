@@ -40,7 +40,7 @@
             </div>
 
             <a class="mt-4 border-2 border-blue-700 text-blue-700 rounded-lg py-2.5 font-semibold flex items-center justify-center gap-2 hover:bg-blue-700 hover:text-white transition-all"
-              [href]="'/search;keywords=' + productOffering.name">
+              [routerLink]="['/search', productOffering.id]">
               {{ "DASHBOARD.marketplace.viewService" | translate }}
             </a>
           </div>

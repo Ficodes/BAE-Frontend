@@ -44,6 +44,7 @@ export class AppInitService {
                 environment.feedbackCampaign = config.feedbackCampaign ?? false;
                 environment.feedbackCampaignExpiration = config.feedbackCampaign ?? moment().add(1, 'week').unix();
                 environment.documentApi = config.documentApi ?? environment.documentApi;
+                environment.googleTagManagerId = config.googleTagManagerId ?? '';
                 environment.providerThemeName = config.theme ?? 'default';
                 environment.LEAR_URL = config.learUrl ?? '';
                 environment.AI_SEARCH_API_KEY = aiConfig.aiApiKey ?? config.aiApiKey ?? '';

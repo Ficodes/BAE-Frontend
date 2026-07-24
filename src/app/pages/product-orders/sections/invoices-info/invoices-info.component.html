@@ -80,7 +80,13 @@
                 {{invoice?.taxIncludedAmount.value}}{{invoice?.taxIncludedAmount.unit}}
               </td>
               <td class="md:table-cell px-6 py-4 text-center align-middle">
-                {{invoice?.state}}
+                @if (invoice?.state === 'settled') {
+                  <span class="bg-blue-100 dark:bg-secondary-300 text-green-500 text-xs font-medium px-2.5 py-0.5 rounded border border-green-500">{{invoice?.state}}</span>
+                } @else if (invoice?.state === 'new') {
+                  <span class="bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-400">{{invoice?.state}}</span>
+                } @else {
+                  {{invoice?.state}}
+                }
               </td>
               <td class="px-6 py-4 text-center align-middle">
                 <div class="flex flex-row justify-center items-center">

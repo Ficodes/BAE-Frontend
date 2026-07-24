@@ -6,11 +6,8 @@ import {components} from "src/app/models/product-catalog";
 type Catalog = components["schemas"]["Catalog"];
 import { environment } from 'src/environments/environment';
 import { ApiServiceService } from 'src/app/services/product-service.service';
-import {LocalStorageService} from "src/app/services/local-storage.service";
-import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "../../services/event-message.service";
-import * as moment from 'moment';
 import { firstValueFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { QuoteService } from 'src/app/features/quotes/services/quote.service';
@@ -44,9 +41,6 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   offer_to_update:any;
   custom_offer_partyId:any=null;
   catalog_to_update:any;
-  feedback:boolean=false;
-  isDomeTheme: boolean = (environment.providerThemeName || '').toUpperCase() === 'DOME';
-  userInfo:any;
   activeSection: string = 'catalogs'; // default
   sectionActions : Record<string, () => void> = {
     catalogs: this.goToCatalogs,
@@ -60,7 +54,6 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor(
-    private localStorage: LocalStorageService,
     private cdr: ChangeDetectorRef,
     private eventMessage: EventMessageService,
     private router: Router,
@@ -71,13 +64,6 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     .pipe(takeUntil(this.destroy$))
     .subscribe(ev => {
       if(ev.type === 'SellerProductSpec') {   
-        if(
-          ev.value == true &&
-          this.isDomeTheme &&
-          (JSON.stringify(this.userInfo) != '{}' && (((this.userInfo.expire - moment().unix())-4) > 0))
-        ) {
-          this.feedback=true;
-        }  
         this.goToProdSpec();
       }
       if(ev.type === 'SellerCreateProductSpec' && ev.value == true) {        
@@ -133,14 +119,10 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
         this.catalog_to_update=ev.value;
         this.goToUpdateCatalog();
       }
-      if(ev.type === 'CloseFeedback') {
-        this.feedback = false;
-      }
     })
   }
 
   async ngOnInit() {
-    this.userInfo = this.localStorage.getObject('login_items') as LoginInfo;
     const saved = localStorage.getItem('activeSection');
     console.log(saved)
     if (saved) this.activeSection = saved;

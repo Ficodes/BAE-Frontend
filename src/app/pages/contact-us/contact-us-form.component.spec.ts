@@ -15,6 +15,7 @@ describe("ContactUsFormComponent", () => {
   let router: Router;
 
   const validFormValue: IContactUs = {
+    supportType: "technical",
     firstName: "Luigi",
     lastName: "Borriello",
     email: "luigi@test.com",
@@ -65,6 +66,7 @@ describe("ContactUsFormComponent", () => {
 
   it("should initialize form with default values", () => {
     expect(component.form.getRawValue()).toEqual({
+      supportType: "",
       firstName: "",
       lastName: "",
       email: "",
@@ -188,6 +190,7 @@ describe("ContactUsFormComponent", () => {
     expect(component.submitted).toBeFalse();
     expect(component.submittedSuccessfully).toBeFalse();
     expect(component.form.getRawValue()).toEqual({
+      supportType: "",
       firstName: "",
       lastName: "",
       email: "",
