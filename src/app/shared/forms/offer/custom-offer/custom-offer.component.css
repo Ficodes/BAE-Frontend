@@ -1,0 +1,17 @@
+:host ::ng-deep .dome-heading-6,
+.dome-heading-6 {
+  font-family: "Blinker", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 100%;
+  color: #324153;
+}
+
+:host ::ng-deep .dome-body-small,
+.dome-body-small {
+  font-family: "Blinker", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  color: #4C5A6B;
+}
