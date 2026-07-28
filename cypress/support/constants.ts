@@ -344,6 +344,7 @@ export const productOffering = {
     ]
 }
 export const blogEntry = {
+    contentType: 'blog',
     title: 'Entry title',
     slug: 'entry-title',
     featuredImage: '',

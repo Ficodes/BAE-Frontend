@@ -1,9 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {EventMessageService} from "src/app/services/event-message.service";
 import {LocalStorageService} from "src/app/services/local-storage.service";
-import { DomeBlogServiceService } from "src/app/services/dome-blog-service.service"
+import { DomeBlogContentType, DomeBlogServiceService } from "src/app/services/dome-blog-service.service"
 import { LoginInfo } from 'src/app/models/interfaces';
 import moment from 'moment';
 import { Subject } from 'rxjs';
@@ -17,11 +17,14 @@ import { ConfirmDialogComponent } from "src/app/shared/confirm-dialog/confirm-di
   styleUrl: './dome-blog.component.css'
 })
 export class DomeBlogComponent implements OnInit, OnDestroy {
+  private readonly pageLimit = 9;
+
   constructor(
     private router: Router,
     private eventMessage: EventMessageService,
     private localStorage: LocalStorageService,
     private domeBlogService: DomeBlogServiceService,
+    private route?: ActivatedRoute,
   ) {
     this.eventMessage.messages$.subscribe(ev => {
       if(ev.type === 'ChangedSession') {
@@ -42,8 +45,17 @@ export class DomeBlogComponent implements OnInit, OnDestroy {
   deleteConfirmButtonClass = 'px-4 py-2 text-sm font-medium text-white bg-red-700 border border-transparent rounded-md hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500';
 
   entries:any[]=[ ]
+  contentType: DomeBlogContentType = 'blog';
+  pageTitle = 'Blog';
+  createButtonLabel = 'Add a new entry';
+  routeBase = '/blog';
+  isNewsLayout = false;
+  currentPage = 1;
+  hasMoreEntries = false;
+  loadingMore = false;
 
   async ngOnInit(): Promise<void> {
+    this.applyRouteConfiguration();
     this.initPartyInfo();
     await this.loadEntries();
   }
@@ -72,11 +84,11 @@ export class DomeBlogComponent implements OnInit, OnDestroy {
 
 
   goToDetails(entry:any) {
-    this.router.navigate(['/blog/', this.getEntryRouteId(entry)]);
+    this.router.navigate([`${this.routeBase}/`, this.getEntryRouteId(entry)]);
   }
 
   goToCreate(){
-    this.router.navigate(['/blog-entry']);
+    this.router.navigate(['/blog-entry'], { queryParams: { type: this.contentType } });
   }
 
   goToUpdate(id:any){
@@ -126,10 +138,42 @@ export class DomeBlogComponent implements OnInit, OnDestroy {
 
   async loadEntries() {
     try {
-      let entries = await this.domeBlogService.getBlogEntries();
-      this.entries = Array.isArray(entries) ? entries : [];
+      this.currentPage = 1;
+      const response = await this.domeBlogService.getBlogEntries({
+        contentType: this.contentType,
+        page: this.currentPage,
+        limit: this.pageLimit
+      });
+      const { entries, hasMore } = this.normalizeEntryResponse(response, this.currentPage);
+      this.entries = entries;
+      this.hasMoreEntries = hasMore;
     } catch (error) {
       this.entries = [];
+      this.hasMoreEntries = false;
+    }
+  }
+
+  async loadMoreEntries() {
+    if (this.loadingMore || !this.hasMoreEntries) {
+      return;
+    }
+
+    this.loadingMore = true;
+    try {
+      const nextPage = this.currentPage + 1;
+      const response = await this.domeBlogService.getBlogEntries({
+        contentType: this.contentType,
+        page: nextPage,
+        limit: this.pageLimit
+      });
+      const { entries, hasMore } = this.normalizeEntryResponse(response, nextPage);
+      this.entries = [...this.entries, ...entries];
+      this.currentPage = nextPage;
+      this.hasMoreEntries = hasMore;
+    } catch (error) {
+      this.hasMoreEntries = false;
+    } finally {
+      this.loadingMore = false;
     }
   }
 
@@ -184,6 +228,55 @@ export class DomeBlogComponent implements OnInit, OnDestroy {
 
     const plainTextContent = this.stripMarkdown((entry?.content || '').toString());
     return this.truncateText(plainTextContent, 260);
+  }
+
+  getCardTitleClass(): string {
+    return this.isNewsLayout
+      ? 'text-[28px] leading-tight md:text-[30px]'
+      : 'text-2xl';
+  }
+
+  getImageClass(): string {
+    return this.isNewsLayout
+      ? 'h-72 w-full rounded-lg border border-gray-300 object-cover md:h-64 md:w-[432px] md:min-w-[432px] dark:border-gray-700'
+      : 'h-52 w-full rounded-lg border border-gray-300 object-contain p-2 md:h-44 md:w-72 md:min-w-72 dark:border-gray-700';
+  }
+
+  private applyRouteConfiguration() {
+    const routeContentType = this.route?.snapshot.data?.['contentType'] as DomeBlogContentType | undefined;
+    this.contentType = routeContentType || 'blog';
+    this.isNewsLayout = this.contentType === 'news';
+    this.routeBase = this.isNewsLayout ? '/news' : '/blog';
+    this.pageTitle = this.isNewsLayout ? 'News & Events' : 'Blog';
+    this.createButtonLabel = this.isNewsLayout ? 'Add news/event' : 'Add a new entry';
+  }
+
+  private normalizeEntryResponse(response: any, page: number): { entries: any[]; hasMore: boolean } {
+    const rawEntries = this.extractEntries(response);
+    const entries = rawEntries.filter((entry) => this.matchesContentType(entry));
+    const total = Number(response?.total ?? response?.count ?? response?.pagination?.total ?? 0);
+    const hasExplicitNext = Boolean(response?.next || response?.hasMore || response?.pagination?.hasNext);
+    const hasMore = hasExplicitNext || (total > 0 && page * this.pageLimit < total);
+
+    return { entries, hasMore };
+  }
+
+  private extractEntries(response: any): any[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    const possibleEntries = response?.items || response?.entries || response?.data || response?.results || response?.content;
+    return Array.isArray(possibleEntries) ? possibleEntries : [];
+  }
+
+  private matchesContentType(entry: any): boolean {
+    const entryContentType = (entry?.contentType || entry?.type || '').toString().trim().toLowerCase();
+    if (this.contentType === 'blog') {
+      return !entryContentType || entryContentType === 'blog';
+    }
+
+    return entryContentType === this.contentType;
   }
 
   private stripMarkdown(content: string): string {

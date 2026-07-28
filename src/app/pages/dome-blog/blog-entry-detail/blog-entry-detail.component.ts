@@ -8,6 +8,7 @@ import { LoginInfo } from "src/app/models/interfaces";
 import moment from 'moment';
 import { ConfirmDialogComponent } from "src/app/shared/confirm-dialog/confirm-dialog.component";
 import { Meta, Title } from "@angular/platform-browser";
+import { DomeBlogContentType } from "src/app/services/dome-blog-service.service";
 
 @Component({
   selector: 'app-blog-entry-detail',
@@ -30,6 +31,8 @@ export class BlogEntryDetailComponent implements OnInit {
   blogId:any='';
   partyId:any='';
   checkAdmin:boolean=false;
+  contentType: DomeBlogContentType = 'blog';
+  routeBase = '/blog';
   deleting:boolean=false;
   showDeleteConfirm = false;
   deleteConfirmTitle = 'Delete entry';
@@ -38,6 +41,7 @@ export class BlogEntryDetailComponent implements OnInit {
   deleteConfirmButtonClass = 'px-4 py-2 text-sm font-medium text-white bg-red-700 border border-transparent rounded-md hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500';
 
   async ngOnInit(): Promise<void> {
+    this.applyRouteConfiguration();
     this.initPartyInfo();
     this.blogId = this.route.snapshot.paramMap.get('slugOrId') || this.route.snapshot.paramMap.get('id')!;
     this.entry = await this.getEntryBySlugOrId(this.blogId);
@@ -45,7 +49,7 @@ export class BlogEntryDetailComponent implements OnInit {
   }
 
   goBack(){
-    this.router.navigate(['/blog']);
+    this.router.navigate([this.routeBase]);
   }
 
   goToUpdate() {
@@ -54,7 +58,7 @@ export class BlogEntryDetailComponent implements OnInit {
       return;
     }
 
-    this.router.navigate(['/blog-entry/', entryId]);
+    this.router.navigate(['/blog-entry/', entryId], { queryParams: { type: this.contentType } });
   }
 
   canManageEntry(): boolean {
@@ -107,7 +111,8 @@ export class BlogEntryDetailComponent implements OnInit {
     }
 
     try {
-      const entries = await this.domeBlogService.getBlogEntries();
+      const entriesResponse = await this.domeBlogService.getBlogEntries({ contentType: this.contentType });
+      const entries = this.extractEntries(entriesResponse);
       const matchedEntry = entries.find((entry: any) => entry.slug === slugOrId);
       if (matchedEntry?._id) {
         try {
@@ -160,6 +165,21 @@ export class BlogEntryDetailComponent implements OnInit {
     if (metaDescription) {
       this.metaService.updateTag({ name: 'description', content: metaDescription });
     }
+  }
+
+  private applyRouteConfiguration() {
+    const routeContentType = this.route?.snapshot.data?.['contentType'] as DomeBlogContentType | undefined;
+    this.contentType = routeContentType || 'blog';
+    this.routeBase = this.contentType === 'news' ? '/news' : '/blog';
+  }
+
+  private extractEntries(response: any): any[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    const possibleEntries = response?.items || response?.entries || response?.data || response?.results || response?.content;
+    return Array.isArray(possibleEntries) ? possibleEntries : [];
   }
 
   private getEntryMetaDescription(): string {

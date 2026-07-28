@@ -100,6 +100,7 @@ import { OperatorRevenueSharingComponent } from "src/app/pages/admin/operator-re
 import { ProviderRevenueSharingComponent } from "src/app/pages/user-profile/profile-sections/provider-revenue-sharing/provider-revenue-sharing.component";
 import { MarkdownTextareaComponent } from "src/app/shared/forms/markdown-textarea/markdown-textarea.component";
 import { RequestValidationModalComponent } from './pages/seller-offerings/offerings/seller-product-spec/update-product-spec/request-validation-modal/request-validation-modal.component';
+import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.component';
 
 @NgModule({
   declarations: [
@@ -204,7 +205,8 @@ import { RequestValidationModalComponent } from './pages/seller-offerings/offeri
     AboutDomeComponent,
     MarkdownTextareaComponent,
     ProviderRevenueSharingComponent,
-    OperatorRevenueSharingComponent
+    OperatorRevenueSharingComponent,
+    ConfirmDialogComponent
   ],
   providers: [
     AppInitService,
