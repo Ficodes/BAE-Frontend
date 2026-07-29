@@ -218,7 +218,7 @@
                 </div>
               </div>
             </div>
-          } @else if (currentStep === 2) {
+          } @else if (isOfferStep('terms')) {
             <div class="flex flex-col gap-5" [formGroup]="licenseFormGroup">
               <div>
                 <h2 class="dome-heading-6">{{ 'CREATE_OFFER._terms_conditions' | translate }}</h2>
@@ -258,7 +258,20 @@
                 }
               </div>
             </div>
-          } @else if (currentStep === 3) {
+          } @else if (isOfferStep('contract')) {
+            <div class="flex flex-col gap-5">
+              <div>
+                <h2 class="dome-heading-6">{{ 'CREATE_OFFER._contract_definition' | translate }}</h2>
+                <p class="dome-body-small mt-2">{{ 'CREATE_OFFER._contract_definition_subtitle' | translate }}</p>
+              </div>
+              <app-edc-contract-definition-form
+                [data]="offer"
+                [form]="productOfferForm.controls['edcContractDefinition']"
+                [formType]="formType"
+                (formChange)="handleSubformChange($event)">
+              </app-edc-contract-definition-form>
+            </div>
+          } @else if (isOfferStep('price')) {
             @if(pricePlanFormMode === 'form' && pricePlanFormType === 'tailored'){
               <form [formGroup]="tailoredPricePlanForm" class="flex flex-col gap-5">
                 <button type="button" (click)="cancelTailoredPricePlanForm()"
@@ -607,7 +620,7 @@
                 }
               </div>
             }
-          } @else if (currentStep === 4) {
+          } @else if (isOfferStep('procurement')) {
             <div class="flex flex-col gap-5">
               <div>
                 <h2 class="dome-heading-6">{{ 'CREATE_OFFER._procurement_mode' | translate }}</h2>
@@ -627,7 +640,7 @@
 
       @if(!loading){
         <div class="flex items-center justify-end gap-3 pb-2">
-          @if(currentStep === 3 && pricePlanFormMode === 'form'){
+          @if(isOfferStep('price') && pricePlanFormMode === 'form'){
             <button type="button" (click)="cancelCurrentPricePlanForm()"
               class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50">
               {{ 'CREATE_OFFER._pp_go_back' | translate }}

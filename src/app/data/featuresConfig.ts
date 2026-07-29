@@ -5,6 +5,7 @@ export type FeatureFlagKey =
   | 'quotesEnabled'
   | 'tenderingEnabled'
   | 'dataSpaceEnabled'
+  | 'dspEnabled'
   | 'catalogManagementEnabled'
   | 'launchValidationEnabled'
   | 'tenderDevButtonsOpenCloseEnabled'
@@ -47,6 +48,11 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     descriptionKey: 'ADMIN.FEATURES._data_space_description'
   },
   {
+    key: 'dspEnabled',
+    labelKey: 'ADMIN.FEATURES._dsp_label',
+    descriptionKey: 'ADMIN.FEATURES._dsp_description'
+  },
+  {
     key: 'catalogManagementEnabled',
     labelKey: 'ADMIN.FEATURES._catalog_management_label',
     descriptionKey: 'ADMIN.FEATURES._catalog_management_description'
@@ -82,6 +88,7 @@ export function readFeaturesConfig(config: any): FeaturesConfig {
   result.quotesEnabled = readBoolean(source, 'quotesEnabled');
   result.tenderingEnabled = readBoolean(source, 'tenderingEnabled');
   result.dataSpaceEnabled = readBoolean(source, 'dataSpaceEnabled');
+  result.dspEnabled = readBoolean(source, 'dspEnabled');
   result.catalogManagementEnabled = readBoolean(source, 'catalogManagementEnabled');
   result.launchValidationEnabled = readBoolean(source, 'launchValidationEnabled');
   result.tenderDevButtonsOpenCloseEnabled = readBoolean(source, 'tenderDevButtonsOpenCloseEnabled');
@@ -98,6 +105,7 @@ export function applyRuntimeFeaturesConfig(config: any): void {
   environment.QUOTES_ENABLED = features.quotesEnabled ?? false;
   environment.TENDER_ENABLED = features.tenderingEnabled ?? false;
   environment.DATA_SPACE_ENABLED = features.dataSpaceEnabled ?? false;
+  environment.DSP_ENABLED = features.dspEnabled ?? environment.DSP_ENABLED;
   environment.CATALOG_MANAGEMENT_ENABLED = features.catalogManagementEnabled ?? environment.CATALOG_MANAGEMENT_ENABLED;
   environment.LAUNCH_VALIDATION_ENABLED = features.launchValidationEnabled ?? false;
   environment.TENDER_DEV_BUTTONS_OPEN_CLOSE_ENABLED = features.tenderDevButtonsOpenCloseEnabled ?? false;

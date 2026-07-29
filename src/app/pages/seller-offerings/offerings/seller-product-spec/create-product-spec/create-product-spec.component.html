@@ -43,6 +43,17 @@
                 class="bg-white border text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3"/>
             </div>
 
+            @if(dspEnable){
+              <label class="flex items-start gap-3 p-4 rounded-lg border border-gray-200 cursor-pointer">
+                <input data-cy="prodSpecDspCompatible" type="checkbox" formControlName="dspCompatible"
+                  class="mt-1 w-4 h-4 text-primary-100 focus:ring-primary-100 rounded"/>
+                <span class="flex flex-col">
+                  <span class="text-sm font-semibold text-gray-900">{{ 'CREATE_PROD_SPEC._dsp_compatible' | translate }}</span>
+                  <span class="text-xs text-gray-500">{{ 'CREATE_PROD_SPEC._dsp_compatible_desc' | translate }}</span>
+                </span>
+              </label>
+            }
+
             <div>
               <label class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_PROD_SPEC._product_image' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
               @if(!productImage){
@@ -134,7 +145,7 @@
           </form>
         }
 
-        @if (currentStep === 1) {
+        @if (isCurrentStep('details')) {
           <h2 class="text-2xl font-bold text-gray-900 mb-1">{{ 'CREATE_PROD_SPEC._product_details' | translate }}</h2>
           <p class="text-sm text-gray-500 mb-6">{{ 'CREATE_PROD_SPEC._product_details_desc' | translate }}</p>
 
@@ -302,14 +313,14 @@
           </div>
         }
 
-        @if (currentStep === 2) {
+        @if (isCurrentStep('config')) {
           <div class="flex justify-between items-start gap-4 mb-2">
             <div>
               <h2 class="text-2xl font-bold text-gray-900 mb-1">{{ 'CREATE_PROD_SPEC._config_options' | translate }}</h2>
               <p class="text-sm text-gray-500 max-w-2xl">{{ 'CREATE_PROD_SPEC._config_options_desc' | translate }}</p>
             </div>
-            @if(prodChars.length > 0){
-              <button type="button" (click)="showCreateChar=true" class="flex items-center gap-2 h-10 px-4 border border-primary-100 text-primary-100 rounded-lg text-sm font-semibold hover:bg-secondary-50/50 shrink-0">
+            @if(currentCharacteristics().length > 0){
+              <button type="button" (click)="openCreateChar()" class="flex items-center gap-2 h-10 px-4 border border-primary-100 text-primary-100 rounded-lg text-sm font-semibold hover:bg-secondary-50/50 shrink-0">
                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                 </svg>
@@ -318,7 +329,7 @@
             }
           </div>
 
-          @if(prodChars.length === 0){
+          @if(currentCharacteristics().length === 0){
             <div class="rounded-2xl flex-1 dashed-pane mt-4">
               <div class="flex-1 flex flex-col items-center justify-center px-6 py-12 text-center">
                 <div class="w-[72px] h-[72px] rounded-full flex items-center justify-center mb-5 p-4" style="background-color: #DDE6F6;">
@@ -329,7 +340,7 @@
                 </div>
                 <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ 'CREATE_PROD_SPEC._no_config' | translate }}</h3>
                 <p class="text-sm text-gray-500 mb-5">{{ 'CREATE_PROD_SPEC._add_new_config' | translate }}</p>
-                <button type="button" (click)="showCreateChar=true" class="flex items-center gap-2 h-10 px-4 border border-primary-100 text-primary-100 rounded-lg text-sm font-semibold hover:bg-secondary-50/50">
+                <button type="button" (click)="openCreateChar()" class="flex items-center gap-2 h-10 px-4 border border-primary-100 text-primary-100 rounded-lg text-sm font-semibold hover:bg-secondary-50/50">
                   <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                   </svg>
@@ -339,7 +350,7 @@
             </div>
           }
 
-          @if(prodChars.length > 0){
+          @if(currentCharacteristics().length > 0){
             <div class="relative w-full mt-4 border border-gray-200 rounded-2xl overflow-visible">
               <table class="w-full text-sm text-left text-gray-700">
                 <thead class="text-xs text-gray-500 uppercase">
@@ -352,7 +363,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @for (prod of prodChars; track prod; let idx = $index) {
+                  @for (prod of currentCharacteristics(); track prod; let idx = $index) {
                     <tr class="border-t border-gray-100">
                       <td [ngClass]="{ 'break-all': hasLongWord(prod.name, 20), 'break-words': !hasLongWord(prod.name, 20) }" class="px-6 py-4 text-gray-900">{{prod.name}}</td>
                       <td [ngClass]="{ 'break-all': hasLongWord(prod.description, 20), 'break-words': !hasLongWord(prod.description, 20) }" class="px-6 py-4 text-gray-600">{{prod.description || '-'}}</td>
@@ -391,7 +402,144 @@
           }
         }
 
-        @if (currentStep === 3) {
+        @if (isCurrentStep('dataspace')) {
+          <div class="flex justify-between items-start gap-4 mb-2">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900 mb-1">{{ 'CREATE_PROD_SPEC._dataspace_configuration' | translate }}</h2>
+              <p class="text-sm text-gray-500 max-w-2xl">{{ 'CREATE_PROD_SPEC._dataspace_configuration_desc' | translate }}</p>
+            </div>
+            @if(currentCharacteristics().length > 0){
+              <button type="button" (click)="openCreateChar()" class="flex items-center gap-2 h-10 px-4 border border-primary-100 text-primary-100 rounded-lg text-sm font-semibold hover:bg-secondary-50/50 shrink-0">
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                {{ 'CREATE_PROD_SPEC._add_dataspace_config' | translate }}
+              </button>
+            }
+          </div>
+
+          @if(currentCharacteristics().length === 0){
+            <div class="rounded-2xl dashed-pane mt-4">
+              <div class="flex flex-col items-center justify-center px-6 py-10 text-center">
+                <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ 'CREATE_PROD_SPEC._no_dataspace_config' | translate }}</h3>
+                <p class="text-sm text-gray-500 mb-5">{{ 'CREATE_PROD_SPEC._add_new_dataspace_config' | translate }}</p>
+                <button type="button" (click)="openCreateChar()" class="flex items-center gap-2 h-10 px-4 border border-primary-100 text-primary-100 rounded-lg text-sm font-semibold hover:bg-secondary-50/50">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                  </svg>
+                  {{ 'CREATE_PROD_SPEC._add_dataspace_config' | translate }}
+                </button>
+              </div>
+            </div>
+          }
+
+          @if(currentCharacteristics().length > 0){
+            <div class="relative w-full mt-4 border border-gray-200 rounded-2xl overflow-visible">
+              <table class="w-full text-sm text-left text-gray-700">
+                <thead class="text-xs text-gray-500 uppercase">
+                  <tr class="border-b border-gray-200">
+                    <th scope="col" class="px-6 py-3 font-semibold">{{ 'CREATE_PROD_SPEC._name' | translate }}</th>
+                    <th scope="col" class="px-6 py-3 font-semibold">{{ 'CREATE_PROD_SPEC._type' | translate }}</th>
+                    <th scope="col" class="px-6 py-3 font-semibold">{{ 'CREATE_PROD_SPEC._value' | translate }}</th>
+                    <th scope="col" class="px-6 py-3 font-semibold w-20">{{ 'CREATE_PROD_SPEC._action' | translate }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (prod of currentCharacteristics(); track prod; let idx = $index) {
+                    <tr class="border-t border-gray-100">
+                      <td class="px-6 py-4 text-gray-900">{{prod.name}}</td>
+                      <td class="px-6 py-4 text-gray-600">{{prod.valueType || '-'}}</td>
+                      <td class="px-6 py-4 text-gray-900">{{ formatCharValues(prod) }}</td>
+                      <td class="px-6 py-4 relative">
+                        <button type="button" (click)="toggleCharMenu(idx, $event)" class="p-1 hover:bg-gray-100 rounded text-gray-500">
+                          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="5" r="2"/>
+                            <circle cx="12" cy="12" r="2"/>
+                            <circle cx="12" cy="19" r="2"/>
+                          </svg>
+                        </button>
+                        @if(openCharMenuIdx === idx){
+                          <div class="absolute right-6 top-12 z-20 bg-white rounded-xl shadow-lg border border-gray-100 py-2 w-36" (click)="$event.stopPropagation()">
+                            <button type="button" (click)="editChar(idx)" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ 'CREATE_PROD_SPEC._edit' | translate }}</button>
+                            <button type="button" (click)="deleteChar(prod); openCharMenuIdx=null" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ 'CREATE_PROD_SPEC._delete' | translate }}</button>
+                          </div>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+          @if(isDspCompatibleSelected()){
+            <div class="mt-8 flex flex-col gap-5" [formGroup]="dspConfigForm">
+              <div>
+                <h3 class="text-lg font-bold text-gray-900">{{ 'CREATE_PROD_SPEC._dsp_configuration' | translate }}</h3>
+                <p class="text-sm text-gray-500 mt-1">{{ 'CREATE_PROD_SPEC._dsp_configuration_desc' | translate }}</p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="text" [(ngModel)]="newEndpointName" [ngModelOptions]="{standalone: true}" placeholder="{{ 'CREATE_PROD_SPEC._dsp_endpoint_name_placeholder' | translate }}" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3"/>
+                <input type="url" [(ngModel)]="newEndpointUrl" [ngModelOptions]="{standalone: true}" placeholder="{{ 'CREATE_PROD_SPEC._dsp_endpoint_url_placeholder' | translate }}" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3"/>
+                <div class="flex gap-2">
+                  <input type="text" [(ngModel)]="newEndpointDescription" [ngModelOptions]="{standalone: true}" placeholder="{{ 'CREATE_PROD_SPEC._dsp_endpoint_description_placeholder' | translate }}" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3"/>
+                  <button type="button" (click)="addEndpointUrl()" [disabled]="!newEndpointName || !newEndpointUrl || !newEndpointDescription" class="h-11 px-4 border border-primary-100 text-primary-100 rounded-lg text-sm font-semibold disabled:opacity-50">{{ 'CREATE_PROD_SPEC._dsp_add_endpoint' | translate }}</button>
+                </div>
+              </div>
+
+              @if(endpointUrls.length > 0){
+                <div class="flex flex-col gap-2">
+                  @for(endpoint of endpointUrls; track endpoint.url; let idx = $index){
+                    <div class="flex items-center justify-between px-4 py-3 border border-gray-200 rounded-lg">
+                      <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-900">{{ endpoint.name }}</p>
+                        <p class="text-xs text-gray-500 break-all">{{ endpoint.url }}</p>
+                        <p class="text-xs text-gray-500">{{ endpoint.description }}</p>
+                      </div>
+                      <button type="button" (click)="removeEndpointUrl(idx)" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                      </button>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="text-xs text-red-600">{{ 'CREATE_PROD_SPEC._dsp_endpoint_required' | translate }}</p>
+              }
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_PROD_SPEC._dsp_upstream_address' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+                  <input formControlName="upstreamAddress" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3"/>
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_PROD_SPEC._dsp_transfer_type' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+                  <select formControlName="transferType" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3">
+                    @for(type of transferTypes; track type){ <option [value]="type">{{ type }}</option> }
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_PROD_SPEC._dsp_transfer_path' | translate }}</label>
+                  <input formControlName="transferPath" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3"/>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @for(field of ['targetSpecification', 'serviceConfiguration', 'credentialsConfig', 'policyConfig']; track field){
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">{{ ('CREATE_PROD_SPEC._dsp_' + field) | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+                    <textarea [formControlName]="field" rows="6" class="font-mono bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3 resize-y"></textarea>
+                    @if(dspConfigForm.get(field)?.hasError('invalidJson')){
+                      <p class="mt-1 text-xs text-red-600">{{ 'CREATE_PROD_SPEC._invalid_json' | translate }}</p>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        }
+
+        @if (isCurrentStep('service')) {
           <h2 class="text-2xl font-bold text-gray-900 mb-1">{{ 'CREATE_PROD_SPEC._service_specs_step' | translate }}</h2>
           <p class="text-sm text-gray-500 mb-6">{{ 'CREATE_PROD_SPEC._service_specs_desc' | translate }}</p>
 
@@ -436,7 +584,7 @@
           </div>
         }
 
-        @if (currentStep === 4) {
+        @if (isCurrentStep('resource')) {
           <h2 class="text-2xl font-bold text-gray-900 mb-1">{{ 'CREATE_PROD_SPEC._resource_specs_step' | translate }}</h2>
           <p class="text-sm text-gray-500 mb-6">{{ 'CREATE_PROD_SPEC._resource_specs_desc' | translate }}</p>
 
@@ -481,7 +629,7 @@
           </div>
         }
 
-        @if (currentStep === 5) {
+        @if (isCurrentStep('faqs')) {
           <div class="flex justify-between items-start gap-4 mb-2">
             <div>
               <h2 class="text-2xl font-bold text-gray-900 mb-1">{{ 'CREATE_PROD_SPEC._faqs_step' | translate }}</h2>
@@ -552,7 +700,7 @@
           }
         }
 
-        @if (currentStep === 6) {
+        @if (isCurrentStep('compliance')) {
           <h2 class="text-2xl font-bold text-gray-900 mb-1">{{ 'CREATE_PROD_SPEC._compliance_step' | translate }}</h2>
           <p class="text-sm text-gray-500 mb-6">{{ 'CREATE_PROD_SPEC._compliance_desc' | translate }}</p>
 
@@ -757,12 +905,17 @@
           </div>
           <div>
             <label class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_PROD_SPEC._type' | translate }}</label>
-            <select data-cy="prodSpecCharType" id="type" (change)="onTypeChange($event)"
+            <select data-cy="prodSpecCharType" id="type" [value]="charTypeSelected" (change)="onTypeChange($event)"
               class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-2.5">
-              <option selected value="string">{{ 'CREATE_PROD_SPEC._type_string' | translate }}</option>
-              <option value="number">{{ 'CREATE_PROD_SPEC._type_number' | translate }}</option>
-              <option value="range">{{ 'CREATE_PROD_SPEC._type_number_range' | translate }}</option>
-              <option value="boolean">{{ 'CREATE_PROD_SPEC._type_boolean' | translate }}</option>
+              @if(isDataspaceConfigurationStep()){
+                <option value="credentialsConfiguration">{{ 'CREATE_PROD_SPEC._type_credentials_configuration' | translate }}</option>
+                <option value="authorizationPolicy">{{ 'CREATE_PROD_SPEC._type_authorization_policy' | translate }}</option>
+              } @else {
+                <option value="string">{{ 'CREATE_PROD_SPEC._type_string' | translate }}</option>
+                <option value="number">{{ 'CREATE_PROD_SPEC._type_number' | translate }}</option>
+                <option value="range">{{ 'CREATE_PROD_SPEC._type_number_range' | translate }}</option>
+                <option value="boolean">{{ 'CREATE_PROD_SPEC._type_boolean' | translate }}</option>
+              }
             </select>
           </div>
           <div class="col-span-1 md:col-span-2">
@@ -811,7 +964,18 @@
             </div>
           }
 
-          @if(stringCharSelected){
+          @if(isJsonCharacteristicType(charTypeSelected)){
+            <div class="flex flex-col gap-3">
+              <textarea data-cy="prodSpecCharValueJson" [(ngModel)]="jsonValue" rows="8" placeholder="{{ 'CREATE_PROD_SPEC._json_value' | translate }}"
+                class="font-mono bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-2.5 resize-y"></textarea>
+              <button data-cy="prodSpecAddCharValue" (click)="addCharValue()" [disabled]="!jsonValue || creatingChars.length > 0" [ngClass]="!jsonValue || creatingChars.length > 0 ? 'opacity-50 cursor-not-allowed' : ''" type="button" class="flex items-center gap-2 h-10 px-4 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 shrink-0 whitespace-nowrap w-fit">
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                {{ 'CREATE_PROD_SPEC._add_json' | translate }}
+              </button>
+            </div>
+          } @else if(stringCharSelected){
             <div class="flex flex-row items-center gap-3">
               <input data-cy="prodSpecCharValueString" type="text" [(ngModel)]="stringValue" placeholder="{{ 'CREATE_PROD_SPEC._tag_placeholder' | translate }}"
                 class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-2.5"/>

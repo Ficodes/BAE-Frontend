@@ -10,7 +10,7 @@ import { LoginInfo } from 'src/app/models/interfaces';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import * as moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
-import { noWhitespaceValidator } from 'src/app/validators/validators';
+import { jsonValidator, noWhitespaceValidator } from 'src/app/validators/validators';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { POPULAR_ICON_CATEGORIES, findIconByName, IconCategory } from 'src/app/config/popular-icons';
@@ -22,6 +22,19 @@ type ProductSpecification_Create = components["schemas"]["ProductSpecification_C
 type ProductSpecification_Update = components["schemas"]["ProductSpecification_Update"];
 type CharacteristicValueSpecification = components["schemas"]["CharacteristicValueSpecification"];
 type ProductSpecificationCharacteristic = components["schemas"]["ProductSpecificationCharacteristic"];
+
+type ProductSpecStepKey = 'general' | 'details' | 'config' | 'dataspace' | 'service' | 'resource' | 'faqs' | 'compliance';
+
+const DSP_CHARS: string[] = [
+  'endpointUrl',
+  'upstreamAddress',
+  'targetSpecification',
+  'serviceConfiguration',
+  'credentialsConfig',
+  'authorizationPolicy',
+  'transferPath',
+  'transferType'
+];
 
 @Component({
   selector: 'create-product-spec',
@@ -41,15 +54,17 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   stepsCircles:string[]=['general-circle','chars-circle'];
   currentStep = 0;
   highestStep = 0;
-  steps = [
-    'CREATE_PROD_SPEC._step_general_info',
-    'CREATE_PROD_SPEC._step_product_details',
-    'CREATE_PROD_SPEC._step_configuration_options',
-    'CREATE_PROD_SPEC._step_service_specs',
-    'CREATE_PROD_SPEC._step_resource_specs',
-    'CREATE_PROD_SPEC._step_faqs',
-    'CREATE_PROD_SPEC._step_compliance_profile'
-  ];
+  steps: string[] = [];
+  private readonly stepLabels: Record<ProductSpecStepKey, string> = {
+    general: 'CREATE_PROD_SPEC._step_general_info',
+    details: 'CREATE_PROD_SPEC._step_product_details',
+    config: 'CREATE_PROD_SPEC._step_configuration_options',
+    dataspace: 'CREATE_PROD_SPEC._step_dataspace_configuration',
+    service: 'CREATE_PROD_SPEC._step_service_specs',
+    resource: 'CREATE_PROD_SPEC._step_resource_specs',
+    faqs: 'CREATE_PROD_SPEC._step_faqs',
+    compliance: 'CREATE_PROD_SPEC._step_compliance_profile'
+  };
 
   productImage: { name: string, size?: number } | null = null;
   productImageUrl: string | null = null;
@@ -119,6 +134,23 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   generalForm = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.maxLength(100), noWhitespaceValidator]),
     description: new FormControl('', Validators.maxLength(100000)),
+    dspCompatible: new FormControl(false),
+  });
+
+  DATA_SPACE_ENABLED: boolean = environment.DATA_SPACE_ENABLED;
+  newEndpointUrl: string = '';
+  newEndpointDescription: string = '';
+  newEndpointName: string = '';
+  endpointUrls: { url: string; description: string; name: string; id?: string }[] = [];
+  readonly transferTypes: string[] = ['HttpData-PULL', 'HttpData-PUSH'];
+  dspConfigForm = new FormGroup({
+    upstreamAddress: new FormControl('', [Validators.required]),
+    transferPath: new FormControl(''),
+    transferType: new FormControl('HttpData-PULL', [Validators.required]),
+    targetSpecification: new FormControl('', [Validators.required, jsonValidator]),
+    serviceConfiguration: new FormControl('', [Validators.required, jsonValidator]),
+    credentialsConfig: new FormControl('', [Validators.required, jsonValidator]),
+    policyConfig: new FormControl('', [Validators.required, jsonValidator]),
   });
 
   charsForm = new FormGroup({
@@ -132,6 +164,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   booleanCharSelected:boolean=false;
   booleanDefaultTrue:boolean=true;
   prodChars:ProductSpecificationCharacteristic[]=[];
+  dataspaceChars:ProductSpecificationCharacteristic[]=[];
   creatingChars:CharacteristicValueSpecification[]=[];
   showCreateChar:boolean=false;
 
@@ -149,7 +182,17 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   fromValue: string = '';
   toValue: string = '';
   rangeUnit: string = '';
+  jsonValue: string = '';
+  charTypeSelected: string = 'string';
+  readonly dataSpaceCharacteristicTypes: string[] = [
+    'credentialsConfiguration',
+    'authorizationPolicy'
+  ];
   private destroy$ = new Subject<void>();
+
+  get dspEnable(): boolean {
+    return environment.DSP_ENABLED && this.DATA_SPACE_ENABLED;
+  }
 
   constructor(
     private router: Router,
@@ -202,6 +245,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   ngOnInit() {
+    this.steps = this.getFormSteps();
     this.initPartyInfo();
     this.loadValidatedSpecs();
     if(this.prod){
@@ -209,15 +253,24 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
       this.createdProdId = this.prod.id;
       this.generalForm.patchValue({
         name: this.prod.name || '',
-        description: this.parseDescription(this.prod.description || '')
+        description: this.parseDescription(this.prod.description || ''),
+        dspCompatible: !!this.prod.externalId
       });
       this.prodChars = (this.prod.productSpecCharacteristic || [])
-        .filter((c:any) => !(c?.name || '').startsWith('Compliance:'))
+        .filter((c:any) => !(c?.name || '').startsWith('Compliance:') && !this.isDataspaceOrDspCharacteristic(c))
         .map((c:any) => ({
           ...c,
           _lastUpdate: c._lastUpdate || this.prod.lastUpdate || new Date(),
           _isOptional: c._isOptional || false
         }));
+      this.dataspaceChars = (this.prod.productSpecCharacteristic || [])
+        .filter((c:any) => this.isDataspaceCharacteristic(c))
+        .map((c:any) => ({
+          ...c,
+          _lastUpdate: c._lastUpdate || this.prod.lastUpdate || new Date(),
+          _isOptional: c._isOptional || false
+        }));
+      this.loadDspConfigurationFromProd();
       this.linkedServiceSpecIds = (this.prod.serviceSpecification || []).map((s:any) => s?.id).filter(Boolean);
       this.linkedResourceSpecIds = (this.prod.resourceSpecification || []).map((r:any) => r?.id).filter(Boolean);
       this.loadAttachmentsFromProd();
@@ -345,6 +398,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
 
   onTypeChange(event: any) {
     const value = event.target.value;
+    this.charTypeSelected = value;
     this.stringCharSelected = value=='string';
     this.numberCharSelected = value=='number';
     this.rangeCharSelected = value=='range';
@@ -376,7 +430,22 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   addCharValue(){
-    if(this.stringCharSelected){
+    if(this.isJsonCharacteristicType(this.charTypeSelected)){
+      if(this.creatingChars.length > 0){
+        this.errorMessage = this.translate.instant('CREATE_PROD_SPEC._json_single_value_error');
+        this.showError = true;
+        setTimeout(() => { this.showError = false; }, 3000);
+        return;
+      }
+      try {
+        this.creatingChars.push({ isDefault: true, value: JSON.parse(this.jsonValue) as any });
+        this.jsonValue = '';
+      } catch {
+        this.errorMessage = this.translate.instant('CREATE_PROD_SPEC._invalid_json');
+        this.showError = true;
+        setTimeout(() => { this.showError = false; }, 3000);
+      }
+    } else if(this.stringCharSelected){
       if(this.creatingChars.length==0){
         this.creatingChars.push({ isDefault:true, value:this.stringValue as any })
       } else {
@@ -411,7 +480,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
 
   saveChar(){
     if(this.charsForm.value.name!=null){
-      const existing = this.editingCharIdx !== null ? this.prodChars[this.editingCharIdx] : null;
+      const targetChars = this.currentCharacteristicList();
+      const existing = this.editingCharIdx !== null ? targetChars[this.editingCharIdx] : null;
       const charData: any = {
         ...(existing || {}),
         id: existing ? (existing as any).id : 'urn:ngsi-ld:characteristic:'+uuidv4(),
@@ -424,12 +494,23 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
         _lastUpdate: new Date(),
         _isOptional: this.charIsOptional
       };
+      const schemaLocation = this.getSchemaLocationForType(this.charTypeSelected);
+      if (!['string', 'number', 'boolean', 'range'].includes(this.charTypeSelected)) {
+        charData.valueType = this.charTypeSelected;
+      } else {
+        delete charData.valueType;
+      }
+      if (schemaLocation) {
+        charData['@schemaLocation'] = schemaLocation;
+      } else {
+        delete charData['@schemaLocation'];
+      }
       if(existing){
-        this.prodChars[this.editingCharIdx as number] = charData;
+        targetChars[this.editingCharIdx as number] = charData;
         this.editingCharIdx = null;
       } else {
         this.editingCharIdx = null;
-        this.prodChars.push(charData);
+        targetChars.push(charData);
       }
     }
 
@@ -441,13 +522,14 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     this.rangeCharSelected=false;
     this.booleanCharSelected=false;
     this.booleanDefaultTrue=true;
+    this.charTypeSelected = this.getInitialCharacteristicTypeForCurrentStep();
     this.charIsOptional=false;
     this.refreshChars();
     this.cdr.detectChanges();
   }
 
   editChar(idx: number){
-    const char: any = this.prodChars[idx];
+    const char: any = this.currentCharacteristicList()[idx];
     this.editingCharIdx = idx;
     this.charsForm.patchValue({
       name: char.name,
@@ -457,14 +539,23 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     this.creatingChars = (char.productSpecCharacteristicValue || []).map((v: any) => ({ ...v }));
     const vals = this.creatingChars as any[];
     const first = vals[0];
+    this.charTypeSelected = char.valueType || 'string';
     const isBoolean = vals.length > 0 && vals.every(c =>
       c.value === true || c.value === false || c.value === 'true' || c.value === 'false');
-    if(first?.valueFrom !== undefined){
+    if(this.isJsonCharacteristicType(this.charTypeSelected)){
+      this.stringCharSelected = false;
+      this.numberCharSelected = false;
+      this.rangeCharSelected = false;
+      this.booleanCharSelected = false;
+      this.jsonValue = '';
+    } else if(first?.valueFrom !== undefined){
+      this.charTypeSelected = 'range';
       this.stringCharSelected = false;
       this.numberCharSelected = false;
       this.rangeCharSelected = true;
       this.booleanCharSelected = false;
     } else if(isBoolean){
+      this.charTypeSelected = 'boolean';
       this.stringCharSelected = false;
       this.numberCharSelected = false;
       this.rangeCharSelected = false;
@@ -472,11 +563,13 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
       const def = vals.find(c => c.isDefault);
       this.booleanDefaultTrue = def ? (def.value === true || def.value === 'true') : true;
     } else if(first?.unitOfMeasure){
+      this.charTypeSelected = 'number';
       this.stringCharSelected = false;
       this.numberCharSelected = true;
       this.rangeCharSelected = false;
       this.booleanCharSelected = false;
     } else {
+      this.charTypeSelected = 'string';
       this.stringCharSelected = true;
       this.numberCharSelected = false;
       this.rangeCharSelected = false;
@@ -491,6 +584,9 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     return values.map((c: any) => {
       if(c.valueFrom !== undefined && c.valueFrom !== null){
         return `${c.valueFrom}-${c.valueTo}${c.unitOfMeasure ? ' ' + c.unitOfMeasure : ''}`;
+      }
+      if (c.value && typeof c.value === 'object') {
+        return JSON.stringify(c.value);
       }
       return c.unitOfMeasure ? `${c.value} ${c.unitOfMeasure}` : `${c.value}`;
     }).join(',');
@@ -517,9 +613,10 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   deleteChar(char:any){
-    const index = this.prodChars.findIndex((item:any) => item.id === char.id);
+    const targetChars = this.currentCharacteristicList();
+    const index = targetChars.findIndex((item:any) => item.id === char.id);
     if (index !== -1) {
-      this.prodChars.splice(index, 1);
+      targetChars.splice(index, 1);
       if(this.editingCharIdx === index){
         this.editingCharIdx = null;
         this.showCreateChar = false;
@@ -539,7 +636,16 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
         const { _lastUpdate, _isOptional, ...rest } = c;
         return rest;
       });
-      const allChars = [...cleanChars, ...this.buildComplianceChars()];
+      const dataspaceChars = this.dataspaceChars.map((c:any) => {
+        const { _lastUpdate, _isOptional, ...rest } = c;
+        return rest;
+      });
+      const allChars = [
+        ...cleanChars,
+        ...dataspaceChars,
+        ...this.buildComplianceChars(),
+        ...this.buildDspCharacteristics(false)
+      ];
       const attachmentList = this.buildAttachmentPayload(false);
 
       this.productSpecToCreate = {
@@ -568,6 +674,11 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
           }
         ],
       } as any;
+
+      if (this.isDspCompatibleSelected()) {
+        (this.productSpecToCreate as any).externalId = uuidv4();
+        (this.productSpecToCreate as any)['@schemaLocation'] = environment.DSP_SCHEMA;
+      }
     }
   }
 
@@ -585,14 +696,21 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
       patch.lifecycleStatus = 'Launched';
     }
 
+    if (this.isDspCompatibleSelected()) {
+      (patch as any).externalId = this.prod?.externalId || uuidv4();
+      (patch as any)['@schemaLocation'] = environment.DSP_SCHEMA;
+    }
+
     this.productSpecToUpdate = patch;
     return patch;
   }
 
   private buildMergedProductSpecCharacteristics(): any[] {
     const normalChars = this.prodChars.map((char: any) => this.mergeCharacteristicForUpdate(char));
+    const dataspaceChars = this.dataspaceChars.map((char: any) => this.mergeCharacteristicForUpdate(char));
     const complianceChars = this.buildComplianceChars().map((char: any) => this.mergeCharacteristicForUpdate(char));
-    return [...normalChars, ...complianceChars];
+    const dspChars = this.buildDspCharacteristics(true).map((char: any) => this.mergeCharacteristicForUpdate(char));
+    return [...normalChars, ...dataspaceChars, ...complianceChars, ...dspChars];
   }
 
   private mergeCharacteristicForUpdate(char: any): any {
@@ -698,6 +816,172 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     return JSON.parse(JSON.stringify(value));
   }
 
+  isDspCompatibleSelected(): boolean {
+    return this.dspEnable && !!this.generalForm.get('dspCompatible')?.value;
+  }
+
+  isDataspaceConfigurationStep(): boolean {
+    return this.isCurrentStep('dataspace');
+  }
+
+  isJsonCharacteristicType(type: string | undefined): boolean {
+    return !!type && this.dataSpaceCharacteristicTypes.includes(type);
+  }
+
+  private isDataspaceCharacteristic(char: any): boolean {
+    if (!char?.valueType) return false;
+    if (char.valueType === 'credentialsConfiguration') return true;
+    return char.valueType === 'authorizationPolicy' && !this.prod?.externalId;
+  }
+
+  private isDataspaceOrDspCharacteristic(char: any): boolean {
+    const isDspChar = DSP_CHARS.includes(char?.valueType)
+      && (this.prod?.externalId || char?.valueType !== 'authorizationPolicy');
+    return this.isDataspaceCharacteristic(char) || isDspChar;
+  }
+
+  private currentCharacteristicList(): ProductSpecificationCharacteristic[] {
+    return this.isDataspaceConfigurationStep() ? this.dataspaceChars : this.prodChars;
+  }
+
+  currentCharacteristics(): ProductSpecificationCharacteristic[] {
+    return this.currentCharacteristicList();
+  }
+
+  getInitialCharacteristicTypeForCurrentStep(): string {
+    return this.isDataspaceConfigurationStep() ? 'credentialsConfiguration' : 'string';
+  }
+
+  private getSchemaLocationForType(type: string): string | null {
+    if (type === 'credentialsConfiguration' || type === 'credentialsConfig') {
+      return 'https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/main/schemas/credentials/credentialConfigCharacteristic.json';
+    }
+    if (type === 'authorizationPolicy') {
+      return 'https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/policy-support/schemas/odrl/policyCharacteristic.json';
+    }
+    return null;
+  }
+
+  private parseJsonControl(controlName: string): any {
+    const raw = this.dspConfigForm.get(controlName)?.value || '';
+    return typeof raw === 'string' ? JSON.parse(raw) : raw;
+  }
+
+  private buildDspCharacteristics(preserveEndpointIds: boolean): any[] {
+    if (!this.isDspCompatibleSelected()) return [];
+
+    const dspValue = this.dspConfigForm.value;
+    const chars: any[] = this.endpointUrls.map(endpoint => ({
+      id: preserveEndpointIds ? (endpoint.id || uuidv4()) : uuidv4(),
+      description: endpoint.description,
+      valueType: 'endpointUrl',
+      name: endpoint.name,
+      productSpecCharacteristicValue: [
+        { value: endpoint.url as any, isDefault: true }
+      ]
+    }));
+
+    chars.push(
+      {
+        id: 'upstreamAddress',
+        name: 'Address of the upstream serving the data',
+        valueType: 'upstreamAddress',
+        productSpecCharacteristicValue: [
+          { value: dspValue.upstreamAddress as any, isDefault: true }
+        ]
+      },
+      {
+        id: 'targetSpecification',
+        name: 'Detailed specification of the ODRL target. Allows to offer services via OID4VC',
+        valueType: 'targetSpecification',
+        productSpecCharacteristicValue: [
+          { value: this.parseJsonControl('targetSpecification'), isDefault: true }
+        ]
+      },
+      {
+        id: 'serviceConfiguration',
+        name: 'Service config to be used in the credentials config service when provisioning transfers through OID4VC',
+        valueType: 'serviceConfiguration',
+        productSpecCharacteristicValue: [
+          { value: this.parseJsonControl('serviceConfiguration'), isDefault: true }
+        ]
+      },
+      {
+        id: 'credentialsConfig',
+        name: 'Credentials Config',
+        valueType: 'credentialsConfig',
+        '@schemaLocation': this.getSchemaLocationForType('credentialsConfig'),
+        productSpecCharacteristicValue: [
+          { value: this.parseJsonControl('credentialsConfig'), isDefault: true }
+        ]
+      },
+      {
+        id: 'policyConfig',
+        name: 'Policy for creation of K8S clusters.',
+        valueType: 'authorizationPolicy',
+        '@schemaLocation': this.getSchemaLocationForType('authorizationPolicy'),
+        productSpecCharacteristicValue: [
+          { value: this.parseJsonControl('policyConfig'), isDefault: true }
+        ]
+      },
+      {
+        id: 'transferType',
+        name: 'transferType',
+        valueType: 'transferType',
+        productSpecCharacteristicValue: [
+          { value: dspValue.transferType as any, isDefault: true }
+        ]
+      }
+    );
+
+    if (dspValue.transferPath) {
+      chars.push({
+        id: 'transferPath',
+        name: 'transferPath',
+        valueType: 'transferPath',
+        productSpecCharacteristicValue: [
+          { value: dspValue.transferPath as any, isDefault: true }
+        ]
+      });
+    }
+
+    return chars;
+  }
+
+  private loadDspConfigurationFromProd(): void {
+    if (!this.prod?.externalId || !Array.isArray(this.prod?.productSpecCharacteristic)) return;
+
+    const patch: any = {};
+    this.endpointUrls = [];
+    this.prod.productSpecCharacteristic.forEach((char: any) => {
+      const value = char?.productSpecCharacteristicValue?.[0]?.value ?? '';
+      switch (char.valueType) {
+        case 'endpointUrl':
+          this.endpointUrls.push({
+            id: char.id,
+            name: char.name || '',
+            description: char.description || '',
+            url: value
+          });
+          break;
+        case 'upstreamAddress':
+        case 'transferPath':
+        case 'transferType':
+          patch[char.valueType] = value;
+          break;
+        case 'targetSpecification':
+        case 'serviceConfiguration':
+        case 'credentialsConfig':
+          patch[char.valueType] = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+          break;
+        case 'authorizationPolicy':
+          patch.policyConfig = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+          break;
+      }
+    });
+    this.dspConfigForm.patchValue(patch);
+  }
+
   createProduct(){
     this.productImageTouched = true;
     if (!this.isGeneralInfoStepValid()) {
@@ -721,12 +1005,22 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     this.fromValue = '';
     this.toValue = '';
     this.rangeUnit = '';
+    this.jsonValue = '';
     this.stringCharSelected=true;
     this.numberCharSelected=false;
     this.rangeCharSelected=false;
     this.booleanCharSelected=false;
     this.booleanDefaultTrue=true;
+    this.charTypeSelected = this.getInitialCharacteristicTypeForCurrentStep();
     this.creatingChars=[];
+  }
+
+  openCreateChar(): void {
+    this.editingCharIdx = null;
+    this.charsForm.reset();
+    this.charIsOptional = false;
+    this.refreshChars();
+    this.showCreateChar = true;
   }
 
   itemListFor(type: 'feature' | 'benefit' | 'usecase'){
@@ -1208,17 +1502,20 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   validateCurrentStep(): boolean {
-    switch (this.currentStep) {
-      case 0:
-        return this.isGeneralInfoStepValid();
-      default:
-        return true;
+    if (this.isCurrentStep('general')) {
+      return this.isGeneralInfoStepValid();
     }
+    if (this.isCurrentStep('dataspace') && this.isDspCompatibleSelected()) {
+      return this.endpointUrls.length > 0 && this.dspConfigForm.valid;
+    }
+    return true;
   }
 
   canNavigate(index: number) {
     if (index === this.currentStep || index === 0) return true;
-    return this.isGeneralInfoStepValid();
+    return this.isGeneralInfoStepValid() && this.steps
+      .slice(0, index)
+      .every((_: string, i: number) => this.isOptionalStep(i) || this.completedStep(i));
   }
 
   handleStepClick(index: number): void {
@@ -1227,16 +1524,54 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     }
   }
 
-  optionalSteps = [3, 4, 5, 6];
+  private getFormSteps(): string[] {
+    const steps = [
+      this.stepLabels.general,
+      this.stepLabels.details,
+      this.stepLabels.config
+    ];
+    if (this.DATA_SPACE_ENABLED) {
+      steps.push(this.stepLabels.dataspace);
+    }
+    steps.push(
+      this.stepLabels.service,
+      this.stepLabels.resource,
+      this.stepLabels.faqs,
+      this.stepLabels.compliance
+    );
+    return steps;
+  }
+
+  isCurrentStep(key: ProductSpecStepKey): boolean {
+    return this.steps[this.currentStep] === this.stepLabels[key];
+  }
+
+  private stepKeyAt(index: number): ProductSpecStepKey | null {
+    const label = this.steps[index];
+    return (Object.keys(this.stepLabels) as ProductSpecStepKey[])
+      .find(key => this.stepLabels[key] === label) || null;
+  }
+
+  optionalSteps = [
+    this.stepLabels.service,
+    this.stepLabels.resource,
+    this.stepLabels.faqs,
+    this.stepLabels.compliance
+  ];
 
   isOptionalStep(index: number): boolean {
-    return this.optionalSteps.includes(index);
+    const label = this.steps[index];
+    return this.optionalSteps.includes(label)
+      || (label === this.stepLabels.dataspace && !this.isDspCompatibleSelected());
   }
 
   completedStep(index: number): boolean {
     if (this.isOptionalStep(index)) return this.isEditMode || this.stepHasContent(index) || index < this.highestStep;
-    switch (index) {
-      case 0: return this.isGeneralInfoStepValid();
+    switch (this.stepKeyAt(index)) {
+      case 'general':
+        return this.isGeneralInfoStepValid();
+      case 'dataspace':
+        return this.isDspCompatibleSelected() ? this.endpointUrls.length > 0 && this.dspConfigForm.valid : this.stepHasContent(index);
       default: return this.stepHasContent(index);
     }
   }
@@ -1254,13 +1589,14 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   private stepHasContent(index: number): boolean {
-    switch (index) {
-      case 1: return !!this.howItWorks?.trim() || this.keyFeatures.length > 0
+    switch (this.stepKeyAt(index)) {
+      case 'details': return !!this.howItWorks?.trim() || this.keyFeatures.length > 0
         || this.businessBenefits.length > 0 || this.useCases.length > 0;
-      case 2: return this.prodChars.length > 0;
-      case 3: return this.linkedServiceSpecIds.length > 0;
-      case 4: return this.linkedResourceSpecIds.length > 0;
-      case 5: return this.faqs.length > 0;
+      case 'config': return this.prodChars.length > 0;
+      case 'dataspace': return this.dataspaceChars.length > 0 || this.endpointUrls.length > 0;
+      case 'service': return this.linkedServiceSpecIds.length > 0;
+      case 'resource': return this.linkedResourceSpecIds.length > 0;
+      case 'faqs': return this.faqs.length > 0;
       default: return false;
     }
   }
@@ -1371,6 +1707,21 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     const hh = String(d.getHours()).padStart(2,'0');
     const mi = String(d.getMinutes()).padStart(2,'0');
     return `${dd}/${mm}/${yyyy} - ${hh}:${mi}`;
+  }
+
+  addEndpointUrl(): void {
+    const url = this.newEndpointUrl.trim();
+    const description = this.newEndpointDescription.trim();
+    const name = this.newEndpointName.trim();
+    if (!url || !description || !name) return;
+    this.endpointUrls = [...this.endpointUrls, { url, description, name, id: uuidv4() }];
+    this.newEndpointUrl = '';
+    this.newEndpointDescription = '';
+    this.newEndpointName = '';
+  }
+
+  removeEndpointUrl(idx: number): void {
+    this.endpointUrls = this.endpointUrls.filter((_, i) => i !== idx);
   }
 
   openUsageModal(editIdx: number | null = null){

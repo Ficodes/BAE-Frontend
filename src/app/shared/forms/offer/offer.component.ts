@@ -16,6 +16,7 @@ import { ApiServiceService } from "../../../services/product-service.service";
 import { ProductSpecServiceService } from "../../../services/product-spec-service.service";
 import { UsageServiceService } from "../../../services/usage-service.service";
 import { CatalogueComponent } from "./catalogue/catalogue.component";
+import { EdcContractDefinitionComponent } from "./edc-contract-definition/edc-contract-definition.component";
 import { GeneralInfoComponent } from "./general-info/general-info.component";
 import { LicenseComponent } from "./license/license.component";
 import { MarkdownTextareaComponent } from "../markdown-textarea/markdown-textarea.component";
@@ -28,6 +29,19 @@ import { availableFilters, searchCategoriesConfig, type Filter } from "src/app/d
 
 type ProductOffering_Create = components["schemas"]["ProductOffering_Create"];
 type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
+type OfferStepKey = 'general' | 'category' | 'terms' | 'contract' | 'price' | 'procurement';
+
+const NON_PRICE_CONFIG_VALUE_TYPES: string[] = [
+  'credentialsConfiguration',
+  'authorizationPolicy',
+  'endpointUrl',
+  'upstreamAddress',
+  'targetSpecification',
+  'serviceConfiguration',
+  'credentialsConfig',
+  'transferPath',
+  'transferType'
+];
 
 @Component({
   selector: 'app-offer-form',
@@ -44,6 +58,7 @@ type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
     ProcurementModeComponent,
     ReplicationVisibilityComponent,
     OfferSummaryComponent,
+    EdcContractDefinitionComponent,
     NgClass,
     DecimalPipe,
     LowerCasePipe
@@ -69,6 +84,14 @@ export class OfferComponent implements OnInit, OnDestroy {
     'CREATE_OFFER._step_price_plans',
     'CREATE_OFFER._step_procurement_mode'
   ];
+  private readonly stepLabels: Record<OfferStepKey, string> = {
+    general: 'CREATE_OFFER._step_general_info',
+    category: 'CREATE_OFFER._step_category',
+    terms: 'CREATE_OFFER._step_terms',
+    contract: 'CREATE_OFFER._step_contract_definition',
+    price: 'CREATE_OFFER._step_price_plans',
+    procurement: 'CREATE_OFFER._step_procurement_mode'
+  };
   selectedProdSpec: any;
   pricePlans: any = [];
   errorMessage: any = '';
@@ -161,6 +184,10 @@ export class OfferComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   hasChanges: boolean = false;
 
+  get dspEnable(): boolean {
+    return environment.DSP_ENABLED && environment.DATA_SPACE_ENABLED;
+  }
+
   constructor(private api: ApiServiceService,
     private eventMessage: EventMessageService,
     private fb: FormBuilder,
@@ -184,6 +211,7 @@ export class OfferComponent implements OnInit, OnDestroy {
         treatment: new FormControl('License'),
         description: new FormControl('')
       }),
+      edcContractDefinition: this.fb.group({}),
       pricePlans: new FormControl([]),
       procurementMode: this.fb.group({
         mode: new FormControl('manual'),
@@ -279,7 +307,7 @@ export class OfferComponent implements OnInit, OnDestroy {
       this.productOfferForm.markAllAsTouched();
       return;
     }
-    if (this.currentStep === 3 && index !== 3 && this.pricePlanFormMode === 'form') {
+    if (this.isOfferStep('price') && this.steps[index] !== this.stepLabels.price && this.pricePlanFormMode === 'form') {
       this.cancelCurrentPricePlanForm();
     }
     this.currentStep = index;
@@ -318,18 +346,20 @@ export class OfferComponent implements OnInit, OnDestroy {
   }
 
   private isStepValid(index: number): boolean {
-    switch (index) {
-      case 0:
+    switch (this.stepKeyAt(index)) {
+      case 'general':
         return (this.productOfferForm.get('generalInfo')?.valid || false)
           && !!this.productOfferForm.get('prodSpec')?.value
           && (!this.generalInfoCategoryFilter || !!this.selectedGeneralInfoCategoryFilterOptionId);
-      case 1:
+      case 'category':
         return !!this.selectedRootCategoryId;
-      case 2:
+      case 'terms':
         return true;
-      case 3:
+      case 'contract':
+        return this.productOfferForm.get('edcContractDefinition')?.valid || false;
+      case 'price':
         return this.isPriceStepValid();
-      case 4:
+      case 'procurement':
         return this.productOfferForm.get('procurementMode')?.valid || false;
       default:
         return false;
@@ -358,6 +388,72 @@ export class OfferComponent implements OnInit, OnDestroy {
   private firstInvalidStep(): number {
     const index = this.steps.findIndex((_: string, i: number) => !this.isStepValid(i));
     return index === -1 ? this.steps.length - 1 : index;
+  }
+
+  isOfferStep(key: OfferStepKey): boolean {
+    return this.steps[this.currentStep] === this.stepLabels[key];
+  }
+
+  private stepKeyAt(index: number): OfferStepKey | null {
+    const label = this.steps[index];
+    return (Object.keys(this.stepLabels) as OfferStepKey[])
+      .find(key => this.stepLabels[key] === label) || null;
+  }
+
+  private getFormSteps(): string[] {
+    const steps = [
+      this.stepLabels.general,
+      this.stepLabels.category,
+      this.stepLabels.terms
+    ];
+    if (this.shouldShowContractDefinitionStep()) {
+      steps.push(this.stepLabels.contract);
+    }
+    steps.push(this.stepLabels.price, this.stepLabels.procurement);
+    return steps;
+  }
+
+  private refreshOfferSteps(): void {
+    const currentLabel = this.steps[this.currentStep] || this.stepLabels.general;
+    this.steps = this.getFormSteps();
+    const nextIndex = this.steps.indexOf(currentLabel);
+    this.currentStep = nextIndex >= 0 ? nextIndex : Math.min(this.currentStep, this.steps.length - 1);
+    this.highestStep = Math.min(this.highestStep, this.steps.length - 1);
+  }
+
+  private shouldShowContractDefinitionStep(): boolean {
+    return this.dspEnable && this.isEdcCompatible();
+  }
+
+  private isEdcCompatible(): boolean {
+    const prodSpec = this.productOfferForm.get('prodSpec')?.value;
+    return !!prodSpec?.externalId;
+  }
+
+  private buildEdcContractDefinitionTerm(): any | null {
+    if (!this.shouldShowContractDefinitionStep()) return null;
+    if (this.productOfferForm.get('edcContractDefinition')?.invalid) return null;
+
+    const contractDefinition = this.productOfferForm.get('edcContractDefinition')?.value || {};
+    if (!contractDefinition.dspCompatible) return null;
+
+    return {
+      name: contractDefinition.name || 'edc:contractDefinition',
+      contractPolicy: contractDefinition.contractPolicy ? JSON.parse(contractDefinition.contractPolicy) : '',
+      accessPolicy: contractDefinition.accessPolicy ? JSON.parse(contractDefinition.accessPolicy) : '',
+      '@schemaLocation': environment.DSP_CONTRACT_DEFINITION_SCHEMA
+    };
+  }
+
+  private applyDspOfferingFields(offer: any): void {
+    const term = this.buildEdcContractDefinitionTerm();
+    if (!term) return;
+
+    offer.productOfferingTerm = (offer.productOfferingTerm || [])
+      .filter((existing: any) => existing?.name !== 'edc:contractDefinition');
+    offer.productOfferingTerm.push(term);
+    offer.externalId = this.offer?.externalId || uuidv4();
+    offer['@schemaLocation'] = environment.DSP_SCHEMA;
   }
 
   stepHasWarning(i: number): boolean {
@@ -463,6 +559,7 @@ export class OfferComponent implements OnInit, OnDestroy {
     if (formValue.prodSpec?.id) {
       offer.productSpecification = { id: formValue.prodSpec.id, href: formValue.prodSpec.href || formValue.prodSpec.id };
     }
+    this.applyDspOfferingFields(offer);
 
     const catalogue = this.autoCatalogue || await this.ensureCatalogue();
     if (!catalogue?.id) {
@@ -499,14 +596,17 @@ export class OfferComponent implements OnInit, OnDestroy {
     this.selectedProdSpecId = value;
     if (!value) {
       this.productOfferForm.patchValue({ prodSpec: null });
+      this.refreshOfferSteps();
       return;
     }
     const summary = this.availableProdSpecs.find(p => p.id === value) || null;
     this.productOfferForm.patchValue({ prodSpec: summary });
+    this.refreshOfferSteps();
     try {
       const full = await this.api.getProductSpecification(value);
       if (full && this.selectedProdSpecId === value) {
         this.productOfferForm.patchValue({ prodSpec: full });
+        this.refreshOfferSteps();
       }
     } catch (err) {
       console.error('Failed to load full product specification', err);
@@ -945,7 +1045,10 @@ export class OfferComponent implements OnInit, OnDestroy {
     const prodSpec = this.productOfferForm.get('prodSpec')?.value;
     const list = prodSpec?.productSpecCharacteristic;
     if (!Array.isArray(list)) return [];
-    return list.filter((c: any) => !String(c?.name || '').startsWith('Compliance:'));
+    return list.filter((c: any) =>
+      !String(c?.name || '').startsWith('Compliance:')
+      && !NON_PRICE_CONFIG_VALUE_TYPES.includes(c?.valueType)
+    );
   }
 
   openConfigProfileModal(): void {
@@ -1655,6 +1758,10 @@ export class OfferComponent implements OnInit, OnDestroy {
     if (formValue.procurementMode?.mode) {
       offeringTerms.push({ name: 'procurement', description: formValue.procurementMode.mode });
     }
+    const contractTerm = this.buildEdcContractDefinitionTerm();
+    if (contractTerm) {
+      offeringTerms.push(contractTerm);
+    }
 
     const prices = (formValue.pricePlans || []).map((p: any) => {
       const priceValue = p?.priceComponents?.[0]?.price;
@@ -1669,7 +1776,7 @@ export class OfferComponent implements OnInit, OnDestroy {
       };
     });
 
-    return {
+    const preview: any = {
       id: this.formType === 'update' && this.offer?.id ? this.offer.id : 'preview',
       name: generalInfo.name || '',
       description: generalInfo.description || '',
@@ -1682,6 +1789,11 @@ export class OfferComponent implements OnInit, OnDestroy {
       productOfferingPrice: prices,
       lastUpdate: new Date().toISOString()
     };
+    if (contractTerm) {
+      preview.externalId = this.offer?.externalId || 'preview-external-id';
+      preview['@schemaLocation'] = environment.DSP_SCHEMA;
+    }
+    return preview;
   }
 
   async ensureCatalogue(): Promise<any> {
@@ -1835,6 +1947,7 @@ export class OfferComponent implements OnInit, OnDestroy {
       this.loadGeneralInfoCategoryFilterOptions();
       this.loadCategories();
       this.ensureCatalogue();
+      this.refreshOfferSteps();
     }
   }
   async loadOfferData() {
@@ -1857,6 +1970,7 @@ export class OfferComponent implements OnInit, OnDestroy {
       this.productOfferForm.patchValue({
         prodSpec: this.selectedProdSpec || null // Cargar si existe, o dejar en null
       });
+      this.refreshOfferSteps();
     }
 
     //CATEGORIES
@@ -2504,6 +2618,7 @@ export class OfferComponent implements OnInit, OnDestroy {
         }
       ]
     };
+    this.applyDspOfferingFields(offer);
 
     if (!this.bundleChecked && this.formType === 'create' && formValue.prodSpec?.id) {
       offer.productSpecification = {
@@ -2625,6 +2740,7 @@ export class OfferComponent implements OnInit, OnDestroy {
       if (existingProc) existingProc.description = procMode;
       else basePayload.productOfferingTerm.push({ name: 'procurement', description: procMode });
     }
+    this.applyDspOfferingFields(basePayload);
 
     // Procesar cada cambio emitido por los subformularios
     for (const [subformType, change] of Object.entries(this.formChanges)) {
@@ -2744,6 +2860,15 @@ export class OfferComponent implements OnInit, OnDestroy {
           // Actualizar configuración de replicación
           // TODO: Implementar cuando se tenga la estructura de replicación
           break;
+        case 'contractDefinition': {
+          this.applyDspOfferingFields(basePayload);
+          if (!this.productOfferForm.get('edcContractDefinition')?.value?.dspCompatible) {
+            basePayload.productOfferingTerm = basePayload.productOfferingTerm.filter(
+              (term: any) => term?.name !== 'edc:contractDefinition'
+            );
+          }
+          break;
+        }
       }
     }
 

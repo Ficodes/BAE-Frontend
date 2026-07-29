@@ -1,0 +1,38 @@
+<div class="flex flex-col gap-5" [formGroup]="formGroup">
+  <label class="flex items-start gap-3 p-4 rounded-lg border border-gray-200 cursor-pointer">
+    <input type="checkbox" [formControl]="dspCompatibleControl"
+      class="mt-1 w-4 h-4 text-primary-100 focus:ring-primary-100 rounded"/>
+    <span class="flex flex-col">
+      <span class="text-sm font-semibold text-gray-900">{{ 'CREATE_OFFER._dsp_contract_enabled' | translate }}</span>
+      <span class="text-xs text-gray-500">{{ 'CREATE_OFFER._dsp_contract_enabled_desc' | translate }}</span>
+    </span>
+  </label>
+
+  @if(dspCompatible) {
+    @if(accessControl) {
+      <div>
+        <label class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._dsp_access_policy' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+        <textarea data-cy="dspAccessPolicy" [formControl]="accessControl" rows="10"
+          class="font-mono bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3 resize-y"
+          [class.border-red-500]="accessControl.invalid && accessControl.touched"
+          placeholder='{"example": "Enter your JSON here"}'></textarea>
+        @if(accessControl.hasError('invalidJson') && accessControl.touched) {
+          <p class="mt-1 text-xs text-red-600">{{ 'CREATE_OFFER._invalid_json' | translate }}</p>
+        }
+      </div>
+    }
+
+    @if(contractControl) {
+      <div>
+        <label class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_OFFER._dsp_contract_policy' | translate }}<span class="text-red-600 ml-0.5">*</span></label>
+        <textarea data-cy="dspContractPolicy" [formControl]="contractControl" rows="10"
+          class="font-mono bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3 resize-y"
+          [class.border-red-500]="contractControl.invalid && contractControl.touched"
+          placeholder='{"example": "Enter your JSON here"}'></textarea>
+        @if(contractControl.hasError('invalidJson') && contractControl.touched) {
+          <p class="mt-1 text-xs text-red-600">{{ 'CREATE_OFFER._invalid_json' | translate }}</p>
+        }
+      </div>
+    }
+  }
+</div>
