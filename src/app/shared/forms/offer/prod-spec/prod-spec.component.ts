@@ -113,18 +113,21 @@ export class ProdSpecComponent implements ControlValueAccessor, OnInit, OnDestro
       "partyId": this.partyId
     }
 
-    this.paginationService.getItemsPaginated(this.prodSpecPage, this.PROD_SPEC_LIMIT, next, this.prodSpecs,this.nextProdSpecs, options,
-      this.prodSpecService.getProdSpecByUser.bind(this.prodSpecService)).then(data => {
-        this.prodSpecPageCheck=data.page_check;
-        this.prodSpecs=data.items;
-        this.nextProdSpecs=data.nextItems;
-        this.prodSpecPage=data.page;
-        this.loadingProdSpec=false;
-        this.loadingProdSpec_more=false;
-      })
+    try {
+      const data = await this.paginationService.getItemsPaginated(this.prodSpecPage, this.PROD_SPEC_LIMIT, next, this.prodSpecs, this.nextProdSpecs, options,
+        this.prodSpecService.getProdSpecByUser.bind(this.prodSpecService));
+      this.prodSpecPageCheck=data.page_check;
+      this.prodSpecs=data.items;
+      this.nextProdSpecs=data.nextItems;
+      this.prodSpecPage=data.page;
+    } finally {
+      this.loadingProdSpec=false;
+      this.loadingProdSpec_more=false;
+    }
   }
 
   async nextProdSpec() {
+    this.loadingProdSpec_more = true;
     await this.getSellerProdSpecs(true);
   }
 

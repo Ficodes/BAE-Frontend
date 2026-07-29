@@ -13,7 +13,7 @@ import {environment} from "../../../environments/environment";
 import {TYPES} from "../../models/types.const";
 import {AccountServiceService} from "../../services/account-service.service";
 import {NumberFormatStyle} from "@angular/common";
-import * as moment from "moment/moment";
+import moment from 'moment';
 import {ProductOrderService} from "../../services/product-order-service.service";
 import {BillingAddressComponent} from "./billing-address/billing-address.component";
 import {BillingAccountFormComponent} from "../../shared/billing-account-form/billing-account-form.component";

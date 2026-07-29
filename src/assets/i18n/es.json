@@ -1736,6 +1736,7 @@
     "legalTitle": "Legal",
     "resourcesTitle": "Resources",
     "documentation": "Documentation",
+    "news": "News & Events",
     "support": "Support",
     "faqs": "FAQs",
     "follow-us": "Follow us",
@@ -2377,7 +2378,10 @@
     "_validate_prod": "Validate product specification",
     "_validate_requires_all": "Complete all required steps before validating",
     "_update_title": "Update product specification",
-    "_save_changes": "Save changes"
+    "_save_changes": "Save changes",
+    "_dsp_endpoint_name": "Nombre",
+    "_dsp_endpoint_url": "URL del endpoint",
+    "_dsp_endpoint_description": "Descripción"
   },
   "UPDATE_PROD_SPEC": {
     "_back": "Back",

@@ -8,7 +8,7 @@ import {
 import { Observable } from 'rxjs';
 import {LocalStorageService} from "../services/local-storage.service";
 import { LoginInfo } from '../models/interfaces';
-import * as moment from 'moment';
+import moment from 'moment';
 import { environment } from 'src/environments/environment';
 
 export function shouldAttachAuthHeaders(requestUrl: string, internalBaseUrls: string[]): boolean {

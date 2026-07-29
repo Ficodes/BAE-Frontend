@@ -61,6 +61,19 @@ describe('AppInitService runtime config', () => {
     expect(environment.googleTagManagerId).toBe('GTM-WPKH4HCS');
   });
 
+  it('loads DSP enabled from the feature flag config', async () => {
+    environment.DSP_ENABLED = true;
+
+    const initPromise = service.init();
+
+    const req = httpMock.expectOne(`${environment.BASE_URL}/config`);
+    req.flush(buildConfig({ dspEnabled: false }));
+
+    await initPromise;
+
+    expect(environment.DSP_ENABLED).toBeFalse();
+  });
+
   function buildConfig(overrides: Record<string, unknown> = {}): Record<string, unknown> {
     return {
       ai: {},

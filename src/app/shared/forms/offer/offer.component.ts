@@ -2,7 +2,7 @@ import { DecimalPipe, LowerCasePipe, NgClass } from "@angular/common";
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from "@angular/forms";
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
-import * as moment from 'moment';
+import moment from 'moment';
 import { lastValueFrom, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { components } from "src/app/models/product-catalog";

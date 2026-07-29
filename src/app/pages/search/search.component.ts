@@ -1,28 +1,26 @@
-import { Component, OnInit, ChangeDetectorRef, SimpleChanges, OnChanges, HostListener, AfterViewInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import {CategoriesFilterComponent} from "../../shared/categories-filter/categories-filter.component";
-import {components} from "../../models/product-catalog";
-type ProductOffering = components["schemas"]["ProductOffering"];
-import { ApiServiceService } from 'src/app/services/product-service.service';
-import { PaginationService } from 'src/app/services/pagination.service'
-import {LocalStorageService} from "../../services/local-storage.service";
-import {Category} from "../../models/interfaces";
-import {EventMessageService} from "../../services/event-message.service";
-import { SearchStateService } from "../../services/search-state.service"
-import { LoginServiceService } from "src/app/services/login-service.service"
-import { environment } from 'src/environments/environment';
-import { ActivatedRoute, NavigationStart } from '@angular/router';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { Router } from '@angular/router';
-import { LoginInfo, FeedbackInfo } from 'src/app/models/interfaces';
-import * as moment from 'moment';
+
+import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
+import moment from 'moment';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { FeedbackInfo, LoginInfo } from 'src/app/models/interfaces';
+import { LoginServiceService } from "src/app/services/login-service.service";
+import { PaginationService } from 'src/app/services/pagination.service';
+import { ApiServiceService } from 'src/app/services/product-service.service';
+import { environment } from 'src/environments/environment';
+import { Category } from "../../models/interfaces";
+import { components } from "../../models/product-catalog";
+import { EventMessageService } from "../../services/event-message.service";
+import { LocalStorageService } from "../../services/local-storage.service";
+import { SearchStateService } from "../../services/search-state.service";
+type ProductOffering = components["schemas"]["ProductOffering"];
 
-import { AiSearchService } from 'src/app/services/ai-search.service';
-import { PriceServiceService } from 'src/app/services/price-service.service';
 import { availableFilters, searchCategoriesConfig } from 'src/app/data/availableFilters';
 import { iconForCategory } from 'src/app/data/categoryIcons';
+import { AiSearchService } from 'src/app/services/ai-search.service';
+import { PriceServiceService } from 'src/app/services/price-service.service';
 import { ThemeService } from 'src/app/services/theme.service';
 
 type ToolbarFilter = {
@@ -42,21 +40,21 @@ type ToolbarFilter = {
 })
 export class SearchComponent implements OnInit, OnDestroy {
 
-  products: ProductOffering[]=[];
-  nextProducts: ProductOffering[]=[];
+  products: ProductOffering[] = [];
+  nextProducts: ProductOffering[] = [];
   loading: boolean = false;
   loading_more: boolean = false;
-  page_check:boolean = true;
-  page: number=0;
+  page_check: boolean = true;
+  page: number = 0;
   PRODUCT_LIMIT: number = environment.PRODUCT_LIMIT;
   DFT_CATALOG: String = environment.DFT_CATALOG_ID;
-  showDrawer:boolean=false;
+  showDrawer: boolean = false;
   searchEnabled = environment.SEARCH_ENABLED;
-  keywords:any=undefined;
+  keywords: any = undefined;
   searchField = new FormControl();
   showPanel = false;
-  feedback:boolean=false;
-  providerThemeName=environment.providerThemeName;
+  feedback: boolean = false;
+  providerThemeName = environment.providerThemeName;
   private navigatingToDetail = false;
   private destroy$ = new Subject<void>();
 
@@ -117,30 +115,30 @@ export class SearchComponent implements OnInit, OnDestroy {
     private themeService: ThemeService) {
     this.initToolbarFilters();
     this.eventMessage.messages$
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(async ev => {
-      if (ev.type === 'AddedFilter' || ev.type === 'RemovedFilter') {
-        this.syncSelectionsFromStorage();
-        this.checkPanel();
-      }
-      if (ev.type === 'FiltersCommitted') {
-        this.syncSelectionsFromStorage();
-        // Use AI search if enabled, otherwise use standard search
-        if (this.aiSearchEnabled) {
-          await this.runInitialAiSearch();
-        } else {
-          await this.getProducts(false);
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(async ev => {
+        if (ev.type === 'AddedFilter' || ev.type === 'RemovedFilter') {
+          this.syncSelectionsFromStorage();
+          this.checkPanel();
         }
-        this.checkPanel();
-      }
-    })
+        if (ev.type === 'FiltersCommitted') {
+          this.syncSelectionsFromStorage();
+          // Use AI search if enabled, otherwise use standard search
+          if (this.aiSearchEnabled) {
+            await this.runInitialAiSearch();
+          } else {
+            await this.getProducts(false);
+          }
+          this.checkPanel();
+        }
+      })
     this.eventMessage.messages$
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(ev => {
-      if(ev.type === 'CloseFeedback') {
-        this.feedback = false;
-      }
-    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(ev => {
+        if (ev.type === 'CloseFeedback') {
+          this.feedback = false;
+        }
+      })
   }
 
   async ngOnInit() {
@@ -151,26 +149,26 @@ export class SearchComponent implements OnInit, OnDestroy {
       });
 
     this.router.events
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(event => {
-      if (event instanceof NavigationStart) {
-        // Detecta navegación al detalle del producto
-        if (event.url.startsWith('/search/urn:ngsi-ld:product-offering')) {
-          this.navigatingToDetail = true;
-        } else {
-          this.navigatingToDetail = false;
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(event => {
+        if (event instanceof NavigationStart) {
+          // Detecta navegación al detalle del producto
+          if (event.url.startsWith('/search/urn:ngsi-ld:product-offering')) {
+            this.navigatingToDetail = true;
+          } else {
+            this.navigatingToDetail = false;
+          }
         }
-      }
-    });
+      });
 
-    this.products=[];
-    this.nextProducts=[];
+    this.products = [];
+    this.nextProducts = [];
     /*await this.api.slaCheck().then(data => {
       console.log(data)
     })*/
     this.checkPanel();
     this.loadRootCategories();
-    if(this.route.snapshot.paramMap.get('keywords')){
+    if (this.route.snapshot.paramMap.get('keywords')) {
       this.keywords = this.route.snapshot.paramMap.get('keywords');
       this.searchField.setValue(this.keywords);
     }
@@ -216,10 +214,10 @@ export class SearchComponent implements OnInit, OnDestroy {
     })*/
 
     let input = document.querySelector('[type=search]')
-    if(input!=undefined){
+    if (input != undefined) {
       input.addEventListener('input', async e => {
-        if(this.searchField.value==''){
-          this.keywords=undefined;
+        if (this.searchField.value == '') {
+          this.keywords = undefined;
           this.updateQueryParams(this.keywords)
           // Clear AI search state and restore categories
           this.aiAnswer = '';
@@ -237,38 +235,38 @@ export class SearchComponent implements OnInit, OnDestroy {
       //this.localStorage.setObject('feedback', {});
 
       // The user is logged in
-      if ((JSON.stringify(userInfo) != '{}' && (((userInfo.expire - moment().unix())-4) > 0))) {
-        if(environment.feedbackCampaign){
+      if ((JSON.stringify(userInfo) != '{}' && (((userInfo.expire - moment().unix()) - 4) > 0))) {
+        if (environment.feedbackCampaign) {
           let feedbackInfo = this.localStorage.getObject('feedback') as FeedbackInfo;
           console.log('---------------------- feedbackInfo')
           console.log(feedbackInfo)
 
-          if(JSON.stringify(feedbackInfo) === '{}'){
+          if (JSON.stringify(feedbackInfo) === '{}') {
             let wantsFeedback = {
               "expire": environment?.feedbackCampaignExpiration ?? moment().add(1, 'week').unix(),
             }
-            this.localStorage.setObject('feedback',wantsFeedback);
-            this.feedback=true;
+            this.localStorage.setObject('feedback', wantsFeedback);
+            this.feedback = true;
           } else {
             if ("expire" in feedbackInfo) {
               let expiration = feedbackInfo?.expire ?? 0
-              if(((expiration - moment().unix())-4) < 0 && ((environment.feedbackCampaignExpiration - moment().unix())-4) > 0){
-                let wantsFeedback : FeedbackInfo = {
+              if (((expiration - moment().unix()) - 4) < 0 && ((environment.feedbackCampaignExpiration - moment().unix()) - 4) > 0) {
+                let wantsFeedback: FeedbackInfo = {
                   "expire": environment?.feedbackCampaignExpiration,
                 }
-                if("approval" in feedbackInfo){
-                  wantsFeedback.approval=feedbackInfo.approval
+                if ("approval" in feedbackInfo) {
+                  wantsFeedback.approval = feedbackInfo.approval
                 }
-                this.localStorage.setObject('feedback',wantsFeedback)
+                this.localStorage.setObject('feedback', wantsFeedback)
               }
             } else {
-              let wantsFeedback : FeedbackInfo = {
+              let wantsFeedback: FeedbackInfo = {
                 "expire": environment?.feedbackCampaignExpiration,
               }
-              if("approval" in feedbackInfo){
-                wantsFeedback.approval=feedbackInfo.approval
+              if ("approval" in feedbackInfo) {
+                wantsFeedback.approval = feedbackInfo.approval
               }
-              this.localStorage.setObject('feedback',wantsFeedback)
+              this.localStorage.setObject('feedback', wantsFeedback)
             }
 
             if ("approval" in feedbackInfo) {
@@ -291,7 +289,7 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   @HostListener('document:click')
   onClick() {
-    if(this.showDrawer){
+    if (this.showDrawer) {
       this.showDrawer = false;
     }
     const anyOpen = this.showCategoryDropdown || this.showSortDropdown || this.toolbarFilters.some(filter => filter.open);
@@ -472,7 +470,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       .map(option => option.name);
   }
 
-  ngOnDestroy(){
+  ngOnDestroy() {
     this.productsRequestVersion = 0;
 
     if (this.navigatingToDetail) {
@@ -480,7 +478,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     }
 
     let storedFilters = this.localStorage.getObject('selected_categories') as Category[] || [];
-    for(let i=0;i<storedFilters.length;i++){
+    for (let i = 0; i < storedFilters.length; i++) {
       this.localStorage.removeCategoryFilter(storedFilters[i]);
       this.eventMessage.emitRemovedFilter(storedFilters[i]);
     }
@@ -492,11 +490,11 @@ export class SearchComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  async getProducts(next:boolean){
+  async getProducts(next: boolean) {
     const requestVersion = ++this.productsRequestVersion;
     const filters = this.localStorage.getObject('selected_categories') as Category[] || [];
-    if(next==false){
-      this.loading=true;
+    if (next == false) {
+      this.loading = true;
     }
     if (!next) {
       this.state.clear();
@@ -526,8 +524,12 @@ export class SearchComponent implements OnInit, OnDestroy {
         return;
       }
 
+      // On "load more", data.items is already enriched: it's this.products merged with the
+      // previously-prefetched (and already-enriched) this.nextProducts. Only the freshly
+      // fetched data.nextItems (the next prefetch page) is still raw and needs enriching -
+      // re-enriching data.items too would redo work for every item ever loaded on each click.
       const [products, nextProducts] = await Promise.all([
-        this.api.getProductsDetails(data.items),
+        next ? Promise.resolve(data.items) : this.api.getProductsDetails(data.items),
         this.api.getProductsDetails(data.nextItems)
       ]);
 
@@ -558,21 +560,22 @@ export class SearchComponent implements OnInit, OnDestroy {
     }
   }
 
-  async next(){
+  async next() {
+    this.loading_more = true;
     await this.getProducts(true);
   }
 
   async filterSearch(event: any) {
     event.preventDefault()
-    if(this.searchField.value!='' && this.searchField.value != null){
+    if (this.searchField.value != '' && this.searchField.value != null) {
       console.log('FILTER KEYWORDS')
-      this.keywords=this.searchField.value;
+      this.keywords = this.searchField.value;
       this.updateQueryParams(this.keywords)
       //let filters = this.localStorage.getObject('selected_categories') as Category[] || [] ;
       await this.getProducts(false);
     } else {
       console.log('EMPTY  FILTER KEYWORDS')
-      this.keywords=undefined;
+      this.keywords = undefined;
       this.updateQueryParams(this.keywords)
       //let filters = this.localStorage.getObject('selected_categories') as Category[] || [] ;
       await this.getProducts(false);
@@ -593,10 +596,10 @@ export class SearchComponent implements OnInit, OnDestroy {
   }
 
   checkPanel() {
-    const filters = this.localStorage.getObject('selected_categories') as Category[] || [] ;
+    const filters = this.localStorage.getObject('selected_categories') as Category[] || [];
     const oldState = this.showPanel;
     this.showPanel = filters.length > 0;
-    if(this.showPanel != oldState) {
+    if (this.showPanel != oldState) {
       this.eventMessage.emitFilterShown(this.showPanel);
       this.localStorage.setItem('is_filter_panel_shown', this.showPanel.toString())
     }

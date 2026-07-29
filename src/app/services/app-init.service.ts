@@ -1,6 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import * as moment from "moment";
+import moment from "moment";
 import { Observer } from "rxjs";
 import { applyRuntimeSearchFiltersConfig } from "src/app/data/availableFilters";
 import { applyRuntimeFeaturesConfig } from "src/app/data/featuresConfig";
@@ -38,19 +38,20 @@ export class AppInitService {
                 environment.ADMIN_ROLE = config.roles?.admin;
                 environment.ORG_ADMIN_ROLE = config.roles?.orgAdmin;
                 environment.CERTIFIER_ROLE = config.roles?.certifier;
-                environment.quoteApi = config.quoteApi ?? 'http://localhost:8080/quoteManagement';
+                environment.quoteApi = config.quoteApi ?? environment.quoteApi;
                 environment.analyticsEnabled = config.analyticsEnabled ?? false;
                 environment.analytics = this.getAnalyticsUrl(config);
                 environment.feedbackCampaign = config.feedbackCampaign ?? false;
                 environment.feedbackCampaignExpiration = config.feedbackCampaign ?? moment().add(1, 'week').unix();
                 environment.documentApi = config.documentApi ?? environment.documentApi;
                 environment.googleTagManagerId = config.googleTagManagerId ?? '';
-                environment.analytics = config.analytics ?? 'https://analytics.dome-marketplace-sbx.org/',
                 environment.providerThemeName = config.theme ?? 'default';
                 environment.LEAR_URL = config.learUrl ?? '';
                 environment.AI_SEARCH_API_KEY = aiConfig.aiApiKey ?? config.aiApiKey ?? '';
                 environment.AI_SEARCH_API_URL = aiConfig.aiApiUrl ?? config.aiApiUrl ?? '';
                 environment.AI_SEARCH_PROFILE = aiConfig.aiSearchProfile ?? config.aiSearchProfile ?? '';
+                environment.DSP_CONTRACT_DEFINITION_SCHEMA = config.dspContractDefinitionSchema || environment.DSP_CONTRACT_DEFINITION_SCHEMA
+                environment.DSP_SCHEMA = config.dspSchema || environment.DSP_SCHEMA
                 applyRuntimeFeaturesConfig(config);
                 applyRuntimeSearchFiltersConfig(config);
                 resolve(config);

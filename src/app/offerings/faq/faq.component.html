@@ -1,58 +1,76 @@
-<div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 grid gap-2 grid-cols-2">
-    <div>
-        <h2 class="text-gray-900 dark:text-white text-4xl font-extrabold mb-2">FAQs</h2>
-        <p class="h-2/4 text-lg font-normal text-gray-500 dark:text-gray-400 mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
-            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris</p>
-            <a href="#" target="_blank" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-900">
-                <svg class="mr-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                Go to FAQs                
-              </a>
-    </div>
+<div class="bg-secondary-50 dark:bg-secondary-200 flex min-h-full flex-col">
+  <section class="w-full bg-secondary-50">
+    <div class="mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-6 py-10 sm:px-8 md:px-10 md:py-12 lg:px-16 xl:px-[160px]">
+      <div class="flex flex-row items-start justify-between gap-4">
+        <h1 class="text-[clamp(2.75rem,2.1rem+2.1vw,3.75rem)] font-extrabold leading-[0.95] tracking-[0.02em] text-secondary-200 dark:text-white">
+          FAQ
+        </h1>
 
-
-    <div id="accordion-collapse" data-accordion="collapse">
-        <div id="accordion-collapse-body-1" class="hidden" aria-labelledby="accordion-collapse-heading-1">
-          <div class="p-5 dark:bg-gray-900">
-            <p class="mb-2 text-gray-500 dark:text-gray-400">Flowbite is an open-source library of interactive components built on top of Tailwind CSS including buttons, dropdowns, modals, navbars, and more.</p>
-            <p class="text-gray-500 dark:text-gray-400">Check out this guide to learn how to <a href="/docs/getting-started/introduction/" class="text-blue-600 dark:text-blue-500 ">get started</a> and start developing websites even faster with components on top of Tailwind CSS.</p>
-          </div>
-        </div>
-        <h2 id="accordion-collapse-heading-2">
-          <button type="button" class="flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 dark:text-gray-400 gap-3" data-accordion-target="#accordion-collapse-body-2" aria-expanded="false" aria-controls="accordion-collapse-body-2">
-            <span class="text-primary-100 dark:text-primary-50">Is there a Figma file available?</span>
-            <svg data-accordion-icon class="w-4 h-4 text-primary-100 dark:text-primary-50" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
-            </svg>              
-          </button>
-        </h2>
-        <hr class="h-px bg-gray-300 dark:bg-gray-200 border-0">
-        <div id="accordion-collapse-body-2" class="hidden" aria-labelledby="accordion-collapse-heading-2">
-          <div class="p-5">
-            <p class="mb-2 text-gray-500 dark:text-gray-400">Flowbite is first conceptualized and designed using the Figma software so everything you see in the library has a design equivalent in our Figma file.</p>
-            <p class="text-gray-500 dark:text-gray-400">Check out the <a href="https://flowbite.com/figma/" class="text-blue-600 dark:text-blue-500 ">Figma design system</a> based on the utility classes from Tailwind CSS and components from Flowbite.</p>
-          </div>
-        </div>
-        <h2 id="accordion-collapse-heading-3">
-          <button type="button" class="flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500  dark:text-gray-400 gap-3" data-accordion-target="#accordion-collapse-body-3" aria-expanded="false" aria-controls="accordion-collapse-body-3">
-            <span class="text-primary-100 dark:text-primary-50">What are the differences between Flowbite and Tailwind UI?</span>
-            <svg data-accordion-icon class="w-4 h-4 text-primary-100 dark:text-primary-50" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
-            </svg>
-          </button>
-        </h2>
-        <hr class="h-px bg-gray-300 dark:bg-gray-200 border-0">
-        <div id="accordion-collapse-body-3" class="hidden" aria-labelledby="accordion-collapse-heading-3">
-          <div class="p-5">
-            <p class="mb-2 text-gray-500 dark:text-gray-400">The main difference is that the core components from Flowbite are open source under the MIT license, whereas Tailwind UI is a paid product. Another difference is that Flowbite relies on smaller and standalone components, whereas Tailwind UI offers sections of pages.</p>
-            <p class="mb-2 text-gray-500 dark:text-gray-400">However, we actually recommend using both Flowbite, Flowbite Pro, and even Tailwind UI as there is no technical reason stopping you from using the best of two worlds.</p>
-            <p class="mb-2 text-gray-500 dark:text-gray-400">Learn more about these technologies:</p>
-            <ul class="ps-5 text-gray-500 list-disc dark:text-gray-400">
-              <li><a href="https://flowbite.com/pro/" class="text-blue-600 dark:text-blue-500 ">Flowbite Pro</a></li>
-              <li><a href="https://tailwindui.com/" rel="nofollow" class="text-blue-600 dark:text-blue-500 ">Tailwind UI</a></li>
-            </ul>
-          </div>
-        </div>
+        <button *ngIf="checkAdmin" type="button" data-cy="newFaqEntry" (click)="goToCreate()"
+                class="h-fit text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center align-middle">
+          <span class="pl-2 pr-2">Add FAQ</span>
+          <svg class="w-[18px] h-[18px] text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+          </svg>
+        </button>
       </div>
-      
+    </div>
+  </section>
 
+  <div class="flex-1 mx-auto w-full max-w-[1440px] px-6 pb-16 pt-8 sm:px-8 md:px-10 lg:px-16 xl:px-[160px]">
+    <div class="mx-auto flex w-full max-w-[1120px] flex-col gap-4 lg:gap-6">
+      <article *ngFor="let faq of faqs" class="faq-card" [class.faq-card--open]="isOpen(getEntryId(faq))">
+        <div class="flex items-start gap-3">
+          <button type="button" class="faq-question" (click)="toggleFaq(getEntryId(faq))" [attr.aria-expanded]="isOpen(getEntryId(faq))">
+            <span class="faq-question__title">{{ faq.title }}</span>
+
+            <span class="faq-icon" [class.faq-icon--open]="isOpen(getEntryId(faq))">
+              <svg *ngIf="!isOpen(getEntryId(faq))" class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+              </svg>
+              <svg *ngIf="isOpen(getEntryId(faq))" class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"/>
+              </svg>
+            </span>
+          </button>
+
+          <div *ngIf="canManageEntry()" class="flex shrink-0 items-center gap-2 pt-1">
+            <button type="button" (click)="goToUpdate(faq)" class="text-white bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center" title="Edit FAQ">
+              <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                <path fill-rule="evenodd" d="M14 4.182A4.136 4.136 0 0 1 16.9 3c1.087 0 2.13.425 2.899 1.182A4.01 4.01 0 0 1 21 7.037c0 1.068-.43 2.092-1.194 2.849L18.5 11.214l-5.8-5.71 1.287-1.31.012-.012Zm-2.717 2.763L6.186 12.13l2.175 2.141 5.063-5.218-2.141-2.108Zm-6.25 6.886-1.98 5.849a.992.992 0 0 0 .245 1.026 1.03 1.03 0 0 0 1.043.242L10.282 19l-5.25-5.168Zm6.954 4.01 5.096-5.186-2.218-2.183-5.063 5.218 2.185 2.15Z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+            <button type="button" (click)="openDeleteDialog(faq)" [disabled]="isDeletingEntry(faq)"
+                    class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center disabled:opacity-60"
+                    title="Delete FAQ">
+              <svg class="w-[18px] h-[18px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12m-1 0-.9 12.1A2 2 0 0 1 14.11 21H9.89a2 2 0 0 1-1.99-1.9L7 7m3 0V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="faq-answer" [class.faq-answer--open]="isOpen(getEntryId(faq))">
+          <div class="faq-answer__inner">
+            <div class="faq-divider"></div>
+            <markdown class="faq-answer__content" [data]="faq.content"></markdown>
+          </div>
+        </div>
+      </article>
+
+      <div *ngIf="faqs.length === 0" class="rounded-lg border border-gray-300 bg-white p-8 text-center text-gray-600 dark:border-secondary-300 dark:bg-secondary-100 dark:text-secondary-50">
+        No FAQs have been published yet.
+      </div>
+    </div>
+  </div>
 </div>
+
+<app-confirm-dialog
+  [isOpen]="showDeleteConfirm"
+  [title]="deleteConfirmTitle"
+  [message]="deleteConfirmMessage"
+  [confirmText]="deleteConfirmButtonText"
+  [confirmButtonClass]="deleteConfirmButtonClass"
+  (confirm)="confirmDeleteEntry()"
+  (cancel)="closeDeleteDialog()"
+></app-confirm-dialog>

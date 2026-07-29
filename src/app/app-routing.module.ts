@@ -5,6 +5,7 @@ import { AboutDomeComponent } from "src/app/pages/about-dome/about-dome.componen
 import { BlogEntryDetailComponent } from "src/app/pages/dome-blog/blog-entry-detail/blog-entry-detail.component";
 import { DomeBlogComponent } from "src/app/pages/dome-blog/dome-blog.component";
 import { EntryFormComponent } from "src/app/pages/dome-blog/entry-form/entry-form.component";
+import { FaqComponent } from "src/app/offerings/faq/faq.component";
 import { UsageSpecsComponent } from "src/app/pages/usage-specs/usage-specs.component";
 import { AuthGuard } from './guard/auth.guard';
 import { quoteGuardGuard } from './guard/quote-guard.guard';
@@ -126,11 +127,27 @@ const routes: Routes = [
   },
   {
     path: 'blog',
-    component: DomeBlogComponent
+    component: DomeBlogComponent,
+    data: { contentType: 'blog' }
   },
   {
     path: 'blog/:slugOrId',
-    component: BlogEntryDetailComponent
+    component: BlogEntryDetailComponent,
+    data: { contentType: 'blog' }
+  },
+  {
+    path: 'news',
+    component: DomeBlogComponent,
+    data: { contentType: 'news' }
+  },
+  {
+    path: 'news/:slugOrId',
+    component: BlogEntryDetailComponent,
+    data: { contentType: 'news' }
+  },
+  {
+    path: 'faq',
+    component: FaqComponent
   },
   {
     path: 'blog-entry',

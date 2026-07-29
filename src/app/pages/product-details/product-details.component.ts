@@ -11,7 +11,7 @@ type ProductSpecification = components["schemas"]["ProductSpecification"];
 type AttachmentRefOrValue = components["schemas"]["AttachmentRefOrValue"];
 //type CharacteristicValueSpecification = components["schemas"]["CharacteristicValueSpecification"];
 import { Location } from '@angular/common';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Subject } from "rxjs";
 import { takeUntil } from 'rxjs/operators';
 import { findIconByName } from 'src/app/config/popular-icons';

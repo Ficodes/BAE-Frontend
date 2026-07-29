@@ -80,6 +80,11 @@ const domeFooterLinks: NavHeaderLink[] = [
         isRouterLink: false
       },
       {
+        label: 'FOOTER.news',
+        url: '/news',
+        isRouterLink: true
+      },
+      {
         label: 'FOOTER.faqs',
         url: '/faq',
         isRouterLink: true

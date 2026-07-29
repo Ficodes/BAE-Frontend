@@ -32,6 +32,7 @@ export const init_config = {
     'quotesEnabled': false,
     'tenderingEnabled': false,
     'dataSpaceEnabled': false,
+    'dspEnabled': false,
     'launchValidationEnabled': false,
     'tenderDevButtonsOpenCloseEnabled': false,
     'aiEnabled': false,
@@ -343,6 +344,7 @@ export const productOffering = {
     ]
 }
 export const blogEntry = {
+    contentType: 'blog',
     title: 'Entry title',
     slug: 'entry-title',
     featuredImage: '',
