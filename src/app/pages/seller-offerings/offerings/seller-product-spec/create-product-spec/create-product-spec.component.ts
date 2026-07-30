@@ -492,7 +492,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
           this.creatingChars
         ),
         _lastUpdate: new Date(),
-        _isOptional: this.charIsOptional
+        _isOptional: this.isDataspaceConfigurationStep() ? false : this.charIsOptional
       };
       const schemaLocation = this.getSchemaLocationForType(this.charTypeSelected);
       if (!['string', 'number', 'boolean', 'range'].includes(this.charTypeSelected)) {

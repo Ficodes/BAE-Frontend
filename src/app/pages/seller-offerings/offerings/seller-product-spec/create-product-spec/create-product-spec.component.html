@@ -926,19 +926,21 @@
           </div>
         </form>
 
-        <div class="mb-4">
-          <p class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_PROD_SPEC._is_optional' | translate }}</p>
-          <div class="flex items-center gap-6">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="isOptional" [checked]="charIsOptional === true" (change)="charIsOptional=true" class="w-4 h-4 text-primary-100 focus:ring-primary-100"/>
-              <span class="text-sm text-gray-700">{{ 'CREATE_PROD_SPEC._yes' | translate }}</span>
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="isOptional" [checked]="charIsOptional === false" (change)="charIsOptional=false" class="w-4 h-4 text-primary-100 focus:ring-primary-100"/>
-              <span class="text-sm text-gray-700">{{ 'CREATE_PROD_SPEC._no' | translate }}</span>
-            </label>
+        @if(!isDataspaceConfigurationStep()){
+          <div class="mb-4">
+            <p class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_PROD_SPEC._is_optional' | translate }}</p>
+            <div class="flex items-center gap-6">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="isOptional" [checked]="charIsOptional === true" (change)="charIsOptional=true" class="w-4 h-4 text-primary-100 focus:ring-primary-100"/>
+                <span class="text-sm text-gray-700">{{ 'CREATE_PROD_SPEC._yes' | translate }}</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="isOptional" [checked]="charIsOptional === false" (change)="charIsOptional=false" class="w-4 h-4 text-primary-100 focus:ring-primary-100"/>
+                <span class="text-sm text-gray-700">{{ 'CREATE_PROD_SPEC._no' | translate }}</span>
+              </label>
+            </div>
           </div>
-        </div>
+        }
 
         <div class="mb-6">
           <label class="block text-sm font-semibold text-gray-900 mb-2">{{ 'CREATE_PROD_SPEC._values' | translate }}</label>
