@@ -579,13 +579,13 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     this.showCreateChar = true;
   }
 
-  formatCharValues(prod: any): string {
+  formatCharValues(prod: any, maxLength = 160): string {
     const values = prod.productSpecCharacteristicValue || [];
     return values.map((c: any) => {
       if(c.valueFrom !== undefined && c.valueFrom !== null){
         return `${c.valueFrom}-${c.valueTo}${c.unitOfMeasure ? ' ' + c.unitOfMeasure : ''}`;
       }
-      const value = this.getValuePreview(c.value, 160);
+      const value = this.getValuePreview(c.value, maxLength);
       return c.unitOfMeasure ? `${value} ${c.unitOfMeasure}` : value;
     }).join(',');
   }

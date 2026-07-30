@@ -352,7 +352,14 @@
 
           @if(currentCharacteristics().length > 0){
             <div class="relative w-full mt-4 border border-gray-200 rounded-2xl overflow-visible">
-              <table class="w-full text-sm text-left text-gray-700">
+              <table class="w-full table-fixed text-sm text-left text-gray-700">
+                <colgroup>
+                  <col class="w-[22%]" />
+                  <col class="w-[25%]" />
+                  <col class="w-[29%]" />
+                  <col class="w-[16%]" />
+                  <col class="w-[8%]" />
+                </colgroup>
                 <thead class="text-xs text-gray-500 uppercase">
                   <tr class="border-b border-gray-200">
                     <th scope="col" class="px-6 py-3 font-semibold">{{ 'CREATE_PROD_SPEC._name' | translate }}</th>
@@ -365,11 +372,15 @@
                 <tbody>
                   @for (prod of currentCharacteristics(); track prod; let idx = $index) {
                     <tr class="border-t border-gray-100">
-                      <td [ngClass]="{ 'break-all': hasLongWord(prod.name, 20), 'break-words': !hasLongWord(prod.name, 20) }" class="px-6 py-4 text-gray-900">{{prod.name}}</td>
-                      <td [ngClass]="{ 'break-all': hasLongWord(prod.description, 20), 'break-words': !hasLongWord(prod.description, 20) }" class="px-6 py-4 text-gray-600">{{prod.description || '-'}}</td>
-                      <td class="px-6 py-4 text-gray-900">{{ formatCharValues(prod) }}</td>
+                      <td [ngClass]="{ 'break-all': hasLongWord(prod.name, 20), 'break-words': !hasLongWord(prod.name, 20) }" class="px-6 py-4 align-top text-gray-900">{{prod.name}}</td>
+                      <td [ngClass]="{ 'break-all': hasLongWord(prod.description, 20), 'break-words': !hasLongWord(prod.description, 20) }" class="px-6 py-4 align-top text-gray-600">{{prod.description || '-'}}</td>
+                      <td class="px-6 py-4 align-top text-gray-900">
+                        <div class="max-w-full overflow-hidden text-ellipsis whitespace-nowrap" [title]="formatCharValues(prod, 1000)">
+                          {{ formatCharValues(prod, 96) }}
+                        </div>
+                      </td>
                       <td class="px-6 py-4 text-gray-600 whitespace-nowrap">{{ formatLastUpdate($any(prod)._lastUpdate) }}</td>
-                      <td class="px-6 py-4 relative">
+                      <td class="px-6 py-4 relative align-top text-right whitespace-nowrap">
                         <button type="button" (click)="toggleCharMenu(idx, $event)" class="p-1 hover:bg-gray-100 rounded text-gray-500">
                           <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <circle cx="12" cy="5" r="2"/>
@@ -435,7 +446,13 @@
 
           @if(currentCharacteristics().length > 0){
             <div class="relative w-full mt-4 border border-gray-200 rounded-2xl overflow-visible">
-              <table class="w-full text-sm text-left text-gray-700">
+              <table class="w-full table-fixed text-sm text-left text-gray-700">
+                <colgroup>
+                  <col class="w-[24%]" />
+                  <col class="w-[22%]" />
+                  <col class="w-[42%]" />
+                  <col class="w-[12%]" />
+                </colgroup>
                 <thead class="text-xs text-gray-500 uppercase">
                   <tr class="border-b border-gray-200">
                     <th scope="col" class="px-6 py-3 font-semibold">{{ 'CREATE_PROD_SPEC._name' | translate }}</th>
@@ -447,10 +464,14 @@
                 <tbody>
                   @for (prod of currentCharacteristics(); track prod; let idx = $index) {
                     <tr class="border-t border-gray-100">
-                      <td class="px-6 py-4 text-gray-900">{{prod.name}}</td>
-                      <td class="px-6 py-4 text-gray-600">{{prod.valueType || '-'}}</td>
-                      <td class="px-6 py-4 text-gray-900">{{ formatCharValues(prod) }}</td>
-                      <td class="px-6 py-4 relative">
+                      <td class="px-6 py-4 align-top text-gray-900 break-words">{{prod.name}}</td>
+                      <td class="px-6 py-4 align-top text-gray-600 break-words">{{prod.valueType || '-'}}</td>
+                      <td class="px-6 py-4 align-top text-gray-900">
+                        <div class="max-w-full overflow-hidden text-ellipsis whitespace-nowrap" [title]="formatCharValues(prod, 1000)">
+                          {{ formatCharValues(prod, 96) }}
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 relative align-top text-right whitespace-nowrap">
                         <button type="button" (click)="toggleCharMenu(idx, $event)" class="p-1 hover:bg-gray-100 rounded text-gray-500">
                           <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <circle cx="12" cy="5" r="2"/>
