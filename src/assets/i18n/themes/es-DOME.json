@@ -1,0 +1,12 @@
+{
+  "PLATFORM": {
+    "CATALOGS": {
+      "_all_providers": "All providers",
+      "_bc_current": "Providers catalog"
+    }
+  },
+  "CATALOGS": {
+    "_all_providers": "All providers",
+    "_bc_current": "Providers catalog"
+  }
+}
