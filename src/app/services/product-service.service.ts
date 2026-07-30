@@ -185,6 +185,23 @@ export class ApiServiceService {
     return lastValueFrom(this.http.get<any>(url));
   }
 
+  getLaunchedProductOffersByOwnerAndCategory(page: any, keywords: any, categories: Category[], partyId: any) {
+    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering?limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}&relatedParty.id=${partyId}&lifecycleStatus=Launched`;
+
+    const categoryIds = (categories ?? [])
+      .map(category => category?.id)
+      .filter(id => id != null && id !== '');
+
+    if (categoryIds.length > 0) {
+      url = url + '&category.id=' + categoryIds.join(',');
+    }
+    if (keywords != undefined) {
+      url = url + '&keyword=' + keywords;
+    }
+
+    return lastValueFrom(this.http.get<any[]>(url));
+  }
+
   getProductSpecification(id: any) {
     let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productSpecification/${id}`;
 

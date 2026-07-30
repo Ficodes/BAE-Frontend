@@ -19,7 +19,6 @@ import { ProductDetailsComponent } from "./pages/product-details/product-details
 import { ProductInvDetailComponent } from './pages/product-inventory/inventory-items/product-inv-detail/product-inv-detail.component';
 import { ProductInventoryComponent } from './pages/product-inventory/product-inventory.component';
 import { ProductOrdersComponent } from './pages/product-orders/product-orders.component';
-import { SearchCatalogComponent } from "./pages/search-catalog/search-catalog.component";
 import { SearchComponent } from "./pages/search/search.component";
 import { SellerOfferingsComponent } from "./pages/seller-offerings/seller-offerings.component";
 import { ShoppingCartComponent } from "./pages/shopping-cart/shopping-cart.component";
@@ -46,11 +45,13 @@ const routes: Routes = [
   },
   {
     path: 'org-details/:id',
-    component: OrganizationDetailsComponent
+    component: OrganizationDetailsComponent,
+    data: { mode: 'organization' }
   },
   {
     path: 'search/catalogue/:id',
-    component: SearchCatalogComponent
+    component: OrganizationDetailsComponent,
+    data: { mode: 'catalog' }
   },
   {
     path: 'catalogues',

@@ -13,6 +13,7 @@ import { availableFilters, searchCategoriesConfig } from 'src/app/data/available
 import { Category } from 'src/app/models/interfaces';
 import { faEarthAmericas } from '@fortawesome/free-solid-svg-icons';
 import { iconForCategory } from 'src/app/data/categoryIcons';
+import { PaginationService } from 'src/app/services/pagination.service';
 
 type ToolbarFilter = {
   key: string;
@@ -25,6 +26,8 @@ type ToolbarFilter = {
   dropTop?: number | null;
 };
 
+type OrganizationDetailsMode = 'catalog' | 'organization';
+
 @Component({
   selector: 'app-organization-details',
   templateUrl: './organization-details.component.html',
@@ -33,6 +36,7 @@ type ToolbarFilter = {
 export class OrganizationDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   id:any;
+  mode: OrganizationDetailsMode = 'organization';
   notFound = false;
   orgInfo:any;
   logo:any=undefined;
@@ -55,9 +59,13 @@ export class OrganizationDetailsComponent implements OnInit, AfterViewInit, OnDe
   toolbarFilters: ToolbarFilter[] = [];
 
   private allServices: any[] = [];
+  private nextServices: any[] = [];
   services: any[] = [];
   serviceCount = 0;
   servicesLoading = false;
+  loading_more = false;
+  page_check = false;
+  private servicesPage = 0;
   rootCategories: Category[] = [];
   activeCategoryName: string | null = null;
   activeCategoryId: string | null = null;
@@ -97,22 +105,24 @@ export class OrganizationDetailsComponent implements OnInit, AfterViewInit, OnDe
     private accService: AccountServiceService,
     private location: Location,
     private api: ApiServiceService,
+    private paginationService: PaginationService,
     private renderer: Renderer2
   ) {
     this.eventMessage.messages$.pipe(takeUntil(this.destroy$)).subscribe(ev => {
       if (ev.type === 'FiltersCommitted') {
-        this.applyServiceView();
+        this.reloadServices();
         this.cdr.detectChanges();
       }
     });
   }
 
   ngOnInit(): void {
-    this.serviceSearch.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(v => { if (!v) { this.serviceKeywords = undefined; this.applyServiceView(); } });
+    this.serviceSearch.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(v => { if (!v) { this.serviceKeywords = undefined; this.reloadServices(); } });
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.id = params.get('id');
+      this.mode = this.route.snapshot.data['mode'] === 'catalog' ? 'catalog' : 'organization';
       this.resetPageState();
-      this.loadCatalogPage();
+      this.loadPage();
     });
   }
 
@@ -128,8 +138,12 @@ export class OrganizationDetailsComponent implements OnInit, AfterViewInit, OnDe
     this.address = '';
     this.servicesCount = 0;
     this.allServices = [];
+    this.nextServices = [];
     this.services = [];
     this.serviceCount = 0;
+    this.loading_more = false;
+    this.page_check = false;
+    this.servicesPage = 0;
     this.activeCategoryName = null;
     this.activeCategoryId = null;
     this.showCategoryDropdown = false;
@@ -143,33 +157,62 @@ export class OrganizationDetailsComponent implements OnInit, AfterViewInit, OnDe
     this.initToolbarFilters();
   }
 
+  private loadPage(): void {
+    if (this.mode === 'catalog') {
+      this.loadCatalogPage();
+    } else {
+      this.loadOrganizationPage();
+    }
+  }
+
   private async loadCatalogPage(): Promise<void> {
     const catalogId = this.id;
+    const requestKey = this.currentRequestKey();
     let owner: any;
     try {
       const catalog = await this.api.getCatalog(catalogId);
-      if (this.id !== catalogId) { return; }
+      if (this.currentRequestKey() !== requestKey) { return; }
       const parties: any[] = catalog?.relatedParty ?? [];
       owner = parties.find((p: any) => p?.role === environment.SELLER_ROLE)
         ?? parties.find((p: any) => p?.id && String(p.id).includes('organization'));
     } catch (err) {
       console.warn('Catalog unavailable:', err);
     }
-    if (this.id !== catalogId) { return; }
+    if (this.currentRequestKey() !== requestKey) { return; }
     if (!owner?.id) {
       this.notFound = true;
       return;
     }
-    await this.loadOwnerInfo(owner.id, catalogId);
-    if (this.id !== catalogId) { return; }
-    await this.loadServices(catalogId);
-    if (this.id !== catalogId) { return; }
+    await this.loadOwnerInfo(owner.id, requestKey);
+    if (this.currentRequestKey() !== requestKey) { return; }
+    await this.loadServicesPage(false, requestKey);
+    if (this.currentRequestKey() !== requestKey) { return; }
     this.loadRootCategories();
   }
 
-  private loadOwnerInfo(ownerId: string, catalogId: string): Promise<void> {
+  private async loadOrganizationPage(): Promise<void> {
+    const orgId = this.id;
+    const requestKey = this.currentRequestKey();
+
+    if (!orgId) {
+      this.notFound = true;
+      return;
+    }
+
+    await this.loadOwnerInfo(orgId, requestKey);
+    if (this.currentRequestKey() !== requestKey || this.notFound) { return; }
+    await this.loadServicesPage(false, requestKey);
+    if (this.currentRequestKey() !== requestKey) { return; }
+    this.loadRootCategories();
+  }
+
+  private currentRequestKey(): string {
+    return `${this.mode}:${this.id ?? ''}`;
+  }
+
+  private loadOwnerInfo(ownerId: string, requestKey: string): Promise<void> {
     return this.accService.getOrgInfo(ownerId).then(org => {
-      if (this.id !== catalogId) { return; }
+      if (this.currentRequestKey() !== requestKey) { return; }
       this.orgInfo=org;
       console.log(this.orgInfo)
       const chars = this.orgInfo?.partyCharacteristic ?? [];
@@ -204,8 +247,8 @@ export class OrganizationDetailsComponent implements OnInit, AfterViewInit, OnDe
         this.cdr.detectChanges();
       });
     }).catch(err => {
-      if (this.id !== catalogId) { return; }
-      console.warn('Catalog owner unavailable:', err);
+      if (this.currentRequestKey() !== requestKey) { return; }
+      console.warn('Organization unavailable:', err);
       this.notFound = true;
     })
   }
@@ -315,14 +358,14 @@ export class OrganizationDetailsComponent implements OnInit, AfterViewInit, OnDe
 
   filterServices(): void {
     this.serviceKeywords = this.serviceSearch.value || undefined;
-    this.applyServiceView();
+    this.reloadServices();
   }
 
   clearServiceFilters(): void {
     for (const f of this.toolbarFilters) { f.selectedIds = []; f.open = false; }
     this.serviceKeywords = undefined;
     this.serviceSearch.reset();
-    this.applyServiceView();
+    this.reloadServices();
   }
 
   private async loadRootCategories(): Promise<void> {
@@ -364,13 +407,13 @@ export class OrganizationDetailsComponent implements OnInit, AfterViewInit, OnDe
     const idx = filter.selectedIds.indexOf(option.id);
     if (idx > -1) filter.selectedIds.splice(idx, 1);
     else filter.selectedIds.push(option.id);
-    this.applyServiceView();
+    this.reloadServices();
   }
 
   clearToolbarFilterSelection(filter: ToolbarFilter, event: Event): void {
     event.stopPropagation();
     filter.selectedIds = [];
-    this.applyServiceView();
+    this.reloadServices();
   }
 
   toggleCategoryDropdown(event: Event): void {
@@ -407,33 +450,111 @@ export class OrganizationDetailsComponent implements OnInit, AfterViewInit, OnDe
     this.eventMessage.emitFiltersCommitted();
   }
 
-  private async loadServices(catalogId: string): Promise<void> {
-    this.servicesLoading = true;
-    const limit = environment.PRODUCT_LIMIT;
-    const all: any[] = [];
-    let offset = 0;
-    let details: any[] = [];
-    try {
-      while (offset < 10000) {
-        const batch = await this.api.getProductsByCatalog(catalogId, offset);
-        if (this.id !== catalogId) { return; }
-        const items = Array.isArray(batch) ? batch : [];
-        all.push(...items);
-        if (items.length < limit) break;
-        offset += items.length;
-      }
-      details = await this.api.getProductsDetails(all);
-      if (this.id !== catalogId) { return; }
-    } catch (err) {
-      if (this.id !== catalogId) { return; }
-      console.warn('Catalog offers unavailable:', err);
-      details = [];
+  get categoryFilterCatalogId(): string | undefined {
+    return this.mode === 'catalog' ? this.id : undefined;
+  }
+
+  async next(): Promise<void> {
+    await this.loadServicesPage(true, this.currentRequestKey());
+  }
+
+  private reloadServices(): void {
+    if (!this.id) { return; }
+    this.loadServicesPage(false, this.currentRequestKey());
+  }
+
+  private async loadServicesPage(next: boolean, requestKey: string): Promise<void> {
+    if (next && (!this.page_check || this.loading_more)) { return; }
+    if (next) {
+      this.loading_more = true;
+    } else {
+      this.servicesLoading = true;
+      this.loading_more = false;
+      this.page_check = false;
+      this.allServices = [];
+      this.nextServices = [];
+      this.servicesPage = 0;
+      this.applyServiceView();
     }
-    this.allServices = details;
-    this.servicesCount = this.allServices.length;
-    this.applyServiceView();
-    this.servicesLoading = false;
-    this.cdr.detectChanges();
+
+    try {
+      const data = await this.paginationService.getItemsPaginated(
+        this.servicesPage,
+        environment.PRODUCT_LIMIT,
+        next,
+        this.allServices,
+        this.nextServices,
+        this.getServicePaginationOptions(),
+        this.getServicePaginationHandler()
+      );
+      if (this.currentRequestKey() !== requestKey) { return; }
+
+      this.allServices = await this.api.getProductsDetails(data.items ?? []);
+      this.nextServices = await this.api.getProductsDetails(data.nextItems ?? []);
+      this.servicesPage = data.page;
+      this.page_check = data.page_check;
+    } catch (err) {
+      if (this.currentRequestKey() !== requestKey) { return; }
+      console.warn('Offers unavailable:', err);
+      if (!next) {
+        this.allServices = [];
+        this.nextServices = [];
+        this.page_check = false;
+      }
+    } finally {
+      if (this.currentRequestKey() !== requestKey) { return; }
+      this.applyServiceView();
+      this.servicesLoading = false;
+      this.loading_more = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private getSelectedServiceFilters(): Category[] {
+    const selected: Category[] = [];
+    const byId = new Set<string>();
+    const stored = this.localStorage.getObject('selected_categories') as Category[] || [];
+
+    const add = (cat: Category | undefined) => {
+      if (!cat?.id || byId.has(cat.id)) { return; }
+      byId.add(cat.id);
+      selected.push(cat);
+    };
+
+    for (const cat of (Array.isArray(stored) ? stored : [])) {
+      add(cat);
+    }
+
+    for (const filter of this.toolbarFilters) {
+      for (const id of filter.selectedIds) {
+        const option = filter.options.find(opt => opt.id === id);
+        add(option);
+      }
+    }
+
+    return selected;
+  }
+
+  private getServicePaginationOptions(): any {
+    if (this.mode === 'catalog') {
+      return {
+        keywords: this.serviceKeywords,
+        filters: this.getSelectedServiceFilters(),
+        catalogId: this.id
+      };
+    }
+
+    return {
+      keywords: this.serviceKeywords,
+      filters: this.getSelectedServiceFilters(),
+      partyId: this.id
+    };
+  }
+
+  private getServicePaginationHandler(): (...params: any[]) => Promise<any> {
+    return this.mode === 'catalog'
+      ? this.paginationService.getProductsByCatalog.bind(this.paginationService)
+      : this.api.getLaunchedProductOffersByOwnerAndCategory.bind(this.api);
   }
 
   private applyServiceView(): void {
@@ -442,17 +563,6 @@ export class OrganizationDetailsComponent implements OnInit, AfterViewInit, OnDe
     if (q) {
       list = list.filter(o => (o?.name ?? '').toLowerCase().includes(q) || (o?.description ?? '').toLowerCase().includes(q));
     }
-    const stored = this.localStorage.getObject('selected_categories') as Category[] || [];
-    const catIds = new Set<string>();
-    for (const c of (Array.isArray(stored) ? stored : [])) if (c?.id) catIds.add(c.id);
-    if (catIds.size) {
-      list = list.filter(o => (o?.category ?? []).some((c: any) => catIds.has(c?.id)));
-    }
-    const toolbarIds = new Set<string>();
-    for (const f of this.toolbarFilters) for (const id of f.selectedIds) toolbarIds.add(id);
-    if (toolbarIds.size) {
-      list = list.filter(o => (o?.category ?? []).some((c: any) => toolbarIds.has(c?.id)));
-    }
     if (this.serviceSort === 'name') {
       list.sort((a, b) => (a?.name ?? '').localeCompare(b?.name ?? ''));
     } else if (this.serviceSort === 'date') {
@@ -460,6 +570,7 @@ export class OrganizationDetailsComponent implements OnInit, AfterViewInit, OnDe
     }
     this.services = list;
     this.serviceCount = list.length;
+    this.servicesCount = this.allServices.length;
   }
 
   private serviceDate(o: any): number {

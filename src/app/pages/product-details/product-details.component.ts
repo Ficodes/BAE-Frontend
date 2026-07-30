@@ -902,16 +902,8 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       }
   }
 
-  async goToOrgDetails(id: any) {
-    try {
-      const catalogs = await this.api.getCatalogsByUser(0, undefined, ['Launched'], id);
-      const catalogId = Array.isArray(catalogs) ? catalogs[0]?.id : undefined;
-      if (catalogId) {
-        this.router.navigate(['/org-details', catalogId]);
-      }
-    } catch (err) {
-      console.error('Error resolving provider catalog:', err);
-    }
+  goToOrgDetails(id: any) {
+    this.router.navigate(['/org-details', id]);
   }
 
   isDrawerOpen = false;

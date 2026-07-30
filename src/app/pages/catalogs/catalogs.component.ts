@@ -188,7 +188,7 @@ export class CatalogsComponent implements OnInit, OnDestroy {
   }
 
   goToProvider(id: string) {
-    this.router.navigate(['/org-details', id]);
+    this.router.navigate(['/search/catalogue', id]);
   }
 
   @HostListener('document:click') onClick() {
