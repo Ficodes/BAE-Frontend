@@ -53,6 +53,26 @@ describe('HeaderComponent', () => {
     expect(component.isWorkspace).toBeFalse();
   });
 
+  it('should render the workspace header for workspace routes', () => {
+    spyOnProperty(router, 'url', 'get').and.returnValue('/product-inventory/123');
+
+    component.ngOnInit();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#workspaceSupport')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('#usageSpecs')).toBeNull();
+  });
+
+  it('should render marketplace navigation outside workspace routes', () => {
+    spyOnProperty(router, 'url', 'get').and.returnValue('/browse');
+
+    component.ngOnInit();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#workspaceSupport')).toBeNull();
+    expect(fixture.nativeElement.querySelector('ul')).not.toBeNull();
+  });
+
   it('goToResources should open configured knowledge base URL', () => {
     const openSpy = spyOn(window, 'open');
     const fallbackUrl = environment.KNOWLEDGE_BASE_URL || environment.KB_GUIDELNES_URL;
