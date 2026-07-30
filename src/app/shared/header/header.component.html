@@ -114,14 +114,6 @@
         </li>
         }
 
-        @if (roles.includes(sellerRole)) {
-        <li>
-          <button id="usageSpecs" type="button" class="dropdown-item" (click)="goTo('/usage-spec')">
-            <fa-icon [icon]="faRuler" class="mr-2"></fa-icon>Usage Spec
-          </button>
-        </li>
-        }
-
         <li>
           <button id="myInventory" type="button" class="dropdown-item" (click)="goTo('/product-inventory')">
             <fa-icon [icon]="faBoxesStacked" class="mr-2"></fa-icon>{{ 'HEADER._inventory' | translate }}
@@ -361,12 +353,6 @@
     <a class="mobile-nav-item" routerLink="/analytics" (click)="isNavBarOpen = false">
       <fa-icon [icon]="faPieChart" class="mr-2"></fa-icon>Analytics
     </a>
-    }
-
-    @if (roles.includes(sellerRole)) {
-    <button type="button" class="mobile-nav-item" (click)="goTo('/usage-spec')">
-      <fa-icon [icon]="faRuler" class="mr-2"></fa-icon>Usage Spec
-    </button>
     }
 
     <button type="button" class="mobile-nav-item" (click)="goTo('/product-inventory')">
