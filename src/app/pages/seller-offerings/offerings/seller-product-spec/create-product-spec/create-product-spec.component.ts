@@ -585,11 +585,28 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
       if(c.valueFrom !== undefined && c.valueFrom !== null){
         return `${c.valueFrom}-${c.valueTo}${c.unitOfMeasure ? ' ' + c.unitOfMeasure : ''}`;
       }
-      if (c.value && typeof c.value === 'object') {
-        return JSON.stringify(c.value);
-      }
-      return c.unitOfMeasure ? `${c.value} ${c.unitOfMeasure}` : `${c.value}`;
+      const value = this.getValuePreview(c.value, 160);
+      return c.unitOfMeasure ? `${value} ${c.unitOfMeasure}` : value;
     }).join(',');
+  }
+
+  getValuePreview(value: any, maxLength = 120): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    let rawValue = '';
+    if (typeof value === 'string') {
+      rawValue = value;
+    } else {
+      try {
+        rawValue = JSON.stringify(value);
+      } catch {
+        rawValue = String(value);
+      }
+    }
+
+    return rawValue.length > maxLength ? `${rawValue.slice(0, maxLength)}...` : rawValue;
   }
 
   formatLastUpdate(date: any): string {

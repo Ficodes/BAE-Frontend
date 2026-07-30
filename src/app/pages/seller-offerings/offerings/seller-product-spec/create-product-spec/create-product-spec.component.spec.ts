@@ -30,6 +30,10 @@ describe('CreateProductSpecComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('getValuePreview should render object values as JSON text', () => {
+    expect(component.getValuePreview({ issuer: 'did:example:issuer' })).toBe('{"issuer":"did:example:issuer"}');
+  });
+
   it('should build update patches without create-only scalar defaults', () => {
     component.prod = {
       id: 'prod-1',

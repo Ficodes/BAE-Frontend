@@ -954,7 +954,7 @@
                   } @else if(numberCharSelected){
                     {{char.value}} <i>{{char?.unitOfMeasure}}</i>
                   } @else {
-                    {{char.value}}
+                    {{getValuePreview(char.value)}}
                   }
                   <button type="button" (click)="removeCharValue(char,idx)" class="hover:text-red-600">
                     <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
