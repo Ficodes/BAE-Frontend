@@ -3,17 +3,17 @@
   <div class="mx-auto max-w-[1440px] px-8">
 
     <nav class="flex items-center gap-2 pt-4 pb-4 text-[16px] text-[#526179]">
-      <a [routerLink]="marketplaceHomeUrl" class="hover:text-[#1f4fbf] transition-colors">Marketplace</a>
+      <a [routerLink]="marketplaceHomeUrl" class="hover:text-primary-100 transition-colors">Marketplace</a>
       <svg class="h-4 w-4 text-[#526179]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
         stroke-width="2.5" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
       </svg>
-      <span class="font-medium text-[#1f4fbf]">{{ activeCategoryName || 'All Categories' }}</span>
+      <span class="font-medium text-primary-100">{{ activeCategoryName || 'All Categories' }}</span>
     </nav>
 
     <div class="flex flex-wrap items-center justify-between gap-4 pb-4">
       <div class="relative flex items-center gap-3 min-w-0">
-        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#eef2fb] text-[#1f4fbf]">
+        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-secondary-50 text-primary-100">
           <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
             stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -37,16 +37,16 @@
           class="absolute top-full left-0 mt-2 z-50 w-[420px] rounded-2xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] max-h-[520px] overflow-hidden">
           <div class="p-2 flex flex-col gap-2 max-h-[520px] overflow-y-auto overscroll-contain">
             <button data-cy="searchAllCategories" (mousedown)="selectCategory(null)"
-              [ngClass]="!activeCategoryName ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'"
+              [ngClass]="!activeCategoryName ? 'bg-secondary-50' : 'hover:bg-secondary-50/70'"
               class="flex w-full items-center gap-4 rounded-lg px-4 h-14 text-[16px] text-[#0b1220] transition-colors">
-              <svg class="h-6 w-6 text-[#1f4fbf] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
+              <svg class="h-6 w-6 text-primary-100 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round"
                   d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25a2.25 2.25 0 0 1-2.25-2.25v-2.25Z" />
               </svg>
               <span class="font-medium">All Categories</span>
               @if (!activeCategoryName) {
-              <svg class="h-5 w-5 ml-auto text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none"
+              <svg class="h-5 w-5 ml-auto text-primary-100" xmlns="http://www.w3.org/2000/svg" fill="none"
                 viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
               </svg>
@@ -54,7 +54,7 @@
             </button>
             @for (cat of rootCategories; track cat.id) {
             <button data-cy="searchCategoryItem" (mousedown)="selectCategory(cat)"
-              [ngClass]="activeCategoryName === cat.name ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'"
+              [ngClass]="activeCategoryName === cat.name ? 'bg-secondary-50' : 'hover:bg-secondary-50/70'"
               class="flex w-full items-center gap-4 rounded-lg px-4 h-14 text-[16px] text-[#0b1220] transition-colors">
               <fa-icon [icon]="iconForCategory(cat.name)" class="text-[20px] text-[#526179] shrink-0"></fa-icon>
               <span>{{ cat.name }}</span>
@@ -78,11 +78,11 @@
           </div>
           }
           <input type="search" [formControl]="searchField" (keydown.enter)="onUnifiedSearch($event)"
-            [ngClass]="aiSearchEnabled ? 'ps-10 border-purple-300 focus:ring-purple-500 focus:border-purple-500' : 'border-gray-200 focus:ring-[#00ADD3] focus:border-[#00ADD3]'"
+            [ngClass]="aiSearchEnabled ? 'ps-10 border-purple-300 focus:ring-purple-500 focus:border-purple-500' : 'border-gray-200 focus:ring-primary-50 focus:border-primary-50'"
             class="block w-full rounded-[12px] border bg-white py-3.5 pl-5 pr-14 text-[16px] text-gray-900 placeholder:text-gray-400 shadow-sm hover:shadow-md focus:shadow-none transition-shadow outline-none"
             placeholder="{{ aiSearchEnabled ? ('DASHBOARD._ai_search_ph' | translate) : ('DASHBOARD._search_ph' | translate) }}">
           <button type="submit"
-            class="absolute top-0 end-0 h-full px-4 flex items-center justify-center rounded-e-[12px] text-gray-400 hover:text-[#1f4fbf] transition-colors">
+            class="absolute top-0 end-0 h-full px-4 flex items-center justify-center rounded-e-[12px] text-gray-400 hover:text-primary-100 transition-colors">
             @if (aiSearchLoading) {
             <svg class="w-4 h-4 animate-spin" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
               viewBox="0 0 24 24">
@@ -112,15 +112,15 @@
         <div class="relative shrink-0">
           <button data-cy="searchToolbarFilter" [attr.data-filter-key]="filter.key"
             (click)="toggleToolbarFilterDropdown(filter, $event)"
-            [ngClass]="filter.selectedIds.length > 0 ? 'border-[#1f4fbf] bg-[#EBF0F7] text-[#1f4fbf]' : 'border-gray-200 text-[#324153] hover:border-[#1f4fbf] hover:text-[#1f4fbf]'"
+            [ngClass]="filter.selectedIds.length > 0 ? 'border-primary-100 bg-secondary-50 text-primary-100' : 'border-gray-200 text-[#324153] hover:border-primary-100 hover:text-primary-100'"
             class="flex items-center gap-2 h-10 rounded-lg border pl-4 pr-3 text-[16px] font-normal transition-colors">
             {{ filter.label }}
             @if (filter.selectedIds.length > 0) {
             <span
-              class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#B6CAEC] px-1.5 text-[12px] font-semibold text-[#1f4fbf]">{{
+              class="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-secondary-50 px-1.5 text-[12px] font-semibold text-primary-100">{{
               filter.selectedIds.length }}</span>
             <span (click)="clearToolbarFilterSelection(filter, $event)"
-              class="inline-flex h-5 w-5 items-center justify-center rounded-full hover:bg-[#DDE6F6] cursor-pointer">
+              class="inline-flex h-5 w-5 items-center justify-center rounded-full hover:bg-secondary-50 cursor-pointer">
               <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
                 stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -141,10 +141,10 @@
               @for (option of filter.options; track option.id) {
               <button data-cy="searchToolbarFilterOption" [attr.data-option-id]="option.id"
                 (click)="toggleToolbarOption(filter, option, $event)"
-                [ngClass]="isToolbarOptionSelected(filter, option) ? 'bg-[#DDE6F6]' : 'hover:bg-[#EBF0F7]'"
+                [ngClass]="isToolbarOptionSelected(filter, option) ? 'bg-secondary-50' : 'hover:bg-secondary-50/70'"
                 class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-[#0b1220] transition-colors">
                 <div class="flex h-4 w-4 shrink-0 items-center justify-center rounded border"
-                  [ngClass]="isToolbarOptionSelected(filter, option) ? 'bg-[#1f4fbf] border-[#1f4fbf] text-white' : 'border-gray-300 bg-white'">
+                  [ngClass]="isToolbarOptionSelected(filter, option) ? 'bg-primary-100 border-primary-100 text-white' : 'border-gray-300 bg-white'">
                   @if (isToolbarOptionSelected(filter, option)) {
                   <svg class="h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                     stroke-width="3" stroke="currentColor">
@@ -163,7 +163,7 @@
       </div>
       <div class="shrink-0">
         <button (click)="clearFilters()"
-          class="flex items-center gap-2 text-[16px] font-normal text-[#1f4fbf] hover:text-[#163b99] transition-colors">
+          class="flex items-center gap-2 text-[16px] font-normal text-primary-100 hover:text-primary-50 transition-colors">
           <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
             stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -199,7 +199,7 @@
           <div class="mb-4 flex items-center justify-between">
             <h3 class="text-[18px] font-semibold text-[#0b1220]">Filters</h3>
             <button (click)="clearSubcategoryFilters()"
-              class="text-[14px] font-medium text-[#1f4fbf] hover:text-[#163b99] transition-colors">Clear all</button>
+              class="text-[14px] font-medium text-primary-100 hover:text-primary-50 transition-colors">Clear all</button>
           </div>
           <bae-categories-filter [showTitle]="false" [simpleMode]="true" [catalogId]="DFT_CATALOG"
             [selectedRootId]="activeCategoryId" [selectedRootName]="activeCategoryName"></bae-categories-filter>
@@ -210,7 +210,7 @@
       <div class="min-w-0 flex-1">
 
         <button (click)="showDrawer=!showDrawer; $event.stopPropagation();" type="button"
-          class="mb-4 md:hidden flex items-center gap-2 px-3 py-2 text-sm font-medium text-[#1f4fbf] border border-[#1f4fbf] rounded-lg">
+          class="mb-4 md:hidden flex items-center gap-2 px-3 py-2 text-sm font-medium text-primary-100 border border-primary-100 rounded-lg">
           <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M1 1h15M1 7h15M1 13h15" />
@@ -230,7 +230,7 @@
               <div class="flex items-center gap-1.5 text-[16px]">
                 <span class="text-[#526179]">Sort by:</span>
                 <div class="relative">
-                  <button (click)="toggleSortDropdown($event)" class="flex items-center gap-1 font-semibold text-[#1f4fbf]">
+                  <button (click)="toggleSortDropdown($event)" class="flex items-center gap-1 font-semibold text-primary-100">
                     {{ sortLabel }}
                     <svg class="h-4 w-4 transition-transform" [ngClass]="showSortDropdown ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
@@ -241,11 +241,11 @@
                       <div class="p-2 flex flex-col gap-1">
                         @for (opt of sortOptions; track opt.value) {
                           <button (click)="selectSort(opt.value, $event)"
-                            [ngClass]="sortOption === opt.value ? 'bg-[#DDE6F6] text-[#1f4fbf]' : 'hover:bg-[#EBF0F7] text-[#0b1220]'"
+                            [ngClass]="sortOption === opt.value ? 'bg-secondary-50 text-primary-100' : 'hover:bg-secondary-50/70 text-[#0b1220]'"
                             class="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-[14px] transition-colors">
                             <span>{{ opt.label }}</span>
                             @if (sortOption === opt.value) {
-                              <svg class="h-4 w-4 text-[#1f4fbf]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                              <svg class="h-4 w-4 text-primary-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                               </svg>
                             }
@@ -262,7 +262,7 @@
           <div class="flex items-center gap-4">
             <div class="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-white p-1">
               <button (click)="viewMode='grid'"
-                [ngClass]="viewMode==='grid' ? 'bg-[#eef2fb] text-[#1f4fbf]' : 'text-gray-400 hover:text-gray-600'"
+                [ngClass]="viewMode==='grid' ? 'bg-secondary-50 text-primary-100' : 'text-gray-400 hover:text-gray-600'"
                 class="rounded p-2 transition-colors">
                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                   stroke-width="1.5" stroke="currentColor">
@@ -271,7 +271,7 @@
                 </svg>
               </button>
               <button (click)="viewMode='list'"
-                [ngClass]="viewMode==='list' ? 'bg-[#eef2fb] text-[#1f4fbf]' : 'text-gray-400 hover:text-gray-600'"
+                [ngClass]="viewMode==='list' ? 'bg-secondary-50 text-primary-100' : 'text-gray-400 hover:text-gray-600'"
                 class="rounded p-2 transition-colors">
                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                   stroke-width="1.5" stroke="currentColor">
@@ -285,7 +285,7 @@
 
         @if (loading) {
         <div class="flex justify-center py-16">
-          <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-[#1f4fbf]"
+          <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-primary-100"
             viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
@@ -358,7 +358,7 @@
             @if ($index + 1 === aiCurrentPage || $index + 1 === 1 || $index + 1 === aiTotalPages || ($index + 1 >=
             aiCurrentPage - 2 && $index + 1 <= aiCurrentPage + 2)) { <li>
               <button (click)="changeAiPage($index + 1)"
-                [ngClass]="$index + 1 === aiCurrentPage ? 'text-blue-600 border-blue-300 bg-blue-50' : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700'"
+                [ngClass]="$index + 1 === aiCurrentPage ? 'text-primary-100 border-primary-100 bg-secondary-50' : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700'"
                 class="flex items-center justify-center px-3 h-8 leading-tight border">
                 {{ $index + 1 }}
               </button>
@@ -405,7 +405,7 @@
             @if ($index + 1 === aiCurrentPage || $index + 1 === 1 || $index + 1 === aiTotalPages || ($index + 1 >=
             aiCurrentPage - 2 && $index + 1 <= aiCurrentPage + 2)) { <li>
               <button (click)="changeAiPage($index + 1)"
-                [ngClass]="$index + 1 === aiCurrentPage ? 'text-blue-600 border-blue-300 bg-blue-50' : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700'"
+                [ngClass]="$index + 1 === aiCurrentPage ? 'text-primary-100 border-primary-100 bg-secondary-50' : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700'"
                 class="flex items-center justify-center px-3 h-8 leading-tight border">
                 {{ $index + 1 }}
               </button>
@@ -432,7 +432,7 @@
         @if (page_check) {
         <div class="flex pb-12 justify-center mt-6">
           <button data-cy="loadMore" (click)="next()"
-            class="flex cursor-pointer items-center justify-center px-4 h-9 text-sm font-medium text-[#1f4fbf] bg-white border border-[#1f4fbf] rounded-lg hover:bg-[#eef2fb] transition-colors">
+            class="flex cursor-pointer items-center justify-center px-4 h-9 text-sm font-medium text-primary-100 bg-white border border-primary-100 rounded-lg hover:bg-secondary-50 transition-colors">
             Load more
             <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
               viewBox="0 0 24 24">
@@ -444,7 +444,7 @@
         }
         } @else {
         <div class="flex justify-center mt-6" data-cy="loadMoreLoading">
-          <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin fill-[#1f4fbf]" viewBox="0 0 100 101"
+          <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin fill-primary-100" viewBox="0 0 100 101"
             fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"

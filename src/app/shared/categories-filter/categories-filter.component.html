@@ -5,10 +5,10 @@
 @if (simpleMode) {
 <ul class="flex flex-col">
   @for (cat of allFilterItems; track cat.id) {
-  <li data-cy="searchSubcategoryItem" class="flex items-center gap-3 cursor-pointer rounded-lg py-3 pl-4 pr-2 hover:bg-[#F0F4FB] transition-colors"
+  <li data-cy="searchSubcategoryItem" class="flex items-center gap-3 cursor-pointer rounded-lg py-3 pl-4 pr-2 hover:bg-secondary-50/70 transition-colors"
     (click)="onClick(cat)">
     <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2" [ngClass]="isCheckedCategory(cat)
-            ? 'bg-[#2D58A7] border-[#2D58A7] text-white'
+            ? 'bg-primary-100 border-primary-100 text-white'
             : 'border-[#C0C7D1] bg-white'">
       @if (isCheckedCategory(cat)) {
       <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3"
@@ -33,7 +33,7 @@
                   'break-all': hasLongWord(category?.name, 20),
                   'break-words': !hasLongWord(category?.name, 20)
                   }">
-        <fa-icon [icon]="iconForCategory(category?.name)" class="shrink-0 text-[#2D58A7]"></fa-icon>
+        <fa-icon [icon]="iconForCategory(category?.name)" class="shrink-0 text-primary-100"></fa-icon>
         <span>{{ category?.name }}</span>
       </span>
       <div class="justify-end inline-flex">
