@@ -1,8 +1,11 @@
-import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AccountServiceService } from 'src/app/services/account-service.service';
 import { ApiServiceService } from 'src/app/services/product-service.service';
+import { ThemeService } from 'src/app/services/theme.service';
 import { environment } from 'src/environments/environment';
 
 interface ProviderCard { id: string; name: string; description: string; logo: string; }
@@ -12,7 +15,8 @@ interface ProviderCard { id: string; name: string; description: string; logo: st
   templateUrl: './catalogs.component.html',
   styleUrl: './catalogs.component.css'
 })
-export class CatalogsComponent implements OnInit {
+export class CatalogsComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   private allProviders: ProviderCard[] = [];
   providers: ProviderCard[] = [];
   totalCount = 0;
@@ -34,13 +38,34 @@ export class CatalogsComponent implements OnInit {
     { value: 'name_asc', label: 'CATALOGS._sort_name_asc' },
     { value: 'name_desc', label: 'CATALOGS._sort_name_desc' },
   ];
+  marketplaceHomeUrl = '/search';
+
   get sortLabel() { return this.sortOptions.find(o => o.value === this.sortOption)?.label ?? ''; }
 
-  constructor(private router: Router, private accService: AccountServiceService, private api: ApiServiceService, private cdr: ChangeDetectorRef) { }
+  constructor(
+    private router: Router,
+    private accService: AccountServiceService,
+    private api: ApiServiceService,
+    private cdr: ChangeDetectorRef,
+    private themeService: ThemeService
+  ) { }
 
   ngOnInit() {
+    this.themeService.currentTheme$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(theme => {
+        this.marketplaceHomeUrl = theme?.links?.marketplaceHomeUrl || '/search';
+      });
+
     this.getProviders();
-    this.searchField.valueChanges.subscribe(v => { if (!v) { this.filter = undefined; this.page = 0; this.applyView(); } });
+    this.searchField.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(v => { if (!v) { this.filter = undefined; this.page = 0; this.applyView(); } });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   async getProviders() {
