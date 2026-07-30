@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, Type } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -6,6 +6,7 @@ import { takeUntil } from 'rxjs/operators';
 import { AccountServiceService } from 'src/app/services/account-service.service';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { ThemeService } from 'src/app/services/theme.service';
+import { CatalogsPageConfig } from 'src/app/themes';
 import { environment } from 'src/environments/environment';
 
 interface ProviderCard { id: string; name: string; description: string; logo: string; }
@@ -29,8 +30,8 @@ export class CatalogsComponent implements OnInit, OnDestroy {
   searchField = new FormControl();
 
   viewMode: 'grid' | 'list' = 'grid';
-  readonly DEFAULT_LOGO = 'assets/images/Dome-Marketplace.svg';
-  isDefaultLogo(logo: string | undefined): boolean { return logo === this.DEFAULT_LOGO; }
+  defaultCatalogLogoUrl = '';
+  isDefaultLogo(logo: string | undefined): boolean { return !!logo && logo === this.defaultCatalogLogoUrl; }
   sortOption: 'recent' | 'name_asc' | 'name_desc' = 'recent';
   showSortDropdown = false;
   sortOptions: { value: 'recent' | 'name_asc' | 'name_desc'; label: string }[] = [
@@ -39,6 +40,7 @@ export class CatalogsComponent implements OnInit, OnDestroy {
     { value: 'name_desc', label: 'CATALOGS._sort_name_desc' },
   ];
   marketplaceHomeUrl = '/search';
+  catalogsHeaderComponent: Type<unknown> | null = null;
 
   get sortLabel() { return this.sortOptions.find(o => o.value === this.sortOption)?.label ?? ''; }
 
@@ -55,6 +57,7 @@ export class CatalogsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(theme => {
         this.marketplaceHomeUrl = theme?.links?.marketplaceHomeUrl || '/search';
+        this.applyCatalogsTheme(theme?.catalogs);
       });
 
     this.getProviders();
@@ -66,6 +69,27 @@ export class CatalogsComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private applyCatalogsTheme(catalogsConfig: CatalogsPageConfig | undefined) {
+    this.catalogsHeaderComponent = catalogsConfig?.sections?.header || null;
+    const previousDefaultLogoUrl = this.defaultCatalogLogoUrl;
+    this.defaultCatalogLogoUrl = catalogsConfig?.cards?.fallbackLogoUrl || '';
+
+    if (previousDefaultLogoUrl !== this.defaultCatalogLogoUrl) {
+      this.updateDefaultLogos(previousDefaultLogoUrl, this.defaultCatalogLogoUrl);
+    }
+  }
+
+  private updateDefaultLogos(previousDefaultLogoUrl: string, nextDefaultLogoUrl: string) {
+    const replaceDefaultLogo = (card: ProviderCard) => {
+      if (!card.logo || card.logo === previousDefaultLogoUrl) {
+        card.logo = nextDefaultLogoUrl;
+      }
+    };
+
+    this.allProviders.forEach(replaceDefaultLogo);
+    this.providers.forEach(replaceDefaultLogo);
   }
 
   async getProviders() {
@@ -100,7 +124,7 @@ export class CatalogsComponent implements OnInit, OnDestroy {
   }
 
   private mapCatalog(c: any): ProviderCard {
-    return { id: c?.id, name: c?.name ?? '', description: c?.description ?? '', logo: this.DEFAULT_LOGO };
+    return { id: c?.id, name: c?.name ?? '', description: c?.description ?? '', logo: this.defaultCatalogLogoUrl };
   }
 
   private fillOwnerLogos(catalogs: any[]) {

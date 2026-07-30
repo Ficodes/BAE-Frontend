@@ -1,5 +1,6 @@
 import { environment } from '../../environments/environment';
 import { NavHeaderLink, NavLink, ThemeConfig } from './theme.interfaces';
+import { DomeCatalogsHeroComponent } from './dome/components/catalogs-hero/dome-catalogs-hero.component';
 
 const domeHeaderLinks: NavLink[] = [
 
@@ -142,6 +143,14 @@ export const DOME_THEME_CONFIG: ThemeConfig = {
   dashboard: {
     showFeaturedOfferings: true,
     showPlatformBenefits: true,
+  },
+  catalogs: {
+    sections: {
+      header: DomeCatalogsHeroComponent
+    },
+    cards: {
+      fallbackLogoUrl: 'assets/images/Dome-Marketplace.svg'
+    }
   },
   workspace: {
     sellerOfferingsHelp: {

@@ -1,0 +1,87 @@
+:host {
+  display: block;
+}
+
+.dome-catalogs-hero {
+  isolation: isolate;
+  margin-bottom: 24px;
+  padding-top: 40px;
+  position: relative;
+}
+
+.dome-catalogs-hero__background {
+  height: 700px;
+  left: 50%;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  top: -88px;
+  transform: translateX(-50%);
+  width: 100vw;
+  z-index: -1;
+}
+
+.dome-catalogs-hero__decoration {
+  color: rgb(var(--theme-secondary-50));
+  mix-blend-mode: multiply;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.dome-catalogs-hero__glow {
+  background: rgb(var(--theme-primary-50));
+  border-radius: 9999px;
+  filter: blur(100px);
+  height: 500px;
+  left: -351px;
+  opacity: 0.2;
+  position: absolute;
+  top: -113px;
+  width: 500px;
+}
+
+.dome-catalogs-hero__content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 729px;
+}
+
+.dome-catalogs-hero__title {
+  color: rgb(var(--theme-primary-100));
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 43px;
+  margin: 0;
+}
+
+.dome-catalogs-hero__title span {
+  color: rgb(var(--theme-primary-50));
+}
+
+.dome-catalogs-hero__subtitle {
+  color: rgb(var(--theme-primary-100));
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 24px;
+  margin: 0;
+}
+
+@media (min-width: 640px) {
+  .dome-catalogs-hero {
+    margin-bottom: 80px;
+  }
+
+  .dome-catalogs-hero__title {
+    font-size: 70px;
+    line-height: 84px;
+  }
+
+  .dome-catalogs-hero__subtitle {
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 48px;
+  }
+}
