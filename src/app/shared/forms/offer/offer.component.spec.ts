@@ -56,6 +56,62 @@ describe('OfferComponent', () => {
     expect(component.canNavigate(1)).toBeTrue();
   });
 
+  it('should leave directly when leaving offer creation without draft data', () => {
+    const goBackSpy = spyOn(component, 'goBack');
+
+    component.onBackClick();
+
+    expect(component.showLeaveModal).toBeFalse();
+    expect(goBackSpy).toHaveBeenCalled();
+  });
+
+  it('should show the leave modal when leaving offer creation with incomplete draft data', () => {
+    const goBackSpy = spyOn(component, 'goBack');
+    component.productOfferForm.get('generalInfo')?.patchValue({ name: 'Offer name' });
+
+    component.onBackClick();
+
+    expect(component.showLeaveModal).toBeTrue();
+    expect(component.canSaveDraftOffer()).toBeFalse();
+    expect(goBackSpy).not.toHaveBeenCalled();
+  });
+
+  it('should require minimum mandatory fields before saving a draft', () => {
+    expect(component.canSaveDraftOffer()).toBeFalse();
+
+    component.productOfferForm.get('generalInfo')?.patchValue({ name: 'Offer name' });
+
+    expect(component.canSaveDraftOffer()).toBeFalse();
+
+    component.productOfferForm.patchValue({ prodSpec: { id: 'prod-spec-1' } });
+
+    expect(component.canSaveDraftOffer()).toBeTrue();
+  });
+
+  it('should keep the leave modal open when save draft is requested without mandatory fields', async () => {
+    const saveDraftSpy = spyOn(component, 'saveDraftOffer');
+    const goBackSpy = spyOn(component, 'goBack');
+    component.showLeaveModal = true;
+
+    await component.confirmLeave();
+
+    expect(saveDraftSpy).not.toHaveBeenCalled();
+    expect(goBackSpy).not.toHaveBeenCalled();
+    expect(component.showLeaveModal).toBeTrue();
+  });
+
+  it('should discard draft changes without saving them', () => {
+    const saveDraftSpy = spyOn(component, 'saveDraftOffer');
+    const goBackSpy = spyOn(component, 'goBack');
+    component.showLeaveModal = true;
+
+    component.discardLeave();
+
+    expect(saveDraftSpy).not.toHaveBeenCalled();
+    expect(goBackSpy).toHaveBeenCalled();
+    expect(component.showLeaveModal).toBeFalse();
+  });
+
   it('should require at least one tailored price plan when tailored tier is selected', () => {
     component.currentStep = 3;
     component.selectedPriceTier = 'tailored';

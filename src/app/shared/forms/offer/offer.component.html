@@ -704,13 +704,22 @@
         </div>
         <h3 class="text-xl font-extrabold text-gray-900 mb-3">{{ 'CREATE_OFFER._leave_title' | translate }}</h3>
         <p class="text-sm text-gray-600 mb-6">{{ 'CREATE_OFFER._leave_text' | translate }}</p>
-        <div class="flex gap-3 w-full">
+        @if(!canSaveDraftOffer()){
+          <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4 w-full">
+            {{ 'CREATE_OFFER._draft_missing_required' | translate }}
+          </p>
+        }
+        <div class="flex flex-col sm:flex-row gap-3 w-full">
           <button type="button" (click)="cancelLeave()"
             class="flex-1 px-4 py-2.5 text-sm font-semibold text-primary-100 rounded-lg border border-primary-100 hover:bg-primary-50/10">
             {{ 'CREATE_OFFER._continue_editing' | translate }}
           </button>
-          <button type="button" (click)="confirmLeave()"
-            class="flex-1 px-4 py-2.5 text-sm font-semibold text-white rounded-lg bg-primary-100 hover:bg-primary-50">
+          <button type="button" (click)="discardLeave()"
+            class="flex-1 px-4 py-2.5 text-sm font-semibold text-red-700 rounded-lg border border-red-200 hover:bg-red-50">
+            {{ 'CREATE_OFFER._leave_discard' | translate }}
+          </button>
+          <button type="button" (click)="confirmLeave()" [disabled]="!canSaveDraftOffer()"
+            class="flex-1 px-4 py-2.5 text-sm font-semibold text-white rounded-lg bg-primary-100 hover:bg-primary-50 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:hover:bg-gray-300">
             {{ 'CREATE_OFFER._leave_save_draft' | translate }}
           </button>
         </div>

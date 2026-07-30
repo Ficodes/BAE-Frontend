@@ -517,7 +517,27 @@ export class OfferComponent implements OnInit, OnDestroy {
     this.showLeaveModal = false;
   }
 
+  discardLeave(): void {
+    this.showLeaveModal = false;
+    this.goBack();
+  }
+
+  canSaveDraftOffer(): boolean {
+    const generalInfo = this.productOfferForm.get('generalInfo') as FormGroup | null;
+    const name = (generalInfo?.get('name')?.value || '').trim();
+    const prodSpec = this.productOfferForm.get('prodSpec')?.value;
+
+    return !!name
+      && (generalInfo?.get('name')?.valid || false)
+      && (generalInfo?.get('version')?.valid || false)
+      && !!prodSpec?.id;
+  }
+
   async confirmLeave(): Promise<void> {
+    if (!this.canSaveDraftOffer()) {
+      return;
+    }
+
     this.showLeaveModal = false;
     if (this.formType === 'create' && this.hasAnyDraftData()) {
       try {
@@ -535,6 +555,10 @@ export class OfferComponent implements OnInit, OnDestroy {
   }
 
   async saveDraftOffer(): Promise<void> {
+    if (!this.canSaveDraftOffer()) {
+      throw new Error(this.translate.instant('CREATE_OFFER._draft_missing_required'));
+    }
+
     const formValue = this.productOfferForm.value;
     const generalInfo = formValue.generalInfo || {};
 
@@ -545,7 +569,7 @@ export class OfferComponent implements OnInit, OnDestroy {
       : [];
 
     const offer: any = {
-      name: generalInfo.name || '(draft)',
+      name: generalInfo.name.trim(),
       description: this.composeDescriptionWithTags(generalInfo.description || ''),
       lifecycleStatus: 'Active',
       isBundle: false,

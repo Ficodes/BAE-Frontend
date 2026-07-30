@@ -1530,6 +1530,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
 
   canNavigate(index: number) {
     if (index === this.currentStep || index === 0) return true;
+    if (index <= this.highestStep) return true;
+    if (this.isEditMode) return this.isGeneralInfoStepValid();
     return this.isGeneralInfoStepValid() && this.steps
       .slice(0, index)
       .every((_: string, i: number) => this.isOptionalStep(i) || this.completedStep(i));
@@ -1570,6 +1572,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   optionalSteps = [
+    this.stepLabels.config,
     this.stepLabels.service,
     this.stepLabels.resource,
     this.stepLabels.faqs,

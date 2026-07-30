@@ -157,6 +157,41 @@ describe('CreateProductSpecComponent', () => {
     expect(component.validateCurrentStep()).toBeTrue();
   });
 
+  it('should keep an empty visited dataspace step navigable', () => {
+    component.DATA_SPACE_ENABLED = true;
+    component.steps = (component as any).getFormSteps();
+    const dataspaceIndex = component.steps.indexOf((component as any).stepLabels.dataspace);
+    component.productImageRef = {
+      name: 'Profile Picture',
+      url: 'https://example.test/image.png',
+      attachmentType: 'image/png'
+    };
+    component.generalForm.patchValue({ name: 'Product' });
+    component.prodChars = [];
+    component.dataspaceChars = [];
+    component.currentStep = dataspaceIndex + 1;
+    component.highestStep = dataspaceIndex + 1;
+
+    expect(component.completedStep(dataspaceIndex)).toBeTrue();
+    expect(component.canNavigate(dataspaceIndex)).toBeTrue();
+  });
+
+  it('should treat configuration options as optional', () => {
+    component.productImageRef = {
+      name: 'Profile Picture',
+      url: 'https://example.test/image.png',
+      attachmentType: 'image/png'
+    };
+    component.generalForm.patchValue({ name: 'Product' });
+    component.prodChars = [];
+
+    const configIndex = component.steps.indexOf((component as any).stepLabels.config);
+    const serviceIndex = component.steps.indexOf((component as any).stepLabels.service);
+
+    expect(component.isOptionalStep(configIndex)).toBeTrue();
+    expect(component.canNavigate(serviceIndex)).toBeTrue();
+  });
+
   it('should not open the ready modal when creating without a product image', () => {
     component.generalForm.patchValue({ name: 'Product' });
 
