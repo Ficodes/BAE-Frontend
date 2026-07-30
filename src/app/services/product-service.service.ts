@@ -310,9 +310,13 @@ export class ApiServiceService {
   }
 
   getCatalogs(page: any, filter: any): Promise<any> {
-    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog?limit=${ApiServiceService.CATALOG_LIMIT}&offset=${page}&lifecycleStatus=Launched`;
+    return this.getCatalogsWithLimit(page, filter, ApiServiceService.CATALOG_LIMIT);
+  }
+
+  getCatalogsWithLimit(page: any, filter: any, limit: number): Promise<any> {
+    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog?limit=${limit}&offset=${page}&lifecycleStatus=Launched`;
     if (filter != undefined) {
-      url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog?limit=${ApiServiceService.CATALOG_LIMIT}&offset=${page}&lifecycleStatus=Launched&body=${filter}`;
+      url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/catalog?limit=${limit}&offset=${page}&lifecycleStatus=Launched&body=${filter}`;
     }
     console.log('getcatalogs')
     console.log(this)

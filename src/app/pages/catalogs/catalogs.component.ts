@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AccountServiceService } from 'src/app/services/account-service.service';
+import { PaginationService } from 'src/app/services/pagination.service';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { ThemeService } from 'src/app/services/theme.service';
 import { CatalogsPageConfig } from 'src/app/themes';
@@ -18,11 +19,16 @@ interface ProviderCard { id: string; name: string; description: string; logo: st
 })
 export class CatalogsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  private catalogs: any[] = [];
+  private nextCatalogs: any[] = [];
   private allProviders: ProviderCard[] = [];
+  private catalogLogoCache = new Map<string, string>();
+  private ownerLogoCache = new Map<string, string | null>();
+  private providersRequestSeq = 0;
   providers: ProviderCard[] = [];
   totalCount = 0;
   page = 0;
-  readonly PAGE_SIZE = 12;
+  readonly CATALOG_LIMIT = 12;
   loading = false;
   loading_more = false;
   page_check = true;
@@ -49,7 +55,8 @@ export class CatalogsComponent implements OnInit, OnDestroy {
     private accService: AccountServiceService,
     private api: ApiServiceService,
     private cdr: ChangeDetectorRef,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private paginationService: PaginationService
   ) { }
 
   ngOnInit() {
@@ -60,10 +67,15 @@ export class CatalogsComponent implements OnInit, OnDestroy {
         this.applyCatalogsTheme(theme?.catalogs);
       });
 
-    this.getProviders();
+    this.getProviders(false);
     this.searchField.valueChanges
       .pipe(takeUntil(this.destroy$))
-      .subscribe(v => { if (!v) { this.filter = undefined; this.page = 0; this.applyView(); } });
+      .subscribe(v => {
+        if (!v && this.filter !== undefined) {
+          this.filter = undefined;
+          this.getProviders(false);
+        }
+      });
   }
 
   ngOnDestroy() {
@@ -92,39 +104,71 @@ export class CatalogsComponent implements OnInit, OnDestroy {
     this.providers.forEach(replaceDefaultLogo);
   }
 
-  async getProviders() {
-    this.loading = true;
-    const catalogs: any[] = [];
-    let offset = 0;
+  async getProviders(next = false) {
+    if (next && (!this.page_check || this.loading_more)) {
+      return;
+    }
+
+    const requestSeq = ++this.providersRequestSeq;
+    const catalogsToLoadLogos = next ? [...this.nextCatalogs] : [];
+
+    if (next) {
+      this.loading_more = true;
+    } else {
+      this.loading = true;
+      this.page = 0;
+      this.catalogs = [];
+      this.nextCatalogs = [];
+      this.allProviders = [];
+      this.providers = [];
+      this.page_check = true;
+    }
+
     try {
-      while (offset < 10000) {
-        const batch = await this.api.getCatalogs(offset, undefined);
-        const items = Array.isArray(batch) ? batch : [];
-        catalogs.push(...items);
-        if (items.length < environment.CATALOG_LIMIT) break;
-        offset += items.length;
+      const data = await this.paginationService.getItemsPaginated(
+        this.page,
+        this.CATALOG_LIMIT,
+        next,
+        this.catalogs,
+        this.nextCatalogs,
+        { keywords: this.filter },
+        this.getCatalogsPage.bind(this)
+      );
+
+      if (requestSeq !== this.providersRequestSeq) {
+        return;
       }
+
+      this.page_check = data.page_check;
+      this.catalogs = Array.isArray(data.items) ? data.items : [];
+      this.nextCatalogs = Array.isArray(data.nextItems) ? data.nextItems : [];
+      this.page = data.page;
+      this.allProviders = this.catalogs.map(c => this.mapCatalog(c));
+      this.applyView();
+      this.fillOwnerLogos(next ? catalogsToLoadLogos : this.catalogs);
     } catch (err) {
       console.error('Error loading catalogs:', err);
-    }
-    // Only surface catalogs that have at least one launched (published) offer.
-    // Serialized on purpose: the dev gateway crosses concurrent productOffering
-    // responses, so each check must run in isolation.
-    const published: any[] = [];
-    for (const c of catalogs) {
-      if (await this.api.catalogHasLaunchedOffers(c?.id)) {
-        published.push(c);
+    } finally {
+      if (requestSeq === this.providersRequestSeq) {
+        this.loading = false;
+        this.loading_more = false;
+        this.cdr.detectChanges();
       }
     }
-    this.allProviders = published.map(c => this.mapCatalog(c));
-    this.page = 0;
-    this.applyView();
-    this.loading = false;
-    this.fillOwnerLogos(published);
+  }
+
+  private getCatalogsPage(page: any, filter: any): Promise<any> {
+    return this.api.getCatalogsWithLimit(page, filter, this.CATALOG_LIMIT);
   }
 
   private mapCatalog(c: any): ProviderCard {
-    return { id: c?.id, name: c?.name ?? '', description: c?.description ?? '', logo: this.defaultCatalogLogoUrl };
+    const id = c?.id ?? '';
+    return {
+      id,
+      name: c?.name ?? '',
+      description: c?.description ?? '',
+      logo: this.catalogLogoCache.get(id) ?? this.defaultCatalogLogoUrl
+    };
   }
 
   private fillOwnerLogos(catalogs: any[]) {
@@ -135,37 +179,48 @@ export class CatalogsComponent implements OnInit, OnDestroy {
         ?? parties.find((p: any) => p?.id && String(p.id).includes('organization'));
       const card = this.allProviders.find(p => p.id === c?.id);
       if (!owner?.id || !card || !String(owner.id).includes('organization')) continue;
+
+      const cachedLogo = this.ownerLogoCache.get(owner.id);
+      if (cachedLogo !== undefined) {
+        if (cachedLogo) {
+          card.logo = cachedLogo;
+          this.catalogLogoCache.set(card.id, cachedLogo);
+        }
+        continue;
+      }
+
       cardsByOwner.set(owner.id, [...(cardsByOwner.get(owner.id) ?? []), card]);
     }
     for (const [ownerId, cards] of cardsByOwner) {
       this.accService.getOrgInfo(ownerId).then(org => {
         const logo = (org?.partyCharacteristic ?? []).find((ch: any) => ch?.name === 'logo')?.value;
-        if (!logo) return;
-        for (const card of cards) card.logo = logo;
+        this.ownerLogoCache.set(ownerId, logo ?? null);
+        if (!logo) {
+          return;
+        }
+        for (const card of cards) {
+          card.logo = logo;
+          this.catalogLogoCache.set(card.id, logo);
+        }
         this.cdr.detectChanges();
-      }).catch(() => { });
+      }).catch(() => {
+        this.ownerLogoCache.set(ownerId, null);
+      });
     }
   }
 
   private applyView() {
     let list = [...this.allProviders];
-    if (this.filter) {
-      const q = this.filter.toLowerCase();
-      list = list.filter(p => p.name.toLowerCase().includes(q));
-    }
     if (this.sortOption === 'name_asc') list.sort((a, b) => a.name.localeCompare(b.name));
     if (this.sortOption === 'name_desc') list.sort((a, b) => b.name.localeCompare(a.name));
     this.totalCount = list.length;
-    const end = (this.page + 1) * this.PAGE_SIZE;
-    this.providers = list.slice(0, end);
-    this.page_check = end < list.length;
-    this.loading_more = false;
+    this.providers = list;
   }
 
   filterProviders() {
-    this.filter = this.searchField.value;
-    this.page = 0;
-    this.applyView();
+    const value = this.searchField.value?.trim();
+    this.filter = value || undefined;
+    this.getProviders(false);
   }
 
   toggleSortDropdown(e: Event) {
@@ -177,14 +232,11 @@ export class CatalogsComponent implements OnInit, OnDestroy {
     e.stopPropagation();
     this.sortOption = v;
     this.showSortDropdown = false;
-    this.page = 0;
     this.applyView();
   }
 
   next() {
-    this.loading_more = true;
-    this.page++;
-    this.applyView();
+    this.getProviders(true);
   }
 
   goToProvider(id: string) {
