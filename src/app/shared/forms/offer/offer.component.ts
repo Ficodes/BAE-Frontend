@@ -15,6 +15,7 @@ import { AccountServiceService } from "../../../services/account-service.service
 import { ApiServiceService } from "../../../services/product-service.service";
 import { ProductSpecServiceService } from "../../../services/product-spec-service.service";
 import { UsageServiceService } from "../../../services/usage-service.service";
+import { ThemeService } from "../../../services/theme.service";
 import { CatalogueComponent } from "./catalogue/catalogue.component";
 import { EdcContractDefinitionComponent } from "./edc-contract-definition/edc-contract-definition.component";
 import { GeneralInfoComponent } from "./general-info/general-info.component";
@@ -26,6 +27,7 @@ import { ProcurementModeComponent } from "./procurement-mode/procurement-mode.co
 import { ProdSpecComponent } from "./prod-spec/prod-spec.component";
 import { ReplicationVisibilityComponent } from "./replication-visibility/replication-visibility.component";
 import { availableFilters, searchCategoriesConfig, type Filter } from "src/app/data/availableFilters";
+import { WorkspaceInfoMessageConfig } from "src/app/themes";
 
 type ProductOffering_Create = components["schemas"]["ProductOffering_Create"];
 type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
@@ -119,6 +121,7 @@ export class OfferComponent implements OnInit, OnDestroy {
   selectedSubcategoryId: string = '';
   offerTags: string[] = [];
   tagInputValue: string = '';
+  categoryHelpMessage: WorkspaceInfoMessageConfig | null = null;
 
   selectedPriceTier: '' | 'free' | 'tailored' | 'online' = '';
   readonly priceTiers: { id: 'free' | 'tailored' | 'online', titleKey: string, descKey: string }[] = [
@@ -195,7 +198,8 @@ export class OfferComponent implements OnInit, OnDestroy {
     private localStorage: LocalStorageService,
     private usageService: UsageServiceService,
     private accountService: AccountServiceService,
-    private translate: TranslateService) {
+    private translate: TranslateService,
+    private themeService: ThemeService) {
 
     this.productOfferForm = this.fb.group({
       generalInfo: this.fb.group({
@@ -283,6 +287,12 @@ export class OfferComponent implements OnInit, OnDestroy {
         if (message.type === 'LeaveOfferEditorRequest') {
           this.onBackClick();
         }
+      });
+
+    this.themeService.currentTheme$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(theme => {
+        this.categoryHelpMessage = theme?.workspace?.offerForm?.categoryHelp ?? null;
       });
   }
 

@@ -3,23 +3,35 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { of } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 
 import { OfferComponent } from './offer.component';
 import { availableFilters, searchCategoriesConfig } from 'src/app/data/availableFilters';
+import { ThemeService } from 'src/app/services/theme.service';
 
 describe('OfferComponent', () => {
   let component: OfferComponent;
   let fixture: ComponentFixture<OfferComponent>;
+  let themeSubject: BehaviorSubject<any>;
 
   beforeEach(async () => {
     availableFilters.splice(0, availableFilters.length);
     searchCategoriesConfig.primaryCategoriesMode = 'catalogFirstLevel';
     searchCategoriesConfig.primaryRootName = '';
+    themeSubject = new BehaviorSubject<any>(null);
 
     await TestBed.configureTestingModule({
       schemas: [NO_ERRORS_SCHEMA],
-      imports: [OfferComponent, HttpClientTestingModule, RouterTestingModule, TranslateModule.forRoot()]
+      imports: [OfferComponent, HttpClientTestingModule, RouterTestingModule, TranslateModule.forRoot()],
+      providers: [
+        {
+          provide: ThemeService,
+          useValue: {
+            currentTheme$: themeSubject.asObservable(),
+            getCurrentThemeConfig: () => themeSubject.value
+          }
+        }
+      ]
     })
     .compileComponents();
     
@@ -54,6 +66,34 @@ describe('OfferComponent', () => {
     component.selectedGeneralInfoCategoryFilterOptionId = 'filter-option-1';
 
     expect(component.canNavigate(1)).toBeTrue();
+  });
+
+  it('should expose category help only when configured by the active theme', () => {
+    expect(component.categoryHelpMessage).toBeNull();
+
+    themeSubject.next({
+      name: 'BAE',
+      workspace: {}
+    });
+
+    expect(component.categoryHelpMessage).toBeNull();
+
+    themeSubject.next({
+      name: 'DOME',
+      workspace: {
+        offerForm: {
+          categoryHelp: {
+            title: 'CREATE_OFFER._cant_find_cat_title',
+            description: 'CREATE_OFFER._cant_find_cat_text'
+          }
+        }
+      }
+    });
+
+    expect(component.categoryHelpMessage).toEqual({
+      title: 'CREATE_OFFER._cant_find_cat_title',
+      description: 'CREATE_OFFER._cant_find_cat_text'
+    });
   });
 
   it('should leave directly when leaving offer creation without draft data', () => {

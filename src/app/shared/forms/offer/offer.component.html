@@ -208,15 +208,17 @@
                 <p class="text-xs" style="color:#4C5A6B;">{{ offerTags.length }}/5 {{ 'CREATE_OFFER._tags_hint' | translate }}</p>
               </div>
 
-              <div class="flex items-start gap-3 p-4 rounded-lg" style="background-color: #EFF6FF; border: 1px solid #DDE6F6;">
-                <svg class="w-5 h-5 text-primary-100 mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                </svg>
-                <div class="text-sm">
-                  <p class="font-semibold text-primary-100">{{ 'CREATE_OFFER._cant_find_cat_title' | translate }}</p>
-                  <p class="text-gray-700 mt-0.5" [innerHTML]="'CREATE_OFFER._cant_find_cat_text' | translate"></p>
+              @if(categoryHelpMessage){
+                <div class="flex items-start gap-3 p-4 rounded-lg" style="background-color: #EFF6FF; border: 1px solid #DDE6F6;">
+                  <svg class="w-5 h-5 text-primary-100 mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                  </svg>
+                  <div class="text-sm">
+                    <p class="font-semibold text-primary-100">{{ categoryHelpMessage.title | translate }}</p>
+                    <p class="text-gray-700 mt-0.5" [innerHTML]="categoryHelpMessage.description | translate"></p>
+                  </div>
                 </div>
-              </div>
+              }
             </div>
           } @else if (isOfferStep('terms')) {
             <div class="flex flex-col gap-5" [formGroup]="licenseFormGroup">

@@ -68,8 +68,18 @@ export interface WorkspaceHelpConfig {
   actionLabel: string;
 }
 
+export interface WorkspaceInfoMessageConfig {
+  title: string;
+  description: string;
+}
+
+export interface WorkspaceOfferFormConfig {
+  categoryHelp?: WorkspaceInfoMessageConfig;
+}
+
 export interface WorkspaceConfig {
   sellerOfferingsHelp?: WorkspaceHelpConfig;
+  offerForm?: WorkspaceOfferFormConfig;
 }
 
 export interface ThemeMetaTagConfig {

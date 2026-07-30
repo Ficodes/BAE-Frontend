@@ -148,6 +148,12 @@ export const DOME_THEME_CONFIG: ThemeConfig = {
       title: 'OFFERINGS._need_help',
       description: 'OFFERINGS._explore_guidelines',
       actionLabel: 'OFFERINGS._view_kb'
+    },
+    offerForm: {
+      categoryHelp: {
+        title: 'CREATE_OFFER._cant_find_cat_title',
+        description: 'CREATE_OFFER._cant_find_cat_text'
+      }
     }
   },
   metaTags: [
