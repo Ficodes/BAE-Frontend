@@ -1,4 +1,4 @@
-name: Trigger E2E Testing Workflow
+name: TRIGGER E2E Testing Workflow
 
 on:
   pull_request_target:
