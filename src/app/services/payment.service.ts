@@ -13,20 +13,22 @@ export class PaymentService {
   constructor(private http: HttpClient) { }
 
   completePayment(params: any) {
+    const {
+      action,
+      ref,
+      sig,
+      client,
+      ...providerParams
+    } = params;
+
     const body: any = {
-      confirm_action: params.action,
-      reference: params.ref,
-      client: params.client,
-      signature: params.sig
+      ...providerParams,
+      confirm_action: action,
+      reference: ref,
+      client,
+      signature: sig
     }
 
-    if (params.jwt) {
-      body.jwt = params.jwt;
-    } else if (params.session_id) {
-      body.session_id = params.session_id;
-    }
-
-    // TODO: Different payment gatways may require extra params
     let url = `${PaymentService.BASE_URL}${PaymentService.CHARGING}/api/orderManagement/orders/confirm/`;
     return this.http.post<any>(url, body, { observe: 'response' });
   }

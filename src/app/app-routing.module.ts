@@ -164,6 +164,10 @@ const routes: Routes = [
     path: 'browse',
     loadComponent: () => import('./pages/browse/browse.component').then(c => c.BrowseComponent),
   },
+  {
+    path: 'redsys-payment',
+    loadComponent: () => import('./pages/redsys-payment/redsys-payment.component').then(c => c.RedsysPaymentComponent),
+  },
 
   {
     path: 'landing-page',
