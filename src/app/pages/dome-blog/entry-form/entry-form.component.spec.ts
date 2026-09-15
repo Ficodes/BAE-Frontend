@@ -93,6 +93,7 @@ describe('EntryFormComponent', () => {
     component.partyId = 'party-1';
     component.name = 'Author Name';
     component.entryForm.setValue({
+      contentType: 'blog',
       title: 'My Entry',
       slug: 'my-entry',
       featuredImage: 'https://cdn/cover.png',
@@ -109,6 +110,7 @@ describe('EntryFormComponent', () => {
     expect(domeBlogService.createBlogEntry).toHaveBeenCalledWith({
       title: 'My Entry',
       slug: 'my-entry',
+      contentType: 'blog',
       featuredImage: 'https://cdn/cover.png',
       metaDescription: 'Meta',
       excerpt: 'Excerpt',
@@ -142,6 +144,7 @@ describe('EntryFormComponent', () => {
   it('should block submit while featured image is uploading', () => {
     const { component } = buildComponent();
     component.entryForm.setValue({
+      contentType: 'blog',
       title: 'My Entry',
       slug: 'my-entry',
       featuredImage: '',
@@ -161,6 +164,7 @@ describe('EntryFormComponent', () => {
     const { component, domeBlogService } = buildComponent({ routeId: 'entry-1' });
     component.blogId = 'entry-1';
     component.entryForm.setValue({
+      contentType: 'blog',
       title: 'Updated entry',
       slug: 'updated-entry',
       featuredImage: '',
@@ -181,6 +185,7 @@ describe('EntryFormComponent', () => {
       metaDescription: '',
       excerpt: '',
       tags: ['one', 'two'],
+      contentType: 'blog',
       content: 'Updated body',
       author: 'Manual Author',
       date: '2026-05-27T10:30'

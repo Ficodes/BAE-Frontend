@@ -5,7 +5,7 @@ import {
   faXTwitter,
   faYoutube,
 } from '@fortawesome/free-brands-svg-icons';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Subject, takeUntil } from 'rxjs';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { LocalStorageService } from 'src/app/services/local-storage.service';

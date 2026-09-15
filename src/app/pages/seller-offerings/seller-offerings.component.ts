@@ -8,6 +8,7 @@ import { environment } from 'src/environments/environment';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "../../services/event-message.service";
+import moment from 'moment';
 import { firstValueFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { QuoteService } from 'src/app/features/quotes/services/quote.service';
@@ -63,25 +64,25 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
     .subscribe(ev => {
-      if(ev.type === 'SellerProductSpec') {   
+      if(ev.type === 'SellerProductSpec') {
         this.goToProdSpec();
       }
-      if(ev.type === 'SellerCreateProductSpec' && ev.value == true) {        
+      if(ev.type === 'SellerCreateProductSpec' && ev.value == true) {
         this.goToCreateProdSpec();
       }
-      if(ev.type === 'SellerServiceSpec' && ev.value == true) {             
+      if(ev.type === 'SellerServiceSpec' && ev.value == true) {
         this.goToServiceSpec();
       }
       if(ev.type === 'SellerCreateServiceSpec' && ev.value == true) {
         this.goToCreateServSpec();
       }
-      if(ev.type === 'SellerResourceSpec' && ev.value == true) {                
+      if(ev.type === 'SellerResourceSpec' && ev.value == true) {
         this.goToResourceSpec();
       }
-      if(ev.type === 'SellerCreateResourceSpec' && ev.value == true) {        
+      if(ev.type === 'SellerCreateResourceSpec' && ev.value == true) {
         this.goToCreateResSpec();
       }
-      if(ev.type === 'SellerOffer' && ev.value == true) {      
+      if(ev.type === 'SellerOffer' && ev.value == true) {
         this.goToOffers();
       }
       if(ev.type == 'SellerCatalog' && ev.value == true){
@@ -133,7 +134,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     const state = history.state as { quoteId?: string };
     console.log('Checking state')
     console.log(state)
-    
+
     if (state && state.quoteId) {
       // If there's a quoteId in the state, open the offers section
       const quote = await firstValueFrom(this.quoteService.getQuoteById(state.quoteId));
@@ -195,7 +196,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
-    this.cdr.detectChanges();  
+    this.cdr.detectChanges();
   }
 
   goToCreateCatalog(){
@@ -254,7 +255,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_offer=true;
     this.show_update_catalog=false;
     this.show_create_catalog=false;
-    this.cdr.detectChanges();  
+    this.cdr.detectChanges();
   }
 
   goToCreateCustomOffer(){
@@ -274,7 +275,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=true;
-    this.cdr.detectChanges();  
+    this.cdr.detectChanges();
   }
 
   goToUpdateServiceSpec(){
@@ -294,7 +295,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
-    this.cdr.detectChanges(); 
+    this.cdr.detectChanges();
   }
 
   goToUpdateResourceSpec(){
@@ -314,7 +315,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.show_update_catalog=false;
     this.show_create_catalog=false;
     this.show_create_custom_offer=false;
-    this.cdr.detectChanges(); 
+    this.cdr.detectChanges();
   }
 
   goToCreateServSpec(){
@@ -377,8 +378,8 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  goToCatalogs(){  
-    this.setActiveSection('catalogs');  
+  goToCatalogs(){
+    this.setActiveSection('catalogs');
     this.selectCatalogs();
     this.show_catalogs=true;
     this.show_prod_specs=false;
@@ -414,7 +415,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToProdSpec(){
-    this.setActiveSection('productspec'); 
+    this.setActiveSection('productspec');
     this.selectProdSpec();
     this.show_catalogs=false;
     this.show_prod_specs=true;
@@ -450,7 +451,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToServiceSpec(){
-    this.setActiveSection('servicespec'); 
+    this.setActiveSection('servicespec');
     this.selectServiceSpec();
     this.show_catalogs=false;
     this.show_prod_specs=false;
@@ -486,7 +487,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToResourceSpec(){
-    this.setActiveSection('resourcespec'); 
+    this.setActiveSection('resourcespec');
     this.selectResourceSpec();
     this.show_catalogs=false;
     this.show_prod_specs=false;
@@ -522,7 +523,7 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   }
 
   goToOffers(){
-    this.setActiveSection('offers'); 
+    this.setActiveSection('offers');
     this.selectOffers();
     this.show_catalogs=false;
     this.show_prod_specs=false;

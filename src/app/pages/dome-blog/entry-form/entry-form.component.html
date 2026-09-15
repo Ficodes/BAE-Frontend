@@ -1,6 +1,6 @@
 <!-- Full height app wrapper -->
 <div class="bg-secondary-50 dark:bg-secondary-200 flex min-h-full flex-col">
-    <section class="w-full bg-[#DDE6F6]">
+    <section class="w-full bg-secondary-50">
         <div class="pb-4">
             <nav class="flex px-5 py-3 shadow-lg text-gray-700 border border-gray-200 bg-secondary-50 dark:bg-secondary-100 dark:border-gray-800 dark:text-white"
                 aria-label="Breadcrumb">
@@ -29,8 +29,8 @@
   
     <div class="flex-1 mx-auto w-full max-w-[1440px] p-4 pb-16 sm:px-8 md:px-10 lg:px-16 xl:px-[160px]">
         <div class="mx-auto w-full max-w-screen-xl rounded-lg border border-gray-300 bg-white p-6 shadow-lg dark:border-secondary-300 dark:bg-secondary-100 md:p-8">
-            <h1 class="mb-6 text-3xl font-bold text-[#0B1528] dark:text-white">
-                {{ blogId ? 'Update blog entry' : 'Create blog entry' }}
+            <h1 class="mb-6 text-3xl font-bold text-secondary-200 dark:text-white">
+                {{ blogId ? 'Update CMS entry' : 'Create CMS entry' }}
             </h1>
             @if(loading){
                 <div role="status" class="flex min-h-[300px] w-full items-center justify-center">
@@ -45,80 +45,92 @@
               <form [formGroup]="entryForm">  
             
                 <form class="md:p-8" [formGroup]="entryForm">
-                      <label for="title" class="font-bold text-lg dark:text-white">Title</label>
+                      <label for="contentType" class="font-bold text-lg dark:text-white">Content type</label>
+                      <select data-cy="blogEntryContentType" id="contentType" formControlName="contentType"
+                              class="mb-4 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                        @for(contentType of contentTypes; track contentType.value){
+                          <option [value]="contentType.value">{{ contentType.label }}</option>
+                        }
+                      </select>
+
+                      <label for="title" class="font-bold text-lg dark:text-white">{{ getTitleLabel() }}</label>
                       <input data-cy="blogEntryTitle" id="title" type="text" formControlName="title"
                               class="mb-4 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"/>
 
-                      <label for="slug" class="font-bold text-lg dark:text-white">URL slug</label>
-                      <input data-cy="blogEntrySlug" id="slug" type="text" formControlName="slug"
-                              class="mb-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                              placeholder="my-blog-entry"/>
-                      <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">Blog URL preview: /blog/{{ entryForm.controls['slug'].value || 'my-blog-entry' }}</p>
-                      @if(entryForm.controls['slug'].touched && entryForm.controls['slug'].invalid){
-                        <p class="mb-2 text-sm text-red-600 dark:text-red-300">Use only lowercase letters, numbers and hyphens.</p>
-                      }
-                      @if(isSlugTaken()){
-                        <p class="mb-2 text-sm text-red-600 dark:text-red-300">This slug is already in use. Pick a different one.</p>
-                      }
-
-                      <label for="metaDescription" class="font-bold text-lg dark:text-white">Meta description (extract)</label>
-                      <textarea data-cy="blogEntryMetaDescription" id="metaDescription" formControlName="metaDescription" rows="3"
-                              class="mb-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                              placeholder="Short SEO summary (recommended up to 160 characters)"></textarea>
-                      <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">{{ (entryForm.controls['metaDescription'].value || '').length }}/160</p>
-                      @if(entryForm.controls['metaDescription'].touched && entryForm.controls['metaDescription'].hasError('maxlength')){
-                        <p class="mb-2 text-sm text-red-600 dark:text-red-300">Meta description cannot exceed 160 characters.</p>
+                      @if(!isFaqEntry()){
+                        <label for="slug" class="font-bold text-lg dark:text-white">URL slug</label>
+                        <input data-cy="blogEntrySlug" id="slug" type="text" formControlName="slug"
+                                class="mb-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                placeholder="my-blog-entry"/>
+                        <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">URL preview: {{ getUrlPreviewBase() }}/{{ entryForm.controls['slug'].value || 'my-blog-entry' }}</p>
+                        @if(entryForm.controls['slug'].touched && entryForm.controls['slug'].invalid){
+                          <p class="mb-2 text-sm text-red-600 dark:text-red-300">Use only lowercase letters, numbers and hyphens.</p>
+                        }
+                        @if(isSlugTaken()){
+                          <p class="mb-2 text-sm text-red-600 dark:text-red-300">This slug is already in use. Pick a different one.</p>
+                        }
                       }
 
-                      <label for="excerpt" class="font-bold text-lg dark:text-white">Excerpt</label>
-                      <textarea data-cy="blogEntryExcerpt" id="excerpt" formControlName="excerpt" rows="4"
-                              class="mb-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                              placeholder="Short text used in blog cards and previews"></textarea>
-                      <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">{{ (entryForm.controls['excerpt'].value || '').length }}/300</p>
-                      @if(entryForm.controls['excerpt'].touched && entryForm.controls['excerpt'].hasError('maxlength')){
-                        <p class="mb-2 text-sm text-red-600 dark:text-red-300">Excerpt cannot exceed 300 characters.</p>
-                      }
+                      @if(!isFaqEntry()){
+                        <label for="metaDescription" class="font-bold text-lg dark:text-white">Meta description (extract)</label>
+                        <textarea data-cy="blogEntryMetaDescription" id="metaDescription" formControlName="metaDescription" rows="3"
+                                class="mb-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                placeholder="Short SEO summary (recommended up to 160 characters)"></textarea>
+                        <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">{{ (entryForm.controls['metaDescription'].value || '').length }}/160</p>
+                        @if(entryForm.controls['metaDescription'].touched && entryForm.controls['metaDescription'].hasError('maxlength')){
+                          <p class="mb-2 text-sm text-red-600 dark:text-red-300">Meta description cannot exceed 160 characters.</p>
+                        }
 
-                      <label for="tags" class="font-bold text-lg dark:text-white">Tags</label>
-                      <input data-cy="blogEntryTags" id="tags" type="text" formControlName="tags"
-                              class="mb-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                              placeholder="ai, automation, product updates"/>
-                      <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">Separate tags with commas.</p>
+                        <label for="excerpt" class="font-bold text-lg dark:text-white">Excerpt</label>
+                        <textarea data-cy="blogEntryExcerpt" id="excerpt" formControlName="excerpt" rows="4"
+                                class="mb-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                placeholder="Short text used in blog cards and previews"></textarea>
+                        <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">{{ (entryForm.controls['excerpt'].value || '').length }}/300</p>
+                        @if(entryForm.controls['excerpt'].touched && entryForm.controls['excerpt'].hasError('maxlength')){
+                          <p class="mb-2 text-sm text-red-600 dark:text-red-300">Excerpt cannot exceed 300 characters.</p>
+                        }
 
-                      <label for="author" class="font-bold text-lg dark:text-white">Author</label>
-                      <input data-cy="blogEntryAuthor" id="author" type="text" formControlName="author"
-                              class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                              placeholder="Optional. If empty on create, current session user is used"/>
+                        <label for="tags" class="font-bold text-lg dark:text-white">Tags</label>
+                        <input data-cy="blogEntryTags" id="tags" type="text" formControlName="tags"
+                                class="mb-1 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                placeholder="ai, automation, product updates"/>
+                        <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">Separate tags with commas.</p>
 
-                      <label for="date" class="font-bold text-lg dark:text-white">Date</label>
-                      <input data-cy="blogEntryDate" id="date" type="datetime-local" formControlName="date"
-                              class="mb-3 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"/>
-                      <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">Optional. Leave empty to avoid sending a date.</p>
+                        <label for="author" class="font-bold text-lg dark:text-white">Author</label>
+                        <input data-cy="blogEntryAuthor" id="author" type="text" formControlName="author"
+                                class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                placeholder="Optional. If empty on create, current session user is used"/>
 
-                      <label for="featuredImageFile" class="font-bold text-lg dark:text-white">Featured image</label>
-                      @if(getFeaturedImageUrl()){
-                        <div class="relative mb-3 mt-2 w-full">
-                          <img [src]="getFeaturedImageUrl()" alt="Featured image preview"
-                               class="h-56 w-full rounded-lg border border-gray-300 object-cover dark:border-gray-700">
-                          <button type="button" (click)="removeFeaturedImage()"
-                                  class="absolute right-2 top-2 rounded-full bg-red-700 p-1 text-white hover:bg-red-800">
-                            <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-                            </svg>
-                          </button>
+                        <label for="date" class="font-bold text-lg dark:text-white">Date</label>
+                        <input data-cy="blogEntryDate" id="date" type="datetime-local" formControlName="date"
+                                class="mb-3 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-gray-800 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"/>
+                        <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">Optional. Leave empty to avoid sending a date.</p>
+
+                        <label for="featuredImageFile" class="font-bold text-lg dark:text-white">Featured image</label>
+                        @if(getFeaturedImageUrl()){
+                          <div class="relative mb-3 mt-2 w-full">
+                            <img [src]="getFeaturedImageUrl()" alt="Featured image preview"
+                                 class="h-56 w-full rounded-lg border border-gray-300 object-cover dark:border-gray-700">
+                            <button type="button" (click)="removeFeaturedImage()"
+                                    class="absolute right-2 top-2 rounded-full bg-red-700 p-1 text-white hover:bg-red-800">
+                              <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+                              </svg>
+                            </button>
+                          </div>
+                        }
+                        <div class="mb-3 mt-2">
+                          <input id="featuredImageFile" type="file" accept="image/*" (change)="onFeaturedImageSelected($event)"
+                                 [disabled]="uploadingFeaturedImage"
+                                 class="block w-full text-sm text-gray-900 file:mr-4 file:rounded-lg file:border-0 file:bg-primary-100 file:px-4 file:py-2 file:text-white hover:file:bg-primary-50 dark:text-white disabled:opacity-60"/>
+                          <p class="mt-2 text-xs text-gray-500 dark:text-gray-300">Upload to media manager (max 3MB)</p>
+                          @if(uploadingFeaturedImage){
+                            <p class="mt-2 text-sm text-primary-100 dark:text-primary-50">Uploading featured image...</p>
+                          }
                         </div>
                       }
-                      <div class="mb-3 mt-2">
-                        <input id="featuredImageFile" type="file" accept="image/*" (change)="onFeaturedImageSelected($event)"
-                               [disabled]="uploadingFeaturedImage"
-                               class="block w-full text-sm text-gray-900 file:mr-4 file:rounded-lg file:border-0 file:bg-primary-100 file:px-4 file:py-2 file:text-white hover:file:bg-primary-50 dark:text-white disabled:opacity-60"/>
-                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-300">Upload to media manager (max 3MB)</p>
-                        @if(uploadingFeaturedImage){
-                          <p class="mt-2 text-sm text-primary-100 dark:text-primary-50">Uploading featured image...</p>
-                        }
-                      </div>
           
-                      <label class="font-bold text-lg col-span-2 dark:text-white">Content</label>
+                      <label class="font-bold text-lg col-span-2 dark:text-white">{{ getContentLabel() }}</label>
                       <app-markdown-textarea class="h-[500px]" formControlName="content"></app-markdown-textarea>
                 </form>
                 <!-- Navigation Buttons -->

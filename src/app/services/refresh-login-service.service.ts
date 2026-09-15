@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Observable, Subscription, interval } from 'rxjs';
 import { LoginServiceService } from 'src/app/services/login-service.service';
 import { LoginInfo } from '../models/interfaces';

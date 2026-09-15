@@ -12,7 +12,7 @@ import {AccountServiceService} from "src/app/services/account-service.service"
 import {Category, LoginInfo} from "../../models/interfaces";
 import { environment } from 'src/environments/environment';
 import { Router } from '@angular/router';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { SearchStateService } from "../../services/search-state.service"

@@ -55,11 +55,27 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
     })
   }
 
+  private searchInputListener = (_e: Event) => {
+    console.log(`Input updated`)
+    if (this.searchField.value == '') {
+      this.filter = undefined;
+      this.getCatalogs(false);
+    }
+  }
+
   ngOnInit() {
     this.initCatalogs();
+    const input = document.querySelector('[type=search]')
+    if (input != undefined) {
+      input.addEventListener('input', this.searchInputListener);
+    }
   }
 
   ngOnDestroy(){
+    const input = document.querySelector('[type=search]')
+    if (input != undefined) {
+      input.removeEventListener('input', this.searchInputListener);
+    }
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -85,17 +101,6 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
     }
 
     this.getCatalogs(false);
-    let input = document.querySelector('[type=search]')
-    if(input!=undefined){
-      input.addEventListener('input', e => {
-        // Easy way to get the value of the element who trigger the current `e` event
-        console.log(`Input updated`)
-        if(this.searchField.value==''){
-          this.filter=undefined;
-          this.getCatalogs(false);
-        }
-      });
-    }
     initFlowbite();
   }
 
@@ -115,18 +120,21 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
       "partyId": this.partyId
     }
 
-    this.paginationService.getItemsPaginated(this.page, this.CATALOG_LIMIT, next, this.catalogs, this.nextCatalogs, options,
-      this.api.getCatalogsByUser.bind(this.api)).then(data => {
-      this.page_check=data.page_check;      
+    try {
+      const data = await this.paginationService.getItemsPaginated(this.page, this.CATALOG_LIMIT, next, this.catalogs, this.nextCatalogs, options,
+        this.api.getCatalogsByUser.bind(this.api));
+      this.page_check=data.page_check;
       this.catalogs=data.items;
       this.nextCatalogs=data.nextItems;
       this.page=data.page;
+    } finally {
       this.loading=false;
       this.loading_more=false;
-    })
+    }
   }
 
   async next(){
+    this.loading_more = true;
     await this.getCatalogs(true);
   }
 

@@ -13,7 +13,7 @@ type ProductOffering = components["schemas"]["ProductOffering"];
 import { phoneNumbers, countries } from 'src/app/models/country.const'
 import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "src/app/services/event-message.service";
-import * as moment from 'moment';
+import moment from 'moment';
 import { environment } from 'src/environments/environment';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
 import { Subject } from 'rxjs';

@@ -63,6 +63,23 @@ describe('DomeBlogServiceService', () => {
     await expectAsync(promise).toBeResolvedTo(responseBody);
   });
 
+  it('getBlogEntries should include optional content type and pagination query params', async () => {
+    const responseBody = { items: [{ id: 'news-1' }], total: 1 };
+
+    const promise = service.getBlogEntries({ contentType: 'news', page: 2, limit: 9 });
+    const req = httpMock.expectOne((request) =>
+      request.url === `${environment.BASE_URL}/domeblog`
+      && request.params.get('contentType') === 'news'
+      && request.params.get('page') === '2'
+      && request.params.get('limit') === '9'
+    );
+
+    expect(req.request.method).toBe('GET');
+    req.flush(responseBody);
+
+    await expectAsync(promise).toBeResolvedTo(responseBody);
+  });
+
   it('getBlogEntryById should GET /domeblog/:id', async () => {
     const id = 'blog-1';
     const responseBody = { id, title: 'My post' };

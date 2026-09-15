@@ -88,8 +88,10 @@ export const environment = {
   },
   QUOTES_ENABLED: true,
   TENDER_ENABLED: true,
+  analyticsEnabled: false,
   googleTagManagerId: '',
   analytics: '',
+  analyticsGuestTokenEndpoint: '/analytics/guest-token',
   feedbackCampaign: false,
   feedbackCampaignExpiration: 0,
   SELLER_ROLE: 'Seller',
@@ -105,5 +107,8 @@ export const environment = {
   AI_SEARCH_PROFILE: 'dome_prod',
   LEAR_URL: '',
   LAUNCH_VALIDATION_ENABLED: false,
-  TENDER_DEV_BUTTONS_OPEN_CLOSE_ENABLED: true
+  TENDER_DEV_BUTTONS_OPEN_CLOSE_ENABLED: true,
+  DSP_ENABLED: false,
+  DSP_CONTRACT_DEFINITION_SCHEMA: 'https://raw.githubusercontent.com/wistefan/edc-dsc/refs/heads/init/schemas/contract-definition.json',
+  DSP_SCHEMA: 'https://raw.githubusercontent.com/wistefan/edc-dsc/refs/heads/init/schemas/external-id.json'
 };

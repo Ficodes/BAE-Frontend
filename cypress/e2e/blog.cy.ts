@@ -1,5 +1,5 @@
 import { loginAcc, blogEntry, local_items } from "../support/constants"
-import * as moment from 'moment';
+import moment from 'moment';
 
 describe('/blog',{
     viewportHeight: 800,
@@ -12,7 +12,7 @@ describe('/blog',{
     })
 
     it('should create a blog entry correctly', () => {
-        cy.intercept({method: 'GET', url: '**/domeblog'}, {statusCode: 200, body: []}).as('blogGET')
+        cy.intercept({method: 'GET', url: '**/domeblog*'}, {statusCode: 200, body: []}).as('blogGET')
         cy.intercept({method: 'POST', url: '**/domeblog'}, {statusCode: 201, body: blogEntry}).as('blogPOST')
         cy.visit('/blog')
         cy.wait('@blogGET')

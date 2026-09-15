@@ -1,18 +1,18 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { of, Subject, throwError } from 'rxjs';
 
-import { CreateProductSpecComponent } from './create-product-spec.component';
+import { AttachmentServiceService } from 'src/app/services/attachment-service.service';
+import { EventMessageService } from 'src/app/services/event-message.service';
+import { LocalStorageService } from 'src/app/services/local-storage.service';
+import { PaginationService } from 'src/app/services/pagination.service';
 import { ApiServiceService } from 'src/app/services/product-service.service';
 import { ProductSpecServiceService } from 'src/app/services/product-spec-service.service';
-import { LocalStorageService } from 'src/app/services/local-storage.service';
-import { EventMessageService } from 'src/app/services/event-message.service';
-import { AttachmentServiceService } from 'src/app/services/attachment-service.service';
-import { ServiceSpecServiceService } from 'src/app/services/service-spec-service.service';
 import { ResourceSpecServiceService } from 'src/app/services/resource-spec-service.service';
-import { PaginationService } from 'src/app/services/pagination.service';
+import { ServiceSpecServiceService } from 'src/app/services/service-spec-service.service';
+import { CreateProductSpecComponent } from './create-product-spec.component';
 
 class SyncFileReaderMock {
   onload: ((event: any) => void) | null = null;
@@ -96,6 +96,7 @@ describe('CreateProductSpecComponent', () => {
   });
 
   beforeEach(() => {
+    component.steps = [{ label: 'General Info', id: 'general' }] as any;
     originalFileReader = (window as any).FileReader;
     (window as any).FileReader = SyncFileReaderMock as any;
   });
@@ -140,8 +141,8 @@ describe('CreateProductSpecComponent', () => {
     const initSpy = spyOn(component, 'initPartyInfo');
     component.ngOnInit();
     expect(component.steps.length).toBe(9);
-    expect(component.steps).toContain('Bundle');
-    expect(component.steps).not.toContain('Dataspace Configuration');
+    expect(component.steps).toContain(jasmine.objectContaining({ label: 'Bundle' }));
+    expect(component.steps).not.toContain(jasmine.objectContaining({ label: 'Dataspace Configuration' }));
     expect(initSpy).toHaveBeenCalled();
   });
 
@@ -150,8 +151,8 @@ describe('CreateProductSpecComponent', () => {
     component.DATA_SPACE_ENABLED = false;
     component.ngOnInit();
     expect(component.steps.length).toBe(8);
-    expect(component.steps).not.toContain('Bundle');
-    expect(component.steps).not.toContain('Dataspace Configuration');
+    expect(component.steps).not.toContain(jasmine.objectContaining({ label: 'Bundle' }));
+    expect(component.steps).not.toContain(jasmine.objectContaining({ label: 'Dataspace Configuration' }));
   });
 
   it('ngOnInit should configure steps with dataspace enabled and bundle enabled', () => {
@@ -159,8 +160,8 @@ describe('CreateProductSpecComponent', () => {
     component.DATA_SPACE_ENABLED = true;
     component.ngOnInit();
     expect(component.steps.length).toBe(10);
-    expect(component.steps).toContain('Bundle');
-    expect(component.steps).toContain('Dataspace Configuration');
+    expect(component.steps).toContain(jasmine.objectContaining({ label: 'Bundle' }));
+    expect(component.steps).toContain(jasmine.objectContaining({ label: 'Dataspace Configuration' }));
   });
 
   it('ngOnInit should configure steps with dataspace enabled and no bundle', () => {
@@ -168,8 +169,8 @@ describe('CreateProductSpecComponent', () => {
     component.DATA_SPACE_ENABLED = true;
     component.ngOnInit();
     expect(component.steps.length).toBe(9);
-    expect(component.steps).not.toContain('Bundle');
-    expect(component.steps).toContain('Dataspace Configuration');
+    expect(component.steps).not.toContain(jasmine.objectContaining({ label: 'Bundle' }));
+    expect(component.steps).toContain(jasmine.objectContaining({ label: 'Dataspace Configuration' }));
   });
 
   it('initPartyInfo should set partyId when logged directly', () => {
@@ -337,7 +338,7 @@ describe('CreateProductSpecComponent', () => {
 
   it('dropped should reject invalid filename', () => {
     const badFile = { name: 'bad name.txt', type: 'text/plain', size: 1000 };
-    component.currentStep = 1;
+    component['currentStepIdx'] = 1;
     component.BUNDLE_ENABLED = false;
     component.selectedISOS = [{ name: 'Compliance:ISO-A', url: '' }];
     component.dropped([mockDroppedFile(badFile)], component.selectedISOS[0]);
@@ -348,7 +349,7 @@ describe('CreateProductSpecComponent', () => {
 
   it('dropped should reject files that exceed max size', () => {
     const bigFile = { name: 'big.txt', type: 'text/plain', size: component.MAX_FILE_SIZE + 1 };
-    component.currentStep = 1;
+    component['currentStepIdx'] = 1;
     component.BUNDLE_ENABLED = false;
     component.selectedISOS = [{ name: 'Compliance:ISO-A', url: '' }];
     component.dropped([mockDroppedFile(bigFile)], component.selectedISOS[0]);
@@ -358,7 +359,8 @@ describe('CreateProductSpecComponent', () => {
   });
 
   it('dropped should upload compliance ISO file and set URL', () => {
-    component.currentStep = 1;
+    component.steps = [{ label: 'Compliance profile', id: 'compliance' }] as any;
+    component['currentStepIdx'] = 0;
     component.BUNDLE_ENABLED = false;
     component.showUploadAtt = false;
     component.showUploadFile = true;
@@ -371,7 +373,8 @@ describe('CreateProductSpecComponent', () => {
   });
 
   it('dropped should upload self-attestation when uploadAtt is enabled', () => {
-    component.currentStep = 1;
+    component.steps = [{ label: 'Compliance profile', id: 'compliance' }] as any;
+    component['currentStepIdx'] = 0;
     component.BUNDLE_ENABLED = false;
     component.showUploadAtt = true;
     component.selfAtt = { name: 'Compliance:SelfAtt' };
@@ -385,7 +388,8 @@ describe('CreateProductSpecComponent', () => {
   });
 
   it('dropped should upload image attachment and set preview', () => {
-    component.currentStep = 5;
+    component.steps = [{ label: 'Attachments', id: 'attachments' }] as any;
+    component['currentStepIdx'] = 0;
     component.BUNDLE_ENABLED = false;
     const file = { name: 'picture.png', type: 'image/png', size: 200 };
     component.dropped([mockDroppedFile(file)], 'img');
@@ -395,7 +399,8 @@ describe('CreateProductSpecComponent', () => {
   });
 
   it('dropped should reject non-image file when img selector is used', () => {
-    component.currentStep = 5;
+    component.steps = [{ label: 'Attachments', id: 'attachments' }] as any;
+    component['currentStepIdx'] = 0;
     component.BUNDLE_ENABLED = false;
     const file = { name: 'doc.pdf', type: 'application/pdf', size: 200 };
     component.dropped([mockDroppedFile(file)], 'img');
@@ -404,7 +409,8 @@ describe('CreateProductSpecComponent', () => {
   });
 
   it('dropped should set attachment draft for generic files', () => {
-    component.currentStep = 5;
+    component.steps = [{ label: 'Attachments', id: 'attachments' }] as any;
+    component['currentStepIdx'] = 0;
     component.BUNDLE_ENABLED = false;
     const file = { name: 'manual.pdf', type: 'application/pdf', size: 200 };
     component.dropped([mockDroppedFile(file)], 'attachment');
@@ -414,7 +420,8 @@ describe('CreateProductSpecComponent', () => {
 
   it('dropped should handle upload errors and show 413-specific message', () => {
     attachmentServiceSpy.uploadFile.and.returnValue(throwError(() => ({ status: 413, error: { error: 'too large' } })));
-    component.currentStep = 1;
+    component.steps = [{ label: 'Compliance profile', id: 'compliance' }] as any;
+    component['currentStepIdx'] = 0;
     component.BUNDLE_ENABLED = false;
     component.selectedISOS = [{ name: 'Compliance:ISO-A', url: '' }];
     const file = { name: 'iso.pdf', type: 'application/pdf', size: 200 };
@@ -669,12 +676,12 @@ describe('CreateProductSpecComponent', () => {
     component.BUNDLE_ENABLED = false;
     component.DATA_SPACE_ENABLED = true;
     component.ngOnInit();
-    component.currentStep = 3;
+    component['currentStepIdx'] = 3;
     component.charTypeSelected = 'number';
 
     component.refreshChars();
 
-    expect(component.charTypeSelected).toBe('endpointUrl');
+    expect(component.charTypeSelected).toBe('credentialsConfiguration');
   });
 
   it('getFilteredCharacteristicsForCurrentStep should split default and dataspace characteristics', () => {
@@ -688,11 +695,11 @@ describe('CreateProductSpecComponent', () => {
       { id: '4', name: 'Policy', valueType: 'authorizationPolicy' }
     ] as any;
 
-    component.currentStep = 2;
-    expect(component.getFilteredCharacteristicsForCurrentStep().map(char => char.name)).toEqual(['Latency']);
+    component['currentStepIdx'] = 2;
+    expect(component.getFilteredCharacteristicsForCurrentStep().map(char => char.name)).toEqual(['Latency', 'DCP endpoint']);
 
-    component.currentStep = 3;
-    expect(component.getFilteredCharacteristicsForCurrentStep().map(char => char.name)).toEqual(['DCP endpoint', 'Policy']);
+    component['currentStepIdx'] = 3;
+    expect(component.getFilteredCharacteristicsForCurrentStep().map(char => char.name)).toEqual(['Policy']);
   });
 
   it('removeClass and addClass should update className', () => {
@@ -886,7 +893,7 @@ describe('CreateProductSpecComponent', () => {
   });
 
   it('addCharValue should parse and add JSON values for targetSpecification', () => {
-    component.charTypeSelected = 'targetSpecification';
+    component.charTypeSelected = 'credentialsConfiguration';
     component.jsonValue = '{"@type":"AssetCollection","refinement":[]}';
 
     component.addCharValue();
@@ -1189,17 +1196,19 @@ describe('CreateProductSpecComponent', () => {
   });
 
   it('goToStep should block forward navigation when current step is invalid', () => {
-    component.currentStep = 0;
+    component['currentStepIdx'] = 0;
     const validateSpy = spyOn(component, 'validateCurrentStep').and.returnValue(false);
     component.goToStep(1);
     expect(validateSpy).toHaveBeenCalled();
-    expect(component.currentStep).toBe(0);
+    expect(component.currentStepIdx).toBe(0);
   });
 
   it('goToStep should call dependent loaders for non-bundle flow', () => {
     component.BUNDLE_ENABLED = false;
-    component.currentStep = 0;
-    component.highestStep = 0;
+    component.DATA_SPACE_ENABLED = false;
+    component.ngOnInit();
+    component['currentStepIdx'] = 0;
+    component.highestStepIdx = 0;
     spyOn(component, 'validateCurrentStep').and.returnValue(true);
     const refreshSpy = spyOn(component, 'refreshChars');
     const resSpy = spyOn(component, 'getResSpecs');
@@ -1218,12 +1227,14 @@ describe('CreateProductSpecComponent', () => {
     expect(relSpy).toHaveBeenCalledWith(false);
     component.goToStep(7);
     expect(finishSpy).toHaveBeenCalled();
-    expect(component.highestStep).toBe(7);
+    expect(component.highestStepIdx).toBe(7);
     expect(refreshSpy).toHaveBeenCalled();
   });
 
   it('goToStep should call dependent loaders for bundle flow', () => {
     component.BUNDLE_ENABLED = true;
+    component.DATA_SPACE_ENABLED = false;
+    component.ngOnInit();
     spyOn(component, 'validateCurrentStep').and.returnValue(true);
     const resSpy = spyOn(component, 'getResSpecs');
     const servSpy = spyOn(component, 'getServSpecs');
@@ -1240,47 +1251,54 @@ describe('CreateProductSpecComponent', () => {
   });
 
   it('validateCurrentStep should validate step 0 by general form validity', () => {
-    component.currentStep = 0;
+    component.steps = [
+      { label: 'General Info', id: 'general' },
+      { label: 'Compliance profile', id: 'compliance' },
+      { label: 'Characteristics', id: 'characteristics' },
+      { label: 'Resource specifications', id: 'resource' },
+      { label: 'Service specifications', id: 'service' },
+      { label: 'Attachments', id: 'attachments' }
+    ] as any;
+    component['currentStepIdx'] = 0;
     component.generalForm.patchValue({ name: '', brand: '', version: '' });
     expect(component.validateCurrentStep()).toBeFalse();
     component.generalForm.patchValue({ name: 'A', brand: 'B', version: '1.0' });
     expect(component.validateCurrentStep()).toBeTrue();
-    component.currentStep = 5;
+    component['currentStepIdx'] = 5;
     expect(component.validateCurrentStep()).toBeTrue();
   });
 
   it('isStepDisabled should enforce step-specific guards', () => {
-    component.currentStep = 0;
+    component.steps = [{ label: 'General Info', id: 'general' }] as any;
+    component['currentStepIdx'] = 0;
     component.generalForm.patchValue({ name: '', brand: '', version: '' });
     expect(component.isStepDisabled()).toBeTrue();
     component.generalForm.patchValue({ name: 'A', brand: 'B', version: '1.0' });
     expect(component.isStepDisabled()).toBeFalse();
 
-    component.currentStep = 1;
-    component.BUNDLE_ENABLED = true;
+    component.steps = [{ label: 'Bundle', id: 'bundle' }] as any;
+    component['currentStepIdx'] = 0;
     component.bundleChecked = true;
     component.prodSpecsBundle = [{ id: '1' } as any];
     expect(component.isStepDisabled()).toBeTrue();
     component.prodSpecsBundle.push({ id: '2' } as any);
     expect(component.isStepDisabled()).toBeFalse();
 
-    component.BUNDLE_ENABLED = false;
+    component.steps = [{ label: 'Compliance profile', id: 'compliance' }] as any;
+    component['currentStepIdx'] = 0;
     spyOn(component, 'checkValidISOS').and.returnValue(true);
     expect(component.isStepDisabled()).toBeTrue();
-
-    component.currentStep = 2;
-    component.BUNDLE_ENABLED = true;
     (component.checkValidISOS as jasmine.Spy).and.returnValue(false);
     expect(component.isStepDisabled()).toBeFalse();
   });
 
   it('canNavigate and handleStepClick should honor navigation constraints', () => {
-    component.currentStep = 0;
-    component.highestStep = 0;
+    component['currentStepIdx'] = 0;
+    component.highestStepIdx = 0;
     component.generalForm.patchValue({ name: '', brand: '', version: '' });
     expect(component.canNavigate(0)).toBeFalse();
     component.generalForm.patchValue({ name: 'A', brand: 'B', version: '1.0' });
-    component.highestStep = 2;
+    component.highestStepIdx = 2;
     expect(component.canNavigate(2)).toBeTrue();
 
     const goSpy = spyOn(component, 'goToStep');

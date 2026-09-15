@@ -13,7 +13,7 @@ import { PaginationService } from 'src/app/services/pagination.service';
 import { LoginInfo, ProductOfferingPrice_DTO } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import { FormGroup, FormControl, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
-import * as moment from 'moment';
+import moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 import { currencies } from 'currencies.json';
 import { lastValueFrom, Subject } from 'rxjs';

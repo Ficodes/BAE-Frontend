@@ -51,7 +51,7 @@ describe('BlogEntryDetailComponent', () => {
 
     await component.ngOnInit();
 
-    expect(domeBlogService.getBlogEntries).toHaveBeenCalled();
+    expect(domeBlogService.getBlogEntries).toHaveBeenCalledWith({ contentType: 'blog' });
     expect(domeBlogService.getBlogEntryById).toHaveBeenCalledWith('entry-1');
     expect(titleService.setTitle).toHaveBeenCalledWith('Entry title');
     expect(metaService.updateTag).toHaveBeenCalledWith({ name: 'description', content: 'Meta description' });

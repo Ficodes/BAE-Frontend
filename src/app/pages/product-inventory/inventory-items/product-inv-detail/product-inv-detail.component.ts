@@ -15,7 +15,7 @@ import { LoginInfo, cartProduct,productSpecCharacteristicValueCart } from 'src/a
 import { ProductInventoryServiceService } from 'src/app/services/product-inventory-service.service'
 import {EventMessageService} from "src/app/services/event-message.service";
 import { jwtDecode } from "jwt-decode";
-import * as moment from 'moment';
+import moment from 'moment';
 import { environment } from 'src/environments/environment';
 import { Location } from '@angular/common';
 

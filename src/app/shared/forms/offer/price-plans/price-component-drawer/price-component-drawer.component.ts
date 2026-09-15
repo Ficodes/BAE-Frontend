@@ -6,7 +6,7 @@ import { LocalStorageService } from 'src/app/services/local-storage.service';
 import {TranslateModule} from "@ngx-translate/core";
 import {NgClass} from "@angular/common";
 import { initFlowbite } from 'flowbite';
-import * as moment from 'moment';
+import moment from 'moment';
 import { certifications } from 'src/app/models/certification-standards.const';
 import { LoginInfo } from 'src/app/models/interfaces';
 

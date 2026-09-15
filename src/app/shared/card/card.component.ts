@@ -23,7 +23,7 @@ import { PriceServiceService } from 'src/app/services/price-service.service';
 import { initFlowbite } from 'flowbite';
 import { LoginInfo, cartProduct,productSpecCharacteristicValueCart } from '../../models/interfaces';
 import { ShoppingCartServiceService } from 'src/app/services/shopping-cart-service.service';
-import * as moment from 'moment';
+import moment from 'moment';
 import { certifications } from 'src/app/models/certification-standards.const';
 import { jwtDecode } from "jwt-decode";
 import { environment } from 'src/environments/environment';

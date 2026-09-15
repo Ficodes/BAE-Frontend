@@ -19,6 +19,23 @@ export const init_config = {
     'matomoUrl': '',
     'googleTagManagerId': '',
     'searchEnabled': true,
+    'analyticsEnabled': true,
+    'analytics': 'https://analytics.dome-marketplace-sbx.org',
+    'analyticsDashboards': {
+        'businessInsightsNonLear': 'business-insights-non-lear',
+        'businessInsightsLear': 'business-insights-lear',
+        'usageMonitor': 'usage-monitor'
+    },
+    'analyticsSuperset': {
+        'guestTokenPath': '/api/v1/dome/guest_token/'
+    },
+    'quotesEnabled': false,
+    'tenderingEnabled': false,
+    'dataSpaceEnabled': false,
+    'dspEnabled': false,
+    'launchValidationEnabled': false,
+    'tenderDevButtonsOpenCloseEnabled': false,
+    'aiEnabled': false,
     'domeAbout': 'https://dome-marketplace.eu/about/',
     'domeRegister': 'https://dome-marketplace.github.io/onboarding/',
     'domePublish': 'https://knowledgebase.dome-marketplace.org/shelves/company-onboarding-process',
@@ -327,6 +344,7 @@ export const productOffering = {
     ]
 }
 export const blogEntry = {
+    contentType: 'blog',
     title: 'Entry title',
     slug: 'entry-title',
     featuredImage: '',

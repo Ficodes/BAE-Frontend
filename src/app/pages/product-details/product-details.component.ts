@@ -15,7 +15,7 @@ import { LoginInfo, cartProduct,productSpecCharacteristicValueCart } from '../..
 import { ShoppingCartServiceService } from 'src/app/services/shopping-cart-service.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
 import {EventMessageService} from "../../services/event-message.service";
-import * as moment from 'moment';
+import moment from 'moment';
 import { environment } from 'src/environments/environment';
 import { Location } from '@angular/common';
 import {firstValueFrom, Subject} from "rxjs";

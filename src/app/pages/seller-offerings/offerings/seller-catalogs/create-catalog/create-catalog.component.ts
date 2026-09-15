@@ -5,7 +5,7 @@ import {LocalStorageService} from "src/app/services/local-storage.service";
 import {EventMessageService} from "src/app/services/event-message.service";
 import { LoginInfo } from 'src/app/models/interfaces';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
-import * as moment from 'moment';
+import moment from 'moment';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';

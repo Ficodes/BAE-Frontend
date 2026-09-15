@@ -7,7 +7,7 @@ import { FormGroup, FormControl, Validators, AbstractControl } from '@angular/fo
 import { phoneNumbers, countries } from 'src/app/models/country.const'
 import {EventMessageService} from "src/app/services/event-message.service";
 import { initFlowbite } from 'flowbite';
-import * as moment from 'moment';
+import moment from 'moment';
 import {components} from "../../../../models/party-catalog";
 import { v4 as uuidv4 } from 'uuid';
 import {getCountries, getCountryCallingCode, CountryCode} from 'libphonenumber-js'
