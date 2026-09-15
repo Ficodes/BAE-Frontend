@@ -21,8 +21,6 @@ import { AiSearchService } from 'src/app/services/ai-search.service';
 import { PriceServiceService } from 'src/app/services/price-service.service';
 import { availableFilters, searchCategoriesConfig, SEARCH_ACTIVE_CATEGORY_STORAGE_KEY } from 'src/app/data/availableFilters';
 import { iconForCategory } from 'src/app/data/categoryIcons';
-import { AiSearchService } from 'src/app/services/ai-search.service';
-import { PriceServiceService } from 'src/app/services/price-service.service';
 import { ThemeService } from 'src/app/services/theme.service';
 
 type ToolbarFilter = {
