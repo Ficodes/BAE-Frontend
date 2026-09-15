@@ -9,7 +9,7 @@ import { ApiServiceService } from 'src/app/services/product-service.service';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
 import { Category } from 'src/app/models/interfaces';
 import { iconForCategory } from 'src/app/data/categoryIcons';
-import { searchCategoriesConfig } from 'src/app/data/availableFilters';
+import { searchCategoriesConfig, SEARCH_ACTIVE_CATEGORY_STORAGE_KEY } from 'src/app/data/availableFilters';
 
 interface PopularOffer {
   id: string;
@@ -188,14 +188,31 @@ export class BrowseComponent implements OnInit {
     }
   }
 
-  onCategoryClick(category: Category) {
-    localStorage.removeItem('selected_categories');
-    this.localStorage.addCategoryFilter(category);
+  async onCategoryClick(category: Category) {
+    this.localStorage.removeItem('selected_categories');
+    if (category.id) {
+      this.localStorage.setItem(SEARCH_ACTIVE_CATEGORY_STORAGE_KEY, category.id);
+      const children = await this.api.getCategoriesByParentId(category.id).catch(() => []);
+      const childList: Category[] = Array.isArray(children) ? children : [];
+
+      if (childList.length > 0) {
+        for (const child of childList) {
+          if (child?.id) {
+            this.localStorage.addCategoryFilter(child);
+          }
+        }
+      } else {
+        this.localStorage.addCategoryFilter(category);
+      }
+    } else {
+      this.localStorage.addCategoryFilter(category);
+    }
     this.router.navigate(['/search']);
   }
 
   onShowAll() {
-    localStorage.removeItem('selected_categories');
+    this.localStorage.removeItem('selected_categories');
+    this.localStorage.removeItem(SEARCH_ACTIVE_CATEGORY_STORAGE_KEY);
     this.router.navigate(['/search']);
   }
 }

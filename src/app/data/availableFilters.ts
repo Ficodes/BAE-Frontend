@@ -33,6 +33,8 @@ const DEFAULT_AVAILABLE_FILTERS: Filter[] = []
 
 export const availableFilters: Filter[] = cloneFilters(DEFAULT_AVAILABLE_FILTERS)
 
+export const SEARCH_ACTIVE_CATEGORY_STORAGE_KEY = 'search_active_category_id'
+
 type RuntimeSearchFiltersConfig = {
   primaryCategoriesMode?: unknown
   primaryRootName?: unknown

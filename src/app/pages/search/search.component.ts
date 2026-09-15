@@ -21,7 +21,7 @@ import { takeUntil } from 'rxjs/operators';
 
 import { AiSearchService } from 'src/app/services/ai-search.service';
 import { PriceServiceService } from 'src/app/services/price-service.service';
-import { availableFilters, searchCategoriesConfig } from 'src/app/data/availableFilters';
+import { availableFilters, searchCategoriesConfig, SEARCH_ACTIVE_CATEGORY_STORAGE_KEY } from 'src/app/data/availableFilters';
 import { iconForCategory } from 'src/app/data/categoryIcons';
 import { ThemeService } from 'src/app/services/theme.service';
 
@@ -73,7 +73,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   procurementFilterKey = 'procurement_type';
   private procurementCache = new Map<string, boolean>();
   private productsRequestVersion = 0;
-  private readonly activeCategoryStorageKey = 'search_active_category_id';
+  private readonly activeCategoryStorageKey = SEARCH_ACTIVE_CATEGORY_STORAGE_KEY;
 
   showSortDropdown = false;
   sortOption: 'name' | 'date_new' | 'date_old' = 'date_new';
