@@ -1,5 +1,5 @@
 <div>
-  <app-offer-form [offer]="offer" [partyId]="partyId" [formType]="'update'" (previewRequested)="onPreviewRequested($event)"></app-offer-form>
+  <app-offer-form #offerForm [offer]="offer" [partyId]="partyId" [formType]="'update'" (previewRequested)="onPreviewRequested($event)" (publishRequested)="onPublishRequested($event)"></app-offer-form>
 
   @if(showPreviewModal && previewProductOff){
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-offerings-overlay bg-opacity-40 p-4" (click)="closePreviewModal()">
@@ -136,6 +136,17 @@
             </div>
           }
         </div>
+
+        @if(confirmPublishMode){
+          <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#EBECEE]">
+            <button type="button" (click)="closePreviewModal()" class="px-5 py-2.5 rounded-lg text-sm font-semibold text-[#324153] hover:bg-gray-100 transition-colors">
+              {{ 'CREATE_OFFER._back_to_edit' | translate }}
+            </button>
+            <button data-cy="confirmPublish" type="button" (click)="confirmPublish()" class="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-[#2D58A7] hover:bg-[#24468a] transition-colors">
+              {{ 'UPDATE_OFFER._confirm_update' | translate }}
+            </button>
+          </div>
+        }
       </div>
     </div>
   }

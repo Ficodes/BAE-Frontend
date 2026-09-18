@@ -36,15 +36,33 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
   showPreviewModal: boolean = false;
   previewProductOff: any = null;
   previewTab: 'details' | 'card' = 'details';
+  confirmPublishMode: boolean = false;
+
+  @ViewChild('offerForm') offerForm: any;
 
   onPreviewRequested(productOff: any): void {
     this.previewProductOff = productOff;
     this.previewTab = 'details';
+    this.confirmPublishMode = false;
     this.showPreviewModal = true;
+  }
+
+  onPublishRequested(productOff: any): void {
+    this.previewProductOff = productOff;
+    this.previewTab = 'details';
+    this.confirmPublishMode = true;
+    this.showPreviewModal = true;
+  }
+
+  confirmPublish(): void {
+    this.showPreviewModal = false;
+    this.confirmPublishMode = false;
+    this.offerForm?.confirmPublish();
   }
 
   closePreviewModal(): void {
     this.showPreviewModal = false;
+    this.confirmPublishMode = false;
   }
 
   //PAGE SIZES:
