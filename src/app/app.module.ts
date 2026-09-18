@@ -80,6 +80,7 @@ import { ThemeService } from './services/theme.service';
 import { BadgeComponent } from "./shared/badge/badge.component";
 import { BillingAccountFormComponent } from "./shared/billing-account-form/billing-account-form.component";
 import { CardComponent } from "./shared/card/card.component";
+import { CarouselComponent } from "./shared/carousel/carousel.component";
 import { CategoriesFilterComponent } from "./shared/categories-filter/categories-filter.component";
 import { CategoriesPanelComponent } from "./shared/categories-panel/categories-panel.component";
 import { CategoriesRecursionListComponent } from './shared/categories-recursion-list/categories-recursion-list.component';
@@ -212,7 +213,8 @@ import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.c
     OperatorRevenueSharingComponent,
     CreateUsageSpecComponent,
     UpdateUsageSpecComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    CarouselComponent
   ],
   providers: [
     AppInitService,
