@@ -2,7 +2,7 @@
 <div (click)="goToProductDetails(productOff)" class="flex flex-col w-full h-[430px] bg-offerings-surface dark:bg-secondary-100 rounded-[16px] border border-offerings-border dark:border-secondary-200 hover:shadow-md transition-shadow cursor-pointer font-[Blinker]">
 
   <div class="px-2 pt-2">
-    <div class="relative h-[170px] w-full rounded-xl bg-offerings-neutral dark:bg-secondary-300 overflow-hidden flex justify-center items-center">
+    <div class="relative w-full aspect-[16/9] rounded-xl bg-offerings-neutral dark:bg-secondary-300 overflow-hidden flex justify-center items-center">
       <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
       <img class="relative z-10 h-full w-full object-contain" src="{{getProductImage()}}" alt="Product image">
     </div>

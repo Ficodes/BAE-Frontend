@@ -106,6 +106,7 @@ export class OfferComponent implements OnInit, OnDestroy {
   @Input() partyId: any;
 
   @Output() previewRequested = new EventEmitter<any>();
+  @Output() publishRequested = new EventEmitter<any>();
 
   productOfferForm: FormGroup;
   currentStep = 0;
@@ -2321,6 +2322,18 @@ export class OfferComponent implements OnInit, OnDestroy {
 
 
   submitForm() {
+    if (this.loading) return;
+    if (!this.canSubmitOffer()) {
+      this.productOfferForm.markAllAsTouched();
+      this.highestStep = this.steps.length - 1;
+      this.currentStep = this.firstInvalidStep();
+      return;
+    }
+
+    this.publishRequested.emit(this.buildPreviewProductOff());
+  }
+
+  confirmPublish() {
     if (this.loading) return;
     if (!this.canSubmitOffer()) {
       this.productOfferForm.markAllAsTouched();

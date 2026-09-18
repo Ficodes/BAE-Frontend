@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, Renderer2, ViewChild } from '@angular/core';
 
 import { ActivatedRoute, Router } from '@angular/router';
 import { faArrowProgress, faArrowRightArrowLeft, faAtom, faBook, faDownload, faGlobe, faMinus, faObjectExclude, faPlus, faScaleBalanced, faShieldHalved, faSwap } from "@fortawesome/pro-solid-svg-icons";
@@ -36,7 +36,13 @@ interface UsageMetricCard {
   templateUrl: './product-details.component.html',
   styleUrl: './product-details.component.css'
 })
-export class ProductDetailsComponent implements OnInit, OnDestroy {
+export class ProductDetailsComponent implements OnInit, OnDestroy, AfterViewInit {
+
+  @ViewChild('summaryBar') summaryBar?: ElementRef<HTMLElement>;
+  @ViewChild('offerHero') offerHero?: ElementRef<HTMLElement>;
+  showSummaryBar = false;
+  summaryBarHeight = 0;
+  private readonly HEADER_HEIGHT = 88;
 
   @ViewChild('relationshipsContent')
   relationshipsContent: ElementRef | undefined;
@@ -93,6 +99,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   prodChars: any[] = [];
   usageMetrics: UsageMetricCard[] = [];
   selfAtt: any = '';
+  complianceDocuments: { name: string, url: string, isSelfAtt: boolean }[] = [];
 
   errorMessage: any = '';
   showError: boolean = false;
@@ -107,6 +114,10 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   showQuoteModal: boolean = false;
   productAlreadyInCart: boolean = false;
   activeTab: string = 'overview';
+
+  providerPartyId: string | undefined;
+  moreOfferings: any[] = [];
+  moreVisibleItems: number = 3;
 
   resolveIcon = findIconByName;
   specOverview: string = '';
@@ -155,7 +166,8 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     private eventMessage: EventMessageService,
     private accService: AccountServiceService,
     private usageService: UsageServiceService,
-    private location: Location
+    private location: Location,
+    private renderer: Renderer2
   ) {
     this.showTermsMore = false;
     this.eventMessage.messages$
@@ -209,6 +221,10 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    const el = this.summaryBar?.nativeElement;
+    if (el?.parentNode) {
+      el.parentNode.removeChild(el);
+    }
     this.destroy$.next();
     this.destroy$.complete();
     document.body.style.overflow = '';
@@ -237,9 +253,51 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       this.check_logged = false,
         this.cdr.detectChanges();
     }
+    this.route.paramMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        const offerId = params.get('id');
+        if (offerId) {
+          this.loadOffer(offerId);
+        }
+      });
+  }
+
+  resetOfferState() {
+    this.prodSpec = {};
+    this.productOff = undefined;
+    this.complianceProf = [];
+    this.additionalCerts = [];
+    this.serviceSpecs = [];
+    this.resourceSpecs = [];
+    this.prodChars = [];
+    this.usageMetrics = [];
+    this.images = [];
+    this.attatchments = [];
+    this.moreOfferings = [];
+    this.orgInfo = undefined;
+    this.providerPartyId = undefined;
+    this.categories = [];
+    this.category = 'none';
+    this.checkCustom = false;
+    this.selfAtt = '';
+    this.complianceDocuments = [];
+    this.complianceLevel = 'NL';
+    this.productAlreadyInCart = false;
+    this.activeTab = 'overview';
+    this.keyFeatures = [];
+    this.businessBenefits = [];
+    this.useCases = [];
+    this.faqs = [];
+    this.howItWorks = '';
+    this.specOverview = '';
+  }
+
+  async loadOffer(id: string) {
+    this.resetOfferState();
     window.scrollTo(0, 0);
 
-    this.id = this.route.snapshot.paramMap.get('id');
+    this.id = id;
     console.log('--- Details ID:')
     console.log(this.id)
     let prod = await this.api.getProductById(this.id);
@@ -364,6 +422,8 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
         this.selfAtt = selfAttObj.productSpecCharacteristicValue?.at(0)?.value
       }
     }
+
+    this.computeComplianceDocuments(this.prodSpec.productSpecCharacteristic);
 
     //Hardcoding compliance lever for the moment
     this.complianceLevel = this.api.getComplianceLevel(this.prodSpec);
@@ -514,6 +574,28 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
   isCustom() {
     return this.checkCustom;
+  }
+
+  ngAfterViewInit() {
+    if (this.isPreview) { return; }
+    const el = this.summaryBar?.nativeElement;
+    const nav = document.querySelector('bae-header nav');
+    if (el && nav) {
+      this.renderer.appendChild(nav, el);
+      this.summaryBarHeight = el.offsetHeight;
+    }
+  }
+
+  @HostListener('window:scroll') onScroll(): void {
+    if (this.isPreview) { return; }
+    const bottom = this.offerHero?.nativeElement.getBoundingClientRect().bottom;
+    const next = bottom !== undefined && bottom <= this.HEADER_HEIGHT;
+    if (next !== this.showSummaryBar) {
+      this.showSummaryBar = next;
+      const el = this.summaryBar?.nativeElement;
+      if (el) { this.summaryBarHeight = el.offsetHeight; }
+      this.cdr.detectChanges();
+    }
   }
 
   ngAfterViewChecked() {
@@ -865,8 +947,8 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
   tabClass(name: string): string {
     return this.activeTab === name
-      ? 'bg-white text-secondary-100 font-semibold'
-      : 'text-gray-500 font-medium hover:text-secondary-100 hover:bg-white/50';
+      ? 'bg-[#8EACE1] text-[#131B25] font-semibold'
+      : 'text-[#131B25] font-semibold hover:bg-[#DDE6F6]';
   }
 
   toggleTermsReadMore() {
@@ -911,17 +993,73 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       for (let i = 0; i < parties.length; i++) {
         if (parties[i].role == environment.SELLER_ROLE) {
           if (parties[i].id.includes('organization')) {
+            this.providerPartyId = parties[i].id;
             this.accService.getOrgInfo(parties[i].id).then(org => {
               this.orgInfo = org;
               console.log(this.orgInfo)
             })
+            this.loadMoreFromProvider(parties[i].id);
           }
         }
       }
   }
 
-  goToOrgDetails(id: any) {
-    this.router.navigate(['/org-details', id]);
+  updateMoreVisibleItems() {
+    const width = window.innerWidth;
+    if (width < 768) {
+      this.moreVisibleItems = 1;
+    } else if (width < 1024) {
+      this.moreVisibleItems = 2;
+    } else {
+      this.moreVisibleItems = 3;
+    }
+  }
+
+  @HostListener('window:resize')
+  onWindowResize() {
+    this.updateMoreVisibleItems();
+    this.cdr.detectChanges();
+  }
+
+  async loadMoreFromProvider(partyId: string) {
+    if (this.isPreview || !partyId) {
+      return;
+    }
+    try {
+      const offers = await this.api.getProductOfferByOwner(0, ['Launched'], partyId, undefined, false);
+      const others = (Array.isArray(offers) ? offers : []).filter((o: any) => o?.id !== this.id).slice(0, 9);
+      if (others.length === 0) {
+        return;
+      }
+      this.updateMoreVisibleItems();
+      this.moreOfferings = await this.api.getProductsDetails(others);
+      this.cdr.detectChanges();
+    } catch (err) {
+      console.error('Error loading more offerings from provider:', err);
+    }
+  }
+
+  getOfferingImage(offering: any): string {
+    const attachments: any[] = offering?.attachment ?? [];
+    const profile = attachments.filter(item => item?.name === 'Profile Picture');
+    const pictures = profile.length > 0 ? profile : attachments.filter(item => item?.attachmentType === 'Picture');
+    return pictures.length > 0 ? pictures.at(0)?.url : 'https://placehold.co/600x400/svg';
+  }
+
+  getOfferingCategories(offering: any): any[] {
+    return (offering?.category ?? []).slice(0, 2);
+  }
+
+  async goToOrgDetails(id: any) {
+    try {
+      const catalogs = await this.api.getCatalogsByUser(0, undefined, ['Launched'], id);
+      const catalogId = Array.isArray(catalogs) ? catalogs[0]?.id : undefined;
+      if (catalogId) {
+        this.router.navigate(['/org-details', catalogId]);
+      }
+    } catch (err) {
+      console.error('Error resolving provider catalog:', err);
+    }
   }
 
   isDrawerOpen = false;
@@ -1155,8 +1293,70 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       );
     }
 
+    this.parseComplianceInfo(this.prodSpec);
+
     this.isLoaded = true;
     this.cdr.detectChanges();
+  }
+
+  private parseComplianceInfo(prodSpec: any): void {
+    this.complianceProf = [];
+    this.additionalCerts = [];
+    this.selfAtt = '';
+
+    const chars = prodSpec?.productSpecCharacteristic;
+    if (chars != undefined) {
+      this.additionalCerts = chars.filter((char: any) => {
+        const cleanedName = char.name.replace('Compliance:', '').trim();
+        return (
+          char.name.startsWith('Compliance:') &&
+          !certifications.some(cert => cert.name === cleanedName) && char.name != 'Compliance:SelfAtt'
+        );
+      });
+
+      const normalizeName = (name?: string): string =>
+        name?.replace(/compliance:/i, '').trim() ?? '';
+
+      for (let i = 0; i < certifications.length; i++) {
+        let compProf = chars.find((p: any) => {
+          return normalizeName(p.name) === certifications[i].name;
+        });
+        if (compProf) {
+          let cert: any = certifications[i];
+          cert.href = compProf.productSpecCharacteristicValue?.at(0)?.value;
+          this.complianceProf.push(cert);
+        }
+      }
+
+      let selfAttObj = chars.find((p: any) => {
+        return p.name === `Compliance:SelfAtt`
+      });
+      if (selfAttObj) {
+        this.selfAtt = selfAttObj.productSpecCharacteristicValue?.at(0)?.value;
+      }
+    }
+
+    this.computeComplianceDocuments(chars);
+
+    this.complianceLevel = this.api.getComplianceLevel(prodSpec);
+    this.complianceDescription = this.getComplianceDescription();
+  }
+
+  private computeComplianceDocuments(chars: any[] | undefined): void {
+    this.complianceDocuments = [];
+    if (!chars) return;
+    for (const c of chars) {
+      const name = String(c?.name || '');
+      if (!name.startsWith('Compliance:') || name === 'Compliance:VC') continue;
+      const url = c.productSpecCharacteristicValue?.at(0)?.value;
+      if (!url) continue;
+      const isSelfAtt = name === 'Compliance:SelfAtt';
+      this.complianceDocuments.push({
+        name: isSelfAtt ? '' : name.replace(/compliance:/i, '').trim(),
+        url,
+        isSelfAtt
+      });
+    }
   }
 
 }

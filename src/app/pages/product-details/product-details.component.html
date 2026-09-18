@@ -1,22 +1,87 @@
 
 <div class="min-h-screen bg-white font-[Blinker]">
+  <div #summaryBar class="absolute left-0 right-0 top-full z-40 w-full border-b border-[#E5E7EB] bg-white transition-opacity duration-300 ease-out"
+       [ngClass]="showSummaryBar ? 'opacity-100' : 'pointer-events-none opacity-0'"
+       [attr.aria-hidden]="!showSummaryBar">
+    <div class="mx-auto flex w-full max-w-[1142px] flex-col gap-[12px] px-6 py-[16px] sm:flex-row sm:items-center sm:justify-between sm:gap-[16px]">
+      <div class="flex min-w-0 items-center gap-[16px]">
+        <div class="hidden sm:block relative h-[60px] w-[107px] shrink-0 rounded-[8px] bg-[#EBECEE] overflow-hidden">
+          <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
+          <img class="relative z-10 h-full w-full object-contain" src="{{getProductImage()}}" [attr.alt]="'PRODUCT_DETAILS._product_image' | translate">
+        </div>
+        <div class="flex min-w-0 flex-col gap-[6px]">
+          <h2 class="truncate text-[20px] font-bold leading-[24px] text-[#14274A]">{{ productOff?.name }}</h2>
+          @if(orgInfo?.tradingName){
+            <a (click)="goToOrgDetails(orgInfo.id)" class="hidden sm:flex min-w-0 items-center gap-1.5 text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-[#1f4fbf] cursor-pointer hover:underline">
+              <svg class="h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+              </svg>
+              <span class="truncate">{{ orgInfo.tradingName }}</span>
+            </a>
+          }
+        </div>
+      </div>
+      @if(check_logged){
+        @if (!isCustom()) {
+          <button data-cy="openAddToCartDrawerSticky" type="button" (click)="openDrawer()" [disabled]="!PURCHASE_ENABLED || productAlreadyInCart" [ngClass]="!PURCHASE_ENABLED || productAlreadyInCart ? 'opacity-50' : 'hover:bg-[#163b99]'" class="flex h-[48px] w-full shrink-0 items-center justify-center gap-2 rounded-[8px] bg-[#1f4fbf] px-[24px] text-white font-medium transition-colors sm:w-auto">
+            <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 21">
+              <path d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z"/>
+            </svg>
+            {{ 'CARD._add_cart' | translate }}
+          </button>
+        } @else if(quotesEnabled) {
+          <button type="button" (click)="toggleQuoteModal();$event.stopPropagation();" class="flex h-[48px] w-full shrink-0 items-center justify-center gap-2 rounded-[8px] bg-[#1f4fbf] hover:bg-[#163b99] px-[24px] text-white font-medium transition-colors sm:w-auto">
+            {{ 'CARD._quote' | translate }}
+          </button>
+        }
+      }
+    </div>
+  </div>
   <div class="mx-auto max-w-[1200px] px-8">
 
-    <nav class="flex items-center gap-2 pt-4 pb-6 text-[16px] text-gray-500">
-      <a (click)="back()" class="cursor-pointer hover:text-primary-100 transition-colors">{{ 'PRODUCT_DETAILS._all_categories' | translate }}</a>
-      <svg class="h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+    <nav class="flex items-center gap-2 pt-4 pb-6 text-[16px] text-[#526179]">
+      <a (click)="goTo('/search')" class="cursor-pointer hover:text-[#1f4fbf] transition-colors">{{ 'PRODUCT_DETAILS._all_categories' | translate }}</a>
+      <svg class="h-4 w-4 text-[#526179]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
       </svg>
       <span class="font-medium text-primary-100">{{ 'PRODUCT_DETAILS._details' | translate }}</span>
     </nav>
 
-    <div class="grid grid-cols-1 lg:grid-cols-[1fr_500px] gap-8 pb-8">
+    <div #offerHero class="grid grid-cols-1 lg:grid-cols-[424px_1fr] gap-6 pb-4">
+      <div class="relative rounded-2xl bg-[#EBECEE] aspect-[2/1] overflow-hidden">
+        <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
+        <img class="relative z-10 h-full w-full object-contain" src="{{getProductImage()}}" [attr.alt]="'PRODUCT_DETAILS._product_image' | translate">
+      </div>
+
       <div class="flex flex-col">
         <h1 [ngClass]="{
             'break-all': hasLongWord(productOff?.name, 20),
             'break-words': !hasLongWord(productOff?.name, 20)
           }"
-          class="text-[32px] font-bold leading-tight text-secondary-100 mb-4">{{productOff?.name}}</h1>
+          class="text-[32px] font-bold leading-tight text-[#14274A] mb-3">{{productOff?.name}}</h1>
+
+        @if(orgInfo!=undefined){
+          <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mb-4">
+            <a (click)="goToOrgDetails(orgInfo.id)" class="flex items-center gap-2 text-[15px] font-medium text-[#1f4fbf] cursor-pointer hover:underline">
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+              </svg>
+              <span>{{orgInfo.tradingName}}</span>
+            </a>
+            @if(orgInfo.contactMedium){
+              @for(contact of orgInfo.contactMedium; track contact){
+                @if(contact.mediumType === 'Email'){
+                  <a [href]="'mailto:' + contact.characteristic?.emailAddress" class="flex items-center gap-2 text-[15px] font-medium text-[#1f4fbf] hover:underline">
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                    </svg>
+                    <span>{{contact.characteristic?.emailAddress}}</span>
+                  </a>
+                }
+              }
+            }
+          </div>
+        }
 
         <div class="mb-5">
           <div #descriptionText class="line-clamp-5 overflow-hidden">
@@ -32,55 +97,33 @@
           }
         </div>
 
-        @if(orgInfo!=undefined){
-          <div class="flex flex-col gap-2 mb-5">
-            @if(orgInfo.contactMedium){
-              @for(contact of orgInfo.contactMedium; track contact){
-                @if(contact.mediumType === 'Email'){
-                  <div class="flex items-center gap-2 text-[15px] text-gray-500">
-                    <svg class="h-5 w-5 text-primary-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                    </svg>
-                    <span>{{contact.characteristic?.emailAddress}}</span>
-                  </div>
-                }
-              }
+        @if(check_logged){
+          <div class="mt-auto pt-2 flex md:justify-end">
+            @if (!isCustom()) {
+              <button data-cy="openAddToCartDrawer" type="button" (click)="openDrawer()" [disabled]="!PURCHASE_ENABLED || productAlreadyInCart" [ngClass]="!PURCHASE_ENABLED || productAlreadyInCart ? 'opacity-50' : 'hover:bg-[#163b99]'" class="flex shrink-0 items-center gap-2 text-white bg-[#1f4fbf] font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
+                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 21">
+                  <path d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z"/>
+                </svg>
+                {{ 'CARD._add_cart' | translate }}
+              </button>
+            } @else if(quotesEnabled) {
+              <button type="button" (click)="toggleQuoteModal();$event.stopPropagation();" class="flex shrink-0 items-center gap-2 text-white bg-[#1f4fbf] hover:bg-[#163b99] font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
+                {{ 'CARD._quote' | translate }}
+              </button>
             }
-            <div class="flex items-center gap-2 text-[15px] text-primary-100">
-              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-              </svg>
-              <a (click)="goToOrgDetails(orgInfo.id)" class="cursor-pointer hover:underline">{{orgInfo.tradingName}}</a>
-            </div>
           </div>
-        }
-
-        <div class="flex items-center flex-wrap gap-2">
-          @for (cat of categories; track cat.id) {
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-[13px] font-medium border border-secondary-50 text-secondary-100 bg-secondary-50/30">{{ cat.name }}</span>
-          }
-        </div>
-      </div>
-      <div class="hidden lg:block relative rounded-2xl bg-gray-100 aspect-[2/1] overflow-hidden">
-        @if(isPreview){
-          <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
-          <img class="relative z-10 h-full w-full object-contain p-3" src="{{getProductImage()}}" [attr.alt]="'PRODUCT_DETAILS._product_image' | translate">
-        } @else {
-          <img class="h-full w-full object-cover" src="{{getProductImage()}}" [attr.alt]="'PRODUCT_DETAILS._product_image' | translate">
-        }
-      </div>
-      <div class="lg:hidden relative rounded-2xl bg-gray-100 aspect-[2/1] overflow-hidden">
-        @if(isPreview){
-          <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
-          <img class="relative z-10 h-full w-full object-contain p-3" src="{{getProductImage()}}" [attr.alt]="'PRODUCT_DETAILS._product_image' | translate">
-        } @else {
-          <img class="h-full w-full object-cover" src="{{getProductImage()}}" [attr.alt]="'PRODUCT_DETAILS._product_image' | translate">
         }
       </div>
     </div>
 
-    <div id="tabs-container" class="sticky z-20 bg-white pt-2 shadow-[0_4px_8px_-4px_rgba(11,18,32,0.08)]" [ngClass]="isPreview ? 'top-0' : 'top-[88px]'">
-      <div class="flex items-center justify-between rounded-[16px] bg-gray-100 p-1 overflow-hidden">
+    <div class="flex items-center flex-wrap gap-2 pb-8">
+      @for (cat of categories; track cat.id) {
+        <span class="inline-flex items-center px-2 py-1 rounded-lg text-[12px] font-semibold border border-[#8EACE1] text-[#131B25] bg-[#DDE6F6]">{{ cat.name }}</span>
+      }
+    </div>
+
+    <div id="tabs-container" class="sticky z-20 bg-white pt-2 shadow-[0_4px_8px_-4px_rgba(11,18,32,0.08)]" [style.top.px]="isPreview ? 0 : (showSummaryBar ? 88 + summaryBarHeight : 88)">
+      <div class="flex items-center rounded-[16px] bg-[#EBF0F7] p-1 overflow-hidden">
         <div class="flex w-full gap-1">
           <button (click)="activeTab='overview'" [ngClass]="tabClass('overview')"
             class="flex-1 py-1 px-2 text-[16px] leading-[24px] tracking-[0.5px] text-center rounded-[12px] transition-colors">
@@ -95,35 +138,7 @@
             {{ 'PRODUCT_DETAILS._tab_compliance' | translate }}
           </button>
         </div>
-        @if(check_logged){
-          @if (!isCustom()) {
-            <button data-cy="openAddToCartDrawer" type="button" (click)="openDrawer()" [disabled]="!PURCHASE_ENABLED || productAlreadyInCart" [ngClass]="!PURCHASE_ENABLED || productAlreadyInCart ? 'opacity-50' : 'hover:bg-primary-50'" class="hidden md:flex shrink-0 mx-3 items-center gap-2 text-white bg-primary-100 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
-              <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 21">
-                <path d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z"/>
-              </svg>
-              {{ 'CARD._add_cart' | translate }}
-            </button>
-          } @else if(quotesEnabled) {
-            <button type="button" (click)="toggleQuoteModal();$event.stopPropagation();" class="hidden md:flex shrink-0 mx-3 items-center gap-2 text-white bg-primary-100 hover:bg-primary-50 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
-              {{ 'CARD._quote' | translate }}
-            </button>
-          }
-        }
       </div>
-      @if(check_logged) {
-        @if (!isCustom()) {
-          <button data-cy="openAddToCartDrawer" type="button" (click)="openDrawer()" [disabled]="!PURCHASE_ENABLED || productAlreadyInCart" [ngClass]="!PURCHASE_ENABLED || productAlreadyInCart ? 'opacity-50' : 'hover:bg-primary-50'" class="flex md:hidden mt-3 w-fit items-center gap-2 text-white bg-primary-100 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
-            <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 21">
-              <path d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z"/>
-            </svg>
-            {{ 'CARD._add_cart' | translate }}
-          </button>
-        } @else if(quotesEnabled) {
-          <button type="button" (click)="toggleQuoteModal();$event.stopPropagation();" class="flex md:hidden mt-3 w-fit items-center gap-2 text-white bg-primary-100 hover:bg-primary-50 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
-            {{ 'CARD._quote' | translate }}
-          </button>
-        }
-      }
     </div>
 
     <div class="pt-6 pb-8">
@@ -307,30 +322,6 @@
         </div>
         }
 
-        @if(serviceSpecs.length > 0){
-          <div class="mb-6">
-            <h3 class="text-[20px] font-bold text-secondary-100 mb-3">{{ 'PRODUCT_DETAILS._service_spec' | translate }}</h3>
-            @for(service of serviceSpecs; track service.id){
-              <div class="mb-2">
-                <span class="font-semibold text-secondary-100">{{service.name}}</span>:
-                <markdown class="text-[16px] text-secondary-500 inline" [data]="service.description"></markdown>
-              </div>
-            }
-          </div>
-        }
-
-        @if(resourceSpecs.length > 0){
-          <div class="mb-6">
-            <h3 class="text-[20px] font-bold text-secondary-100 mb-3">{{ 'PRODUCT_DETAILS._resource_spec' | translate }}</h3>
-            @for(resource of resourceSpecs; track resource.id){
-              <div class="mb-2">
-                <span class="font-semibold text-secondary-100">{{resource.name}}</span>:
-                <markdown class="text-[16px] text-secondary-500 inline" [data]="resource.description"></markdown>
-              </div>
-            }
-          </div>
-        }
-
         @if(prodSpec.productSpecificationRelationship != undefined && prodSpec.productSpecificationRelationship.length>0){
           <h2 class="text-[24px] font-bold text-secondary-100 mb-4">{{ 'PRODUCT_DETAILS._product_rels' | translate }}</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
@@ -378,6 +369,21 @@
         </div>
         }
 
+        @if(attatchments.length>0){
+          <h2 class="text-[24px] font-bold text-secondary-100 mb-4">{{ 'PRODUCT_DETAILS._product_att' | translate }}</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            @for (att of attatchments; track att.id) {
+              <div class="rounded-2xl bg-white border border-gray-200 p-6 flex items-center justify-between">
+                <h3 [ngClass]="{'break-all': hasLongWord(att.name, 20), 'break-words': !hasLongWord(att.name, 20)}"
+                  class="text-[18px] font-bold text-secondary-100 break-words">{{att.name}}</h3>
+                <button (click)="goToLink(att.url)" class="flex items-center justify-center h-10 w-10 rounded-full bg-secondary-50 hover:bg-secondary-50/80 transition-colors text-primary-100 shrink-0 ml-4">
+                  <fa-icon [icon]="faDownload" class="text-lg"></fa-icon>
+                </button>
+              </div>
+            }
+          </div>
+        }
+
       </div>
       }
 
@@ -385,44 +391,38 @@
         <h2 data-cy="pricePlanTitle" class="text-[24px] font-bold text-secondary-100 mb-4">{{ 'PRODUCT_DETAILS._product_pricing' | translate }}</h2>
         @if(productOff?.productOfferingPrice != undefined){
           @if(checkCustom){
-            <div class="grid gap-4 mb-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            <div class="grid gap-6 mb-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               @for (price of productOff?.productOfferingPrice; track price.id) {
                 @if (price.priceType == 'custom') {
-                  <div class="rounded-2xl bg-white border border-gray-200 p-6">
+                  <div class="flex flex-col items-center gap-4 text-center rounded-[16px] bg-white border border-[#BCBFC7] p-6">
                     <h3 [ngClass]="{'break-all': hasLongWord(price.name, 20), 'break-words': !hasLongWord(price.name, 20)}"
-                      class="text-[20px] font-bold text-secondary-100 mb-2 break-words">{{price.name}}</h3>
+                      class="text-[20px] font-semibold text-[#4C5A6B] break-words">{{price.name}}</h3>
                     <markdown [ngClass]="{'break-all': hasLongWord(price?.description, 20), 'break-words': !hasLongWord(price?.description, 20)}"
-                      class="text-[14px] text-gray-500" [data]="price?.description"></markdown>
+                      class="w-full text-[16px] text-[#131B25]" [data]="price?.description"></markdown>
                   </div>
                 }
               }
               @if(productOff?.productOfferingPrice?.length==0){
-                <div class="rounded-2xl bg-white border border-gray-200 p-6 text-center">
-                  <h3 class="text-[20px] font-bold text-secondary-100 mb-2">{{ 'SHOPPING_CART._free' | translate }}</h3>
-                  <p class="text-[14px] text-gray-500">{{ 'SHOPPING_CART._free_desc' | translate }}</p>
+                <div class="flex flex-col items-center gap-4 text-center rounded-[16px] bg-white border border-[#BCBFC7] p-6">
+                  <h3 class="text-[20px] font-semibold text-[#4C5A6B]">{{ 'SHOPPING_CART._free' | translate }}</h3>
+                  <p class="text-[16px] text-[#131B25]">{{ 'SHOPPING_CART._free_desc' | translate }}</p>
                 </div>
               }
             </div>
           } @else {
-            <div class="grid gap-4 mb-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            <div class="grid gap-6 mb-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               @for (price of productOff?.productOfferingPrice; track price.id) {
-                <div class="rounded-2xl bg-white border border-gray-200 overflow-hidden">
-                  <div [ngClass]="price.priceType == 'recurring' ? 'bg-green-500' : price.priceType == 'usage' ? 'bg-yellow-300' : 'bg-primary-100'" class="px-6 py-4">
-                    <h3 [ngClass]="{'break-all': hasLongWord(price.name, 20), 'break-words': !hasLongWord(price.name, 20)}"
-                      class="text-[18px] font-bold text-white text-center break-words">{{price.name}}</h3>
-                  </div>
-                  <div class="p-6">
-                    <markdown [ngClass]="{'break-all': hasLongWord(price?.description, 20), 'break-words': !hasLongWord(price?.description, 20)}"
-                      class="text-[14px] text-gray-500" [data]="price?.description"></markdown>
-                  </div>
+                <div class="flex flex-col items-center gap-4 text-center rounded-[16px] bg-white border border-[#BCBFC7] p-6">
+                  <h3 [ngClass]="{'break-all': hasLongWord(price.name, 20), 'break-words': !hasLongWord(price.name, 20)}"
+                    class="text-[20px] font-semibold text-[#4C5A6B] break-words">{{price.name}}</h3>
+                  <markdown [ngClass]="{'break-all': hasLongWord(price?.description, 20), 'break-words': !hasLongWord(price?.description, 20)}"
+                    class="w-full text-[16px] text-[#131B25]" [data]="price?.description"></markdown>
                 </div>
               }
               @if(productOff?.productOfferingPrice?.length==0){
-                <div class="rounded-2xl bg-white border border-gray-200 overflow-hidden">
-                  <div class="bg-primary-100 px-6 py-4">
-                    <h3 class="text-[18px] font-bold text-white text-center">{{ 'SHOPPING_CART._free' | translate }}</h3>
-                  </div>
-                  <p class="p-6 text-[14px] text-gray-500 text-center">{{ 'SHOPPING_CART._free_desc' | translate }}</p>
+                <div class="flex flex-col items-center gap-4 text-center rounded-[16px] bg-white border border-[#BCBFC7] p-6">
+                  <h3 class="text-[20px] font-semibold text-[#4C5A6B]">{{ 'SHOPPING_CART._free' | translate }}</h3>
+                  <p class="text-[16px] text-[#131B25]">{{ 'SHOPPING_CART._free_desc' | translate }}</p>
                 </div>
               }
             </div>
@@ -467,40 +467,55 @@
                 <p class="text-[14px] text-gray-500">{{ complianceDescription | translate }}</p>
               </div>
             </div>
-            @if (selfAtt) {
-              <a [href]="selfAtt" target="_blank" class="inline-block mt-3 font-medium text-primary-100 hover:underline text-[14px]">
-                {{ 'PRODUCT_DETAILS._self_attestation' | translate }}
-              </a>
-            }
           </div>
         </div>
 
-        @if(complianceProf.length>0){
+        @if(prodChars.length > 0 || complianceProf.length > 0 || additionalCerts.length > 0){
         <div class="mb-8">
-          <h2 class="text-[24px] font-bold text-secondary-100 mb-4">{{ 'PRODUCT_DETAILS._key_capabilities' | translate }}</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            @for (char of complianceProf; track char.id) {
-              <div class="rounded-2xl bg-white border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow" (click)="goToLink(char.href)">
-                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary-50 mb-4">
-                  <fa-icon [icon]="faAtom" class="text-primary-100 text-xl"></fa-icon>
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._compliance_profile' | translate }}</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @if(prodChars.length > 0){
+              <div class="rounded-2xl bg-[#F7F9FD] border border-[#DDE6F6] p-6">
+                <h3 class="text-[18px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._product_characteristics' | translate }}</h3>
+                <div class="flex flex-col gap-3">
+                  @for (char of prodChars; track $index) {
+                    <div class="flex items-start justify-between gap-4">
+                      <span [ngClass]="{'break-all': hasLongWord(char.name, 20), 'break-words': !hasLongWord(char.name, 20)}" class="text-[14px] text-[#4C5A6B]">{{ char.name }}</span>
+                      @if(char.productSpecCharacteristicValue?.at(0)?.value; as val){
+                        <span class="shrink-0 text-[14px] font-semibold text-[#131B25] text-right">{{ val }}</span>
+                      }
+                    </div>
+                  }
                 </div>
-                <h3 class="text-[18px] font-bold text-secondary-100 mb-1">{{char.name}}</h3>
+              </div>
+            }
+            @if(complianceProf.length > 0 || additionalCerts.length > 0){
+              <div class="rounded-2xl bg-[#F7F9FD] border border-[#DDE6F6] p-6">
+                <h3 class="text-[18px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._certifications' | translate }}</h3>
+                <div class="flex flex-wrap gap-2">
+                  @for (cert of complianceProf; track $index) {
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[13px] font-semibold border border-[#8EACE1] text-[#131B25] bg-[#DDE6F6]">{{ cert.name }}</span>
+                  }
+                  @for (char of additionalCerts; track $index) {
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[13px] font-semibold border border-[#8EACE1] text-[#131B25] bg-[#DDE6F6]">{{ normalizeName(char.name) }}</span>
+                  }
+                </div>
               </div>
             }
           </div>
         </div>
         }
 
-        @if(additionalCerts.length>0){
+        @if(complianceDocuments.length > 0){
         <div class="mb-8">
-          <h2 class="text-[24px] font-bold text-secondary-100 mb-4">{{ 'PRODUCT_DETAILS._additional_certifications' | translate }}</h2>
+          <h2 class="text-[24px] font-bold text-[#14274A] mb-4">{{ 'PRODUCT_DETAILS._compliance_documents' | translate }}</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            @for (char of additionalCerts; track char.id) {
-              <div class="rounded-2xl bg-white border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow" (click)="goToLink(char.productSpecCharacteristicValue?.at(0)?.value)">
-                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary-50 mb-4">
-                  <fa-icon [icon]="faAtom" class="text-primary-100 text-xl"></fa-icon>
-                </div>
-                <h3 class="text-[18px] font-bold text-secondary-100 mb-1">{{normalizeName(char.name)}}</h3>
+            @for (doc of complianceDocuments; track $index) {
+              <div class="rounded-2xl bg-white border border-[#EBECEE] p-6 flex items-center justify-between">
+                <h3 [ngClass]="{'break-all': hasLongWord(doc.name, 20), 'break-words': !hasLongWord(doc.name, 20)}" class="text-[18px] font-bold text-[#14274A] break-words">{{ doc.isSelfAtt ? ('PRODUCT_DETAILS._self_attestation_doc' | translate) : doc.name }}</h3>
+                <button (click)="goToLink(doc.url)" class="flex items-center justify-center h-10 w-10 rounded-full bg-[#eef2fb] hover:bg-[#dde6f6] transition-colors text-[#1f4fbf] shrink-0 ml-4">
+                  <fa-icon [icon]="faDownload" class="text-lg"></fa-icon>
+                </button>
               </div>
             }
           </div>
@@ -549,33 +564,56 @@
           }
         }
 
-        @if(attatchments.length>0){
-          <h2 class="text-[24px] font-bold text-secondary-100 mb-4">{{ 'PRODUCT_DETAILS._product_att' | translate }}</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            @for (att of attatchments; track att.id) {
-              <div class="rounded-2xl bg-white border border-gray-200 p-6 flex items-center justify-between">
-                <h3 [ngClass]="{'break-all': hasLongWord(att.name, 20), 'break-words': !hasLongWord(att.name, 20)}"
-                  class="text-[18px] font-bold text-secondary-100 break-words">{{att.name}}</h3>
-                <button (click)="goToLink(att.url)" class="flex items-center justify-center h-10 w-10 rounded-full bg-secondary-50 hover:bg-secondary-50/80 transition-colors text-primary-100 shrink-0 ml-4">
-                  <fa-icon [icon]="faDownload" class="text-lg"></fa-icon>
-                </button>
+      }
+
+    @if (moreOfferings.length > 0) {
+      <section class="pt-6 pb-8">
+        <h2 class="text-[24px] font-bold text-[#131B25]">{{ 'PRODUCT_DETAILS._discover_more' | translate }}</h2>
+        <p class="mt-2 text-[16px] text-[#4C5A6B]">{{ 'PRODUCT_DETAILS._discover_more_subtitle' | translate }}</p>
+
+        <div class="mt-8">
+          <app-carousel [items]="moreOfferings" [visible]="moreVisibleItems" [loop]="true">
+            @for (offering of moreOfferings; track offering.id) {
+              <div class="shrink-0 px-3" [style.width.%]="100 / moreVisibleItems">
+                <a [routerLink]="['/search', offering.id]"
+                  class="flex flex-col w-full h-[430px] bg-white rounded-[16px] border border-[#D8DADE] hover:shadow-md transition-shadow overflow-hidden">
+
+                  <div class="px-2 pt-2">
+                    <div class="relative h-[170px] w-full rounded-xl bg-[#EBECEE] overflow-hidden flex items-center justify-center">
+                      <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getOfferingImage(offering) + ')'" style="filter: blur(20px);"></div>
+                      <img class="relative z-10 h-full w-full object-contain" [src]="getOfferingImage(offering)" alt="">
+                    </div>
+                  </div>
+
+                  <div class="flex-1 flex flex-col px-4 pt-3 pb-4">
+                    <span class="truncate text-[14px] text-[#526179] mb-2">{{ orgInfo?.tradingName || prodSpec.brand || '' }}</span>
+                    <h3 class="text-[20px] font-bold leading-tight text-[#14274A] line-clamp-2 break-words mb-3">{{ offering.name }}</h3>
+                    <div class="flex flex-wrap gap-2">
+                      @for (cat of getOfferingCategories(offering); track cat.id) {
+                        <span class="px-2 py-1 rounded-lg bg-[#DDE6F6] border border-[#8EACE1] text-[12px] font-semibold text-[#131B25]">{{ cat.name }}</span>
+                      }
+                    </div>
+                  </div>
+                </a>
               </div>
             }
-          </div>
-        }
-      }
-
-      @if (!check_logged) {
-        <div class="rounded-2xl bg-secondary-100 px-8 py-16 text-center mt-8">
-          <h2 class="text-[32px] font-bold text-white mb-3">{{ 'PRODUCT_DETAILS._ready_to_get_started' | translate }}</h2>
-          <p class="text-[16px] text-gray-300 mb-6">{{ 'PRODUCT_DETAILS._join_companies_using' | translate:{ productName: productOff?.name } }}</p>
-          <a [href]="customersLink" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-8 py-3.5 rounded-lg bg-primary-100 text-white text-[16px] font-medium hover:bg-primary-50 transition-colors">
-            {{ 'PRODUCT_DETAILS._join_marketplace' | translate }}
-          </a>
+          </app-carousel>
         </div>
-      }
+      </section>
+    }
+
+    @if (!check_logged) {
+      <div class="rounded-2xl bg-[#14274A] px-8 py-16 text-center mt-8">
+        <h2 class="text-[32px] font-bold text-white mb-3">{{ 'PRODUCT_DETAILS._ready_to_get_started' | translate }}</h2>
+        <p class="text-[16px] text-gray-300 mb-6">{{ 'PRODUCT_DETAILS._join_companies_using' | translate:{ productName: productOff?.name } }}</p>
+        <a [href]="customersLink" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-8 py-3.5 rounded-lg bg-[#1f4fbf] text-white text-[16px] font-medium hover:bg-[#163b99] transition-colors">
+          {{ 'PRODUCT_DETAILS._join_marketplace' | translate }}
+        </a>
+      </div>
+    }
 
     </div>
+
   </div>
 </div>
 
