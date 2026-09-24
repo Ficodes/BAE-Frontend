@@ -40,14 +40,14 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
     .subscribe(ev => {
-      if(ev.type === 'AdminCategories' && ev.value == true) {        
+      if(ev.type === 'AdminCategories' && ev.value == true) {
         this.goToCategories();
       }
-      if(ev.type === 'CreateCategory' && ev.value == true) {        
+      if(ev.type === 'CreateCategory' && ev.value == true) {
         this.goToCreateCategories();
       }
-      if(ev.type === 'UpdateCategory') {       
-        this.category_to_update=ev.value; 
+      if(ev.type === 'UpdateCategory') {
+        this.category_to_update=ev.value;
         this.goToUpdateCategories();
       }
     })

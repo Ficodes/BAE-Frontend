@@ -1,3 +1,5 @@
+import { Type } from '@angular/core';
+
 export interface ThemeAssetConfig {
   logoUrl: string;
   logoDarkUrl?: string;
@@ -62,6 +64,44 @@ export interface DashboardConfig {
   // Add more sections
 }
 
+export interface CatalogsPageSectionsConfig {
+  header?: Type<unknown>;
+}
+
+export interface CatalogsCardsConfig {
+  fallbackLogoUrl?: string;
+}
+
+export interface CatalogsPageConfig {
+  sections?: CatalogsPageSectionsConfig;
+  cards?: CatalogsCardsConfig;
+}
+
+export interface WorkspaceHelpConfig {
+  title: string;
+  description: string;
+  actionLabel: string;
+}
+
+export interface WorkspaceInfoMessageConfig {
+  title: string;
+  description: string;
+}
+
+export interface WorkspaceOfferFormConfig {
+  categoryHelp?: WorkspaceInfoMessageConfig;
+}
+
+export interface WorkspaceConfig {
+  sellerOfferingsHelp?: WorkspaceHelpConfig;
+  offerForm?: WorkspaceOfferFormConfig;
+}
+
+export interface ThemeFeaturesConfig {
+  colorSchemeSelector?: boolean;
+  darkMode?: boolean;
+}
+
 export interface ThemeMetaTagConfig {
   name?: string;
   property?: string;
@@ -79,6 +119,9 @@ export interface ThemeConfig {
   authUrls?: ThemeAuthUrlsConfig;
   colors?: ThemeColorsConfig;
   dashboard?: DashboardConfig;
+  catalogs?: CatalogsPageConfig;
+  workspace?: WorkspaceConfig;
+  features?: ThemeFeaturesConfig;
   metaTags?: ThemeMetaTagConfig[];
   // More theme specific propierties
 }

@@ -1,105 +1,154 @@
-import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { initFlowbite } from 'flowbite';
-import moment from 'moment';
-import { FileSystemDirectoryEntry, FileSystemFileEntry, NgxFileDropEntry } from 'ngx-file-drop';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-import { certifications } from 'src/app/models/certification-standards.const';
-import { LoginInfo } from 'src/app/models/interfaces';
-import { components } from "src/app/models/product-catalog";
-import { AttachmentServiceService } from "src/app/services/attachment-service.service";
-import { EventMessageService } from "src/app/services/event-message.service";
-import { LocalStorageService } from "src/app/services/local-storage.service";
-import { PaginationService } from 'src/app/services/pagination.service';
+import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef, ViewChild, OnDestroy, DoCheck, Input } from '@angular/core';
+import { Router } from '@angular/router';
+import {LocalStorageService} from "src/app/services/local-storage.service";
+import {EventMessageService} from "src/app/services/event-message.service";
 import { ProductSpecServiceService } from 'src/app/services/product-spec-service.service';
 import { ResourceSpecServiceService } from 'src/app/services/resource-spec-service.service';
 import { ServiceSpecServiceService } from 'src/app/services/service-spec-service.service';
-import { jsonValidator, noWhitespaceValidator } from 'src/app/validators/validators';
-import { environment } from 'src/environments/environment';
+import { AttachmentServiceService } from 'src/app/services/attachment-service.service';
+import { LoginInfo } from 'src/app/models/interfaces';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+import moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
+import { jsonValidator, noWhitespaceValidator } from 'src/app/validators/validators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { POPULAR_ICON_CATEGORIES, findIconByName, IconCategory } from 'src/app/config/popular-icons';
+import { TranslateService } from '@ngx-translate/core';
 
-type CharacteristicValueSpecification = components["schemas"]["CharacteristicValueSpecification"];
+import {components} from "src/app/models/product-catalog";
+import { environment } from 'src/environments/environment';
 type ProductSpecification_Create = components["schemas"]["ProductSpecification_Create"];
-type BundledProductSpecification = components["schemas"]["BundledProductSpecification"];
+type ProductSpecification_Update = components["schemas"]["ProductSpecification_Update"];
+type CharacteristicValueSpecification = components["schemas"]["CharacteristicValueSpecification"];
 type ProductSpecificationCharacteristic = components["schemas"]["ProductSpecificationCharacteristic"];
-type ServiceSpecificationRef = components["schemas"]["ServiceSpecificationRef"];
-type ResourceSpecificationRef = components["schemas"]["ResourceSpecificationRef"];
-type ProductSpecificationRelationship = components["schemas"]["ProductSpecificationRelationship"];
-type AttachmentRefOrValue = components["schemas"]["AttachmentRefOrValue"];
-type ProductSpecFormStep = 'general' | 'bundle' | 'compliance' | 'characteristics' | 'dataspace' | 'resource' | 'service' | 'attachments' | 'relationships' | 'summary' | 'dsp_config';
 
-interface Step {
-  label: string;
-  id: ProductSpecFormStep;
-}
+type ProductSpecStepKey = 'general' | 'details' | 'config' | 'dataspace' | 'service' | 'resource' | 'faqs' | 'compliance';
+
+const DSP_CHARS: string[] = [
+  'endpointUrl',
+  'upstreamAddress',
+  'targetSpecification',
+  'serviceConfiguration',
+  'credentialsConfig',
+  'authorizationPolicy',
+  'transferPath',
+  'transferType'
+];
+
+const ALLOWED_PRODUCT_IMAGE_TYPES = new Set([
+  'image/svg+xml',
+  'image/png',
+  'image/jpeg',
+  'image/gif'
+]);
 
 @Component({
   selector: 'create-product-spec',
   templateUrl: './create-product-spec.component.html',
   styleUrl: './create-product-spec.component.css'
 })
-export class CreateProductSpecComponent implements OnInit, OnDestroy {
+export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
 
-  //PAGE SIZES:
-  PROD_SPEC_LIMIT: number = environment.PROD_SPEC_LIMIT;
-  SERV_SPEC_LIMIT: number = environment.SERV_SPEC_LIMIT;
-  RES_SPEC_LIMIT: number = environment.RES_SPEC_LIMIT;
-  BUNDLE_ENABLED: boolean = environment.BUNDLE_ENABLED;
-  DATA_SPACE_ENABLED: boolean = environment.DATA_SPACE_ENABLED;
-  MAX_FILE_SIZE: number = environment.MAX_FILE_SIZE;
+  @Input() prod: any = null;
+  isEditMode: boolean = false;
+  partyId:any='';
 
-  //CONTROL VARIABLES:
-  showGeneral: boolean = true;
-  showBundle: boolean = false;
-  showCompliance: boolean = false;
-  showChars: boolean = false;
-  showResource: boolean = false;
-  showService: boolean = false;
-  showAttach: boolean = false;
-  showRelationships: boolean = false;
-  showSummary: boolean = false;
+  productSpecToCreate:ProductSpecification_Create | undefined;
+  productSpecToUpdate:ProductSpecification_Update | undefined;
 
-  //Check if step was done
-  generalDone: boolean = false;
-  bundleDone: boolean = false;
-  complianceDone: boolean = false;
-  charsDone: boolean = false;
-  resourceDone: boolean = false;
-  serviceDone: boolean = false;
-  attachDone: boolean = false;
-  relationshipDone: boolean = false;
-  finishDone: boolean = false;
+  stepsElements:string[]=['general-info','chars'];
+  stepsCircles:string[]=['general-circle','chars-circle'];
+  currentStep = 0;
+  highestStep = 0;
+  steps: string[] = [];
+  private readonly stepLabels: Record<ProductSpecStepKey, string> = {
+    general: 'CREATE_PROD_SPEC._step_general_info',
+    details: 'CREATE_PROD_SPEC._step_product_details',
+    config: 'CREATE_PROD_SPEC._step_configuration_options',
+    dataspace: 'CREATE_PROD_SPEC._step_dataspace_configuration',
+    service: 'CREATE_PROD_SPEC._step_service_specs',
+    resource: 'CREATE_PROD_SPEC._step_resource_specs',
+    faqs: 'CREATE_PROD_SPEC._step_faqs',
+    compliance: 'CREATE_PROD_SPEC._step_compliance_profile'
+  };
 
-  stepsElements: string[] = ['general-info', 'bundle', 'compliance', 'chars', 'resource', 'service', 'attach', 'relationships', 'summary'];
-  stepsCircles: string[] = ['general-circle', 'bundle-circle', 'compliance-circle', 'chars-circle', 'resource-circle', 'service-circle', 'attach-circle', 'relationships-circle', 'summary-circle'];
+  productImage: { name: string, size?: number } | null = null;
+  productImageUrl: string | null = null;
+  productImageRef: any | null = null;
+  uploadingImage: boolean = false;
+  productImageTouched: boolean = false;
+  attachments: any[] = [];
+  uploadingAttachment: boolean = false;
 
-  currentStepIdx = 0;
-  get currentStep(): Step { return this.steps[this.currentStepIdx]; }
-  highestStepIdx = 0;
+  howItWorks: string = '';
+  keyFeatures: { name: string, description: string, icon: string | null }[] = [];
+  businessBenefits: { name: string, description: string }[] = [];
+  useCases: { name: string, description: string, icon: string | null }[] = [];
 
-  steps: Step[] = [];
+  iconCategories: IconCategory[] = POPULAR_ICON_CATEGORIES;
+  resolveIcon = findIconByName;
 
-  showPreview: boolean = false;
-  showEmoji: boolean = false;
-  description: string = '';
-  partyId: any = '';
+  itemModal: {
+    type: 'feature' | 'benefit' | 'usecase' | null,
+    name: string,
+    description: string,
+    icon: string | null,
+    editIdx: number | null
+  } = { type: null, name: '', description: '', icon: null, editIdx: null };
 
-  //PRODUCT GENERAL INFO:
+  openItemMenuIdx: { type: string, idx: number } | null = null;
+
+  availableServiceSpecs: any[] = [];
+  availableResourceSpecs: any[] = [];
+  linkedServiceSpecIds: string[] = [];
+  linkedResourceSpecIds: string[] = [];
+  serviceDropdownOpen: boolean = false;
+  resourceDropdownOpen: boolean = false;
+  serviceSearch: string = '';
+  resourceSearch: string = '';
+
+  faqs: { question: string, answer: string, expanded: boolean }[] = [];
+  draggingFaqIdx: number | null = null;
+  faqDeleteIdx: number | null = null;
+
+  usageSpecs: { name: string, description: string, metrics: { name: string, description: string }[] }[] = [];
+  usageMenuIdx: number | null = null;
+  usageMetricMenuIdx: number | null = null;
+  usageModal: {
+    isOpen: boolean,
+    editIdx: number | null,
+    name: string,
+    description: string,
+    metrics: { name: string, description: string }[],
+    metricFormOpen: boolean,
+    metricName: string,
+    metricDescription: string,
+    metricEditIdx: number | null
+  } = { isOpen: false, editIdx: null, name: '', description: '', metrics: [], metricFormOpen: false, metricName: '', metricDescription: '', metricEditIdx: null };
+
+  showPreview:boolean=false;
+  showEmoji:boolean=false;
+  description:string='';
+
+  showGeneral:boolean=true;
+  showChars:boolean=false;
+  showSummary:boolean=false;
+  generalDone:boolean=false;
+  charsDone:boolean=false;
+  finishDone:boolean=false;
+
   generalForm = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.maxLength(100), noWhitespaceValidator]),
-    brand: new FormControl('', [Validators.required, noWhitespaceValidator]),
-    version: new FormControl('0.1', [Validators.required, Validators.pattern('^-?[0-9]\\d*(\\.\\d*)?$'), noWhitespaceValidator]),
-    number: new FormControl(''),
     description: new FormControl('', Validators.maxLength(100000)),
     dspCompatible: new FormControl(false),
   });
 
-  //DSP CONFIG INFO:
+  DATA_SPACE_ENABLED: boolean = environment.DATA_SPACE_ENABLED;
   newEndpointUrl: string = '';
   newEndpointDescription: string = '';
   newEndpointName: string = '';
-  endpointUrls: { url: string; description: string, name: string }[] = [];
+  endpointUrls: { url: string; description: string; name: string; id?: string }[] = [];
   readonly transferTypes: string[] = ['HttpData-PULL', 'HttpData-PUSH'];
   dspConfigForm = new FormGroup({
     upstreamAddress: new FormControl('', [Validators.required]),
@@ -111,94 +160,29 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     policyConfig: new FormControl('', [Validators.required, jsonValidator]),
   });
 
-  //CHARS INFO
   charsForm = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.maxLength(100), noWhitespaceValidator]),
-    description: new FormControl('', [Validators.maxLength(500)])
+    description: new FormControl('')
   });
-  charTypeSelected: string = 'string';
-  booleanDefaultTrue: boolean = true;
+  charIsOptional: boolean = false;
+  stringCharSelected:boolean=true;
+  numberCharSelected:boolean=false;
+  rangeCharSelected:boolean=false;
+  booleanCharSelected:boolean=false;
+  booleanDefaultTrue:boolean=true;
+  prodChars:ProductSpecificationCharacteristic[]=[];
+  dataspaceChars:ProductSpecificationCharacteristic[]=[];
+  creatingChars:CharacteristicValueSpecification[]=[];
+  showCreateChar:boolean=false;
 
-  isOptional: boolean = false;
-  optionalDftTrue: boolean = false;
-  prodChars: ProductSpecificationCharacteristic[] = [];
-  finishChars: ProductSpecificationCharacteristic[] = [];
-  creatingChars: CharacteristicValueSpecification[] = [];
-  showCreateChar: boolean = false;
+  errorMessage:any='';
+  showError:boolean=false;
+  loading:boolean=false;
+  editingCharIdx: number | null = null;
+  openCharMenuIdx: number | null = null;
+  showSuccessModal: boolean = false;
+  createdProdId: string | null = null;
 
-  //BUNDLE INFO:
-  bundleChecked: boolean = false;
-  bundlePage = 0;
-  bundlePageCheck: boolean = false;
-  loadingBundle: boolean = false;
-  loadingBundle_more: boolean = false;
-  prodSpecs: any[] = [];
-  nextProdSpecs: any[] = [];
-  //final selected products inside bundle
-  prodSpecsBundle: BundledProductSpecification[] = [];
-
-  //COMPLIANCE PROFILE INFO:
-  buttonISOClicked: boolean = false;
-  availableISOS: any[] = [];
-  selectedISOS: any[] = [];
-  additionalISOS: any[] = [];
-  selectedISO: any;
-  showUploadFile: boolean = false;
-  disableCompNext: boolean = true;
-  selfAtt: any;
-  showUploadAtt: boolean = false;
-  isoToCreate: string = '';
-  showCert: boolean = false;
-
-  //SERVICE INFO:
-  serviceSpecPage = 0;
-  serviceSpecPageCheck: boolean = false;
-  loadingServiceSpec: boolean = false;
-  loadingServiceSpec_more: boolean = false;
-  serviceSpecs: any[] = [];
-  nextServiceSpecs: any[] = [];
-  selectedServiceSpecs: ServiceSpecificationRef[] = [];
-
-  //RESOURCE INFO:
-  resourceSpecPage = 0;
-  resourceSpecPageCheck: boolean = false;
-  loadingResourceSpec: boolean = false;
-  loadingResourceSpec_more: boolean = false;
-  resourceSpecs: any[] = [];
-  nextResourceSpecs: any[] = [];
-  selectedResourceSpecs: ResourceSpecificationRef[] = [];
-
-  //RELATIONSHIPS INFO:
-  prodRelationships: any[] = [];
-  relToCreate: any;
-  showCreateRel: boolean = false;
-  prodSpecRelPage = 0;
-  prodSpecRelPageCheck: boolean = false;
-  loadingprodSpecRel: boolean = false;
-  loadingprodSpecRel_more: boolean = false;
-  prodSpecRels: any[] = [];
-  nextProdSpecRels: any[] = [];
-  selectedProdSpec: any = { id: '' };
-  selectedRelType: any = 'migration';
-
-  //ATTACHMENT INFO
-  showImgPreview: boolean = false;
-  showNewAtt: boolean = false;
-  imgPreview: any = '';
-  prodAttachments: AttachmentRefOrValue[] = [];
-  attachToCreate: AttachmentRefOrValue = { url: '', attachmentType: '' };
-  attFileName = new FormControl('', [Validators.required, Validators.pattern('[a-zA-Z0-9 _.-]*')]);
-  certFileName = new FormControl('', [Validators.required, Validators.pattern('[a-zA-Z0-9 _.-]*')]);
-  attImageName = new FormControl('', [Validators.required, Validators.pattern('^https?:\\/\\/.*\\.(?:png|jpg|jpeg|gif|bmp|webp)$')])
-
-  //FINAL PRODUCT USING API CALL STRUCTURE
-  productSpecToCreate: ProductSpecification_Create | undefined;
-
-  errorMessage: any = '';
-  showError: boolean = false;
-  loading: boolean = false;
-
-  //CHARS
   stringValue: string = '';
   numberValue: string = '';
   numberUnit: string = '';
@@ -206,16 +190,11 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   toValue: string = '';
   rangeUnit: string = '';
   jsonValue: string = '';
+  charTypeSelected: string = 'string';
   readonly dataSpaceCharacteristicTypes: string[] = [
     'credentialsConfiguration',
     'authorizationPolicy'
   ];
-  readonly dataSpaceJsonCharacteristicTypes: string[] = [
-    'credentialsConfiguration',
-    'authorizationPolicy'
-  ];
-
-  filenameRegex = /^[A-Za-z0-9_.-]+$/;
   private destroy$ = new Subject<void>();
 
   get dspEnable(): boolean {
@@ -223,61 +202,129 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   constructor(
-    private prodSpecService: ProductSpecServiceService,
+    private router: Router,
     private cdr: ChangeDetectorRef,
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
-    private attachmentService: AttachmentServiceService,
-    private servSpecService: ServiceSpecServiceService,
+    private elementRef: ElementRef,
+    private prodSpecService: ProductSpecServiceService,
     private resSpecService: ResourceSpecServiceService,
-    private paginationService: PaginationService
+    private servSpecService: ServiceSpecServiceService,
+    private attachmentService: AttachmentServiceService,
+    private translate: TranslateService,
   ) {
-    for (let i = 0; i < certifications.length; i++) {
-      this.availableISOS.push(certifications[i])
-    }
     this.eventMessage.messages$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(ev => {
-        if (ev.type === 'ChangedSession') {
-          this.initPartyInfo();
-        }
-      })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ev => {
+      if(ev.type === 'ChangedSession') {
+        this.initPartyInfo();
+      }
+    })
   }
 
   @HostListener('document:click')
   onClick() {
-    if (this.showEmoji == true) {
-      this.showEmoji = false;
+    if(this.showEmoji==true){
+      this.showEmoji=false;
       this.cdr.detectChanges();
     }
-    if (this.showUploadFile == true) {
-      this.showUploadFile = false;
+    if(this.openCharMenuIdx !== null){
+      this.openCharMenuIdx = null;
+      this.cdr.detectChanges();
+    }
+    if(this.openItemMenuIdx !== null){
+      this.openItemMenuIdx = null;
+      this.cdr.detectChanges();
+    }
+    if(this.serviceDropdownOpen || this.resourceDropdownOpen){
+      this.serviceDropdownOpen = false;
+      this.resourceDropdownOpen = false;
+      this.cdr.detectChanges();
+    }
+    if(this.usageMenuIdx !== null){
+      this.usageMenuIdx = null;
+      this.cdr.detectChanges();
+    }
+    if(this.usageMetricMenuIdx !== null){
+      this.usageMetricMenuIdx = null;
       this.cdr.detectChanges();
     }
   }
-
-  @ViewChild('attachName') attachName!: ElementRef;
-  @ViewChild('imgURL') imgURL!: ElementRef;
-  @ViewChild('certificationName') certificationName!: ElementRef;
-
-
-  public files: NgxFileDropEntry[] = [];
 
   ngOnInit() {
     this.steps = this.getFormSteps();
-    console.log(this.steps)
     this.initPartyInfo();
+    this.loadValidatedSpecs();
+    if(this.prod){
+      this.isEditMode = true;
+      this.createdProdId = this.prod.id;
+      this.generalForm.patchValue({
+        name: this.prod.name || '',
+        description: this.parseDescription(this.prod.description || ''),
+        dspCompatible: !!this.prod.externalId
+      });
+      this.prodChars = (this.prod.productSpecCharacteristic || [])
+        .filter((c:any) => !(c?.name || '').startsWith('Compliance:') && !this.isDataspaceOrDspCharacteristic(c))
+        .map((c:any) => ({
+          ...c,
+          _lastUpdate: c._lastUpdate || this.prod.lastUpdate || new Date(),
+          _isOptional: c._isOptional || false
+        }));
+      this.dataspaceChars = (this.prod.productSpecCharacteristic || [])
+        .filter((c:any) => this.isDataspaceCharacteristic(c))
+        .map((c:any) => ({
+          ...c,
+          _lastUpdate: c._lastUpdate || this.prod.lastUpdate || new Date(),
+          _isOptional: c._isOptional || false
+        }));
+      this.loadDspConfigurationFromProd();
+      this.linkedServiceSpecIds = (this.prod.serviceSpecification || []).map((s:any) => s?.id).filter(Boolean);
+      this.linkedResourceSpecIds = (this.prod.resourceSpecification || []).map((r:any) => r?.id).filter(Boolean);
+      this.loadAttachmentsFromProd();
+      this.loadComplianceFromProd();
+      this.highestStep = 1;
+    }
   }
 
-  ngOnDestroy() {
+  private loadAttachmentsFromProd(){
+    const list: any[] = Array.isArray(this.prod?.attachment) ? this.prod.attachment : [];
+    const profile = list.find(a => a?.name === 'Profile Picture');
+    const picture = profile || list.find(a => (a?.attachmentType || '').startsWith('image'));
+    if (picture?.url) {
+      this.productImage = { name: picture.name && picture.name !== 'Profile Picture' ? picture.name : 'Product Image' };
+      this.productImageUrl = picture.url;
+      this.productImageRef = {
+        ...picture,
+        name: picture.name || 'Profile Picture',
+        url: picture.url,
+        attachmentType: picture.attachmentType || 'image/png'
+      };
+    }
+    this.attachments = list
+      .filter(a => a !== picture && !!a?.url)
+      .map(a => ({
+        ...a,
+        name: a.name || 'Attachment',
+        url: a.url,
+        attachmentType: a.attachmentType
+      }));
+  }
+
+  ngDoCheck(){
+    const open = !!(this.itemModal.type || this.usageModal.isOpen || this.showSuccessModal);
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+
+  ngOnDestroy(){
+    document.body.style.overflow = '';
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  initPartyInfo() {
+  initPartyInfo(){
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
-    if (JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix()) - 4) > 0)) {
-      if (aux.logged_as == aux.id) {
+    if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
+      if(aux.logged_as==aux.id){
         this.partyId = aux.partyId;
       } else {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as)
@@ -290,1465 +337,267 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     this.eventMessage.emitSellerProductSpec(true);
   }
 
-  togglePreview() {
-    if (this.generalForm.value.description) {
-      this.description = this.generalForm.value.description;
-    } else {
-      this.description = ''
-    }
+  finishAsDraft(){
+    this.persistSpec(false);
   }
 
-  toggleGeneral() {
-    this.selectStep('general-info', 'general-circle');
-    this.showBundle = false;
-    this.showGeneral = true;
-    this.showCompliance = false;
-    this.showChars = false;
-    this.showResource = false;
-    this.showService = false;
-    this.showAttach = false;
-    this.showRelationships = false;
-    this.showSummary = false;
-    this.showPreview = false;
-    this.refreshChars();
+  validateProduct(){
+    this.persistSpec(true);
   }
 
-  toggleBundle() {
-    this.selectStep('bundle', 'bundle-circle');
-    this.showBundle = true;
-    this.showGeneral = false;
-    this.showCompliance = false;
-    this.showChars = false;
-    this.showResource = false;
-    this.showService = false;
-    this.showAttach = false;
-    this.showRelationships = false;
-    this.showSummary = false;
-    this.showPreview = false;
-    this.refreshChars();
+  closeReadyModal(){
+    this.showSuccessModal = false;
   }
 
-  toggleBundleCheck() {
-    this.prodSpecs = [];
-    this.bundlePage = 0;
-    this.bundleChecked = !this.bundleChecked;
-    if (this.bundleChecked == true) {
-      this.loadingBundle = true;
-      this.getProdSpecs(false);
-    } else {
-      this.prodSpecsBundle = [];
-    }
+  allRequiredStepsComplete(): boolean {
+    return this.steps.every((_: any, i: number) => this.isOptionalStep(i) || this.completedStep(i));
   }
 
-  async getProdSpecs(next: boolean) {
-    if (next == false) {
-      this.loadingBundle = true;
-    }
-
-    let options = {
-      "filters": ['Active', 'Launched'],
-      "partyId": this.partyId,
-      //"sort": undefined,
-      //"isBundle": false
-    }
-
-    this.paginationService.getItemsPaginated(this.bundlePage, this.PROD_SPEC_LIMIT, next, this.prodSpecs, this.nextProdSpecs, options,
-      this.prodSpecService.getProdSpecByUser.bind(this.prodSpecService)).then(data => {
-        this.bundlePageCheck = data.page_check;
-        this.prodSpecs = data.items;
-        this.nextProdSpecs = data.nextItems;
-        this.bundlePage = data.page;
-        this.loadingBundle = false;
-        this.loadingBundle_more = false;
-      })
-  }
-
-  async nextBundle() {
-    await this.getProdSpecs(true);
-  }
-
-  addProdToBundle(prod: any) {
-    const index = this.prodSpecsBundle.findIndex(item => item.id === prod.id);
-    if (index !== -1) {
-      console.log('eliminar')
-      this.prodSpecsBundle.splice(index, 1);
-    } else {
-      console.log('añadir')
-      this.prodSpecsBundle.push({
-        id: prod.id,
-        href: prod.href,
-        lifecycleStatus: prod.lifecycleStatus,
-        name: prod.name
+  private persistSpec(launch: boolean){
+    this.loading = true;
+    if(this.isEditMode && this.createdProdId){
+      const body = this.buildProductUpdatePatch(launch);
+      this.prodSpecService.updateProdSpec(body, this.createdProdId).subscribe({
+        next: () => this.onPersistSuccess(launch),
+        error: (error: any) => this.onPersistError(error)
       });
+      return;
     }
-    this.cdr.detectChanges();
-    console.log(this.prodSpecsBundle)
-  }
-
-  isProdInBundle(prod: any) {
-    const index = this.prodSpecsBundle.findIndex(item => item.id === prod.id);
-    if (index !== -1) {
-      return true
-    } else {
-      return false;
-    }
-  }
-
-  toggleCompliance() {
-    this.selectStep('compliance', 'compliance-circle');
-    this.showBundle = false;
-    this.showGeneral = false;
-    this.showCompliance = true;
-    this.showChars = false;
-    this.showResource = false;
-    this.showService = false;
-    this.showAttach = false;
-    this.showRelationships = false;
-    this.showSummary = false;
-    this.showPreview = false;
-    this.refreshChars();
-  }
-
-  addISO(iso: any) {
-    const index = this.availableISOS.findIndex(item => item.name === iso.name);
-    if (index !== -1) {
-      console.log('seleccionar')
-      this.availableISOS.splice(index, 1);
-      this.selectedISOS.push({ name: 'Compliance:' + iso.name, url: '', mandatory: iso.mandatory, domesupported: iso.domesupported });
-    }
-    this.buttonISOClicked = !this.buttonISOClicked;
-    this.cdr.detectChanges();
-    console.log(this.availableISOS)
-    console.log(this.selectedISOS)
-  }
-
-  removeISO(iso: any) {
-    const cleanedName = iso.name
-      .replace('Compliance:', '')
-      .trim();
-    const index = this.selectedISOS.findIndex(item => item.name === iso.name);
-    if (index !== -1) {
-      console.log('seleccionar')
-      this.selectedISOS.splice(index, 1);
-      this.availableISOS.push({ name: cleanedName, mandatory: iso.mandatory, domesupported: iso.domesupported });
-
-      //if (iso.name in this.verifiedISO) {
-      //  delete this.verifiedISO[iso.name]
-      //}
-    }
-    this.cdr.detectChanges();
-    console.log(this.prodSpecsBundle)
-  }
-
-  removeCert(iso: any) {
-    const index = this.additionalISOS.findIndex(item => item.name === iso.name);
-    if (index !== -1) {
-      console.log('eliminar additional cert')
-      this.additionalISOS.splice(index, 1);
-      console.log(this.additionalISOS)
-    }
-    this.cdr.detectChanges();
-  }
-
-  removeSelfAtt() {
-    console.log('remove self att')
-    console.log(this.selfAtt)
-    const index = this.finishChars.findIndex(item => item.name === this.selfAtt.name);
-    console.log(index)
-    if (index !== -1) {
-      console.log('seleccionar')
-      this.finishChars.splice(index, 1);
-    }
-    this.selfAtt = '';
-    this.cdr.detectChanges();
-    console.log(this.finishChars)
-  }
-
-  checkValidISOS(): boolean {
-    let invalid = this.selectedISOS.find((p => {
-      return p.url === ''
-    }));
-    if (invalid) {
-      return true;
-    } else {
-      return false;
-    }
-
-  }
-
-  private hasSelfAttestation(): boolean {
-    const selfAttestationValue = this.selfAtt?.productSpecCharacteristicValue?.[0]?.value;
-    if (typeof selfAttestationValue === 'string') {
-      return selfAttestationValue.trim() !== '';
-    }
-    return !!selfAttestationValue;
-  }
-
-  public dropped(files: NgxFileDropEntry[], sel: any) {
-    this.files = files;
-    for (const droppedFile of files) {
-
-      // Is it a file?
-      if (droppedFile.fileEntry.isFile) {
-        const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
-        fileEntry.file((file: File) => {
-          console.log('dropped')
-
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = (e: any) => {
-              const base64String: string = e.target.result.split(',')[1];
-              console.log('BASE 64....')
-              console.log(base64String); // You can use this base64 string as needed
-              let prod_name = '';
-              if (this.generalForm.value.name != null) {
-                prod_name = this.generalForm.value.name.replaceAll(/\s/g, '') + '_';
-              }
-              let fileBody = {
-                content: {
-                  name: uuidv4() + '_' + file.name,
-                  data: base64String
-                },
-                contentType: file.type,
-                isPublic: true
-              }
-              if (!this.isValidFilename(fileBody.content.name)) {
-                this.errorMessage = 'File names can only include alphabetical characters (A-Z, a-z) and a limited set of symbols, such as underscores (_), hyphens (-), and periods (.)';
-                console.error('There was an error while uploading file!');
-                this.showError = true;
-                setTimeout(() => {
-                  this.showError = false;
-                }, 3000);
-                return;
-              }
-              //IF FILES ARE HIGHER THAN 3MB THROW AN ERROR
-              if (file.size > this.MAX_FILE_SIZE) {
-                this.errorMessage = 'File size must be under 3MB.';
-                console.error('There was an error while uploading file!');
-                this.showError = true;
-                setTimeout(() => {
-                  this.showError = false;
-                }, 3000);
-                return;
-              }
-              if (this.currentStep.id === 'compliance' && !this.showUploadAtt) {
-                const index = this.selectedISOS.findIndex(item => item.name === sel.name);
-                this.attachmentService.uploadFile(fileBody).subscribe({
-                  next: data => {
-                    if (index !== -1) {
-                      this.selectedISOS[index].url = data.content;
-                      //this.selectedISOS[index].attachmentType=file.type;
-                      this.showUploadFile = false;
-                      this.cdr.detectChanges();
-                      console.log('uploaded')
-                    } else {
-                      this.isoToCreate = data.content;
-                    }
-                  },
-                  error: error => {
-                    console.error('There was an error while uploading the file!', error);
-                    if (error.error.error) {
-                      console.log(error)
-                      this.errorMessage = 'Error: ' + error.error.error;
-                    } else {
-                      this.errorMessage = 'There was an error while uploading the file!';
-                    }
-                    if (error.status === 413) {
-                      this.errorMessage = 'File size too large! Must be under 3MB.';
-                    }
-                    this.showError = true;
-                    setTimeout(() => {
-                      this.showError = false;
-                    }, 3000);
-                  }
-                });
-              }
-              if (this.currentStep.id === 'compliance' && this.showUploadAtt) {
-                const index = this.finishChars.findIndex(item => item.name === this.selfAtt.name);
-                this.attachmentService.uploadFile(fileBody).subscribe({
-                  next: data => {
-                    console.log(data)
-                    if (index !== -1) {
-                      this.selfAtt.productSpecCharacteristicValue = [{
-                        isDefault: true,
-                        value: data.content
-                      }];
-                      this.finishChars[index] = this.selfAtt;
-                    } else {
-                      this.selfAtt = {
-                        id: 'urn:ngsi-ld:characteristic:' + uuidv4(),
-                        name: 'Compliance:SelfAtt',
-                        productSpecCharacteristicValue: [{
-                          isDefault: true,
-                          value: data.content
-                        }]
-                      }
-                      this.finishChars.push(this.selfAtt)
-                    }
-                    this.showUploadFile = false;
-                    this.showUploadAtt = false;
-                    this.cdr.detectChanges();
-                    console.log('uploaded')
-                  },
-                  error: error => {
-                    console.error('There was an error while uploading the file!', error);
-                    if (error.error.error) {
-                      console.log(error)
-                      this.errorMessage = 'Error: ' + error.error.error;
-                    } else {
-                      this.errorMessage = 'There was an error while uploading the file!';
-                    }
-                    if (error.status === 413) {
-                      this.errorMessage = 'File size too large! Must be under 3MB.';
-                    }
-                    this.showError = true;
-                    setTimeout(() => {
-                      this.showError = false;
-                    }, 3000);
-                  }
-                });
-              }
-              if (this.currentStep.id === 'attachments') {
-                console.log(file)
-                this.attachmentService.uploadFile(fileBody).subscribe({
-                  next: data => {
-                    console.log(data)
-                    if (sel == 'img') {
-                      if (file.type.startsWith("image")) {
-                        this.showImgPreview = true;
-                        this.imgPreview = data.content;
-                        this.prodAttachments.push({
-                          name: 'Profile Picture',
-                          url: this.imgPreview,
-                          attachmentType: file.type
-                        })
-                      } else {
-                        this.errorMessage = 'File must have a valid image format!';
-                        this.showError = true;
-                        setTimeout(() => {
-                          this.showError = false;
-                        }, 3000);
-                      }
-                    } else {
-                      this.attachToCreate = { url: data.content, attachmentType: file.type };
-                    }
-
-                    this.cdr.detectChanges();
-                    console.log('uploaded')
-                  },
-                  error: error => {
-                    console.error('There was an error while uploading!', error);
-                    if (error.error.error) {
-                      console.log(error)
-                      this.errorMessage = 'Error: ' + error.error.error;
-                    } else {
-                      this.errorMessage = 'There was an error while uploading the file!';
-                    }
-                    if (error.status === 413) {
-                      this.errorMessage = 'File size too large! Must be under 3MB.';
-                    }
-                    this.showError = true;
-                    setTimeout(() => {
-                      this.showError = false;
-                    }, 3000);
-                  }
-                });
-              }
-            };
-            reader.readAsDataURL(file);
-          }
-
-        });
-      } else {
-        // It was a directory (empty directories are added, otherwise only files)
-        const fileEntry = droppedFile.fileEntry as FileSystemDirectoryEntry;
-        console.log(droppedFile.relativePath, fileEntry);
-      }
-    }
-  }
-
-  isValidFilename(filename: string): boolean {
-    return this.filenameRegex.test(filename);
-  }
-
-  public fileOver(event: any) {
-    console.log(event);
-  }
-
-  public fileLeave(event: any) {
-    console.log('leave')
-    console.log(event);
-  }
-
-  toggleUploadSelfAtt() {
-    this.showUploadFile = true;
-    this.showUploadAtt = true;
-  }
-
-  toggleUploadFile(sel: any) {
-    this.showUploadFile = true;
-    this.selectedISO = sel;
-  }
-
-  uploadFile() {
-    console.log('uploading...')
-  }
-
-  toggleChars() {
-    this.selectStep('chars', 'chars-circle');
-    this.showBundle = false;
-    this.showGeneral = false;
-    this.showCompliance = false;
-    this.showChars = true;
-    this.showResource = false;
-    this.showService = false;
-    this.showAttach = false;
-    this.showRelationships = false;
-    this.showSummary = false;
-
-    this.showCreateChar = false;
-    this.charTypeSelected = 'string';
-    this.showPreview = false;
-    this.refreshChars();
-  }
-
-  toggleCreateCharacteristicForm() {
-    this.showCreateChar = !this.showCreateChar;
-    if (this.showCreateChar) {
-      this.charTypeSelected = this.dataSpaceCharacteristicTypes[0];
-      this.creatingChars = [];
-      this.isOptional = false;
-      this.optionalDftTrue = false;
-      this.booleanDefaultTrue = true;
-      if (this.charTypeSelected === 'boolean') {
-        this.setBooleanDefaultValues();
-      }
-    }
-  }
-
-  toggleResource() {
-    this.loadingResourceSpec = true;
-    this.resourceSpecs = [];
-    this.resourceSpecPage = 0;
-    this.getResSpecs(false);
-    this.selectStep('resource', 'resource-circle');
-    this.showBundle = false;
-    this.showGeneral = false;
-    this.showCompliance = false;
-    this.showChars = false;
-    this.showResource = true;
-    this.showService = false;
-    this.showAttach = false;
-    this.showRelationships = false;
-    this.showSummary = false;
-    this.showPreview = false;
-    this.refreshChars();
-  }
-
-  async getResSpecs(next: boolean) {
-    if (next == false) {
-      this.loadingResourceSpec = true;
-    }
-
-    let options = {
-      "filters": ['Active', 'Launched'],
-      "partyId": this.partyId,
-      //"sort": undefined,
-      //"isBundle": false
-    }
-
-    try {
-      const data = await this.paginationService.getItemsPaginated(this.resourceSpecPage, this.RES_SPEC_LIMIT, next, this.resourceSpecs, this.nextResourceSpecs, options,
-        this.resSpecService.getResourceSpecByUser.bind(this.resSpecService));
-      this.resourceSpecPageCheck = data.page_check;
-      this.resourceSpecs = data.items;
-      this.nextResourceSpecs = data.nextItems;
-      this.resourceSpecPage = data.page;
-    } finally {
-      this.loadingResourceSpec = false;
-      this.loadingResourceSpec_more = false;
-    }
-  }
-
-  async nextRes() {
-    this.loadingResourceSpec_more = true;
-    await this.getResSpecs(true);
-  }
-
-  addResToSelected(res: any) {
-    const index = this.selectedResourceSpecs.findIndex(item => item.id === res.id);
-    if (index !== -1) {
-      console.log('eliminar')
-      this.selectedResourceSpecs.splice(index, 1);
-    } else {
-      console.log('añadir')
-      this.selectedResourceSpecs.push({
-        id: res.id,
-        href: res.href,
-        name: res.name
-      });
-    }
-    this.cdr.detectChanges();
-    console.log(this.selectedResourceSpecs)
-  }
-
-  isResSelected(res: any) {
-    const index = this.selectedResourceSpecs.findIndex(item => item.id === res.id);
-    if (index !== -1) {
-      return true
-    } else {
-      return false;
-    }
-  }
-
-  toggleService() {
-    this.loadingServiceSpec = true;
-    this.serviceSpecs = [];
-    this.serviceSpecPage = 0;
-    this.getServSpecs(false);
-    this.selectStep('service', 'service-circle');
-    this.showBundle = false;
-    this.showGeneral = false;
-    this.showCompliance = false;
-    this.showChars = false;
-    this.showResource = false;
-    this.showService = true;
-    this.showAttach = false;
-    this.showRelationships = false;
-    this.showSummary = false;
-    this.showPreview = false;
-    this.refreshChars();
-  }
-
-  async getServSpecs(next: boolean) {
-    if (next == false) {
-      this.loadingServiceSpec = true;
-    }
-
-    let options = {
-      "filters": ['Active', 'Launched'],
-      "partyId": this.partyId,
-      //"sort": undefined,
-      //"isBundle": false
-    }
-
-    this.paginationService.getItemsPaginated(this.serviceSpecPage, this.SERV_SPEC_LIMIT, next, this.serviceSpecs, this.nextServiceSpecs, options,
-      this.servSpecService.getServiceSpecByUser.bind(this.servSpecService)).then(data => {
-        this.serviceSpecPageCheck = data.page_check;
-        this.serviceSpecs = data.items;
-        this.nextServiceSpecs = data.nextItems;
-        this.serviceSpecPage = data.page;
-        this.loadingServiceSpec = false;
-        this.loadingServiceSpec_more = false;
-      })
-  }
-
-  async nextServ() {
-    await this.getServSpecs(true);
-  }
-
-  addServToSelected(serv: any) {
-    const index = this.selectedServiceSpecs.findIndex(item => item.id === serv.id);
-    if (index !== -1) {
-      console.log('eliminar')
-      this.selectedServiceSpecs.splice(index, 1);
-    } else {
-      console.log('añadir')
-      this.selectedServiceSpecs.push({
-        id: serv.id,
-        href: serv.href,
-        name: serv.name
-      });
-    }
-    this.cdr.detectChanges();
-    console.log(this.selectedServiceSpecs)
-  }
-
-  isServSelected(serv: any) {
-    const index = this.selectedServiceSpecs.findIndex(item => item.id === serv.id);
-    if (index !== -1) {
-      return true
-    } else {
-      return false;
-    }
-  }
-
-  toggleAttach() {
-    this.selectStep('attach', 'attach-circle');
-    this.showBundle = false;
-    this.showGeneral = false;
-    this.showCompliance = false;
-    this.showChars = false;
-    this.showResource = false;
-    this.showService = false;
-    this.showAttach = true;
-    this.showRelationships = false;
-    this.showSummary = false;
-    this.showPreview = false;
-    setTimeout(() => {
-      initFlowbite();
-    }, 100);
-    this.refreshChars();
-  }
-
-  removeImg() {
-    this.showImgPreview = false;
-    const index = this.prodAttachments.findIndex(item => item.url === this.imgPreview);
-    if (index !== -1) {
-      console.log('eliminar')
-      this.prodAttachments.splice(index, 1);
-    }
-    this.imgPreview = '';
-    this.cdr.detectChanges();
-  }
-
-  saveImgFromURL() {
-    this.showImgPreview = true;
-    this.imgPreview = this.imgURL.nativeElement.value;
-    this.prodAttachments.push({
-      name: 'Profile Picture',
-      url: this.imgPreview,
-      attachmentType: 'Picture'
-    })
-    this.attImageName.reset();
-    this.cdr.detectChanges();
-  }
-
-  removeAtt(att: any) {
-    const index = this.prodAttachments.findIndex(item => item.url === att.url);
-    if (index !== -1) {
-      console.log('eliminar')
-      if (this.prodAttachments[index].name == 'Profile Picture') {
-        this.showImgPreview = false;
-        this.imgPreview = '';
-        this.cdr.detectChanges();
-      }
-      this.prodAttachments.splice(index, 1);
-    }
-    this.cdr.detectChanges();
-  }
-
-  saveAtt() {
-    console.log('saving')
-    this.prodAttachments.push({
-      name: this.attachName.nativeElement.value,
-      url: this.attachToCreate.url,
-      attachmentType: this.attachToCreate.attachmentType
-    })
-    this.attachName.nativeElement.value = '';
-    this.attachToCreate = { url: '', attachmentType: '' };
-    this.showNewAtt = false;
-    this.attFileName.reset();
-  }
-
-  clearAtt() {
-    this.attachToCreate = { url: '', attachmentType: '' };
-  }
-
-  saveAdditionalCert() {
-    console.log('saving')
-    this.additionalISOS.push({
-      name: 'Compliance:' + this.certificationName.nativeElement.value,
-      url: this.isoToCreate
-    })
-    this.certificationName.nativeElement.value = '';
-    this.isoToCreate = '';
-    this.certFileName.reset();
-    this.showCert = false;
-  }
-
-  clearAdditionalCert(urlonly: boolean) {
-    if (!urlonly) {
-      this.certificationName.nativeElement.value = '';
-      this.certFileName.reset();
-    }
-    this.isoToCreate = '';
-  }
-
-  toggleRelationship() {
-    this.prodSpecRels = [];
-    this.prodSpecRelPage = 0;
-    this.showCreateRel = false;
-    this.loadingprodSpecRel = true;
-    this.getProdSpecsRel(false);
-    this.selectStep('relationships', 'relationships-circle');
-    this.showBundle = false;
-    this.showGeneral = false;
-    this.showCompliance = false;
-    this.showChars = false;
-    this.showResource = false;
-    this.showService = false;
-    this.showAttach = false;
-    this.showRelationships = true;
-    this.showSummary = false;
-    this.showPreview = false;
-    this.refreshChars();
-  }
-
-  async getProdSpecsRel(next: boolean) {
-    if (next == false) {
-      this.loadingprodSpecRel = true;
-    }
-
-    let options = {
-      "filters": ['Active', 'Launched'],
-      "partyId": this.partyId,
-      //"sort": undefined,
-      //"isBundle": false
-    }
-
-    this.paginationService.getItemsPaginated(this.prodSpecRelPage, this.PROD_SPEC_LIMIT, next, this.prodSpecRels, this.nextProdSpecRels, options,
-      this.prodSpecService.getProdSpecByUser.bind(this.prodSpecService)).then(data => {
-        this.prodSpecRelPageCheck = data.page_check;
-        this.prodSpecRels = data.items;
-        this.nextProdSpecRels = data.nextItems;
-        this.prodSpecRelPage = data.page;
-        this.loadingprodSpecRel = false;
-        this.loadingprodSpecRel_more = false;
-      })
-  }
-
-  selectRelationship(rel: any) {
-    this.selectedProdSpec = rel;
-  }
-
-  async nextProdSpecsRel() {
-    await this.getProdSpecsRel(true);
-  }
-
-  onRelChange(event: any) {
-    console.log('relation type changed')
-    this.selectedRelType = event.target.value
-  }
-
-  saveRel() {
-    this.showCreateRel = false;
-    this.prodRelationships.push({
-      id: this.selectedProdSpec.id,
-      href: this.selectedProdSpec.href,
-      relationshipType: this.selectedRelType,
-      productSpec: this.selectedProdSpec
+    this.prodSpecService.postProdSpec(this.productSpecToCreate).subscribe({
+      next: (data: any) => {
+        this.createdProdId = data?.id || null;
+        if(launch && this.createdProdId){
+          this.prodSpecService.updateProdSpec({ lifecycleStatus: 'Launched' }, this.createdProdId).subscribe({
+            next: () => this.onPersistSuccess(true),
+            error: (error: any) => this.onPersistError(error)
+          });
+        } else {
+          this.onPersistSuccess(false);
+        }
+      },
+      error: (error: any) => this.onPersistError(error)
     });
-    this.selectedRelType = 'migration';
-    console.log(this.prodRelationships)
   }
 
-  deleteRel(rel: any) {
-    const index = this.prodRelationships.findIndex(item => item.id === rel.id);
-    if (index !== -1) {
-      console.log('eliminar')
-      this.prodRelationships.splice(index, 1);
+  private onPersistSuccess(launched: boolean){
+    this.loading = false;
+    this.showSuccessModal = false;
+    const msg = this.translate.instant(launched
+      ? 'CREATE_PROD_SPEC._validate_success'
+      : (this.isEditMode ? 'CREATE_PROD_SPEC._update_success' : 'CREATE_PROD_SPEC._create_success'));
+    this.eventMessage.emitSpecCreated(msg);
+    this.eventMessage.emitSellerProductSpec(true);
+  }
+
+  private onPersistError(error: any){
+    console.error('There was an error while saving the product spec!', error);
+    this.errorMessage = this.getErrorMessage(error, 'CREATE_PROD_SPEC._save_error');
+    this.loading = false;
+    this.showError = true;
+    setTimeout(() => { this.showError = false; }, 3000);
+  }
+
+  private getErrorMessage(error: any, fallbackKey: string): string {
+    return error?.error?.error
+      ? this.translate.instant('ERRORS._error_prefix', { message: error.error.error })
+      : this.translate.instant(fallbackKey);
+  }
+
+  onTypeChange(event: any) {
+    const value = event.target.value;
+    this.charTypeSelected = value;
+    this.stringCharSelected = value=='string';
+    this.numberCharSelected = value=='number';
+    this.rangeCharSelected = value=='range';
+    this.booleanCharSelected = value=='boolean';
+    this.creatingChars=[];
+    if(this.booleanCharSelected){
+      this.booleanDefaultTrue=true;
+      this.setBooleanDefaultValues();
     }
-    this.cdr.detectChanges();
   }
 
-  refreshChars() {
-    this.stringValue = '';
-    this.numberValue = '';
-    this.numberUnit = '';
-    this.fromValue = '';
-    this.toValue = '';
-    this.rangeUnit = '';
-    this.jsonValue = '';
-    this.charTypeSelected = this.getInitialCharacteristicTypeForCurrentStep();
-    this.booleanDefaultTrue = true;
-    this.isOptional = false;
-    this.optionalDftTrue = false;
-    this.creatingChars = [];
-  }
-
-  setBooleanDefaultValues() {
-    this.creatingChars = [
+  setBooleanDefaultValues(){
+    this.creatingChars=[
       {
-        isDefault: this.booleanDefaultTrue,
-        value: true as any
+        isDefault:this.booleanDefaultTrue,
+        value:true as any
       },
       {
-        isDefault: !this.booleanDefaultTrue,
-        value: false as any
+        isDefault:!this.booleanDefaultTrue,
+        value:false as any
       }
     ];
   }
 
-  onBooleanDefaultChange() {
-    if (this.charTypeSelected == 'boolean') {
+  onBooleanDefaultChange(){
+    if(this.booleanCharSelected){
       this.setBooleanDefaultValues();
     }
   }
 
-  removeClass(elem: HTMLElement, cls: string) {
-    var str = " " + elem.className + " ";
-    elem.className = str.replace(" " + cls + " ", " ").replace(/^\s+|\s+$/g, "");
-  }
-
-  addClass(elem: HTMLElement, cls: string) {
-    elem.className += (" " + cls);
-  }
-
-  unselectMenu(elem: HTMLElement | null, cls: string) {
-    if (elem != null) {
-      if (elem.className.match(cls)) {
-        this.removeClass(elem, cls)
-      } else {
-        console.log('already unselected')
-      }
-    }
-  }
-
-  selectMenu(elem: HTMLElement | null, cls: string) {
-    if (elem != null) {
-      if (elem.className.match(cls)) {
-        console.log('already selected')
-      } else {
-        this.addClass(elem, cls)
-      }
-    }
-  }
-
-  //STEPS CSS EFFECTS:
-  selectStep(step: string, stepCircle: string) {
-    const index = this.stepsElements.findIndex(item => item === step);
-    if (index !== -1) {
-      this.stepsElements.splice(index, 1);
-      this.selectMenu(document.getElementById(step), 'text-primary-100 dark:text-primary-50')
-      this.unselectMenu(document.getElementById(step), 'text-gray-500')
-      for (let i = 0; i < this.stepsElements.length; i++) {
-        this.unselectMenu(document.getElementById(this.stepsElements[i]), 'text-primary-100 dark:text-primary-50')
-        this.selectMenu(document.getElementById(this.stepsElements[i]), 'text-gray-500')
-      }
-      this.stepsElements.push(step);
-    }
-    const circleIndex = this.stepsCircles.findIndex(item => item === stepCircle);
-    if (index !== -1) {
-      this.stepsCircles.splice(circleIndex, 1);
-      this.selectMenu(document.getElementById(stepCircle), 'border-primary-100 dark:border-primary-50')
-      this.unselectMenu(document.getElementById(stepCircle), 'border-gray-400');
-      for (let i = 0; i < this.stepsCircles.length; i++) {
-        this.unselectMenu(document.getElementById(this.stepsCircles[i]), 'border-primary-100 dark:border-primary-50')
-        this.selectMenu(document.getElementById(this.stepsCircles[i]), 'border-gray-400');
-      }
-      this.stepsCircles.push(stepCircle);
-    }
-  }
-
-  onTypeChange(event: any) {
-    this.charTypeSelected = event.target.value;
-    this.charsForm.reset();
-    this.stringValue = '';
-    this.numberValue = '';
-    this.numberUnit = '';
-    this.fromValue = '';
-    this.toValue = '';
-    this.rangeUnit = '';
-    this.jsonValue = '';
-    this.isOptional = false;
-    this.optionalDftTrue = false;
-    if (this.charTypeSelected == 'boolean') {
-      this.booleanDefaultTrue = true;
-      this.setBooleanDefaultValues();
-    } else {
-      this.booleanDefaultTrue = true;
-      this.creatingChars = [];
-    }
-  }
-
-  isJsonCharacteristicType(type: string | undefined): boolean {
-    if (!type) {
-      return false;
-    }
-    return this.dataSpaceJsonCharacteristicTypes.includes(type);
-  }
-
-  isDataSpaceCharacteristicType(type: string | undefined): boolean {
-    if (!type) {
-      return false;
-    }
-    return this.dataSpaceCharacteristicTypes.includes(type);
-  }
-
-  isDataspaceConfigurationStep(): boolean {
-    return this.currentStep.id === 'dataspace';
-  }
-
-  isTextCharacteristicType(type: string | undefined): boolean {
-    return type === 'string' || type === 'endpointUrl' || type === 'upstreamAddress' || type === 'endpointDescription' || type === 'transferPath';
-  }
-
-  getFilteredCharacteristicsForCurrentStep(): ProductSpecificationCharacteristic[] {
-    const nonCompliance = this.prodChars.filter((char: any) => !char.name?.startsWith('Compliance:'));
-    if (this.isDataspaceConfigurationStep()) {
-      return nonCompliance.filter((char: any) => this.isDataSpaceCharacteristicType(char.valueType));
-    }
-    return nonCompliance.filter((char: any) => !this.isDataSpaceCharacteristicType(char.valueType));
-  }
-
-  getInitialCharacteristicTypeForCurrentStep(): string {
-    if (this.isDataspaceConfigurationStep()) {
-      return 'credentialsConfiguration';
-    }
-    return 'string';
-  }
-
-  private getFormSteps(): Step[] {
-
-    const steps: Step[] = [{ label: 'General Info', id: 'general' }];
-    if (this.BUNDLE_ENABLED) {
-      steps.push({ label: 'Bundle', id: 'bundle' });
-    }
-    steps.push({ label: 'Compliance profile', id: 'compliance' });
-    steps.push({ label: 'Characteristics', id: 'characteristics' });
-    if (this.DATA_SPACE_ENABLED) {
-      steps.push({ label: 'Dataspace Configuration', id: 'dataspace' });
-    }
-    steps.push({ label: 'Resource specifications', id: 'resource' });
-    steps.push({ label: 'Service specifications', id: 'service' });
-    steps.push({ label: 'Attachments', id: 'attachments' });
-    steps.push({ label: 'Relationships', id: 'relationships' });
-    steps.push({ label: 'Summary', id: 'summary' });
-    return steps;
-  }
-
-  private getSchemaLocationForType(type: string): string | null {
-    if (type === 'credentialsConfiguration') {
-      return 'https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/main/schemas/credentials/credentialConfigCharacteristic.json';
-    }
-    if (type === 'authorizationPolicy') {
-      return 'https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/policy-support/schemas/odrl/policyCharacteristic.json';
-    }
-    return null;
-  }
-
-  addCharValue() {
-    if (this.isTextCharacteristicType(this.charTypeSelected)) {
-      console.log('string')
-      if (this.creatingChars.length == 0) {
-        this.creatingChars.push({
-          isDefault: true,
-          value: this.stringValue as any
-        })
-      } else {
-        this.creatingChars.push({
-          isDefault: false,
-          value: this.stringValue as any
-        })
-      }
-      this.stringValue = '';
-    } else if (this.charTypeSelected == 'number') {
-      console.log('number')
-      if (this.creatingChars.length == 0) {
-        this.creatingChars.push({
-          isDefault: true,
-          value: this.numberValue as any,
-          unitOfMeasure: this.numberUnit
-        })
-      } else {
-        this.creatingChars.push({
-          isDefault: false,
-          value: this.numberValue as any,
-          unitOfMeasure: this.numberUnit
-        })
-      }
-      this.numberUnit = '';
-      this.numberValue = '';
-    } else if (this.charTypeSelected == 'range') {
-      console.log('range')
-      // Validate that fromValue < toValue
-      const fromVal = Number(this.fromValue);
-      const toVal = Number(this.toValue);
-      if (fromVal >= toVal) {
-        console.log('range validation error: valueFrom >= valueTo')
-        this.errorMessage = 'Invalid range: "From" value must be less than "To" value';
+  addCharValue(){
+    if(this.isJsonCharacteristicType(this.charTypeSelected)){
+      if(this.creatingChars.length > 0){
+        this.errorMessage = this.translate.instant('CREATE_PROD_SPEC._json_single_value_error');
         this.showError = true;
-        setTimeout(() => { this.showError = false }, 3000);
-        return;
-      }
-
-      if (this.creatingChars.length == 0) {
-        this.creatingChars.push({
-          isDefault: true,
-          valueFrom: this.fromValue as any,
-          valueTo: this.toValue as any,
-          unitOfMeasure: this.rangeUnit
-        })
-      } else {
-        this.creatingChars.push({
-          isDefault: false,
-          valueFrom: this.fromValue as any,
-          valueTo: this.toValue as any,
-          unitOfMeasure: this.rangeUnit
-        })
-      }
-    } else if (this.isJsonCharacteristicType(this.charTypeSelected)) {
-      if (this.creatingChars.length > 0) {
-        this.errorMessage = 'Only one JSON value is allowed';
-        this.showError = true;
-        setTimeout(() => { this.showError = false }, 3000);
+        setTimeout(() => { this.showError = false; }, 3000);
         return;
       }
       try {
-        const parsedJson = JSON.parse(this.jsonValue);
-        this.creatingChars.push({
-          isDefault: true,
-          value: parsedJson as any
-        });
+        this.creatingChars.push({ isDefault: true, value: JSON.parse(this.jsonValue) as any });
         this.jsonValue = '';
-      } catch (error) {
-        this.errorMessage = 'Invalid JSON format';
+      } catch {
+        this.errorMessage = this.translate.instant('CREATE_PROD_SPEC._invalid_json');
         this.showError = true;
-        setTimeout(() => { this.showError = false }, 3000);
-        return;
+        setTimeout(() => { this.showError = false; }, 3000);
       }
-    } else if (this.charTypeSelected == 'boolean') {
-      console.log('boolean values are fixed')
-      return;
-    } else {
-      console.log('nothing')
-    }
-  }
-
-  removeCharValue(char: any, idx: any) {
-    if (this.charTypeSelected == 'boolean') {
-      return;
-    }
-    console.log(this.creatingChars)
-    this.creatingChars.splice(idx, 1);
-    console.log(this.creatingChars)
-  }
-
-  selectDefaultChar(char: any, idx: any) {
-    for (let i = 0; i < this.creatingChars.length; i++) {
-      if (i == idx) {
-        this.creatingChars[i].isDefault = true;
+    } else if(this.stringCharSelected){
+      if(this.creatingChars.length==0){
+        this.creatingChars.push({ isDefault:true, value:this.stringValue as any })
       } else {
-        this.creatingChars[i].isDefault = false;
+        this.creatingChars.push({ isDefault:false, value:this.stringValue as any })
       }
+      this.stringValue='';
+    } else if (this.numberCharSelected){
+      if(this.creatingChars.length==0){
+        this.creatingChars.push({ isDefault:true, value:this.numberValue as any, unitOfMeasure:this.numberUnit })
+      } else {
+        this.creatingChars.push({ isDefault:false, value:this.numberValue as any, unitOfMeasure:this.numberUnit })
+      }
+      this.numberUnit='';
+      this.numberValue='';
+    } else {
+      if(this.creatingChars.length==0){
+        this.creatingChars.push({ isDefault:true, valueFrom:this.fromValue as any, valueTo:this.toValue as any, unitOfMeasure:this.rangeUnit })
+      } else {
+        this.creatingChars.push({ isDefault:false, valueFrom:this.fromValue as any, valueTo:this.toValue as any, unitOfMeasure:this.rangeUnit })
+      }
+    }
+    this.fromValue='';
+    this.toValue='';
+    this.rangeUnit='';
+  }
+
+  selectDefaultChar(char:any,idx:any){
+    for(let i=0;i<this.creatingChars.length;i++){
+      this.creatingChars[i].isDefault = (i==idx);
     }
   }
 
-  saveChar() {
-    if (this.charsForm.value.name != null) {
-
-      // In showFinish() only takes the first ocurrence in name for sending to proxy
-      // I validate the duplication here to prevent confusion in client when suddenly a characteristic with the same name dissapeared
-      if (this.prodChars.find((char) => char.name === this.charsForm.value.name)) {
-        console.log('name duplicated error')
-        this.errorMessage = 'Cannot save duplicated name in characteristics';
-        this.showError = true;
-        setTimeout(() => { this.showError = false }, 3000);
-        return
-      }
-
-      // Create the main characteristic
-      const characteristic: any = {
-        id: 'urn:ngsi-ld:characteristic:' + uuidv4(),
+  saveChar(){
+    if(this.charsForm.value.name!=null){
+      const targetChars = this.currentCharacteristicList();
+      const existing = this.editingCharIdx !== null ? targetChars[this.editingCharIdx] : null;
+      const charData: any = {
+        ...(existing || {}),
+        id: existing ? (existing as any).id : 'urn:ngsi-ld:characteristic:'+uuidv4(),
         name: this.charsForm.value.name,
         description: this.charsForm.value.description != null ? this.charsForm.value.description : '',
-        productSpecCharacteristicValue: this.creatingChars
+        productSpecCharacteristicValue: this.mergeCharacteristicValues(
+          (existing as any)?.productSpecCharacteristicValue || [],
+          this.creatingChars
+        ),
+        _lastUpdate: new Date(),
+        _isOptional: this.isDataspaceConfigurationStep() ? false : this.charIsOptional
       };
-
       const schemaLocation = this.getSchemaLocationForType(this.charTypeSelected);
-      const primitiveTypes = ['string', 'number', 'boolean', 'range'];
-      if (!primitiveTypes.includes(this.charTypeSelected)) {
-        characteristic.valueType = this.charTypeSelected;
+      if (!['string', 'number', 'boolean', 'range'].includes(this.charTypeSelected)) {
+        charData.valueType = this.charTypeSelected;
+      } else {
+        delete charData.valueType;
       }
       if (schemaLocation) {
-        characteristic['@schemaLocation'] = schemaLocation;
+        charData['@schemaLocation'] = schemaLocation;
+      } else {
+        delete charData['@schemaLocation'];
       }
-
-      this.prodChars.push(characteristic);
-
-      // Create the X - enabled characteristic
-      if (this.isOptional && primitiveTypes.includes(this.charTypeSelected) && this.charTypeSelected !== 'boolean') {
-        this.prodChars.push({
-          id: 'urn:ngsi-ld:characteristic:' + uuidv4(),
-          name: this.charsForm.value.name + ' - enabled',
-          description: 'Optional toggle for ' + this.charsForm.value.name,
-          productSpecCharacteristicValue: [
-            {
-              isDefault: this.optionalDftTrue,
-              value: true as any
-            },
-            {
-              isDefault: !this.optionalDftTrue,
-              value: false as any
-            }
-          ]
-        })
+      if(existing){
+        targetChars[this.editingCharIdx as number] = charData;
+        this.editingCharIdx = null;
+      } else {
+        this.editingCharIdx = null;
+        targetChars.push(charData);
       }
     }
 
     this.charsForm.reset();
-    this.creatingChars = [];
-    this.showCreateChar = false;
-    this.charTypeSelected = 'string';
-    this.isOptional = false;
-    this.optionalDftTrue = false;
+    this.creatingChars=[];
+    this.showCreateChar=false;
+    this.stringCharSelected=true;
+    this.numberCharSelected=false;
+    this.rangeCharSelected=false;
+    this.booleanCharSelected=false;
+    this.booleanDefaultTrue=true;
+    this.charTypeSelected = this.getInitialCharacteristicTypeForCurrentStep();
+    this.charIsOptional=false;
     this.refreshChars();
     this.cdr.detectChanges();
   }
 
-  deleteChar(char: any) {
-    const index = this.prodChars.findIndex(item => item.id === char.id);
-    if (index !== -1) {
-      console.log('eliminar')
-      this.prodChars.splice(index, 1);
-    }
-
-    // If deleting a main characteristic, also delete its "- enabled" variant if it exists
-    if (!char.name.endsWith('- enabled')) {
-      const relatedEnabledIndex = this.prodChars.findIndex(item => item.name === char.name + ' - enabled');
-      if (relatedEnabledIndex !== -1) {
-        console.log('eliminar related enabled')
-        this.prodChars.splice(relatedEnabledIndex, 1);
-      }
-    }
-
-    this.cdr.detectChanges();
-    console.log(this.prodChars)
-  }
-
-  checkInput(value: string): boolean {
-    return value.trim().length === 0;
-  }
-
-  showFinish() {
-    this.relationshipDone = true;
-    this.finishDone = true;
-    this.finishChars = [];
-    console.log('--- set product data')
-    console.log(this.prodChars)
-    for (let i = 0; i < this.prodChars.length; i++) {
-      const index = this.finishChars.findIndex(item => item.name === this.prodChars[i].name);
-      if (index == -1) {
-        const cleanedName = this.prodChars[i]?.name
-          ?.replace('Compliance:', '')
-          .trim();
-
-        const checkIso = this.availableISOS.findIndex(
-          item => item.name === cleanedName
-        );
-        if (checkIso == -1) {
-          if (this.prodChars[i].name != 'Compliance:SelfAtt') {
-            console.log('--- check if deleted additional cert')
-            console.log(this.prodChars[i].name)
-            const checkAdditional = this.additionalISOS.findIndex(
-              item => item.name === cleanedName
-            );
-            if (checkAdditional != -1) {
-              this.finishChars.push(this.prodChars[i])
-            }
-            if (!this.prodChars[i].name?.startsWith('Compliance:')) {
-              this.finishChars.push(this.prodChars[i])
-            }
-          } else {
-            this.finishChars.push(this.prodChars[i])
-          }
-        } else {
-          this.finishChars.push(this.prodChars[i])
-        }
-
-      }
-    }
-    // Load compliance profile
-    for (let i = 0; i < this.selectedISOS.length; i++) {
-      const index = this.finishChars.findIndex(item => item.name === this.selectedISOS[i].name);
-      if (index == -1) {
-        this.finishChars.push({
-          id: 'urn:ngsi-ld:characteristic:' + uuidv4(),
-          name: this.selectedISOS[i].name,
-          productSpecCharacteristicValue: [{
-            isDefault: true,
-            value: this.selectedISOS[i].url
-          }]
-        })
-      }
-    }
-
-    for (let i = 0; i < this.additionalISOS.length; i++) {
-      console.log('- finish chars antes')
-      console.log(this.finishChars)
-      console.log('añadiendo additional a finish chars')
-      console.log(this.additionalISOS)
-      const index = this.finishChars.findIndex(item => item.name === this.additionalISOS[i].name);
-      if (index == -1) {
-        this.finishChars.push({
-          id: 'urn:ngsi-ld:characteristic:' + uuidv4(),
-          name: this.additionalISOS[i].name,
-          productSpecCharacteristicValue: [{
-            isDefault: true,
-            value: this.additionalISOS[i].url
-          }]
-        })
-      }
-      console.log(this.finishChars)
-    }
-
-    // Keep self attestation from compliance step in final payload.
-    if (this.hasSelfAttestation()) {
-      const selfAttName = 'Compliance:SelfAtt';
-      const selfAttValue = this.selfAtt?.productSpecCharacteristicValue?.[0]?.value;
-      const selfAttIndex = this.finishChars.findIndex(item => item.name === selfAttName);
-      const selfAttId = this.selfAtt?.id
-        ? this.selfAtt.id
-        : (selfAttIndex !== -1 && this.finishChars[selfAttIndex]?.id
-          ? this.finishChars[selfAttIndex].id
-          : `urn:ngsi-ld:characteristic:${uuidv4()}`);
-
-      const selfAttestationCharacteristic = {
-        id: selfAttId,
-        name: selfAttName,
-        productSpecCharacteristicValue: [{
-          isDefault: true,
-          value: selfAttValue
-        }]
-      } as ProductSpecificationCharacteristic;
-
-      if (selfAttIndex === -1) {
-        this.finishChars.push(selfAttestationCharacteristic);
-      } else {
-        this.finishChars[selfAttIndex] = selfAttestationCharacteristic;
-      }
-    }
-
-    let rels = [];
-    for (let i = 0; i < this.prodRelationships.length; i++) {
-      rels.push({
-        id: this.prodRelationships[i].id,
-        href: this.prodRelationships[i].href,
-        name: this.prodRelationships[i].name,
-        relationshipType: this.prodRelationships[i].relationshipType
-      })
-    }
-    console.log('rels')
-    console.log(rels)
-    if (this.generalForm.value.name != null && this.generalForm.value.version != null && this.generalForm.value.brand != null) {
-      this.productSpecToCreate = {
-        name: this.generalForm.value.name,
-        description: this.generalForm.value.description != null ? this.generalForm.value.description : '',
-        version: this.generalForm.value.version,
-        brand: this.generalForm.value.brand,
-        productNumber: this.generalForm.value.number != null ? this.generalForm.value.number : '',
-        lifecycleStatus: "Active",
-        isBundle: this.bundleChecked,
-        bundledProductSpecification: this.prodSpecsBundle,
-        productSpecCharacteristic: this.finishChars,
-        productSpecificationRelationship: rels,
-        attachment: this.prodAttachments,
-        relatedParty: [
-          {
-            id: this.partyId,
-            //href: "http://proxy.docker:8004/party/individual/urn:ngsi-ld:individual:803ee97b-1671-4526-ba3f-74681b22ccf3",
-            role: environment.SELLER_ROLE,
-            "@referredType": ''
-          }
-        ],
-        resourceSpecification: this.selectedResourceSpecs,
-        serviceSpecification: this.selectedServiceSpecs
-      }
-    }
-    if (this.generalForm.value.dspCompatible) {
-      this.productSpecToCreate!.productSpecCharacteristic = this.productSpecToCreate?.productSpecCharacteristic || [];
-      (this.productSpecToCreate! as any).externalId = uuidv4();
-      this.productSpecToCreate!['@schemaLocation'] = environment.DSP_SCHEMA;
-      this.endpointUrls.forEach(endpoint => {
-        this.productSpecToCreate!.productSpecCharacteristic!.push({
-          id: uuidv4(),
-          description: endpoint.description,
-          valueType: 'endpointUrl',
-          name: endpoint.name,
-          productSpecCharacteristicValue: [
-            { value: endpoint.url! as any, isDefault: true }
-          ]
-        })
-      })
-      const dspConfigValue = this.dspConfigForm.value;
-      this.productSpecToCreate!.productSpecCharacteristic!.push(
-        {
-          id: "upstreamAddress",
-          name: "Address of the upstream serving the data",
-          valueType: "upstreamAddress",
-          productSpecCharacteristicValue: [
-            { value: dspConfigValue.upstreamAddress! as any, isDefault: true }
-          ]
-        },
-        {
-          id: "targetSpecification",
-          name: "Detailed specification of the ODRL target. Allows to over services via OID4VC",
-          valueType: "targetSpecification",
-          productSpecCharacteristicValue: [
-            { value: JSON.parse(dspConfigValue.targetSpecification!), isDefault: true }
-          ]
-        },
-        {
-          id: "serviceConfiguration",
-          name: "Service config to be used in the credentials config service when provisioning transfers through OID4VC",
-          valueType: "serviceConfiguration",
-          productSpecCharacteristicValue: [
-            { value: JSON.parse(dspConfigValue.serviceConfiguration!), isDefault: true }
-          ]
-        },
-        {
-          id: "credentialsConfig",
-          name: "Credentials Config",
-          valueType: "credentialsConfig",
-          "@schemaLocation": "https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/main/schemas/credentials/credentialConfigCharacteristic.json",
-          productSpecCharacteristicValue: [
-            { value: JSON.parse(dspConfigValue.credentialsConfig!), isDefault: true }
-          ]
-        },
-        {
-          id: "policyConfig",
-          name: "Policy for creation of K8S clusters.",
-          valueType: "authorizationPolicy",
-          "@schemaLocation": "https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/policy-support/schemas/odrl/policyCharacteristic.json",
-          productSpecCharacteristicValue: [
-            { value: JSON.parse(dspConfigValue.policyConfig!), isDefault: true }
-          ]
-        },
-        {
-          id: 'transferType',
-          name: 'transferType',
-          valueType: 'transferType',
-          productSpecCharacteristicValue: [
-            { value: dspConfigValue.transferType as any, isDefault: true }
-          ]
-        }
-      )
-
-      if (dspConfigValue.transferPath) {
-        this.productSpecToCreate!.productSpecCharacteristic!.push({
-          id: 'transferPath',
-          name: 'transferPath',
-          valueType: 'transferPath',
-          productSpecCharacteristicValue: [
-            { value: dspConfigValue.transferPath as any, isDefault: true }
-          ]
-        })
-      }
-    }
-    console.log('PRODUCTO A CREAR:')
-    console.log(this.productSpecToCreate)
-    console.log(this.imgPreview)
-    this.selectStep('summary', 'summary-circle');
-    this.showBundle = false;
-    this.showGeneral = false;
-    this.showCompliance = false;
-    this.showChars = false;
-    this.showResource = false;
-    this.showService = false;
-    this.showAttach = false;
-    this.showRelationships = false;
-    this.showSummary = true;
-    this.showPreview = false;
-    this.refreshChars();
-  }
-
-  createProduct() {
-    this.loading = true;
-    this.prodSpecService.postProdSpec(this.productSpecToCreate).subscribe({
-      next: data => {
-        this.loading = false;
-        this.goBack();
-      },
-      error: error => {
-        console.error('There was an error while creating!', error);
-        if (error.error.error) {
-          console.log(error)
-          this.errorMessage = 'Error: ' + error.error.error;
-        } else {
-          this.errorMessage = 'There was an error while creating the product!';
-        }
-        this.loading = false;
-        this.showError = true;
-        setTimeout(() => {
-          this.showError = false;
-        }, 3000);
-      }
+  editChar(idx: number){
+    const char: any = this.currentCharacteristicList()[idx];
+    this.editingCharIdx = idx;
+    this.charsForm.patchValue({
+      name: char.name,
+      description: char.description
     });
-  }
-
-  //Markdown actions:
-  addBold() {
-    const currentText = this.generalForm.value.description;
-    this.generalForm.patchValue({
-      description: currentText + ' **bold text** '
-    });
-  }
-
-  addItalic() {
-    const currentText = this.generalForm.value.description;
-    this.generalForm.patchValue({
-      description: currentText + ' _italicized text_ '
-    });
-  }
-
-  addList() {
-    const currentText = this.generalForm.value.description;
-    this.generalForm.patchValue({
-      description: currentText + '\n- First item\n- Second item'
-    });
-  }
-
-  addOrderedList() {
-    const currentText = this.generalForm.value.description;
-    this.generalForm.patchValue({
-      description: currentText + '\n1. First item\n2. Second item'
-    });
-  }
-
-  addCode() {
-    const currentText = this.generalForm.value.description;
-    this.generalForm.patchValue({
-      description: currentText + '\n`code`'
-    });
-  }
-
-  addCodeBlock() {
-    const currentText = this.generalForm.value.description;
-    this.generalForm.patchValue({
-      description: currentText + '\n```\ncode\n```'
-    });
-  }
-
-  addBlockquote() {
-    const currentText = this.generalForm.value.description;
-    this.generalForm.patchValue({
-      description: currentText + '\n> blockquote'
-    });
-  }
-
-  addLink() {
-    const currentText = this.generalForm.value.description;
-    this.generalForm.patchValue({
-      description: currentText + ' [title](https://www.example.com) '
-    });
-  }
-
-  addTable() {
-    const currentText = this.generalForm.value.description;
-    this.generalForm.patchValue({
-      description: currentText + '\n| Syntax | Description |\n| ----------- | ----------- |\n| Header | Title |\n| Paragraph | Text |'
-    });
-  }
-
-  addEmoji(event: any) {
-    console.log(event)
-    this.showEmoji = false;
-    const currentText = this.generalForm.value.description;
-    this.generalForm.patchValue({
-      description: currentText + event.emoji.native
-    });
-  }
-
-  hasLongWord(str: string | undefined, threshold = 20) {
-    if (str) {
-      return str.split(/\s+/).some(word => word.length > threshold);
+    this.charIsOptional = char._isOptional || false;
+    this.creatingChars = (char.productSpecCharacteristicValue || []).map((v: any) => ({ ...v }));
+    const vals = this.creatingChars as any[];
+    const first = vals[0];
+    this.charTypeSelected = char.valueType || 'string';
+    const isBoolean = vals.length > 0 && vals.every(c =>
+      c.value === true || c.value === false || c.value === 'true' || c.value === 'false');
+    if(this.isJsonCharacteristicType(this.charTypeSelected)){
+      this.stringCharSelected = false;
+      this.numberCharSelected = false;
+      this.rangeCharSelected = false;
+      this.booleanCharSelected = false;
+      this.jsonValue = '';
+    } else if(first?.valueFrom !== undefined){
+      this.charTypeSelected = 'range';
+      this.stringCharSelected = false;
+      this.numberCharSelected = false;
+      this.rangeCharSelected = true;
+      this.booleanCharSelected = false;
+    } else if(isBoolean){
+      this.charTypeSelected = 'boolean';
+      this.stringCharSelected = false;
+      this.numberCharSelected = false;
+      this.rangeCharSelected = false;
+      this.booleanCharSelected = true;
+      const def = vals.find(c => c.isDefault);
+      this.booleanDefaultTrue = def ? (def.value === true || def.value === 'true') : true;
+    } else if(first?.unitOfMeasure){
+      this.charTypeSelected = 'number';
+      this.stringCharSelected = false;
+      this.numberCharSelected = true;
+      this.rangeCharSelected = false;
+      this.booleanCharSelected = false;
     } else {
-      return false
+      this.charTypeSelected = 'string';
+      this.stringCharSelected = true;
+      this.numberCharSelected = false;
+      this.rangeCharSelected = false;
+      this.booleanCharSelected = false;
     }
+    this.openCharMenuIdx = null;
+    this.showCreateChar = true;
   }
 
-  getValuePreview(value: any, maxLength = 80): string {
+  formatCharValues(prod: any, maxLength = 160): string {
+    const values = prod.productSpecCharacteristicValue || [];
+    return values.map((c: any) => {
+      if(c.valueFrom !== undefined && c.valueFrom !== null){
+        return `${c.valueFrom}-${c.valueTo}${c.unitOfMeasure ? ' ' + c.unitOfMeasure : ''}`;
+      }
+      const value = this.getValuePreview(c.value, maxLength);
+      return c.unitOfMeasure ? `${value} ${c.unitOfMeasure}` : value;
+    }).join(',');
+  }
+
+  getValuePreview(value: any, maxLength = 120): string {
     if (value === null || value === undefined) {
       return '';
     }
@@ -1767,84 +616,1131 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     return rawValue.length > maxLength ? `${rawValue.slice(0, maxLength)}...` : rawValue;
   }
 
+  formatLastUpdate(date: any): string {
+    if(!date) return '-';
+    const d = new Date(date);
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const yyyy = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mi = String(d.getMinutes()).padStart(2,'0');
+    return `${dd}/${mm}/${yyyy} - ${hh}:${mi}`;
+  }
+
+  toggleCharMenu(idx: number, event: Event){
+    event.stopPropagation();
+    this.openCharMenuIdx = this.openCharMenuIdx === idx ? null : idx;
+  }
+
+  removeCharValue(char:any,idx:any){
+    this.creatingChars.splice(idx, 1);
+  }
+
+  deleteChar(char:any){
+    const targetChars = this.currentCharacteristicList();
+    const index = targetChars.findIndex((item:any) => item.id === char.id);
+    if (index !== -1) {
+      targetChars.splice(index, 1);
+      if(this.editingCharIdx === index){
+        this.editingCharIdx = null;
+        this.showCreateChar = false;
+        this.charsForm.reset();
+        this.refreshChars();
+        this.charIsOptional = false;
+      } else if(this.editingCharIdx !== null && this.editingCharIdx > index){
+        this.editingCharIdx = this.editingCharIdx - 1;
+      }
+    }
+    this.cdr.detectChanges();
+  }
+
+  buildProductToCreate(){
+    if(this.generalForm.value.name!=null){
+      const cleanChars = this.prodChars.map((c:any) => {
+        const { _lastUpdate, _isOptional, ...rest } = c;
+        return rest;
+      });
+      const dataspaceChars = this.dataspaceChars.map((c:any) => {
+        const { _lastUpdate, _isOptional, ...rest } = c;
+        return rest;
+      });
+      const allChars = [
+        ...cleanChars,
+        ...dataspaceChars,
+        ...this.buildComplianceChars(),
+        ...this.buildDspCharacteristics(false)
+      ];
+      const attachmentList = this.buildAttachmentPayload(false);
+
+      this.productSpecToCreate = {
+        name: this.generalForm.value.name,
+        description: this.composeDescription(),
+        version: '1.0',
+        brand: this.generalForm.value.name,
+        productNumber: '',
+        lifecycleStatus: "Active",
+        isBundle: false,
+        productSpecCharacteristic: allChars,
+        attachment: attachmentList,
+        serviceSpecification: this.linkedServiceSpecIds.map(id => {
+          const s = this.availableServiceSpecs.find((x:any) => x.id === id);
+          return { id, href: s?.href || id, name: s?.name };
+        }),
+        resourceSpecification: this.linkedResourceSpecIds.map(id => {
+          const r = this.availableResourceSpecs.find((x:any) => x.id === id);
+          return { id, href: r?.href || id, name: r?.name };
+        }),
+        relatedParty: [
+          {
+            id: this.partyId,
+            role: environment.SELLER_ROLE,
+            "@referredType": ''
+          }
+        ],
+      } as any;
+
+      if (this.isDspCompatibleSelected()) {
+        (this.productSpecToCreate as any).externalId = uuidv4();
+        (this.productSpecToCreate as any)['@schemaLocation'] = environment.DSP_SCHEMA;
+      }
+    }
+  }
+
+  private buildProductUpdatePatch(launch: boolean): ProductSpecification_Update {
+    const patch: ProductSpecification_Update = {
+      name: this.generalForm.value.name || '',
+      description: this.composeDescription(),
+      productSpecCharacteristic: this.buildMergedProductSpecCharacteristics(),
+      attachment: this.buildAttachmentPayload(true),
+      serviceSpecification: this.buildMergedSpecificationRefs('serviceSpecification', this.linkedServiceSpecIds, this.availableServiceSpecs),
+      resourceSpecification: this.buildMergedSpecificationRefs('resourceSpecification', this.linkedResourceSpecIds, this.availableResourceSpecs)
+    };
+
+    if (launch) {
+      patch.lifecycleStatus = 'Launched';
+    }
+
+    if (this.isDspCompatibleSelected()) {
+      (patch as any).externalId = this.prod?.externalId || uuidv4();
+      (patch as any)['@schemaLocation'] = environment.DSP_SCHEMA;
+    }
+
+    this.productSpecToUpdate = patch;
+    return patch;
+  }
+
+  private buildMergedProductSpecCharacteristics(): any[] {
+    const normalChars = this.prodChars.map((char: any) => this.mergeCharacteristicForUpdate(char));
+    const dataspaceChars = this.dataspaceChars.map((char: any) => this.mergeCharacteristicForUpdate(char));
+    const complianceChars = this.buildComplianceChars().map((char: any) => this.mergeCharacteristicForUpdate(char));
+    const dspChars = this.buildDspCharacteristics(true).map((char: any) => this.mergeCharacteristicForUpdate(char));
+    return [...normalChars, ...dataspaceChars, ...complianceChars, ...dspChars];
+  }
+
+  private mergeCharacteristicForUpdate(char: any): any {
+    const cleanChar = this.cleanCharacteristic(char);
+    const original = this.findOriginalCharacteristic(cleanChar);
+    if (!original) return cleanChar;
+
+    return {
+      ...this.cloneValue(original),
+      ...cleanChar,
+      productSpecCharacteristicValue: this.mergeCharacteristicValues(
+        original.productSpecCharacteristicValue || [],
+        cleanChar.productSpecCharacteristicValue || []
+      )
+    };
+  }
+
+  private cleanCharacteristic(char: any): any {
+    const { _lastUpdate, _isOptional, ...cleanChar } = char || {};
+    return this.cloneValue(cleanChar);
+  }
+
+  private findOriginalCharacteristic(char: any): any | null {
+    const originals = Array.isArray(this.prod?.productSpecCharacteristic) ? this.prod.productSpecCharacteristic : [];
+    return originals.find((candidate: any) =>
+      (char?.id && candidate?.id === char.id) ||
+      (!char?.id && char?.name && candidate?.name === char.name)
+    ) || null;
+  }
+
+  private mergeCharacteristicValues(originalValues: any[], nextValues: any[]): any[] {
+    return (nextValues || []).map((value: any, index: number) => {
+      const original = value?.id
+        ? originalValues.find((candidate: any) => candidate?.id === value.id)
+        : originalValues[index];
+      return {
+        ...(original ? this.cloneValue(original) : {}),
+        ...this.cloneValue(value)
+      };
+    });
+  }
+
+  private buildAttachmentPayload(preserveMetadata: boolean): any[] {
+    const attachmentList: any[] = [];
+    if (this.productImageRef?.url) {
+      attachmentList.push(this.toAttachmentPayload(this.productImageRef, preserveMetadata));
+    }
+    this.attachments.forEach(a => {
+      if (a?.url) {
+        attachmentList.push(this.toAttachmentPayload(a, preserveMetadata));
+      }
+    });
+    if (preserveMetadata) {
+      const representedIds = new Set(attachmentList.map((attachment: any) => attachment?.id).filter(Boolean));
+      const unrepresentedOriginals = (Array.isArray(this.prod?.attachment) ? this.prod.attachment : [])
+        .filter((attachment: any) => attachment?.id && !representedIds.has(attachment.id) && !attachment?.url);
+      attachmentList.push(...unrepresentedOriginals.map((attachment: any) => this.cloneValue(attachment)));
+    }
+    return attachmentList;
+  }
+
+  private toAttachmentPayload(attachment: any, preserveMetadata: boolean): any {
+    if (!preserveMetadata) {
+      return {
+        name: attachment.name,
+        url: attachment.url,
+        attachmentType: attachment.attachmentType
+      };
+    }
+
+    const payload = this.cloneValue(attachment);
+    delete payload.size;
+    delete payload._uploading;
+    return {
+      ...payload,
+      name: attachment.name,
+      url: attachment.url,
+      attachmentType: attachment.attachmentType
+    };
+  }
+
+  private buildMergedSpecificationRefs(field: 'serviceSpecification' | 'resourceSpecification', selectedIds: string[], availableSpecs: any[]): any[] {
+    const originalRefs = Array.isArray(this.prod?.[field]) ? this.prod[field] : [];
+    const selectedRefs = selectedIds.map(id => {
+      const existing = originalRefs.find((ref: any) => ref?.id === id);
+      if (existing) return this.cloneValue(existing);
+
+      const spec = availableSpecs.find((item: any) => item?.id === id);
+      return {
+        id,
+        href: spec?.href || id,
+        name: spec?.name
+      };
+    });
+    const unrepresentedOriginals = originalRefs
+      .filter((ref: any) => !ref?.id)
+      .map((ref: any) => this.cloneValue(ref));
+    return [...selectedRefs, ...unrepresentedOriginals];
+  }
+
+  private cloneValue<T>(value: T): T {
+    if (value === null || value === undefined) return value;
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  isDspCompatibleSelected(): boolean {
+    return this.dspEnable && !!this.generalForm.get('dspCompatible')?.value;
+  }
+
+  isDataspaceConfigurationStep(): boolean {
+    return this.isCurrentStep('dataspace');
+  }
+
+  isJsonCharacteristicType(type: string | undefined): boolean {
+    return !!type && this.dataSpaceCharacteristicTypes.includes(type);
+  }
+
+  private isDataspaceCharacteristic(char: any): boolean {
+    if (!char?.valueType) return false;
+    if (char.valueType === 'credentialsConfiguration') return true;
+    return char.valueType === 'authorizationPolicy' && !this.prod?.externalId;
+  }
+
+  private isDataspaceOrDspCharacteristic(char: any): boolean {
+    const isDspChar = DSP_CHARS.includes(char?.valueType)
+      && (this.prod?.externalId || char?.valueType !== 'authorizationPolicy');
+    return this.isDataspaceCharacteristic(char) || isDspChar;
+  }
+
+  private currentCharacteristicList(): ProductSpecificationCharacteristic[] {
+    return this.isDataspaceConfigurationStep() ? this.dataspaceChars : this.prodChars;
+  }
+
+  currentCharacteristics(): ProductSpecificationCharacteristic[] {
+    return this.currentCharacteristicList();
+  }
+
+  getInitialCharacteristicTypeForCurrentStep(): string {
+    return this.isDataspaceConfigurationStep() ? 'credentialsConfiguration' : 'string';
+  }
+
+  private getSchemaLocationForType(type: string): string | null {
+    if (type === 'credentialsConfiguration' || type === 'credentialsConfig') {
+      return 'https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/main/schemas/credentials/credentialConfigCharacteristic.json';
+    }
+    if (type === 'authorizationPolicy') {
+      return 'https://raw.githubusercontent.com/FIWARE/contract-management/refs/heads/policy-support/schemas/odrl/policyCharacteristic.json';
+    }
+    return null;
+  }
+
+  private parseJsonControl(controlName: string): any {
+    const raw = this.dspConfigForm.get(controlName)?.value || '';
+    return typeof raw === 'string' ? JSON.parse(raw) : raw;
+  }
+
+  private buildDspCharacteristics(preserveEndpointIds: boolean): any[] {
+    if (!this.isDspCompatibleSelected()) return [];
+
+    const dspValue = this.dspConfigForm.value;
+    const chars: any[] = this.endpointUrls.map(endpoint => ({
+      id: preserveEndpointIds ? (endpoint.id || uuidv4()) : uuidv4(),
+      description: endpoint.description,
+      valueType: 'endpointUrl',
+      name: endpoint.name,
+      productSpecCharacteristicValue: [
+        { value: endpoint.url as any, isDefault: true }
+      ]
+    }));
+
+    chars.push(
+      {
+        id: 'upstreamAddress',
+        name: 'Address of the upstream serving the data',
+        valueType: 'upstreamAddress',
+        productSpecCharacteristicValue: [
+          { value: dspValue.upstreamAddress as any, isDefault: true }
+        ]
+      },
+      {
+        id: 'targetSpecification',
+        name: 'Detailed specification of the ODRL target. Allows to offer services via OID4VC',
+        valueType: 'targetSpecification',
+        productSpecCharacteristicValue: [
+          { value: this.parseJsonControl('targetSpecification'), isDefault: true }
+        ]
+      },
+      {
+        id: 'serviceConfiguration',
+        name: 'Service config to be used in the credentials config service when provisioning transfers through OID4VC',
+        valueType: 'serviceConfiguration',
+        productSpecCharacteristicValue: [
+          { value: this.parseJsonControl('serviceConfiguration'), isDefault: true }
+        ]
+      },
+      {
+        id: 'credentialsConfig',
+        name: 'Credentials Config',
+        valueType: 'credentialsConfig',
+        '@schemaLocation': this.getSchemaLocationForType('credentialsConfig'),
+        productSpecCharacteristicValue: [
+          { value: this.parseJsonControl('credentialsConfig'), isDefault: true }
+        ]
+      },
+      {
+        id: 'policyConfig',
+        name: 'Policy for creation of K8S clusters.',
+        valueType: 'authorizationPolicy',
+        '@schemaLocation': this.getSchemaLocationForType('authorizationPolicy'),
+        productSpecCharacteristicValue: [
+          { value: this.parseJsonControl('policyConfig'), isDefault: true }
+        ]
+      },
+      {
+        id: 'transferType',
+        name: 'transferType',
+        valueType: 'transferType',
+        productSpecCharacteristicValue: [
+          { value: dspValue.transferType as any, isDefault: true }
+        ]
+      }
+    );
+
+    if (dspValue.transferPath) {
+      chars.push({
+        id: 'transferPath',
+        name: 'transferPath',
+        valueType: 'transferPath',
+        productSpecCharacteristicValue: [
+          { value: dspValue.transferPath as any, isDefault: true }
+        ]
+      });
+    }
+
+    return chars;
+  }
+
+  private loadDspConfigurationFromProd(): void {
+    if (!this.prod?.externalId || !Array.isArray(this.prod?.productSpecCharacteristic)) return;
+
+    const patch: any = {};
+    this.endpointUrls = [];
+    this.prod.productSpecCharacteristic.forEach((char: any) => {
+      const value = char?.productSpecCharacteristicValue?.[0]?.value ?? '';
+      switch (char.valueType) {
+        case 'endpointUrl':
+          this.endpointUrls.push({
+            id: char.id,
+            name: char.name || '',
+            description: char.description || '',
+            url: value
+          });
+          break;
+        case 'upstreamAddress':
+        case 'transferPath':
+        case 'transferType':
+          patch[char.valueType] = value;
+          break;
+        case 'targetSpecification':
+        case 'serviceConfiguration':
+        case 'credentialsConfig':
+          patch[char.valueType] = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+          break;
+        case 'authorizationPolicy':
+          patch.policyConfig = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+          break;
+      }
+    });
+    this.dspConfigForm.patchValue(patch);
+  }
+
+  createProduct(){
+    this.productImageTouched = true;
+    if (!this.isGeneralInfoStepValid()) {
+      this.currentStep = 0;
+      this.highestStep = Math.max(this.highestStep, 0);
+      return;
+    }
+
+    if (this.isEditMode) {
+      this.productSpecToUpdate = this.buildProductUpdatePatch(false);
+    } else {
+      this.buildProductToCreate();
+    }
+    this.showSuccessModal = true;
+  }
+
+  refreshChars(){
+    this.stringValue= '';
+    this.numberValue = '';
+    this.numberUnit = '';
+    this.fromValue = '';
+    this.toValue = '';
+    this.rangeUnit = '';
+    this.jsonValue = '';
+    this.stringCharSelected=true;
+    this.numberCharSelected=false;
+    this.rangeCharSelected=false;
+    this.booleanCharSelected=false;
+    this.booleanDefaultTrue=true;
+    this.charTypeSelected = this.getInitialCharacteristicTypeForCurrentStep();
+    this.creatingChars=[];
+  }
+
+  openCreateChar(): void {
+    this.editingCharIdx = null;
+    this.charsForm.reset();
+    this.charIsOptional = false;
+    this.refreshChars();
+    this.showCreateChar = true;
+  }
+
+  itemListFor(type: 'feature' | 'benefit' | 'usecase'){
+    return type === 'feature' ? this.keyFeatures : type === 'benefit' ? this.businessBenefits : this.useCases;
+  }
+
+  itemDescriptionLimit(type: 'feature' | 'benefit' | 'usecase' | null): number {
+    return type === 'usecase' ? 400 : 200;
+  }
+
+  openItemModal(type: 'feature' | 'benefit' | 'usecase', editIdx: number | null = null){
+    if(editIdx !== null){
+      const existing: any = this.itemListFor(type)[editIdx];
+      this.itemModal = { type, name: existing?.name || '', description: existing?.description || '', icon: existing?.icon ?? null, editIdx };
+    } else {
+      this.itemModal = { type, name: '', description: '', icon: null, editIdx: null };
+    }
+  }
+
+  closeItemModal(){
+    this.itemModal = { type: null, name: '', description: '', icon: null, editIdx: null };
+  }
+
+  selectModalIcon(name: string){
+    this.itemModal.icon = this.itemModal.icon === name ? null : name;
+  }
+
+  saveItemModal(){
+    const name = (this.itemModal.name || '').trim();
+    if(!name || !this.itemModal.type) return;
+    const description = (this.itemModal.description || '').trim();
+    if(this.itemModal.type === 'benefit'){
+      const entry = { name, description };
+      if(this.itemModal.editIdx !== null){
+        this.businessBenefits[this.itemModal.editIdx] = entry;
+      } else {
+        this.businessBenefits.push(entry);
+      }
+    } else {
+      const list = this.itemModal.type === 'feature' ? this.keyFeatures : this.useCases;
+      const entry = { name, description, icon: this.itemModal.icon };
+      if(this.itemModal.editIdx !== null){
+        list[this.itemModal.editIdx] = entry;
+      } else {
+        list.push(entry);
+      }
+    }
+    this.closeItemModal();
+  }
+
+  removeItem(type: 'feature' | 'benefit' | 'usecase', idx: number){
+    this.itemListFor(type).splice(idx, 1);
+    this.openItemMenuIdx = null;
+  }
+
+  toggleItemMenu(type: string, idx: number, event: Event){
+    event.stopPropagation();
+    if(this.openItemMenuIdx && this.openItemMenuIdx.type === type && this.openItemMenuIdx.idx === idx){
+      this.openItemMenuIdx = null;
+    } else {
+      this.openItemMenuIdx = { type, idx };
+    }
+  }
+
+  isItemMenuOpen(type: string, idx: number){
+    return this.openItemMenuIdx?.type === type && this.openItemMenuIdx.idx === idx;
+  }
+
+  onProductImageSelected(event: Event){
+    const input = event.target as HTMLInputElement;
+    if(input.files && input.files.length > 0){
+      const file = input.files[0];
+      this.productImageTouched = true;
+      if(!ALLOWED_PRODUCT_IMAGE_TYPES.has(file.type)){
+        input.value = '';
+        this.errorMessage = 'File must have a valid image format!';
+        this.showError = true;
+        setTimeout(() => { this.showError = false; }, 3000);
+        return;
+      }
+      this.productImage = { name: file.name, size: file.size };
+      this.uploadingImage = true;
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        const dataUrl: string = e?.target?.result || '';
+        this.productImageUrl = dataUrl;
+        this.cdr.detectChanges();
+        const base64 = (dataUrl.split(',')[1]) || '';
+        const fileBody = {
+          content: { name: uuidv4() + '_' + file.name, data: base64 },
+          contentType: file.type,
+          isPublic: true
+        };
+        this.attachmentService.uploadFile(fileBody).subscribe({
+          next: (data: any) => {
+            this.uploadingImage = false;
+            console.log('[image upload] response:', data);
+            const serverUrl = data?.content;
+            const usableUrl = (typeof serverUrl === 'string' && serverUrl.length > 0)
+              ? this.absoluteAssetUrl(serverUrl)
+              : dataUrl;
+            this.productImageRef = {
+              name: 'Profile Picture',
+              url: usableUrl,
+              attachmentType: file.type
+            };
+            this.productImageUrl = dataUrl;
+            this.cdr.detectChanges();
+          },
+          error: (err: any) => {
+            this.uploadingImage = false;
+            console.error('Image upload failed', err);
+            this.errorMessage = err?.status === 413
+              ? this.translate.instant('CREATE_PROD_SPEC._file_size_error')
+              : this.getErrorMessage(err, 'CREATE_PROD_SPEC._image_upload_error');
+            this.showError = true;
+            setTimeout(() => { this.showError = false; }, 3000);
+            this.removeProductImage();
+          }
+        });
+      };
+      reader.readAsDataURL(file);
+      input.value = '';
+    }
+  }
+
+  removeProductImage(){
+    this.productImage = null;
+    this.productImageUrl = null;
+    this.productImageRef = null;
+    this.productImageTouched = true;
+  }
+
+  onAttachmentSelected(event: Event){
+    const input = event.target as HTMLInputElement;
+    if(input.files && input.files.length > 0){
+      const files = Array.from(input.files);
+      input.value = '';
+      files.forEach(file => {
+        const placeholder: any = { name: file.name, size: file.size, _uploading: true };
+        this.attachments.push(placeholder);
+        this.uploadingAttachment = true;
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          const dataUrl: string = e?.target?.result || '';
+          const base64 = (dataUrl.split(',')[1]) || '';
+          const fileBody = {
+            content: { name: uuidv4() + '_' + file.name, data: base64 },
+            contentType: file.type,
+            isPublic: true
+          };
+          this.attachmentService.uploadFile(fileBody).subscribe({
+            next: (data: any) => {
+              const serverUrl = data?.content;
+              placeholder.url = (typeof serverUrl === 'string' && serverUrl.length > 0)
+                ? this.absoluteAssetUrl(serverUrl)
+                : dataUrl;
+              placeholder.attachmentType = file.type;
+              placeholder._uploading = false;
+              this.uploadingAttachment = this.attachments.some(a => (a as any)._uploading);
+              this.cdr.detectChanges();
+            },
+            error: (err: any) => {
+              this.uploadingAttachment = this.attachments.some(a => (a as any)._uploading && a !== placeholder);
+              console.error('Attachment upload failed', err);
+              this.errorMessage = err?.status === 413
+                ? this.translate.instant('CREATE_PROD_SPEC._file_size_error')
+                : this.getErrorMessage(err, 'CREATE_PROD_SPEC._file_upload_error');
+              this.showError = true;
+              setTimeout(() => { this.showError = false; }, 3000);
+              const idx = this.attachments.indexOf(placeholder);
+              if (idx !== -1) this.attachments.splice(idx, 1);
+            }
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+
+  removeAttachment(idx: number){
+    this.attachments.splice(idx, 1);
+  }
+
+  selfAttestationFile: { name: string, size?: number, url?: string, _uploading?: boolean, id?: string } | null = null;
+  complianceFiles: { name: string, size?: number, url?: string, _uploading?: boolean, id?: string, charName?: string, originalChar?: any }[] = [];
+  private selfAttId: string | null = null;
+  private selfAttOriginalChar: any = null;
+  private complianceVCChar: any = null;
+
+  showRequestValidationModal: boolean = false;
+  selectedISOS: any[] = [];
+
+  get selfAtt(): any {
+    if (!this.selfAttestationFile?.url) return null;
+    return { id: this.selfAttId, name: 'Compliance:SelfAtt', productSpecCharacteristicValue: [{ isDefault: true, value: this.selfAttestationFile.url }] };
+  }
+
+  get additionalISOS(): any[] {
+    return this.complianceFiles.filter(f => f.url).map(f => ({ id: f.id, name: f.charName || ('Compliance:' + f.name), url: f.url }));
+  }
+
+  private buildComplianceChars(): any[] {
+    const chars: any[] = [];
+    if (this.selfAttestationFile?.url) {
+      chars.push({
+        ...(this.selfAttOriginalChar || {}),
+        id: this.selfAttId || `urn:ngsi-ld:characteristic:${uuidv4()}`,
+        name: 'Compliance:SelfAtt',
+        productSpecCharacteristicValue: this.mergeCharacteristicValues(
+          this.selfAttOriginalChar?.productSpecCharacteristicValue || [],
+          [{ isDefault: true, value: this.selfAttestationFile.url }]
+        )
+      });
+    }
+    this.complianceFiles.forEach(f => {
+      if (f.url || f.originalChar) {
+        chars.push({
+          ...(f.originalChar || {}),
+          id: f.id || f.originalChar?.id || `urn:ngsi-ld:characteristic:${uuidv4()}`,
+          name: f.charName || f.originalChar?.name || `Compliance:${f.name}`,
+          productSpecCharacteristicValue: f.url
+            ? this.mergeCharacteristicValues(
+              f.originalChar?.productSpecCharacteristicValue || [],
+              [{ isDefault: true, value: f.url }]
+            )
+            : (f.originalChar?.productSpecCharacteristicValue || [])
+        });
+      }
+    });
+    if (this.complianceVCChar) chars.push(this.complianceVCChar);
+    return chars;
+  }
+
+  private loadComplianceFromProd(){
+    const chars: any[] = Array.isArray(this.prod?.productSpecCharacteristic) ? this.prod.productSpecCharacteristic : [];
+    for (const char of chars) {
+      const name = char?.name || '';
+      const value = char?.productSpecCharacteristicValue?.[0]?.value;
+      if (name === 'Compliance:SelfAtt') {
+        this.selfAttId = char.id || null;
+        this.selfAttOriginalChar = JSON.parse(JSON.stringify(char));
+        if (value) this.selfAttestationFile = { name: this.fileNameFromValue(value), url: value, id: char.id };
+      } else if (name === 'Compliance:VC') {
+        this.complianceVCChar = JSON.parse(JSON.stringify(char));
+      } else if (name.startsWith('Compliance:')) {
+        this.complianceFiles.push({
+          name: this.fileNameFromValue(value),
+          url: value,
+          id: char.id,
+          charName: name,
+          originalChar: JSON.parse(JSON.stringify(char))
+        });
+      }
+    }
+  }
+
+  private fileNameFromValue(value: string): string {
+    if (!value) return 'Self attestation';
+    const last = value.split('/').pop() || value;
+    let decoded = last;
+    try { decoded = decodeURIComponent(last); } catch { }
+    const underscore = decoded.indexOf('_');
+    return underscore > -1 ? decoded.slice(underscore + 1) : decoded;
+  }
+
+  hasSelfAttestation(): boolean {
+    return !!this.selfAttestationFile?.url;
+  }
+
+  downloadSelfAttestationTemplate(){
+    const link = document.createElement('a');
+    link.href = 'assets/documents/self-attestation-template.docx';
+    link.download = 'self-attestation-template.docx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  requestValidation(){
+    this.showRequestValidationModal = true;
+  }
+
+  closeRequestValidationModal(){
+    this.showRequestValidationModal = false;
+  }
+
+  private uploadComplianceFile(file: File, onDone: (url: string) => void, onError: () => void){
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const dataUrl: string = e?.target?.result || '';
+      const base64 = (dataUrl.split(',')[1]) || '';
+      const fileBody = { content: { name: uuidv4() + '_' + file.name, data: base64 }, contentType: file.type, isPublic: true };
+      this.attachmentService.uploadFile(fileBody).subscribe({
+        next: (data: any) => {
+          const serverUrl = data?.content;
+          onDone((typeof serverUrl === 'string' && serverUrl.length > 0) ? serverUrl : dataUrl);
+          this.cdr.detectChanges();
+        },
+        error: (err: any) => {
+          console.error('Compliance upload failed', err);
+          this.errorMessage = err?.status === 413
+            ? this.translate.instant('CREATE_PROD_SPEC._file_size_error')
+            : this.getErrorMessage(err, 'CREATE_PROD_SPEC._file_upload_error');
+          this.showError = true;
+          setTimeout(() => { this.showError = false; }, 3000);
+          onError();
+          this.cdr.detectChanges();
+        }
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  onSelfAttestationSelected(event: Event){
+    const input = event.target as HTMLInputElement;
+    if(input.files && input.files.length > 0){
+      const file = input.files[0];
+      const entry = { name: file.name, size: file.size, _uploading: true } as any;
+      this.selfAttestationFile = entry;
+      this.selfAttId = null;
+      input.value = '';
+      this.uploadComplianceFile(file,
+        (url) => { entry.url = url; entry._uploading = false; },
+        () => { this.selfAttestationFile = null; });
+    }
+  }
+
+  removeSelfAttestation(){
+    this.selfAttestationFile = null;
+    this.selfAttId = null;
+  }
+
+  onComplianceFileSelected(event: Event){
+    const input = event.target as HTMLInputElement;
+    if(input.files && input.files.length > 0){
+      Array.from(input.files).forEach(file => {
+        const entry = { name: file.name, size: file.size, _uploading: true } as any;
+        this.complianceFiles.push(entry);
+        this.uploadComplianceFile(file,
+          (url) => { entry.url = url; entry._uploading = false; },
+          () => { const i = this.complianceFiles.indexOf(entry); if(i > -1) this.complianceFiles.splice(i, 1); });
+      });
+      input.value = '';
+    }
+  }
+
+  removeComplianceFile(idx: number){
+    this.complianceFiles.splice(idx, 1);
+  }
+
+  private readonly DETAILS_START = '<!--dome:details:start-->';
+  private readonly DETAILS_END = '<!--dome:details:end-->';
+
+  private composeDescription(): string {
+    const overview = (this.generalForm.value.description ?? '').toString();
+    const sections = this.serializeProductDetails();
+    if (!sections) return overview;
+    return `${overview}\n${this.DETAILS_START}\n${sections}\n${this.DETAILS_END}`;
+  }
+
+  private serializeProductDetails(): string {
+    const parts: string[] = [];
+    if (this.howItWorks?.trim()) {
+      parts.push(`<section data-dome-section="how-it-works" data-text="${this.attr(this.howItWorks)}"><h3>${this.esc(this.translate.instant('CREATE_PROD_SPEC._how_it_works'))}</h3><p>${this.esc(this.howItWorks)}</p></section>`);
+    }
+    parts.push(this.serializeItemSection('key-features', this.translate.instant('CREATE_PROD_SPEC._key_features'), this.keyFeatures, true));
+    parts.push(this.serializeItemSection('business-benefits', this.translate.instant('CREATE_PROD_SPEC._business_benefits'), this.businessBenefits, false));
+    parts.push(this.serializeItemSection('use-cases', this.translate.instant('CREATE_PROD_SPEC._use_cases'), this.useCases, true));
+    parts.push(this.serializeFaqs());
+    return parts.filter(Boolean).join('\n');
+  }
+
+  private serializeFaqs(): string {
+    if (!this.faqs || this.faqs.length === 0) return '';
+    const lis = this.faqs.map(f =>
+      `<li data-q="${this.attr(f.question)}" data-a="${this.attr(f.answer)}"><strong>${this.esc(f.question)}</strong><p>${this.esc(f.answer)}</p></li>`
+    ).join('');
+    return `<section data-dome-section="faqs"><h3>${this.esc(this.translate.instant('CREATE_PROD_SPEC._faqs'))}</h3><ul>${lis}</ul></section>`;
+  }
+
+  private serializeItemSection(key: string, title: string, items: any[], withIcon: boolean): string {
+    if (!items || items.length === 0) return '';
+    const lis = items.map(it => {
+      const icon = withIcon && it.icon ? ` data-icon="${this.attr(it.icon)}"` : '';
+      const desc = it.description ? `: ${this.esc(it.description)}` : '';
+      return `<li data-name="${this.attr(it.name)}" data-desc="${this.attr(it.description || '')}"${icon}><strong>${this.esc(it.name)}</strong>${desc}</li>`;
+    }).join('');
+    return `<section data-dome-section="${key}"><h3>${this.esc(title)}</h3><ul>${lis}</ul></section>`;
+  }
+
+  private parseDescription(raw: string): string {
+    const text = (raw ?? '').toString();
+    const startIdx = text.indexOf(this.DETAILS_START);
+    if (startIdx === -1) return text;
+    const overview = text.slice(0, startIdx).replace(/\n+$/, '');
+    const endIdx = text.indexOf(this.DETAILS_END);
+    const inner = text.slice(startIdx + this.DETAILS_START.length, endIdx > -1 ? endIdx : undefined);
+    try {
+      const doc = new DOMParser().parseFromString(`<div>${inner}</div>`, 'text/html');
+      const how = doc.querySelector('[data-dome-section="how-it-works"]');
+      if (how) this.howItWorks = how.getAttribute('data-text') || how.querySelector('p')?.textContent || '';
+      this.keyFeatures = this.parseItemSection(doc, 'key-features', true);
+      this.businessBenefits = this.parseItemSection(doc, 'business-benefits', false);
+      this.useCases = this.parseItemSection(doc, 'use-cases', true);
+      const faqSection = doc.querySelector('[data-dome-section="faqs"]');
+      if (faqSection) {
+        this.faqs = Array.from(faqSection.querySelectorAll('li')).map(li => ({
+          question: li.getAttribute('data-q') || '',
+          answer: li.getAttribute('data-a') || '',
+          expanded: false
+        }));
+      }
+    } catch { }
+    return overview;
+  }
+
+  private parseItemSection(doc: Document, key: string, withIcon: boolean): any[] {
+    const section = doc.querySelector(`[data-dome-section="${key}"]`);
+    if (!section) return [];
+    return Array.from(section.querySelectorAll('li')).map(li => {
+      const name = li.getAttribute('data-name') || li.querySelector('strong')?.textContent || '';
+      const description = li.getAttribute('data-desc') || '';
+      return withIcon ? { name, description, icon: li.getAttribute('data-icon') || null } : { name, description };
+    });
+  }
+
+  private esc(s: string): string {
+    return (s ?? '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  private attr(s: string): string {
+    return this.esc(s).replace(/"/g, '&quot;');
+  }
+
+  private absoluteAssetUrl(url: string): string {
+    if (!url) return url;
+    if (url.startsWith('data:')) return url;
+    const base = (environment.BASE_URL || '').replace(/\/+$/, '');
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      try {
+        const parsed = new URL(url);
+        const pageHost = typeof window !== 'undefined' ? window.location.host : '';
+        if (base && parsed.host === pageHost) {
+          return base + parsed.pathname + parsed.search;
+        }
+      } catch {}
+      return url;
+    }
+    const path = url.startsWith('/') ? url : '/' + url;
+    return base + path;
+  }
+
+  formatFileSize(bytes: number | undefined): string {
+    if(bytes == null) return '';
+    if(bytes < 1024) return bytes + ' B';
+    if(bytes < 1024*1024) return (bytes / 1024).toFixed(0) + ' KB';
+    return (bytes / (1024*1024)).toFixed(1) + ' MB';
+  }
+
+  hasLongWord(str: string | undefined, threshold = 20) {
+    if(str){
+      return str.split(/\s+/).some(word => word.length > threshold);
+    } else {
+      return false
+    }
+  }
+
   goToStep(index: number) {
-    // Solo validar en modo creación
-    if (index > this.currentStepIdx) {
-      // Validar el paso actual
+    if (index > this.currentStep) {
       const currentStepValid = this.validateCurrentStep();
       if (!currentStepValid) {
-        return; // No permitir avanzar si el paso actual no es válido
+        if (this.currentStep === 0) {
+          this.productImageTouched = true;
+          this.generalForm.markAllAsTouched();
+        }
+        return;
       }
     }
 
-    if (this.currentStep.id === 'general' && this.dspEnable) {
-      if (this.generalForm.value.dspCompatible) {
-        this.addStepAfter({ label: 'DSP Config', id: 'dsp_config' }, 'characteristics');
-        this.removeStep('dataspace')
-      } else {
-        this.removeStep('dsp_config');
-        this.addStepAfter({ label: 'Dataspace Configuration', id: 'dataspace' }, 'characteristics')
-      }
-    }
-
-    this.currentStepIdx = index;
-    if (this.currentStepIdx > this.highestStepIdx) {
-      this.highestStepIdx = index
+    this.currentStep = index;
+    if(this.currentStep>this.highestStep){
+      this.highestStep=this.currentStep
     }
     this.refreshChars();
-    if (this.currentStep.id === 'compliance') {
-      setTimeout(() => {
-        initFlowbite();
-      }, 100);
-    }
-    //Resource
-    if (this.currentStep.id === 'resource') {
-      this.getResSpecs(false);
-    }
-    //Service
-    if (this.currentStep.id === 'service') {
-      this.getServSpecs(false);
-    }
-    //Attachment
-    if (this.currentStep.id === 'attachments') {
-      setTimeout(() => {
-        initFlowbite();
-      }, 100);
-    }
-    //rels
-    if (this.currentStep.id === 'relationships') {
-      this.getProdSpecsRel(false);
-    }
-    //finish
-    if (this.currentStep.id === 'summary') {
-      this.showFinish();
-    }
   }
 
   validateCurrentStep(): boolean {
-    switch (this.currentStep.id) {
-      case 'general':
-        return this.generalForm?.valid || false;
-      case 'dsp_config':
-        return this.endpointUrls.length > 0 && this.dspConfigForm.valid;
-      default:
-        return true;
+    if (this.isCurrentStep('general')) {
+      return this.isGeneralInfoStepValid();
+    }
+    if (this.isCurrentStep('dataspace') && this.isDspCompatibleSelected()) {
+      return this.endpointUrls.length > 0 && this.dspConfigForm.valid;
+    }
+    return true;
+  }
+
+  canNavigate(index: number) {
+    if (index === this.currentStep || index === 0) return true;
+    if (index <= this.highestStep) return true;
+    if (this.isEditMode) return this.isGeneralInfoStepValid();
+    return this.isGeneralInfoStepValid() && this.steps
+      .slice(0, index)
+      .every((_: string, i: number) => this.isOptionalStep(i) || this.completedStep(i));
+  }
+
+  handleStepClick(index: number): void {
+    if (this.canNavigate(index)) {
+      this.goToStep(index);
     }
   }
 
-  isStepDisabled(): boolean {
-    switch (this.currentStep.id) {
-      case 'general':
-        return !this.generalForm?.valid || false;
-      case 'bundle':
-        return this.prodSpecsBundle.length < 2 && this.bundleChecked;
-      case 'compliance':
-        return this.checkValidISOS();
-      case 'dsp_config':
-        return this.endpointUrls.length === 0;
-      default:
-        return false;
+  private getFormSteps(): string[] {
+    const steps = [
+      this.stepLabels.general,
+      this.stepLabels.details,
+      this.stepLabels.config
+    ];
+    if (this.DATA_SPACE_ENABLED) {
+      steps.push(this.stepLabels.dataspace);
     }
+    steps.push(
+      this.stepLabels.service,
+      this.stepLabels.resource,
+      this.stepLabels.faqs,
+      this.stepLabels.compliance
+    );
+    return steps;
+  }
+
+  isCurrentStep(key: ProductSpecStepKey): boolean {
+    return this.steps[this.currentStep] === this.stepLabels[key];
+  }
+
+  private stepKeyAt(index: number): ProductSpecStepKey | null {
+    const label = this.steps[index];
+    return (Object.keys(this.stepLabels) as ProductSpecStepKey[])
+      .find(key => this.stepLabels[key] === label) || null;
+  }
+
+  optionalSteps = [
+    this.stepLabels.config,
+    this.stepLabels.service,
+    this.stepLabels.resource,
+    this.stepLabels.faqs,
+    this.stepLabels.compliance
+  ];
+
+  isOptionalStep(index: number): boolean {
+    const label = this.steps[index];
+    return this.optionalSteps.includes(label)
+      || (label === this.stepLabels.dataspace && !this.isDspCompatibleSelected());
+  }
+
+  completedStep(index: number): boolean {
+    if (this.isOptionalStep(index)) return this.isEditMode || this.stepHasContent(index) || index < this.highestStep;
+    switch (this.stepKeyAt(index)) {
+      case 'general':
+        return this.isGeneralInfoStepValid();
+      case 'dataspace':
+        return this.isDspCompatibleSelected() ? this.endpointUrls.length > 0 && this.dspConfigForm.valid : this.stepHasContent(index);
+      default: return this.stepHasContent(index);
+    }
+  }
+
+  isGeneralInfoStepValid(): boolean {
+    return !!this.generalForm?.valid && this.isProductImageValid();
+  }
+
+  isProductImageValid(): boolean {
+    return !!this.productImageRef?.url && !this.uploadingImage;
+  }
+
+  showProductImageRequiredError(): boolean {
+    return this.productImageTouched && !this.uploadingImage && !this.isProductImageValid();
+  }
+
+  private stepHasContent(index: number): boolean {
+    switch (this.stepKeyAt(index)) {
+      case 'details': return !!this.howItWorks?.trim() || this.keyFeatures.length > 0
+        || this.businessBenefits.length > 0 || this.useCases.length > 0;
+      case 'config': return this.prodChars.length > 0;
+      case 'dataspace': return this.dataspaceChars.length > 0 || this.endpointUrls.length > 0;
+      case 'service': return this.linkedServiceSpecIds.length > 0;
+      case 'resource': return this.linkedResourceSpecIds.length > 0;
+      case 'faqs': return this.faqs.length > 0;
+      default: return false;
+    }
+  }
+
+  stepHasWarning(index: number): boolean {
+    if (this.completedStep(index)) return false;
+    if (this.currentStep === index) return false;
+    if (this.isOptionalStep(index)) return false;
+    if (this.isEditMode) return true;
+    return index < this.highestStep;
+  }
+
+  stepShowCheck(index: number): boolean {
+    if (this.currentStep === index) return false;
+    if (this.stepHasWarning(index)) return false;
+    return this.completedStep(index);
+  }
+
+  stepCircleClasses(index: number): string {
+    if (this.currentStep === index) return 'bg-primary-100 text-offerings-on-dark';
+    if (this.stepHasWarning(index)) return 'bg-status-warning-border text-offerings-on-dark';
+    if (this.completedStep(index)) return 'text-offerings-on-dark';
+    return 'bg-offerings-surface border-2 border-offerings-border-strong text-offerings-muted-text';
+  }
+
+  stepCircleColor(index: number): string | null {
+    if (this.stepShowCheck(index)) return 'rgb(var(--theme-status-complete-bg))';
+    return null;
+  }
+
+  stepLabelClasses(index: number): string {
+    if (this.currentStep === index) return 'text-primary-100';
+    if (this.stepHasWarning(index)) return 'text-status-warning-text';
+    if (this.completedStep(index)) return 'text-status-success-text';
+    return 'text-offerings-body';
+  }
+
+  async loadValidatedSpecs(){
+    try {
+      const services = await this.servSpecService.getServiceSpecByUser(0, ['Launched'], this.partyId, undefined);
+      this.availableServiceSpecs = Array.isArray(services) ? services : [];
+    } catch { this.availableServiceSpecs = []; }
+    try {
+      const resources = await this.resSpecService.getResourceSpecByUser(0, ['Launched'], this.partyId);
+      this.availableResourceSpecs = Array.isArray(resources) ? resources : [];
+    } catch { this.availableResourceSpecs = []; }
+    this.cdr.detectChanges();
+  }
+
+  openServiceDropdown(event: Event){
+    event.stopPropagation();
+    this.serviceDropdownOpen = true;
+    this.resourceDropdownOpen = false;
+  }
+
+  openResourceDropdown(event: Event){
+    event.stopPropagation();
+    this.resourceDropdownOpen = true;
+    this.serviceDropdownOpen = false;
+  }
+
+  toggleLinkedService(id: string){
+    const idx = this.linkedServiceSpecIds.indexOf(id);
+    if(idx !== -1){ this.linkedServiceSpecIds.splice(idx, 1); }
+    else { this.linkedServiceSpecIds.push(id); }
+  }
+
+  removeLinkedService(id: string){
+    const idx = this.linkedServiceSpecIds.indexOf(id);
+    if(idx !== -1){ this.linkedServiceSpecIds.splice(idx, 1); }
+  }
+
+  toggleLinkedResource(id: string){
+    const idx = this.linkedResourceSpecIds.indexOf(id);
+    if(idx !== -1){ this.linkedResourceSpecIds.splice(idx, 1); }
+    else { this.linkedResourceSpecIds.push(id); }
+  }
+
+  removeLinkedResource(id: string){
+    const idx = this.linkedResourceSpecIds.indexOf(id);
+    if(idx !== -1){ this.linkedResourceSpecIds.splice(idx, 1); }
+  }
+
+  isServiceSelected(id: string){ return this.linkedServiceSpecIds.indexOf(id) !== -1; }
+  isResourceSelected(id: string){ return this.linkedResourceSpecIds.indexOf(id) !== -1; }
+
+  serviceSpecById(id: string){ return this.availableServiceSpecs.find(s => s.id === id); }
+  resourceSpecById(id: string){ return this.availableResourceSpecs.find(r => r.id === id); }
+
+  filteredServiceSpecs(){
+    const q = (this.serviceSearch || '').toLowerCase();
+    if(!q) return this.availableServiceSpecs;
+    return this.availableServiceSpecs.filter(s => (s.name || '').toLowerCase().includes(q));
+  }
+
+  filteredResourceSpecs(){
+    const q = (this.resourceSearch || '').toLowerCase();
+    if(!q) return this.availableResourceSpecs;
+    return this.availableResourceSpecs.filter(r => (r.name || '').toLowerCase().includes(q));
+  }
+
+  formatSpecDate(date: any): string {
+    if(!date) return '';
+    const d = new Date(date);
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const yyyy = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mi = String(d.getMinutes()).padStart(2,'0');
+    return `${dd}/${mm}/${yyyy} - ${hh}:${mi}`;
   }
 
   addEndpointUrl(): void {
@@ -1852,7 +1748,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     const description = this.newEndpointDescription.trim();
     const name = this.newEndpointName.trim();
     if (!url || !description || !name) return;
-    this.endpointUrls = [...this.endpointUrls, { url, description, name }];
+    this.endpointUrls = [...this.endpointUrls, { url, description, name, id: uuidv4() }];
     this.newEndpointUrl = '';
     this.newEndpointDescription = '';
     this.newEndpointName = '';
@@ -1862,38 +1758,148 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy {
     this.endpointUrls = this.endpointUrls.filter((_, i) => i !== idx);
   }
 
-  canNavigate(index: number) {
-    return (this.generalForm?.valid && (index <= this.currentStepIdx)) || (this.generalForm?.valid && (index <= this.highestStepIdx));
+  openUsageModal(editIdx: number | null = null){
+    if(editIdx !== null){
+      const u = this.usageSpecs[editIdx];
+      this.usageModal = {
+        isOpen: true,
+        editIdx,
+        name: u?.name || '',
+        description: u?.description || '',
+        metrics: u?.metrics ? u.metrics.map(m => ({ ...m })) : [],
+        metricFormOpen: false, metricName: '', metricDescription: '', metricEditIdx: null
+      };
+    } else {
+      this.usageModal = { isOpen: true, editIdx: null, name: '', description: '', metrics: [], metricFormOpen: true, metricName: '', metricDescription: '', metricEditIdx: null };
+    }
+    this.usageMenuIdx = null;
   }
 
-  handleStepClick(index: number): void {
-    if (this.canNavigate(index)) {
-      this.goToStep(index);
+  closeUsageModal(){
+    this.usageModal = { isOpen: false, editIdx: null, name: '', description: '', metrics: [], metricFormOpen: false, metricName: '', metricDescription: '', metricEditIdx: null };
+  }
+
+  startAddMetric(){
+    this.usageModal.metricFormOpen = true;
+    this.usageModal.metricName = '';
+    this.usageModal.metricDescription = '';
+    this.usageModal.metricEditIdx = null;
+  }
+
+  saveCurrentMetric(){
+    const name = (this.usageModal.metricName || '').trim();
+    if(!name) return;
+    const entry = { name, description: (this.usageModal.metricDescription || '').trim() };
+    if(this.usageModal.metricEditIdx !== null){
+      this.usageModal.metrics[this.usageModal.metricEditIdx] = entry;
+    } else {
+      this.usageModal.metrics.push(entry);
+    }
+    this.usageModal.metricFormOpen = false;
+    this.usageModal.metricName = '';
+    this.usageModal.metricDescription = '';
+    this.usageModal.metricEditIdx = null;
+  }
+
+  editMetric(idx: number){
+    const m = this.usageModal.metrics[idx];
+    this.usageModal.metricFormOpen = true;
+    this.usageModal.metricName = m?.name || '';
+    this.usageModal.metricDescription = m?.description || '';
+    this.usageModal.metricEditIdx = idx;
+    this.usageMetricMenuIdx = null;
+  }
+
+  removeMetric(idx: number){
+    this.usageModal.metrics.splice(idx, 1);
+    if(this.usageModal.metricEditIdx === idx){
+      this.usageModal.metricFormOpen = false;
+      this.usageModal.metricEditIdx = null;
+    } else if(this.usageModal.metricEditIdx !== null && this.usageModal.metricEditIdx > idx){
+      this.usageModal.metricEditIdx = this.usageModal.metricEditIdx - 1;
+    }
+    this.usageMetricMenuIdx = null;
+  }
+
+  toggleMetricMenu(idx: number, event: Event){
+    event.stopPropagation();
+    this.usageMetricMenuIdx = this.usageMetricMenuIdx === idx ? null : idx;
+  }
+
+  saveUsageSpec(){
+    const name = (this.usageModal.name || '').trim();
+    if(!name) return;
+    const entry = {
+      name,
+      description: (this.usageModal.description || '').trim(),
+      metrics: this.usageModal.metrics.map(m => ({ ...m }))
+    };
+    if(this.usageModal.editIdx !== null){
+      this.usageSpecs[this.usageModal.editIdx] = entry;
+    } else {
+      this.usageSpecs.push(entry);
+    }
+    this.closeUsageModal();
+  }
+
+  removeUsageSpec(idx: number){
+    this.usageSpecs.splice(idx, 1);
+    this.usageMenuIdx = null;
+  }
+
+  toggleUsageMenu(idx: number, event: Event){
+    event.stopPropagation();
+    this.usageMenuIdx = this.usageMenuIdx === idx ? null : idx;
+  }
+
+  addFaq(){
+    this.faqs.forEach(f => f.expanded = false);
+    this.faqs.push({ question: '', answer: '', expanded: true });
+  }
+
+  removeFaq(idx: number){
+    this.faqDeleteIdx = idx;
+  }
+
+  cancelDeleteFaq(){
+    this.faqDeleteIdx = null;
+  }
+
+  confirmDeleteFaq(){
+    if(this.faqDeleteIdx !== null){
+      this.faqs.splice(this.faqDeleteIdx, 1);
+    }
+    this.faqDeleteIdx = null;
+  }
+
+  toggleFaq(idx: number){
+    const wasExpanded = this.faqs[idx]?.expanded;
+    this.faqs.forEach((f, i) => f.expanded = (i === idx ? !wasExpanded : false));
+  }
+
+  onFaqDragStart(event: DragEvent, idx: number){
+    this.draggingFaqIdx = idx;
+    if(event.dataTransfer){
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', String(idx));
     }
   }
 
-  normalizeName(name?: string): string {
-    return name?.replace(/compliance:/i, '').trim() ?? '';
+  onFaqDragOver(event: DragEvent){
+    event.preventDefault();
+    if(event.dataTransfer){ event.dataTransfer.dropEffect = 'move'; }
   }
 
-  private addStepAfter(step: Step, stepAfter?: ProductSpecFormStep): void {
-    if (!stepAfter) { this.steps.push(step) }
-    const alreadyAdded = this.steps.some(s => s.id === step.id);
-    if (alreadyAdded) return;
-    const serviceIdx = this.steps.findIndex(s => s.id === stepAfter);
-    this.steps = [
-      ...this.steps.slice(0, serviceIdx + 1),
-      step,
-      ...this.steps.slice(serviceIdx + 1),
-    ];
+  onFaqDrop(event: DragEvent, targetIdx: number){
+    event.preventDefault();
+    const sourceIdx = this.draggingFaqIdx;
+    this.draggingFaqIdx = null;
+    if(sourceIdx === null || sourceIdx === targetIdx) return;
+    const item = this.faqs.splice(sourceIdx, 1)[0];
+    this.faqs.splice(targetIdx, 0, item);
   }
 
-  private removeStep(step: ProductSpecFormStep): void {
-    const idx = this.steps.findIndex(s => s.id === step);
-    if (idx === -1) return;
-    if (this.currentStepIdx >= idx) this.currentStepIdx = idx - 1;
-    if (this.highestStepIdx >= idx) this.highestStepIdx = idx - 1;
-    this.steps = this.steps.filter(s => s.id !== step);
+  onFaqDragEnd(){
+    this.draggingFaqIdx = null;
   }
-
 }

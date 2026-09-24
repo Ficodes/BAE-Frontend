@@ -197,7 +197,7 @@ class="flex justify-center overflow-y-auto overflow-x-hidden fixed top-0 right-0
                   <div class="hidden pl-4 md:pl-8 pt-2 md:pt-4 pb-2 md:pb-4" id="terms">
                   @if(check_terms == true){                 
                       <h5 class="text-3xl font-semibold tracking-tight text-primary-100">{{ 'CARD._terms' | translate }}:</h5>
-                      @for (term of productOff?.productOfferingTerm; track term.name){
+                      @for (term of licenseTerms; track term.name){
                       <p class="text-gray-900 text-bold"> <span class="font-bold">{{term.name}}:</span></p>
                       <div class="max-h-[300px] overflow-y-auto mb-4">
                         <markdown class="text-lg font-normal" [data]="term.description"></markdown>

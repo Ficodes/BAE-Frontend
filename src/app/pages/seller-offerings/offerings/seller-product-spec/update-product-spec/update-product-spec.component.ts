@@ -1326,10 +1326,10 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       this.stepsElements.splice(index, 1);
       this.selectMenu(document.getElementById(step), 'text-primary-100 dark:text-primary-50')
-      this.unselectMenu(document.getElementById(step), 'text-gray-500')
+      this.unselectMenu(document.getElementById(step), 'text-offerings-muted-text')
       for (let i = 0; i < this.stepsElements.length; i++) {
         this.unselectMenu(document.getElementById(this.stepsElements[i]), 'text-primary-100 dark:text-primary-50')
-        this.selectMenu(document.getElementById(this.stepsElements[i]), 'text-gray-500')
+        this.selectMenu(document.getElementById(this.stepsElements[i]), 'text-offerings-muted-text')
       }
       this.stepsElements.push(step);
     }
@@ -1337,10 +1337,10 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       this.stepsCircles.splice(circleIndex, 1);
       this.selectMenu(document.getElementById(stepCircle), 'border-primary-100 dark:border-primary-50')
-      this.unselectMenu(document.getElementById(stepCircle), 'border-gray-400');
+      this.unselectMenu(document.getElementById(stepCircle), 'border-offerings-border-strong');
       for (let i = 0; i < this.stepsCircles.length; i++) {
         this.unselectMenu(document.getElementById(this.stepsCircles[i]), 'border-primary-100 dark:border-primary-50')
-        this.selectMenu(document.getElementById(this.stepsCircles[i]), 'border-gray-400');
+        this.selectMenu(document.getElementById(this.stepsCircles[i]), 'border-offerings-border-strong');
       }
       this.stepsCircles.push(stepCircle);
     }

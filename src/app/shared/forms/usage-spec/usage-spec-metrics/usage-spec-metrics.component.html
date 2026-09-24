@@ -1,88 +1,93 @@
-@if (metrics.length === 0){
-    <div class="flex justify-center w-full m-4">
-      <div class="flex w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">
-        <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-        </svg>
-        <span class="sr-only">Info</span>
-        <div>
-            {{ 'USAGE_SPECS._no_metrics' | translate }}
+<div class="flex justify-between items-start gap-4 mb-2">
+  <div>
+    <h2 class="text-2xl font-bold text-gray-900 mb-1">{{ 'USAGE_SPECS._metrics' | translate }}</h2>
+    <p class="text-sm text-gray-500 max-w-2xl">{{ 'USAGE_SPECS._metrics_desc' | translate }}</p>
+  </div>
+  @if(metrics.length > 0 && showCreateMetric == false){
+    <button data-cy="btnNewMetric" type="button" (click)="showCreateMetric=!showCreateMetric" class="flex items-center gap-2 h-10 px-4 border border-primary-100 text-primary-100 rounded-lg text-sm font-semibold hover:bg-secondary-50/50 shrink-0">
+      <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+      </svg>
+      {{ 'USAGE_SPECS._create_metric' | translate }}
+    </button>
+  }
+</div>
+
+@if (metrics.length > 0){
+  <div class="relative w-full mt-4 border border-gray-200 rounded-2xl overflow-visible">
+    <table class="w-full text-sm text-left text-gray-700">
+      <thead class="text-xs text-gray-500 uppercase">
+        <tr class="border-b border-gray-200">
+          <th scope="col" class="px-6 py-3 font-semibold">{{ 'USAGE_SPECS._name' | translate }}</th>
+          <th scope="col" class="px-6 py-3 font-semibold">{{ 'USAGE_SPECS._description' | translate }}</th>
+          <th scope="col" class="px-6 py-3 font-semibold w-20">{{ 'USAGE_SPECS._actions' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (metric of metrics; track metric;) {
+          <tr class="border-t border-gray-100">
+            <td [ngClass]="{ 'break-all': hasLongWord(metric.name, 20), 'break-words': !hasLongWord(metric.name, 20) }" class="px-6 py-4 text-gray-900">
+              {{metric.name}}
+            </td>
+            <td [ngClass]="{ 'break-all': hasLongWord(metric.description, 20), 'break-words': !hasLongWord(metric.description, 20) }" class="px-6 py-4 text-gray-600">
+              {{metric.description || '-'}}
+            </td>
+            <td class="px-6 py-4">
+              <button type="button" (click)="deleteMetric(metric)" class="p-1 hover:bg-gray-100 rounded text-gray-500 hover:text-red-600">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                </svg>
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if(showCreateMetric == false){
+  @if(metrics.length === 0){
+    <div class="rounded-2xl flex-1 dashed-pane mt-4">
+      <div class="flex-1 flex flex-col items-center justify-center px-6 py-12 text-center">
+        <div class="w-[72px] h-[72px] rounded-full flex items-center justify-center mb-5 p-4" style="background-color: #DDE6F6;">
+          <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#2D58A7">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M3.375 3C2.339 3 1.5 3.84 1.5 4.875v.75c0 1.036.84 1.875 1.875 1.875h17.25c1.035 0 1.875-.84 1.875-1.875v-.75C22.5 3.839 21.66 3 20.625 3H3.375z"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M3.087 9l.54 9.176A3 3 0 006.62 21h10.757a3 3 0 002.995-2.824L20.913 9H3.087zm6.133 2.845a.75.75 0 011.06 0l1.72 1.72 1.72-1.72a.75.75 0 111.06 1.06l-1.72 1.72 1.72 1.72a.75.75 0 11-1.06 1.06L12 15.685l-1.72 1.72a.75.75 0 11-1.06-1.06l1.72-1.72-1.72-1.72a.75.75 0 010-1.06z"/>
+          </svg>
         </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ 'USAGE_SPECS._no_metrics' | translate }}</h3>
+        <p class="text-sm text-gray-500 mb-5">{{ 'USAGE_SPECS._add_metric_desc' | translate }}</p>
+        <button data-cy="btnNewMetric" type="button" (click)="showCreateMetric=!showCreateMetric" class="flex items-center gap-2 h-10 px-4 border border-primary-100 text-primary-100 rounded-lg text-sm font-semibold hover:bg-secondary-50/50">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+          </svg>
+          {{ 'USAGE_SPECS._create_metric' | translate }}
+        </button>
       </div>
     </div>
+  }
 } @else {
-    <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white m-4">                        
-        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
-                <tr>
-                    <th scope="col" class="px-6 py-3">
-                        {{ 'USAGE_SPECS._name' | translate }}
-                    </th>
-                    <th scope="col" class="px-6 py-3">
-                        {{ 'USAGE_SPECS._description' | translate }}
-                    </th>
-                    <th scope="col" class="px-6 py-3">
-                        {{ 'USAGE_SPECS._actions' | translate }}
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (metric of metrics; track metric;) {
-                    <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
-                        <td [ngClass]="{
-                            'break-all': hasLongWord(metric.name, 20),
-                            'break-words': !hasLongWord(metric.name, 20)
-                            }" class="px-6 py-4 text-wrap break-words">
-                            {{metric.name}}
-                        </td>
-                        <td [ngClass]="{
-                            'break-all': hasLongWord(metric.description, 20),
-                            'break-words': !hasLongWord(metric.description, 20)
-                            }" class="px-6 py-4 text-wrap break-words">
-                            {{metric.description}}                                       
-                        </td>
-                        <td class="px-6 py-4">
-                            <button (click)="deleteMetric(metric)" class="font-bold text-white bg-red-500 rounded-3xl">
-                                <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-                                </svg>                                  
-                            </button>    
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>                        
-}
-@if(showCreateMetric==false){
-    <div class="flex w-full justify-items-center justify-center">
-        <button data-cy="btnNewMetric" type="button" (click)="showCreateMetric=!showCreateMetric" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
-            {{ 'USAGE_SPECS._create_metric' | translate }}
-            <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
-            </svg>
-        </button>
+  <form class="mt-6 flex flex-col gap-5" [formGroup]="metricsForm">
+    <div>
+      <label for="metric-name" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'USAGE_SPECS._name' | translate }} <span class="text-red-500">*</span></label>
+      <input data-cy="metricName" formControlName="name" type="text" id="metric-name" maxLength="100"
+        placeholder="{{ 'USAGE_SPECS._metric_name_placeholder' | translate }}"
+        class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3"/>
     </div>
-} @else {
-    <form class="m-4" [formGroup]="metricsForm">
-        <div>
-            <label for="prod-name" class="font-bold text-lg dark:text-white">{{ 'USAGE_SPECS._name' | translate }}</label>
-            <input data-cy="metricName" formControlName="name" type="text" id="prod-name" maxLength="100"
-            class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
-
-        </div>
-        <div>
-            <label for="description" class="font-bold text-lg dark:text-white">{{ 'USAGE_SPECS._description' | translate }}</label>
-            <textarea data-cy="metricDescription" id="description" formControlName="description" rows="4"
-            class="mb-2 min-h-fit bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"></textarea>
-        </div>
-    </form>
-    <div class="flex w-full justify-items-center justify-center mt-4">
-        <button data-cy="btnSaveMetric" type="button" (click)="saveMetric()"  [disabled]="!metricsForm.valid" [ngClass]="!metricsForm.valid ? 'opacity-50' : 'hover:bg-primary-50'" class="flex text-white justify-center bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
-            {{ 'USAGE_SPECS._save_metric' | translate }}
-            <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M11 16h2m6.707-9.293-2.414-2.414A1 1 0 0 0 16.586 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.414a1 1 0 0 0-.293-.707ZM16 20v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v6h8ZM9 4h6v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4Z"/>
-            </svg>
-        </button>
+    <div>
+      <label for="metric-description" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'USAGE_SPECS._description' | translate }}</label>
+      <textarea data-cy="metricDescription" id="metric-description" formControlName="description" rows="4"
+        placeholder="{{ 'USAGE_SPECS._metric_description_placeholder' | translate }}"
+        class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3 resize-none"></textarea>
     </div>
+    <div class="flex justify-end items-center gap-3">
+      <button type="button" (click)="showCreateMetric=false; metricsForm.reset();" class="px-4 h-10 text-sm font-semibold text-primary-100 hover:underline">
+        {{ 'USAGE_SPECS._cancel' | translate }}
+      </button>
+      <button data-cy="btnSaveMetric" type="button" (click)="saveMetric()" [disabled]="!metricsForm.valid" [ngClass]="!metricsForm.valid ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'" class="h-10 px-5 bg-primary-100 text-white rounded-lg text-sm font-semibold">
+        {{ 'USAGE_SPECS._save_metric' | translate }}
+      </button>
+    </div>
+  </form>
 }

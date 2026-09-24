@@ -171,7 +171,7 @@ export class CustomOfferComponent implements OnInit {
         href: plan.id
       }));
 
-      const license = this.offer.productOfferingTerm.find((t: { name: string; }) => t.name === 'License');
+      const license = this.offer.productOfferingTerm.find((t: { name: string; }) => String(t?.name || '').toLowerCase() === 'license');
 
       // Add the name of the organization/trading name to the offer name
       let offerName = this.offer.name;

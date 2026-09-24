@@ -87,7 +87,7 @@ export class LicenseComponent implements OnInit, OnDestroy {
       console.log('📝 Data received:', this.data);
       //LICENSE
       if (this.data.productOfferingTerm && Array.isArray(this.data.productOfferingTerm)) {
-        let license = this.data.productOfferingTerm?.find((element: { name: any; }) => element.name == 'License')
+        let license = this.data.productOfferingTerm?.find((element: { name: any; }) => String(element?.name || '').toLowerCase() === 'license')
         if(license){
           this.formGroup.addControl('treatment', new FormControl<string>('License'));
           this.formGroup.addControl('description', new FormControl<string>(license.description));

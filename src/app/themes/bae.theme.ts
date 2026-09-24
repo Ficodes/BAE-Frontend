@@ -44,5 +44,9 @@ export const BAE_THEME_CONFIG: ThemeConfig = {
   dashboard: {
     showFeaturedOfferings: true,
     showPlatformBenefits: false,
+  },
+  features: {
+    colorSchemeSelector: true,
+    darkMode: true,
   }
 };

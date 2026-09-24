@@ -941,7 +941,7 @@ describe('UpdateProductSpecComponent', () => {
   it('selectStep should select active step and update menu classes', () => {
     const selectSpy = spyOn(component, 'selectMenu');
     const unselectSpy = spyOn(component, 'unselectMenu');
-    spyOn(document, 'getElementById').and.returnValue({ className: 'text-gray-500 border-gray-400' } as any);
+    spyOn(document, 'getElementById').and.returnValue({ className: 'text-offerings-muted-text border-offerings-border-strong' } as any);
     component.selectStep('general-info', 'general-circle');
     expect(selectSpy).toHaveBeenCalled();
     expect(unselectSpy).toHaveBeenCalled();

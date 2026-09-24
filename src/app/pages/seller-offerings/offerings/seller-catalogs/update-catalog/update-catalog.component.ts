@@ -9,6 +9,7 @@ import moment from 'moment';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 
 import {components} from "src/app/models/product-catalog";
 type Catalog_Update = components["schemas"]["Catalog_Update"];
@@ -30,14 +31,14 @@ export class UpdateCatalogComponent implements OnInit, OnDestroy {
   currentStep = 0;
   highestStep = 0;
   steps = [
-    'General Info',
-    'Summary'
+    'UPDATE_CATALOG._general',
+    'UPDATE_CATALOG._summary'
   ];
 
   //markdown variables:
   showPreview:boolean=false;
   showEmoji:boolean=false;
-  description:string='';  
+  description:string='';
 
   //CONTROL VARIABLES:
   showGeneral:boolean=true;
@@ -63,7 +64,8 @@ export class UpdateCatalogComponent implements OnInit, OnDestroy {
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
     private elementRef: ElementRef,
-    private api: ApiServiceService
+    private api: ApiServiceService,
+    private translate: TranslateService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -122,11 +124,6 @@ export class UpdateCatalogComponent implements OnInit, OnDestroy {
     this.showPreview=false;
   }
 
-  setCatStatus(status:any){
-    this.catStatus=status;
-    this.cdr.detectChanges();
-  }
-
   showFinish(){
     this.setCatalogData();
     this.showGeneral=false;
@@ -139,7 +136,6 @@ export class UpdateCatalogComponent implements OnInit, OnDestroy {
     if(this.generalForm.value.name!=null){
       this.catalogToUpdate={
         description: this.generalForm.value.description != null ? this.generalForm.value.description : '',
-        lifecycleStatus: this.catStatus,
       }
       if(this.cat.name != this.generalForm.value.name){
         this.catalogToUpdate.name=this.generalForm.value.name;
@@ -159,9 +155,9 @@ export class UpdateCatalogComponent implements OnInit, OnDestroy {
         console.error('There was an error while updating!', error);
         if(error.error.error){
           console.log(error)
-          this.errorMessage='Error: '+error.error.error;
+          this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
         } else {
-          this.errorMessage='There was an error while updating the catalog!';
+          this.errorMessage=this.translate.instant('UPDATE_CATALOG._update_error');
         }
         this.loading=false;
         this.showError=true;
@@ -208,10 +204,10 @@ export class UpdateCatalogComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       this.stepsElements.splice(index, 1);
       this.selectMenu(document.getElementById(step),'text-primary-100 dark:text-primary-50')
-      this.unselectMenu(document.getElementById(step),'text-gray-500') 
+      this.unselectMenu(document.getElementById(step),'text-offerings-muted-text')
       for(let i=0; i<this.stepsElements.length;i++){
         this.unselectMenu(document.getElementById(this.stepsElements[i]),'text-primary-100 dark:text-primary-50')
-        this.selectMenu(document.getElementById(this.stepsElements[i]),'text-gray-500') 
+        this.selectMenu(document.getElementById(this.stepsElements[i]),'text-offerings-muted-text')
       }
       this.stepsElements.push(step);
     }
@@ -219,10 +215,10 @@ export class UpdateCatalogComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       this.stepsCircles.splice(circleIndex, 1);
       this.selectMenu(document.getElementById(stepCircle),'border-primary-100 dark:border-primary-50')
-      this.unselectMenu(document.getElementById(stepCircle),'border-gray-400');
+      this.unselectMenu(document.getElementById(stepCircle),'border-offerings-border-strong');
       for(let i=0; i<this.stepsCircles.length;i++){
         this.unselectMenu(document.getElementById(this.stepsCircles[i]),'border-primary-100 dark:border-primary-50')
-        this.selectMenu(document.getElementById(this.stepsCircles[i]),'border-gray-400');
+        this.selectMenu(document.getElementById(this.stepsCircles[i]),'border-offerings-border-strong');
       }
       this.stepsCircles.push(stepCircle);
     }
@@ -247,43 +243,43 @@ export class UpdateCatalogComponent implements OnInit, OnDestroy {
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n- First item\n- Second item'
-    });    
+    });
   }
 
   addOrderedList(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n1. First item\n2. Second item'
-    });    
+    });
   }
 
   addCode(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n`code`'
-    });    
+    });
   }
 
   addCodeBlock(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n```\ncode\n```'
-    }); 
+    });
   }
 
   addBlockquote(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n> blockquote'
-    });    
+    });
   }
 
   addLink(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + ' [title](https://www.example.com) '
-    });    
-  } 
+    });
+  }
 
   addTable(){
     const currentText = this.generalForm.value.description;
@@ -306,7 +302,7 @@ export class UpdateCatalogComponent implements OnInit, OnDestroy {
       this.description=this.generalForm.value.description;
     } else {
       this.description=''
-    }  
+    }
   }
 
   hasLongWord(str: string | undefined | null, threshold = 20) {
@@ -314,11 +310,11 @@ export class UpdateCatalogComponent implements OnInit, OnDestroy {
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
-    }   
+    }
   }
 
   goToStep(index: number) {
-    
+
     this.currentStep = index;
     if(this.currentStep>this.highestStep){
       this.highestStep=this.currentStep
@@ -342,7 +338,7 @@ export class UpdateCatalogComponent implements OnInit, OnDestroy {
 
   canNavigate(index: number) {
     return this.generalForm?.valid
-  }  
+  }
 
   handleStepClick(index: number): void {
     if (this.canNavigate(index)) {
@@ -350,4 +346,3 @@ export class UpdateCatalogComponent implements OnInit, OnDestroy {
     }
   }
 }
-

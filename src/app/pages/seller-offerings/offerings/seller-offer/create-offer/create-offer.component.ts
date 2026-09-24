@@ -20,6 +20,7 @@ import { certifications } from 'src/app/models/certification-standards.const';
 import {ProductOfferingPrice_DTO} from 'src/app/models/interfaces';
 import { lastValueFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 
 type ProductOffering_Create = components["schemas"]["ProductOffering_Create"];
 type BundledProductOffering = components["schemas"]["BundledProductOffering"];
@@ -33,6 +34,38 @@ type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
   styleUrl: './create-offer.component.css'
 })
 export class CreateOfferComponent implements OnInit, OnDestroy {
+
+  showPreviewModal: boolean = false;
+  previewProductOff: any = null;
+  previewTab: 'details' | 'card' = 'details';
+  confirmPublishMode: boolean = false;
+
+  @ViewChild('offerForm') offerForm: any;
+
+  onPreviewRequested(productOff: any): void {
+    this.previewProductOff = productOff;
+    this.previewTab = 'details';
+    this.confirmPublishMode = false;
+    this.showPreviewModal = true;
+  }
+
+  onPublishRequested(productOff: any): void {
+    this.previewProductOff = productOff;
+    this.previewTab = 'details';
+    this.confirmPublishMode = true;
+    this.showPreviewModal = true;
+  }
+
+  confirmPublish(): void {
+    this.showPreviewModal = false;
+    this.confirmPublishMode = false;
+    this.offerForm?.confirmPublish();
+  }
+
+  closePreviewModal(): void {
+    this.showPreviewModal = false;
+    this.confirmPublishMode = false;
+  }
 
   //PAGE SIZES:
   PROD_SPEC_LIMIT: number = environment.PROD_SPEC_LIMIT;
@@ -70,7 +103,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
 
   showPreview:boolean=false;
   showEmoji:boolean=false;
-  description:string='';  
+  description:string='';
   partyId:any='';
 
   //OFFER GENERAL INFO:
@@ -171,7 +204,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
   selectedCharacteristicVal:any
   showValueSelect:boolean=false;
   isDiscount:boolean=false;
-  createdPriceComponents:any[]=[];  
+  createdPriceComponents:any[]=[];
   createdPriceAlterations:any[]=[];
   createdPriceProfile:any;
   createdPriceComponentsRelatedToPlan:any[]=[];
@@ -225,7 +258,8 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
     private attachmentService: AttachmentServiceService,
     private servSpecService: ServiceSpecServiceService,
     private resSpecService: ResourceSpecServiceService,
-    private paginationService: PaginationService
+    private paginationService: PaginationService,
+    private translate: TranslateService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -248,7 +282,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
         if(index!=-1){
           console.log('updating price values...')
           //this.createdPrices[index]=price;
-          this.createdPrices = this.createdPrices.map((item, index) => 
+          this.createdPrices = this.createdPrices.map((item, index) =>
             index === index ? price : item
           );
         }
@@ -522,7 +556,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
       this.createdLicense={
         treatment: '',
         description: ''
-      };      
+      };
     }
     this.showPreview=false;
   }
@@ -667,7 +701,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
 
   getCategories(){
     console.log('Getting categories...')
-    this.api.getLaunchedCategories().then(data => {      
+    this.api.getLaunchedCategories().then(data => {
       for(let i=0; i < data.length; i++){
         this.findChildren(data[i],data);
         this.unformattedCategories.push(data[i]);
@@ -675,7 +709,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
       this.loadingCategory=false;
       this.cdr.detectChanges();
       initFlowbite();
-    }) 
+    })
   }
 
   findChildren(parent:any,data:any[]){
@@ -717,21 +751,21 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
     for(let i=0; i < superCategories.length; i++){
       let children = superCategories[i].children;
       if (children != undefined){
-        let check = children.find((element: { id: any; }) => element.id == parent.id) 
+        let check = children.find((element: { id: any; }) => element.id == parent.id)
         if (check != undefined) {
           let idx = children.findIndex((element: { id: any; }) => element.id == parent.id)
           children[idx] = parent
-          superCategories[i].children = children         
+          superCategories[i].children = children
         }
         this.saveChildren(children,parent)
-      }          
+      }
     }
   }
 
-  addParent(parentId:any){    
+  addParent(parentId:any){
     const index = this.unformattedCategories.findIndex(item => item.id === parentId);
     if (index != -1) {
-      //Si el padre no está seleccionado se añade a la selección      
+      //Si el padre no está seleccionado se añade a la selección
       if(this.unformattedCategories[index].isRoot==false){
         this.addCategory(this.unformattedCategories[index])
       } else {
@@ -748,13 +782,13 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
     } else {
       console.log('añadir')
       this.selectedCategories.push(cat);
-    } 
+    }
 
     if(cat.isRoot==false){
       //const parentIdx = this.categories.findIndex(item => item.id === cat.parentId);
       const parentIdxSelected = this.selectedCategories.findIndex(item => item.id === cat.parentId);
       if (index==-1 && parentIdxSelected == -1) {
-        this.addParent(cat.parentId);     
+        this.addParent(cat.parentId);
       }
     }
     console.log(this.selectedCategories)
@@ -768,7 +802,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
       return true;
     } else {
       return false;
-    } 
+    }
   }
 
   selectCatalog(cat:any){
@@ -780,7 +814,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
     if(next==false){
       this.loadingCatalog=true;
     }
-    
+
     let options = {
       "keywords": undefined,
       "filters": ['Active','Launched'],
@@ -789,7 +823,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
 
     this.paginationService.getItemsPaginated(this.catalogPage, this.CATALOG_LIMIT, next, this.catalogs,this.nextCatalogs, options,
       this.api.getCatalogsByUser.bind(this.api)).then(data => {
-      this.catalogPageCheck=data.page_check;      
+      this.catalogPageCheck=data.page_check;
       this.catalogs=data.items;
       this.nextCatalogs=data.nextItems;
       this.catalogPage=data.page;
@@ -810,7 +844,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
     if(next==false){
       this.loadingProdSpec=true;
     }
-    
+
     let options = {
       "filters": ['Active','Launched'],
       "partyId": this.partyId,
@@ -820,7 +854,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
 
     this.paginationService.getItemsPaginated(this.prodSpecPage, this.PROD_SPEC_LIMIT, next, this.prodSpecs,this.nextProdSpecs, options,
       this.prodSpecService.getProdSpecByUser.bind(this.prodSpecService)).then(data => {
-      this.prodSpecPageCheck=data.page_check;      
+      this.prodSpecPageCheck=data.page_check;
       this.prodSpecs=data.items;
       this.nextProdSpecs=data.nextItems;
       this.prodSpecPage=data.page;
@@ -837,7 +871,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
     if(next==false){
       this.loadingBundle=true;
     }
-    
+
     let options = {
       "filters": ['Active','Launched'],
       "partyId": this.partyId,
@@ -847,7 +881,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
 
     this.paginationService.getItemsPaginated(this.bundlePage, this.PRODUCT_LIMIT, next, this.bundledOffers,this.nextBundledOffers, options,
       this.api.getProductOfferByOwner.bind(this.api)).then(data => {
-      this.bundlePageCheck=data.page_check;      
+      this.bundlePageCheck=data.page_check;
       this.bundledOffers=data.items;
       this.nextBundledOffers=data.nextItems;
       this.bundlePage=data.page;
@@ -873,7 +907,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
         lifecycleStatus: prod.lifecycleStatus,
         name: prod.name
       });
-    }    
+    }
     this.cdr.detectChanges();
     console.log(this.offersBundle)
   }
@@ -884,7 +918,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
       return true
     } else {
       return false;
-    } 
+    }
   }
 
   showFinish(){
@@ -902,7 +936,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
 
     this.selectStep('summary','summary-circle');
     this.showBundle=false;
-    this.showGeneral=false;    
+    this.showGeneral=false;
     this.showProdSpec=false;
     this.showCatalog=false;
     this.showCategory=false;
@@ -930,7 +964,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
           if(components != undefined){
             for(let j=0;j<components.length;j++){
               //Creating price component
-              let priceCompToCreate: ProductOfferingPrice = {        
+              let priceCompToCreate: ProductOfferingPrice = {
                 name: components[j].name,
                 description: components[j].description,
                 lifecycleStatus: components[j].lifecycleStatus,
@@ -983,14 +1017,14 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
                   console.error('There was an error while creating offers price!', error);
                   if(error.error.error){
                     console.log(error)
-                    this.errorMessage='Error: '+error.error.error;
+                    this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                   } else {
-                    this.errorMessage='There was an error while creating offers price!';
+                    this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                   }
                   this.showError=true;
                   setTimeout(() => {
                     this.showError = false;
-                  }, 3000);     
+                  }, 3000);
                 }
               }
               try{
@@ -999,21 +1033,21 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
                   id: priceCompCreated.id,
                   href: priceCompCreated.id,
                   name: priceCompCreated.name
-                }) 
+                })
                 console.log('componente')
                 console.log(priceCompCreated)
               } catch (error:any) {
                 console.error('There was an error while creating offers price!', error);
                 if(error.error.error){
                   console.log(error)
-                  this.errorMessage='Error: '+error.error.error;
+                  this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                 } else {
-                  this.errorMessage='There was an error while creating offers price!';
+                  this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                 }
                 this.showError=true;
                 setTimeout(() => {
                   this.showError = false;
-                }, 3000);     
+                }, 3000);
               }
             }
             //Creating price plan
@@ -1042,9 +1076,9 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
               console.error('There was an error while creating offers price!', error);
               if(error.error.error){
                 console.log(error)
-                this.errorMessage='Error: '+error.error.error;
+                this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
               } else {
-                this.errorMessage='There was an error while creating offers price!';
+                this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
               }
               this.showError=true;
               setTimeout(() => {
@@ -1052,14 +1086,14 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
               }, 3000);
             }
         }
-        }else{  
-          //Not bundled price plan        
+        }else{
+          //Not bundled price plan
           let priceToCreate: ProductOfferingPrice = {
             name: this.createdPrices[i].name,
             isBundle: false,
             description: this.createdPrices[i].description,
             lifecycleStatus: this.createdPrices[i].lifecycleStatus,
-            priceType: this.createdPrices[i].priceType,   
+            priceType: this.createdPrices[i].priceType,
           }
           if(this.createdPrices[i].priceType!='custom'){
             priceToCreate.price= {
@@ -1096,9 +1130,9 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
             console.error('There was an error while creating offers price!', error);
             if(error.error.error){
               console.log(error)
-              this.errorMessage='Error: '+error.error.error;
+              this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
             } else {
-              this.errorMessage='There was an error while creating offers price!';
+              this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
             }
             this.showError=true;
             setTimeout(() => {
@@ -1165,7 +1199,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
               description: '',
               validFor: {}
           }
-        ]        
+        ]
       }
 
       this.offerToCreate.productOfferingTerm.push({
@@ -1186,7 +1220,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
           this.api.postSLA(sla).subscribe({
             next: data => {
               console.log('SLA')
-              console.log(data)              
+              console.log(data)
             },
             error: error => {
               console.error('There was an error while updating!', error);
@@ -1199,9 +1233,9 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
         console.error('There was an error while creating the offer!', error);
         if(error.error.error){
           console.log(error)
-          this.errorMessage='Error: '+error.error.error;
+          this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
         } else {
-          this.errorMessage='There was an error while creating the offer!';
+          this.errorMessage=this.translate.instant('CREATE_OFFER._save_error');
         }
         this.showError=true;
         setTimeout(() => {
@@ -1217,10 +1251,10 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       this.stepsElements.splice(index, 1);
       this.selectMenu(document.getElementById(step),'text-primary-100 dark:text-primary-50')
-      this.unselectMenu(document.getElementById(step),'text-gray-500') 
+      this.unselectMenu(document.getElementById(step),'text-offerings-muted-text')
       for(let i=0; i<this.stepsElements.length;i++){
         this.unselectMenu(document.getElementById(this.stepsElements[i]),'text-primary-100 dark:text-primary-50')
-        this.selectMenu(document.getElementById(this.stepsElements[i]),'text-gray-500') 
+        this.selectMenu(document.getElementById(this.stepsElements[i]),'text-offerings-muted-text')
       }
       this.stepsElements.push(step);
     }
@@ -1228,10 +1262,10 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       this.stepsCircles.splice(circleIndex, 1);
       this.selectMenu(document.getElementById(stepCircle),'border-primary-100 dark:border-primary-50')
-      this.unselectMenu(document.getElementById(stepCircle),'border-gray-400');
+      this.unselectMenu(document.getElementById(stepCircle),'border-offerings-border-strong');
       for(let i=0; i<this.stepsCircles.length;i++){
         this.unselectMenu(document.getElementById(this.stepsCircles[i]),'border-primary-100 dark:border-primary-50')
-        this.selectMenu(document.getElementById(this.stepsCircles[i]),'border-gray-400');
+        this.selectMenu(document.getElementById(this.stepsCircles[i]),'border-offerings-border-strong');
       }
       this.stepsCircles.push(stepCircle);
     }
@@ -1277,7 +1311,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
       const currentText = this.licenseForm.value.description;
       this.licenseForm.patchValue({
         description: currentText + ' **bold text** '
-      });    
+      });
     }
   }
 
@@ -1291,7 +1325,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
       const currentText = this.licenseForm.value.description;
       this.licenseForm.patchValue({
         description: currentText + ' _italicized text_ '
-      });    
+      });
     }
   }
 
@@ -1305,7 +1339,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
       const currentText = this.licenseForm.value.description;
       this.licenseForm.patchValue({
         description: currentText + '\n- First item\n- Second item'
-      });    
+      });
     }
   }
 
@@ -1319,7 +1353,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
       const currentText = this.licenseForm.value.description;
       this.licenseForm.patchValue({
         description: currentText + '\n1. First item\n2. Second item'
-      });    
+      });
     }
   }
 
@@ -1333,7 +1367,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
       const currentText = this.licenseForm.value.description;
       this.licenseForm.patchValue({
         description: currentText + '\n`code`'
-      });    
+      });
     }
   }
 
@@ -1347,7 +1381,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
       const currentText = this.licenseForm.value.description;
       this.licenseForm.patchValue({
         description: currentText + '\n```\ncode\n```'
-      });    
+      });
     }
   }
 
@@ -1356,13 +1390,13 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
       const currentText = this.generalForm.value.description;
       this.generalForm.patchValue({
         description: currentText + '\n> blockquote'
-      }); 
+      });
     } else if(this.showLicense){
       const currentText = this.licenseForm.value.description;
       this.licenseForm.patchValue({
         description: currentText + '\n> blockquote'
-      });    
-    }   
+      });
+    }
   }
 
   addLink(){
@@ -1375,9 +1409,9 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
       const currentText = this.licenseForm.value.description;
       this.licenseForm.patchValue({
         description: currentText + ' [title](https://www.example.com) '
-      });    
-    } 
-  } 
+      });
+    }
+  }
 
   addTable(){
     if(this.showGeneral){
@@ -1389,7 +1423,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
       const currentText = this.licenseForm.value.description;
       this.licenseForm.patchValue({
         description: currentText + '\n| Syntax | Description |\n| ----------- | ----------- |\n| Header | Title |\n| Paragraph | Text |'
-      });    
+      });
     }
   }
 
@@ -1404,7 +1438,7 @@ export class CreateOfferComponent implements OnInit, OnDestroy {
       const currentText = this.licenseForm.value.description;
       this.licenseForm.patchValue({
         description: currentText + event.emoji.native
-      });    
+      });
     }
   }
 

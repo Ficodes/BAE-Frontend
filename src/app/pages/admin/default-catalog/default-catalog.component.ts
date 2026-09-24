@@ -73,16 +73,18 @@ export class DefaultCatalogComponent implements OnInit {
 
       if (catalogId) {
         await firstValueFrom(this.api.updateAdminCatalog(payload, catalogId));
+        await firstValueFrom(this.api.setDefaultCatalog(catalogId));
       } else {
-        const createdCatalog = await firstValueFrom(this.api.postAdminCatalog(payload));
+        const createdCatalog = await firstValueFrom(this.api.createDefaultCatalog({
+          name: payload.name,
+          description: payload.description
+        }));
         catalogId = createdCatalog?.id ?? '';
       }
 
       if (!catalogId) {
         throw new Error('Catalog ID not returned by backend');
       }
-
-      await firstValueFrom(this.api.setDefaultCatalog(catalogId));
 
       this.defaultCatalogId = catalogId;
       environment.DFT_CATALOG_ID = catalogId;

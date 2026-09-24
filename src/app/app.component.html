@@ -1,12 +1,14 @@
 <bae-header></bae-header>
 <app-notification></app-notification>
 
-<div class="app-content">
+<div class="app-content" [class.app-content--workspace]="isWorkspaceRoute">
   <main class="bg-no-repeat bg-right">
     <router-outlet></router-outlet>
   </main>
 
-  <bae-footer class="w-full z-30 bottom-0 start-0"></bae-footer>
+  @if (!isWorkspaceRoute) {
+    <bae-footer class="w-full z-30 bottom-0 start-0"></bae-footer>
+  }
 </div>
 
 @if (providerThemeName === "DOME") {

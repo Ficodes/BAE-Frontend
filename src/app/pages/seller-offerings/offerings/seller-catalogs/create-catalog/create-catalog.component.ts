@@ -9,6 +9,7 @@ import moment from 'moment';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 
 import {components} from "src/app/models/product-catalog";
 import { environment } from 'src/environments/environment';
@@ -29,14 +30,14 @@ export class CreateCatalogComponent implements OnInit, OnDestroy {
   currentStep = 0;
   highestStep = 0;
   steps = [
-    'General Info',
-    'Summary'
+    'CREATE_CATALOG._general',
+    'CREATE_CATALOG._summary'
   ];
 
   //markdown variables:
   showPreview:boolean=false;
   showEmoji:boolean=false;
-  description:string='';  
+  description:string='';
 
   //CONTROL VARIABLES:
   showGeneral:boolean=true;
@@ -62,7 +63,8 @@ export class CreateCatalogComponent implements OnInit, OnDestroy {
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
     private elementRef: ElementRef,
-    private api: ApiServiceService
+    private api: ApiServiceService,
+    private translate: TranslateService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -154,9 +156,9 @@ export class CreateCatalogComponent implements OnInit, OnDestroy {
         console.error('There was an error while updating!', error);
         if(error.error.error){
           console.log(error)
-          this.errorMessage='Error: '+error.error.error;
+          this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
         } else {
-          this.errorMessage='There was an error while creating the catalog!';
+          this.errorMessage=this.translate.instant('CREATE_CATALOG._create_error');
         }
         this.loading=false;
         this.showError=true;
@@ -196,17 +198,17 @@ export class CreateCatalogComponent implements OnInit, OnDestroy {
       }
     }
   }
-  
+
   //STEPS CSS EFFECTS:
   selectStep(step:string,stepCircle:string){
     const index = this.stepsElements.findIndex(item => item === step);
     if (index !== -1) {
       this.stepsElements.splice(index, 1);
       this.selectMenu(document.getElementById(step),'text-primary-100 dark:text-primary-50')
-      this.unselectMenu(document.getElementById(step),'text-gray-500') 
+      this.unselectMenu(document.getElementById(step),'text-offerings-muted-text')
       for(let i=0; i<this.stepsElements.length;i++){
         this.unselectMenu(document.getElementById(this.stepsElements[i]),'text-primary-100 dark:text-primary-50')
-        this.selectMenu(document.getElementById(this.stepsElements[i]),'text-gray-500') 
+        this.selectMenu(document.getElementById(this.stepsElements[i]),'text-offerings-muted-text')
       }
       this.stepsElements.push(step);
     }
@@ -214,10 +216,10 @@ export class CreateCatalogComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       this.stepsCircles.splice(circleIndex, 1);
       this.selectMenu(document.getElementById(stepCircle),'border-primary-100 dark:border-primary-50')
-      this.unselectMenu(document.getElementById(stepCircle),'border-gray-400');
+      this.unselectMenu(document.getElementById(stepCircle),'border-offerings-border-strong');
       for(let i=0; i<this.stepsCircles.length;i++){
         this.unselectMenu(document.getElementById(this.stepsCircles[i]),'border-primary-100 dark:border-primary-50')
-        this.selectMenu(document.getElementById(this.stepsCircles[i]),'border-gray-400');
+        this.selectMenu(document.getElementById(this.stepsCircles[i]),'border-offerings-border-strong');
       }
       this.stepsCircles.push(stepCircle);
     }
@@ -242,43 +244,43 @@ export class CreateCatalogComponent implements OnInit, OnDestroy {
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n- First item\n- Second item'
-    });    
+    });
   }
 
   addOrderedList(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n1. First item\n2. Second item'
-    });    
+    });
   }
 
   addCode(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n`code`'
-    });    
+    });
   }
 
   addCodeBlock(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n```\ncode\n```'
-    }); 
+    });
   }
 
   addBlockquote(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n> blockquote'
-    });    
+    });
   }
 
   addLink(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + ' [title](https://www.example.com) '
-    });    
-  } 
+    });
+  }
 
   addTable(){
     const currentText = this.generalForm.value.description;
@@ -309,7 +311,7 @@ export class CreateCatalogComponent implements OnInit, OnDestroy {
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
-    }   
+    }
   }
 
   goToStep(index: number) {
@@ -321,7 +323,7 @@ export class CreateCatalogComponent implements OnInit, OnDestroy {
         return; // No permitir avanzar si el paso actual no es válido
       }
     }
-    
+
     this.currentStep = index;
     if(this.currentStep>this.highestStep){
       this.highestStep=this.currentStep
@@ -345,7 +347,7 @@ export class CreateCatalogComponent implements OnInit, OnDestroy {
 
   canNavigate(index: number) {
     return (this.generalForm?.valid &&  (index <= this.currentStep)) || (this.generalForm?.valid &&  (index <= this.highestStep));
-  }  
+  }
 
   handleStepClick(index: number): void {
     if (this.canNavigate(index)) {

@@ -114,18 +114,18 @@ describe('ProductDetailsComponent', () => {
     expect(component.showQuoteModal).toBeTrue();
   });
 
-  it('getComplianceDescription should return text by level', () => {
+  it('getComplianceDescription should return translation keys by level', () => {
     component.complianceLevel = 'NL';
-    expect(component.getComplianceDescription()).toContain("hasn't reached any compliance level");
+    expect(component.getComplianceDescription()).toBe('PRODUCT_DETAILS._compliance_no_level_desc');
 
     component.complianceLevel = 'BL';
-    expect(component.getComplianceDescription()).toContain('self attestation');
+    expect(component.getComplianceDescription()).toBe('PRODUCT_DETAILS._compliance_baseline_desc');
 
     component.complianceLevel = 'P';
-    expect(component.getComplianceDescription()).toContain('Professional level');
+    expect(component.getComplianceDescription()).toBe('PRODUCT_DETAILS._compliance_professional_desc');
 
     component.complianceLevel = 'PP';
-    expect(component.getComplianceDescription()).toContain('CNDCP');
+    expect(component.getComplianceDescription()).toBe('PRODUCT_DETAILS._compliance_professional_plus_desc');
 
     component.complianceLevel = 'UNKNOWN';
     expect(component.getComplianceDescription()).toBe('');
@@ -318,21 +318,13 @@ describe('ProductDetailsComponent', () => {
     expect(component.getProductImage()).toBe('https://placehold.co/600x400/svg');
   });
 
-  it('toggleTermsReadMore should switch clamp class based on expanded state', () => {
-    const removeSpy = jasmine.createSpy('remove');
-    const addSpy = jasmine.createSpy('add');
-    component.termsTextRef = {
-      nativeElement: { classList: { remove: removeSpy, add: addSpy } },
-    } as any;
-
+  it('toggleTermsReadMore should switch expanded state', () => {
     component.showTermsMore = false;
     component.toggleTermsReadMore();
     expect(component.showTermsMore).toBeTrue();
-    expect(removeSpy).toHaveBeenCalledWith('line-clamp-5');
 
     component.toggleTermsReadMore();
     expect(component.showTermsMore).toBeFalse();
-    expect(addSpy).toHaveBeenCalledWith('line-clamp-5');
   });
 
   it('checkOverflow should update read-more visibility', () => {

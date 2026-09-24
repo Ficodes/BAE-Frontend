@@ -1,17 +1,17 @@
-<div class="fixed inset-0 bg-black bg-opacity-50 flex justify-end transition-opacity duration-500 z-50"
+<div class="fixed inset-0 bg-offerings-overlay bg-opacity-50 flex justify-end transition-opacity duration-500 z-50"
      style="opacity: 0; pointer-events: none;"
      [style.opacity]="showModal ? '1' : '0'"
      [style.pointer-events]="showModal ? 'auto' : 'none'"
      (click)="closeModal.emit()">
-        <div class="w-full md:w-5/6 lg:w-3/4 xl:w-2/3 h-full bg-secondary-50 dark:bg-gray-800 p-6 overflow-y-auto transform transition-transform duration-500"
+        <div class="w-full md:w-5/6 lg:w-3/4 xl:w-2/3 h-full bg-secondary-50 dark:bg-secondary-300 p-6 overflow-y-auto transform transition-transform duration-500"
              style="transform: translateX(100%);"
              [style.transform]="showModal ? 'translateX(0)' : 'translateX(100%)'"
              (click)="$event.stopPropagation();">
             <div class="flex justify-between items-center">
-                <h3 class="text-2xl font-semibold text-primary-100 dark:text-white">Request Validation</h3>
+                <h3 class="text-2xl font-semibold text-primary-100 dark:text-offerings-on-dark">Request Validation</h3>
                 <button type="button"
                     (click)="closeModal.emit()"
-                    class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                    class="text-offerings-muted-text hover:text-offerings-body dark:hover:text-offerings-on-dark-body">
                     <svg class="min-w-4 w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                         <path fill="currentColor" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"/>
                     </svg>
@@ -19,15 +19,15 @@
                 </button>
             </div>
 
-            <p class="mt-2 mb-5 text-sm text-gray-500 dark:text-gray-400">
+            <p class="mt-2 mb-5 text-sm text-offerings-muted-text dark:text-offerings-on-dark-body">
                 Requesting a validation will submit your certificates and self attestation to the compliance service for validation.
             </p>
 
             <div class="mb-6">
-                <h4 class="mb-2 font-semibold text-gray-900 dark:text-white">Evidence to be submitted</h4>
-                <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white dark:bg-secondary-300">
-                    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
+                <h4 class="mb-2 font-semibold text-offerings-text dark:text-offerings-on-dark">Evidence to be submitted</h4>
+                <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-offerings-surface dark:bg-secondary-300">
+                    <table class="w-full text-sm text-left rtl:text-right text-offerings-muted-text dark:text-offerings-on-dark-body">
+                        <thead class="text-xs text-offerings-body uppercase bg-offerings-neutral dark:bg-secondary-200 dark:text-offerings-on-dark">
                             <tr>
                                 <th scope="col" class="px-6 py-3">Type</th>
                                 <th scope="col" class="px-6 py-3">Name</th>
@@ -36,14 +36,14 @@
                         </thead>
                         <tbody>
                             @for (evidence of validationEvidenceRows; track evidence.type + evidence.name + evidence.value) {
-                                <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                                <tr class="border-b hover:bg-offerings-muted dark:bg-secondary-300 dark:border-secondary-200 dark:hover:bg-secondary-200">
                                     <td class="px-6 py-4">{{ evidence.type }}</td>
                                     <td class="px-6 py-4">{{ evidence.name }}</td>
                                     <td class="px-6 py-4 break-all">
                                         @if (evidence.missing) {
-                                            <span class="font-medium text-red-600">Not provided</span>
+                                            <span class="font-medium text-status-danger-border">Not provided</span>
                                         } @else if (isHttpUrl(evidence.value)) {
-                                            <a [href]="evidence.value" target="_blank" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">
+                                            <a [href]="evidence.value" target="_blank" class="font-medium text-primary-100 dark:text-primary-100 hover:underline">
                                                 {{ evidence.value }}
                                             </a>
                                         } @else {
@@ -53,7 +53,7 @@
                                 </tr>
                             } @empty {
                                 <tr>
-                                    <td colspan="3" class="px-6 py-4 text-center text-gray-500 dark:text-gray-300">
+                                    <td colspan="3" class="px-6 py-4 text-center text-offerings-muted-text dark:text-offerings-on-dark-body">
                                         No compliance evidence available.
                                     </td>
                                 </tr>
@@ -64,48 +64,48 @@
             </div>
 
             <div class="mb-6">
-                <h4 class="mb-2 font-semibold text-gray-900 dark:text-white">Organization info</h4>
+                <h4 class="mb-2 font-semibold text-offerings-text dark:text-offerings-on-dark">Organization info</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="p-4 bg-white border rounded-lg dark:bg-secondary-300"
-                        [ngClass]="isMissing(organizationInfo.organizationName) ? 'border-red-500 dark:border-red-500' : 'border-gray-200 dark:border-gray-700'">
-                        <p class="text-xs uppercase text-gray-500 dark:text-gray-300">Organization name</p>
-                        <p class="mt-1 text-sm text-gray-900 dark:text-white break-all">{{ organizationInfo.organizationName || '-' }}</p>
+                    <div class="p-4 bg-offerings-surface border rounded-lg dark:bg-secondary-300"
+                        [ngClass]="isMissing(organizationInfo.organizationName) ? 'border-status-danger-border dark:border-status-danger-border' : 'border-offerings-border dark:border-secondary-200'">
+                        <p class="text-xs uppercase text-offerings-muted-text dark:text-offerings-on-dark-body">Organization name</p>
+                        <p class="mt-1 text-sm text-offerings-text dark:text-offerings-on-dark break-all">{{ organizationInfo.organizationName || '-' }}</p>
                     </div>
-                    <div class="p-4 bg-white border rounded-lg dark:bg-secondary-300"
-                        [ngClass]="isMissing(organizationInfo.organizationVat) ? 'border-red-500 dark:border-red-500' : 'border-gray-200 dark:border-gray-700'">
-                        <p class="text-xs uppercase text-gray-500 dark:text-gray-300">Organization VAT</p>
-                        <p class="mt-1 text-sm text-gray-900 dark:text-white break-all">{{ organizationInfo.organizationVat || '-' }}</p>
+                    <div class="p-4 bg-offerings-surface border rounded-lg dark:bg-secondary-300"
+                        [ngClass]="isMissing(organizationInfo.organizationVat) ? 'border-status-danger-border dark:border-status-danger-border' : 'border-offerings-border dark:border-secondary-200'">
+                        <p class="text-xs uppercase text-offerings-muted-text dark:text-offerings-on-dark-body">Organization VAT</p>
+                        <p class="mt-1 text-sm text-offerings-text dark:text-offerings-on-dark break-all">{{ organizationInfo.organizationVat || '-' }}</p>
                     </div>
-                    <div class="p-4 bg-white border rounded-lg dark:bg-secondary-300"
-                        [ngClass]="isMissing(organizationInfo.organizationAddress) ? 'border-red-500 dark:border-red-500' : 'border-gray-200 dark:border-gray-700'">
-                        <p class="text-xs uppercase text-gray-500 dark:text-gray-300">Organization address</p>
-                        <p class="mt-1 text-sm text-gray-900 dark:text-white break-all">{{ organizationInfo.organizationAddress || '-' }}</p>
+                    <div class="p-4 bg-offerings-surface border rounded-lg dark:bg-secondary-300"
+                        [ngClass]="isMissing(organizationInfo.organizationAddress) ? 'border-status-danger-border dark:border-status-danger-border' : 'border-offerings-border dark:border-secondary-200'">
+                        <p class="text-xs uppercase text-offerings-muted-text dark:text-offerings-on-dark-body">Organization address</p>
+                        <p class="mt-1 text-sm text-offerings-text dark:text-offerings-on-dark break-all">{{ organizationInfo.organizationAddress || '-' }}</p>
                     </div>
-                    <div class="p-4 bg-white border rounded-lg dark:bg-secondary-300"
-                        [ngClass]="isMissing(organizationInfo.organizationCountry) ? 'border-red-500 dark:border-red-500' : 'border-gray-200 dark:border-gray-700'">
-                        <p class="text-xs uppercase text-gray-500 dark:text-gray-300">Organization country</p>
-                        <p class="mt-1 text-sm text-gray-900 dark:text-white break-all">{{ organizationInfo.organizationCountry || '-' }}</p>
+                    <div class="p-4 bg-offerings-surface border rounded-lg dark:bg-secondary-300"
+                        [ngClass]="isMissing(organizationInfo.organizationCountry) ? 'border-status-danger-border dark:border-status-danger-border' : 'border-offerings-border dark:border-secondary-200'">
+                        <p class="text-xs uppercase text-offerings-muted-text dark:text-offerings-on-dark-body">Organization country</p>
+                        <p class="mt-1 text-sm text-offerings-text dark:text-offerings-on-dark break-all">{{ organizationInfo.organizationCountry || '-' }}</p>
                     </div>
-                    <div class="p-4 bg-white border rounded-lg dark:bg-secondary-300"
-                        [ngClass]="isMissing(organizationInfo.organizationWebsite) ? 'border-red-500 dark:border-red-500' : 'border-gray-200 dark:border-gray-700'">
-                        <p class="text-xs uppercase text-gray-500 dark:text-gray-300">Organization website</p>
-                        <p class="mt-1 text-sm text-gray-900 dark:text-white break-all">{{ organizationInfo.organizationWebsite || '-' }}</p>
+                    <div class="p-4 bg-offerings-surface border rounded-lg dark:bg-secondary-300"
+                        [ngClass]="isMissing(organizationInfo.organizationWebsite) ? 'border-status-danger-border dark:border-status-danger-border' : 'border-offerings-border dark:border-secondary-200'">
+                        <p class="text-xs uppercase text-offerings-muted-text dark:text-offerings-on-dark-body">Organization website</p>
+                        <p class="mt-1 text-sm text-offerings-text dark:text-offerings-on-dark break-all">{{ organizationInfo.organizationWebsite || '-' }}</p>
                     </div>
-                    <div class="p-4 bg-white border rounded-lg dark:bg-secondary-300"
-                        [ngClass]="isMissing(organizationInfo.organizationEmail) ? 'border-red-500 dark:border-red-500' : 'border-gray-200 dark:border-gray-700'">
-                        <p class="text-xs uppercase text-gray-500 dark:text-gray-300">Organization email</p>
-                        <p class="mt-1 text-sm text-gray-900 dark:text-white break-all">{{ organizationInfo.organizationEmail || '-' }}</p>
+                    <div class="p-4 bg-offerings-surface border rounded-lg dark:bg-secondary-300"
+                        [ngClass]="isMissing(organizationInfo.organizationEmail) ? 'border-status-danger-border dark:border-status-danger-border' : 'border-offerings-border dark:border-secondary-200'">
+                        <p class="text-xs uppercase text-offerings-muted-text dark:text-offerings-on-dark-body">Organization email</p>
+                        <p class="mt-1 text-sm text-offerings-text dark:text-offerings-on-dark break-all">{{ organizationInfo.organizationEmail || '-' }}</p>
                     </div>
                 </div>
             </div>
 
             @if (hasMissingOrganizationInfo()) {
-                <div class="mb-6 p-4 text-sm text-amber-800 rounded-lg bg-amber-100 dark:bg-amber-900 dark:text-amber-200" role="alert">
+                <div class="mb-6 p-4 text-sm text-status-warning-text rounded-lg bg-status-warning-bg dark:bg-status-warning-text dark:text-status-warning-bg" role="alert">
                     Some information of your organization required for the validation process is missing. Please update you organization profile.
                 </div>
             }
             @if (requestValidationError) {
-                <div class="mb-6 p-4 text-sm text-red-800 rounded-lg bg-red-100 dark:bg-red-900 dark:text-red-200" role="alert">
+                <div class="mb-6 p-4 text-sm text-status-danger-text rounded-lg bg-status-danger-bg dark:bg-status-danger-text dark:text-status-danger-bg" role="alert">
                     {{ requestValidationError }}
                 </div>
             }
@@ -113,14 +113,14 @@
             <div class="flex justify-end items-center space-x-4">
                 <button (click)="closeModal.emit()"
                     type="button"
-                    class="py-2 px-3 text-sm font-medium text-gray-500 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10">
+                    class="py-2 px-3 text-sm font-medium text-offerings-muted-text bg-offerings-surface rounded-lg border border-offerings-border hover:bg-offerings-neutral focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-offerings-text focus:z-10">
                     Cancel
                 </button>
                 <button (click)="submitRequestValidation()"
                     [disabled]="hasMissingOrganizationInfo() || requestValidationLoading || !productSpec"
                     type="button"
                     [ngClass]="(hasMissingOrganizationInfo() || requestValidationLoading || !productSpec) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
-                    class="py-2 px-3 text-sm font-medium text-center text-white bg-primary-100 rounded-lg focus:ring-4 focus:outline-none focus:ring-primary-50">
+                    class="py-2 px-3 text-sm font-medium text-center text-offerings-on-dark bg-primary-100 rounded-lg focus:ring-4 focus:outline-none focus:ring-primary-50">
                     Request Validation
                 </button>
             </div>

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
@@ -13,6 +13,8 @@ import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
+import { formatApiErrorMessage } from 'src/app/shared/error-message/api-error-message';
 
 @Component({
   selector: 'seller-service-spec',
@@ -34,7 +36,17 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
   loading_more: boolean = false;
   page_check:boolean = true;
   filter:any=undefined;
-  status:any[]=['Active','Launched'];
+  status:any[]=['Active'];
+  selectedTab: string = 'Draft';
+  tabStatusMap: { [k: string]: string[] } = {
+    Draft: ['Active'],
+    Validated: ['Launched'],
+    Deleted: ['Retired', 'Obsolete']
+  };
+  statusCounts: { [k: string]: number } = { Draft: 0, Validated: 0, Deleted: 0 };
+  openMenuIdx: number | null = null;
+  deleteConfirmation: any | null = null;
+  deleteLoading: boolean = false;
   partyId:any;
   sort:any=undefined;
   private destroy$ = new Subject<void>();
@@ -46,7 +58,8 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
-    private paginationService: PaginationService
+    private paginationService: PaginationService,
+    private translate: TranslateService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -57,27 +70,11 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
     })
   }
 
-  private searchInputListener = (_e: Event) => {
-    console.log(`Input updated`)
-    if (this.searchField.value == '') {
-      this.filter = undefined;
-      this.getServSpecs(false);
-    }
-  }
-
   ngOnInit() {
     this.initServices();
-    const input = document.querySelector('[type=search]')
-    if (input != undefined) {
-      input.addEventListener('input', this.searchInputListener);
-    }
   }
 
   ngOnDestroy(){
-    const input = document.querySelector('[type=search]')
-    if (input != undefined) {
-      input.removeEventListener('input', this.searchInputListener);
-    }
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -94,6 +91,17 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
     }
 
     this.getServSpecs(false);
+    this.loadStatusCounts();
+    let input = document.querySelector('[type=search]')
+    if(input!=undefined){
+      input.addEventListener('input', e => {
+        console.log(`Input updated`)
+        if(this.searchField.value==''){
+          this.filter=undefined;
+          this.getServSpecs(false);
+        }
+      });
+    }
     initFlowbite();
   }
 
@@ -113,22 +121,26 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
     if(next==false){
       this.loading=true;
     }
-    
+
     let options = {
       "filters": this.status,
       "partyId": this.partyId,
       "sort": this.sort
     }
-    
+
     this.paginationService.getItemsPaginated(this.page, this.SERV_SPEC_LIMIT, next, this.servSpecs,this.nextServSpecs, options,
       this.servSpecService.getServiceSpecByUser.bind(this.servSpecService)).then(data => {
-      this.page_check=data.page_check;      
+      this.page_check=data.page_check;
       this.servSpecs=data.items;
       this.nextServSpecs=data.nextItems;
       this.page=data.page;
       this.loading=false;
       this.loading_more=false;
     })
+  }
+
+  async next(){
+    await this.getServSpecs(true);
   }
 
   filterInventoryByKeywords(){
@@ -139,18 +151,138 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
     const index = this.status.findIndex(item => item === filter);
     if (index !== -1) {
       this.status.splice(index, 1);
-      console.log('elimina filtro')
-      console.log(this.status)
     } else {
-      console.log('añade filtro')
-      console.log(this.status)
       this.status.push(filter)
     }
     this.getServSpecs(false);
   }
 
-  async next(){
-    await this.getServSpecs(true);
+  selectTab(tab: string) {
+    if (tab === this.selectedTab) return;
+    this.selectedTab = tab;
+    this.status = [...this.tabStatusMap[tab]];
+    this.page = 0;
+    this.getServSpecs(false);
+  }
+
+  async loadStatusCounts() {
+    try {
+      const all: any[] = [];
+      let offset = 0;
+      while (offset < 10000) {
+        const page = await this.servSpecService.getServiceSpecByUser(offset, [], this.partyId, undefined);
+        const items = Array.isArray(page) ? page : [];
+        all.push(...items);
+        if (items.length < this.SERV_SPEC_LIMIT) break;
+        offset += this.SERV_SPEC_LIMIT;
+      }
+      const counts: { [k: string]: number } = {};
+      for (const tab of Object.keys(this.tabStatusMap)) counts[tab] = 0;
+      for (const item of all) {
+        const status = item?.lifecycleStatus;
+        for (const tab of Object.keys(this.tabStatusMap)) {
+          if (this.tabStatusMap[tab].includes(status)) { counts[tab]++; break; }
+        }
+      }
+      this.statusCounts = counts;
+    } catch {
+    }
+    this.cdr.detectChanges();
+  }
+
+  toggleMenu(idx: number, event: Event){
+    event.stopPropagation();
+    this.openMenuIdx = this.openMenuIdx === idx ? null : idx;
+  }
+
+  @HostListener('document:click')
+  onDocClick(){
+    if(this.openMenuIdx !== null){
+      this.openMenuIdx = null;
+      this.cdr.detectChanges();
+    }
+  }
+
+  rowStatusBadge(serv: any): { text: string, bg: string, color: string } {
+    const hasChars = (serv?.specCharacteristic && serv.specCharacteristic.length > 0);
+    if(serv?.lifecycleStatus === 'Launched'){
+      return { text: 'Validated', bg: 'rgb(var(--theme-status-success-bg))', color: 'rgb(var(--theme-status-success-text))' };
+    }
+    if(serv?.lifecycleStatus === 'Retired' || serv?.lifecycleStatus === 'Obsolete'){
+      return { text: 'Deleted', bg: 'rgb(var(--theme-status-danger-bg))', color: 'rgb(var(--theme-status-danger-text))' };
+    }
+    if(hasChars){
+      return { text: 'Ready to be validated', bg: 'rgb(var(--theme-status-ready-bg))', color: 'rgb(var(--theme-status-ready-text))' };
+    }
+    return { text: 'Not completed', bg: 'rgb(var(--theme-status-warning-bg))', color: 'rgb(var(--theme-status-warning-text))' };
+  }
+
+  validateServ(serv: any){
+    if(!serv?.id) return;
+    this.servSpecService.updateServSpec({ lifecycleStatus: 'Launched' }, serv.id).subscribe({
+      next: () => {
+        this.openMenuIdx = null;
+        this.eventMessage.emitSpecCreated(this.translate.instant('CREATE_SERV_SPEC._validate_success'));
+        this.getServSpecs(false);
+        this.loadStatusCounts();
+      },
+      error: (error: any) => {
+        this.openMenuIdx = null;
+        this.eventMessage.emitSpecCreated(
+          formatApiErrorMessage(this.translate, 'CREATE_SERV_SPEC._validate_error', error),
+          'error'
+        );
+      }
+    });
+  }
+
+  deleteServ(serv: any){
+    if(!serv?.id) return;
+    this.openMenuIdx = null;
+    this.deleteConfirmation = serv;
+  }
+
+  cancelDeleteServ(): void {
+    if (this.deleteLoading) return;
+    this.deleteConfirmation = null;
+  }
+
+  confirmDeleteServ(): void {
+    if (!this.deleteConfirmation || this.deleteLoading) return;
+    const serv = this.deleteConfirmation;
+    this.deleteLoading = true;
+    this.performDeleteServ(serv);
+  }
+
+  get deleteServName(): string {
+    return this.deleteConfirmation?.name || '';
+  }
+
+  private clearDeleteConfirmation(): void {
+    this.deleteLoading = false;
+    this.deleteConfirmation = null;
+  }
+
+  private performDeleteServ(serv: any){
+    const onSuccess = () => {
+      this.clearDeleteConfirmation();
+      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._service_spec_delete_success'));
+      this.getServSpecs(false);
+      this.loadStatusCounts();
+    };
+    const onError = (err: any) => {
+      this.clearDeleteConfirmation();
+      console.error('Service spec delete failed', err);
+      this.eventMessage.emitSpecCreated(
+        formatApiErrorMessage(this.translate, 'OFFERINGS._service_spec_delete_error', err),
+        'error'
+      );
+    };
+    const lifecycleStatus = serv.lifecycleStatus === 'Active' ? 'Obsolete' : 'Retired';
+    this.servSpecService.updateServSpec({ lifecycleStatus }, serv.id).subscribe({
+      next: onSuccess,
+      error: onError
+    });
   }
 
   onSortChange(event: any) {
@@ -167,6 +299,6 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
-    }   
+    }
   }
 }

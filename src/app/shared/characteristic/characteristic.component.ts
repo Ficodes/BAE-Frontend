@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {NgForOf, NgClass} from "@angular/common";
 import {components} from "../../models/product-catalog";
@@ -33,7 +33,7 @@ interface Characteristic {
   templateUrl: './characteristic.component.html',
   styleUrl: './characteristic.component.css'
 })
-export class CharacteristicComponent implements OnInit {
+export class CharacteristicComponent implements OnInit, OnChanges {
   @Input() characteristic!: ProductSpecificationCharacteristic;
   @Input() readOnly: boolean = false;
   @Input() isDisabled: boolean = false;
@@ -43,18 +43,26 @@ export class CharacteristicComponent implements OnInit {
   control = new FormControl();
 
   ngOnInit(): void {
+    this.initializeControl();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['characteristic'] || changes['readOnly']) {
+      this.initializeControl();
+    }
+  }
+
+  private initializeControl(): void {
+    if (!this.characteristic) return;
     const defaultCharacteristicValue = this.characteristic.productSpecCharacteristicValue?.find(
       (val) => val.isDefault
     );
     const defaultValue = defaultCharacteristicValue?.value ?? defaultCharacteristicValue?.valueFrom;
 
     console.log('defaultValue: ', defaultValue);
-    if (defaultValue !== undefined) {
-      this.control = new FormControl(
-        { value: defaultValue, disabled: this.readOnly } // Configura el estado aquí
-      );
-    }
-
+    this.control = new FormControl(
+      { value: defaultValue ?? null, disabled: this.readOnly }
+    );
   }
 
   onControlCommit(): void {

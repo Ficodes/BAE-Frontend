@@ -9,7 +9,7 @@
           }" class="w-full text-base text-left font-semibold text-wrap break-words">
           {{ data?.name }}
           @if (data?.count) {
-            <span class="ml-2 text-sm text-gray-400">({{ data?.count }})</span>
+            <span class="ml-2 text-sm text-offerings-disabled">({{ data?.count }})</span>
           }
         </div>
         <fa-icon data-cy="searchCategorySelect" [icon]="checked ? faCircleCheck : faCircle" class="mr-7 text-2xl"></fa-icon>
@@ -24,7 +24,7 @@
             'break-words': !hasLongWord(data.name, 20)
             }" class="text-left justify-start text-wrap break-words">{{ data.name }}
             @if (data.count) {
-              <span class="ml-1 text-sm text-gray-400">({{ data.count }})</span>
+              <span class="ml-1 text-sm text-offerings-disabled">({{ data.count }})</span>
             }
           </span>
           <div class="justify-end inline-flex">
@@ -42,7 +42,7 @@
       </h2>
 
       <div [id]="'accordion-body-'+simplifiedId" class="hidden" [attr.aria-labelledby]="'accordion-heading-'+simplifiedId">
-        <div class="p-2 border border-gray-200 dark:border-gray-700 dark:bg-gray-900">
+        <div class="p-2 border border-offerings-border dark:border-secondary-200 dark:bg-secondary-500">
             <ul class="grid w-full gap-2">
               @for(child of data.children; track child.id) {
                 <li>

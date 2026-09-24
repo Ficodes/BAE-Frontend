@@ -1,26 +1,28 @@
-import { Component, OnInit, ElementRef, ViewChild,ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, Renderer2, ViewChild } from '@angular/core';
+
 import { ActivatedRoute, Router } from '@angular/router';
-import { ApiServiceService } from 'src/app/services/product-service.service';
-import {components} from "../../models/product-catalog";
+import { faArrowProgress, faArrowRightArrowLeft, faAtom, faBook, faDownload, faGlobe, faMinus, faObjectExclude, faPlus, faScaleBalanced, faShieldHalved, faSwap } from "@fortawesome/pro-solid-svg-icons";
 import { initFlowbite } from 'flowbite';
 import { PriceServiceService } from 'src/app/services/price-service.service';
-import {faScaleBalanced, faArrowProgress, faArrowRightArrowLeft, faObjectExclude, faSwap, faGlobe, faBook, faShieldHalved, faAtom, faDownload} from "@fortawesome/pro-solid-svg-icons";
+import { ApiServiceService } from 'src/app/services/product-service.service';
+import { components } from "../../models/product-catalog";
 type Product = components["schemas"]["ProductOffering"];
 type ProductSpecification = components["schemas"]["ProductSpecification"];
 type AttachmentRefOrValue = components["schemas"]["AttachmentRefOrValue"];
 //type CharacteristicValueSpecification = components["schemas"]["CharacteristicValueSpecification"];
-import { certifications } from 'src/app/models/certification-standards.const'
-import { LocalStorageService } from 'src/app/services/local-storage.service';
-import { LoginInfo, cartProduct,productSpecCharacteristicValueCart } from '../../models/interfaces';
-import { ShoppingCartServiceService } from 'src/app/services/shopping-cart-service.service';
-import { AccountServiceService } from 'src/app/services/account-service.service';
-import {EventMessageService} from "../../services/event-message.service";
-import moment from 'moment';
-import { environment } from 'src/environments/environment';
 import { Location } from '@angular/common';
-import {firstValueFrom, Subject} from "rxjs";
+import moment from 'moment';
+import { Subject } from "rxjs";
 import { takeUntil } from 'rxjs/operators';
+import { findIconByName } from 'src/app/config/popular-icons';
+import { certifications } from 'src/app/models/certification-standards.const';
+import { AccountServiceService } from 'src/app/services/account-service.service';
+import { LocalStorageService } from 'src/app/services/local-storage.service';
+import { ShoppingCartServiceService } from 'src/app/services/shopping-cart-service.service';
 import { UsageServiceService } from 'src/app/services/usage-service.service';
+import { environment } from 'src/environments/environment';
+import { cartProduct, LoginInfo, productSpecCharacteristicValueCart } from '../../models/interfaces';
+import { EventMessageService } from "../../services/event-message.service";
 
 interface UsageMetricCard {
   id: string;
@@ -34,7 +36,13 @@ interface UsageMetricCard {
   templateUrl: './product-details.component.html',
   styleUrl: './product-details.component.css'
 })
-export class ProductDetailsComponent implements OnInit, OnDestroy {
+export class ProductDetailsComponent implements OnInit, OnDestroy, AfterViewInit {
+
+  @ViewChild('summaryBar') summaryBar?: ElementRef<HTMLElement>;
+  @ViewChild('offerHero') offerHero?: ElementRef<HTMLElement>;
+  showSummaryBar = false;
+  summaryBarHeight = 0;
+  private readonly HEADER_HEIGHT = 88;
 
   @ViewChild('relationshipsContent')
   relationshipsContent: ElementRef | undefined;
@@ -45,7 +53,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('attachContent')
   attachContent: ElementRef | undefined;
   @ViewChild('agreementsContent')
-  agreementsContent: ElementRef | undefined;  
+  agreementsContent: ElementRef | undefined;
   @ViewChild('textDiv') textDiv!: ElementRef;
   @ViewChild('termsText') termsTextRef!: ElementRef;
   @ViewChild('descriptionText') descriptionTextRef!: ElementRef;
@@ -53,56 +61,80 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('relScrollAnchor') relScrollAnchor!: ElementRef;
   @ViewChild('attachScrollAnchor') attachScrollAnchor!: ElementRef;
   @ViewChild('charsScrollAnchor') charsScrollAnchor!: ElementRef;
-  @ViewChild('detailsScrollAnchor') detailsScrollAnchor!: ElementRef; 
-  
+  @ViewChild('detailsScrollAnchor') detailsScrollAnchor!: ElementRef;
+
+  @Input() previewProductOff: Product | undefined;
+
   providerThemeName = environment.providerThemeName;
-  quotesEnabled = environment.QUOTES_ENABLED; 
-  id:any;
+  quotesEnabled = environment.QUOTES_ENABLED;
+  id: any;
   productOff: Product | undefined;
+  isPreview: boolean = false;
   category: string = 'none';
-  categories: any[] | undefined  = [];
+  categories: any[] | undefined = [];
   price: string = '';
-  images: AttachmentRefOrValue[]  = [];
-  attatchments: AttachmentRefOrValue[]  = [];
-  prodSpec:ProductSpecification = {};
-  complianceProf:any[] = [];
-  additionalCerts:any[] = [];
-  complianceLevel:string='NL';
-  complianceDescription:string='No level. This product hasnt reached any compliance level yet.'
-  serviceSpecs:any[] = [];
-  resourceSpecs:any[]=[];
-  check_logged:boolean=false;
+  images: AttachmentRefOrValue[] = [];
+  attatchments: AttachmentRefOrValue[] = [];
+  termsFileAttachments: AttachmentRefOrValue[] = [];
+  prodSpec: ProductSpecification = {};
+  complianceProf: any[] = [];
+  additionalCerts: any[] = [];
+  complianceLevel: string = 'NL';
+  complianceDescription: string = 'PRODUCT_DETAILS._compliance_no_level_desc'
+  serviceSpecs: any[] = [];
+  resourceSpecs: any[] = [];
+  check_logged: boolean = false;
   customersLink: string = environment.DOME_CUSTOMER_REGISTER_LINK;
-  cartSelection:boolean=false;
-  check_prices:boolean=false;
-  selected_price:any;
-  check_char:boolean=false;
-  check_terms:boolean=false;
-  selected_terms:boolean=false;
-  selected_chars:productSpecCharacteristicValueCart[]=[];
+  cartSelection: boolean = false;
+  check_prices: boolean = false;
+  selected_price: any;
+  check_char: boolean = false;
+  check_terms: boolean = false;
+  selected_terms: boolean = false;
+  selected_chars: productSpecCharacteristicValueCart[] = [];
   toastVisibility: boolean = false;
-  lastAddedProd:any | undefined;
-  checkCustom:boolean=false;
-  textDivHeight:any;
-  prodChars:any[]=[];
+  lastAddedProd: any | undefined;
+  checkCustom: boolean = false;
+  textDivHeight: any;
+  prodChars: any[] = [];
   usageMetrics: UsageMetricCard[] = [];
-  selfAtt:any='';
+  selfAtt: any = '';
+  complianceDocuments: { name: string, url: string, isSelfAtt: boolean }[] = [];
 
-  errorMessage:any='';
-  showError:boolean=false;
-  showTermsMore:boolean=false;
+  errorMessage: any = '';
+  showError: boolean = false;
+  showTermsMore: boolean = false;
   PURCHASE_ENABLED: boolean = environment.PURCHASE_ENABLED;
-  showReadMoreButton:boolean=false;
-  showDescriptionReadMore:boolean=false;
-  showDescriptionModal:boolean=false;
-  customerId:string='';
+  showReadMoreButton: boolean = false;
+  showDescriptionReadMore: boolean = false;
+  showDescriptionModal: boolean = false;
+  customerId: string = '';
 
-  orgInfo:any=undefined;
-  showQuoteModal:boolean = false;
-  productAlreadyInCart:boolean=false;
+  orgInfo: any = undefined;
+  showQuoteModal: boolean = false;
+  productAlreadyInCart: boolean = false;
   activeTab: string = 'overview';
 
+  providerPartyId: string | undefined;
+  moreOfferings: any[] = [];
+  moreVisibleItems: number = 3;
+
+  resolveIcon = findIconByName;
+  specOverview: string = '';
+  howItWorks: string = '';
+  keyFeatures: { name: string, description: string, icon: string | null }[] = [];
+  businessBenefits: { name: string, description: string }[] = [];
+  useCases: { name: string, description: string, icon: string | null }[] = [];
+  faqs: { question: string, answer: string }[] = [];
+  openFaqIdx: number | null = null;
+  descMoreOpen: boolean = false;
+  howItWorksMoreOpen: boolean = false;
+  private readonly DETAILS_START = '<!--dome:details:start-->';
+  private readonly DETAILS_END = '<!--dome:details:end-->';
+
   protected readonly faScaleBalanced = faScaleBalanced;
+  protected readonly faPlus = faPlus;
+  protected readonly faMinus = faMinus;
   protected readonly faArrowProgress = faArrowProgress;
   protected readonly faArrowRightArrowLeft = faArrowRightArrowLeft;
   protected readonly faObjectExclude = faObjectExclude;
@@ -113,10 +145,10 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   protected readonly faAtom = faAtom;
   protected readonly faDownload = faDownload;
 
-  stepsElements:string[]=['step-chars','step-price','step-terms','step-checkout'];
-  stepsText:string[]=['text-chars','text-price','text-terms','text-checkout'];
-  stepsCircles:string[]=['circle-chars','circle-price','circle-terms','circle-checkout'];
-  licenseTerm:any=undefined;
+  stepsElements: string[] = ['step-chars', 'step-price', 'step-terms', 'step-checkout'];
+  stepsText: string[] = ['text-chars', 'text-price', 'text-terms', 'text-checkout'];
+  stepsCircles: string[] = ['circle-chars', 'circle-price', 'circle-terms', 'circle-checkout'];
+  licenseTerm: any = undefined;
   isLoaded = false;
   private isManualScroll = false;
   private scrollTimeout: any;
@@ -134,60 +166,65 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     private eventMessage: EventMessageService,
     private accService: AccountServiceService,
     private usageService: UsageServiceService,
-    private location: Location
+    private location: Location,
+    private renderer: Renderer2
   ) {
-    this.showTermsMore=false;
+    this.showTermsMore = false;
     this.eventMessage.messages$
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(ev => {
-      if(ev.type === 'CloseCartCard') {
-        this.hideCartSelection();
-        //TOGGLE TOAST
-        if(ev.value!=undefined){
-          this.lastAddedProd=ev.value;
-          this.toastVisibility=true;
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(ev => {
+        if (ev.type === 'CloseCartCard') {
+          this.hideCartSelection();
+          //TOGGLE TOAST
+          if (ev.value != undefined) {
+            this.lastAddedProd = ev.value;
+            this.toastVisibility = true;
+
+            this.cdr.detectChanges();
+            //document.getElementById("progress-bar")?.classList.toggle("hover:w-100");
+            let element = document.getElementById("progress-bar")
+            let parent = document.getElementById("toast-add-cart")
+            if (element != null && parent != null) {
+              element.style.width = '0%'
+              element.offsetWidth
+              element.style.width = '100%'
+              setTimeout(() => {
+                this.toastVisibility = false
+              }, 3500);
+            }
+          }
 
           this.cdr.detectChanges();
-          //document.getElementById("progress-bar")?.classList.toggle("hover:w-100");
-          let element = document.getElementById("progress-bar")
-          let parent = document.getElementById("toast-add-cart")
-          if (element != null && parent != null) {
-            element.style.width = '0%'
-            element.offsetWidth
-            element.style.width = '100%'
-            setTimeout(() => {
-              this.toastVisibility=false
-            }, 3500);
-          }
+        } else if (ev.type === 'CloseQuoteRequest') {
+          this.showQuoteModal = false;
+          this.cdr.detectChanges();
+        } else if (ev.type == 'RemovedCartItem') {
+          this.cartService.getShoppingCart().then(data => {
+            const exists = data.some((item: any) => item.id === this.productOff?.id);
+            if (exists) {
+              this.productAlreadyInCart = true;
+            } else {
+              this.productAlreadyInCart = false;
+            }
+          })
+        } else if (ev.type == 'AddedCartItem') {
+          this.cartService.getShoppingCart().then(data => {
+            const exists = data.some((item: any) => item.id === this.productOff?.id);
+            if (exists) {
+              this.productAlreadyInCart = true;
+            } else {
+              this.productAlreadyInCart = false;
+            }
+          })
         }
-
-        this.cdr.detectChanges();
-      } else if(ev.type === 'CloseQuoteRequest'){
-          this.showQuoteModal=false;
-          this.cdr.detectChanges();
-      } else if (ev.type == 'RemovedCartItem'){
-        this.cartService.getShoppingCart().then(data => {
-          const exists = data.some((item: any) => item.id === this.productOff?.id);
-          if (exists) {
-            this.productAlreadyInCart=true;
-          } else {
-            this.productAlreadyInCart=false;
-          }
-        })
-      } else if (ev.type == 'AddedCartItem'){
-        this.cartService.getShoppingCart().then(data => {
-          const exists = data.some((item: any) => item.id === this.productOff?.id);
-          if (exists) {
-            this.productAlreadyInCart=true;
-          } else {
-            this.productAlreadyInCart=false;
-          }
-        })
-      }
-    })
+      })
   }
 
-  ngOnDestroy(){
+  ngOnDestroy() {
+    const el = this.summaryBar?.nativeElement;
+    if (el?.parentNode) {
+      el.parentNode.removeChild(el);
+    }
     this.destroy$.next();
     this.destroy$.complete();
     document.body.style.overflow = '';
@@ -195,12 +232,17 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     initFlowbite();
+    if (this.previewProductOff) {
+      this.isPreview = true;
+      await this.applyPreviewOffer();
+      return;
+    }
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
-    if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
-      this.check_logged=true;
+    if (JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix()) - 4) > 0)) {
+      this.check_logged = true;
       this.cdr.detectChanges();
 
-      if(aux.logged_as == aux.id){
+      if (aux.logged_as == aux.id) {
         this.customerId = aux.partyId;
       } else {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as)
@@ -208,31 +250,74 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       }
 
     } else {
-      this.check_logged=false,
-      this.cdr.detectChanges();
+      this.check_logged = false,
+        this.cdr.detectChanges();
     }
+    this.route.paramMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        const offerId = params.get('id');
+        if (offerId) {
+          this.loadOffer(offerId);
+        }
+      });
+  }
+
+  resetOfferState() {
+    this.prodSpec = {};
+    this.productOff = undefined;
+    this.complianceProf = [];
+    this.additionalCerts = [];
+    this.serviceSpecs = [];
+    this.resourceSpecs = [];
+    this.prodChars = [];
+    this.usageMetrics = [];
+    this.images = [];
+    this.attatchments = [];
+    this.moreOfferings = [];
+    this.orgInfo = undefined;
+    this.providerPartyId = undefined;
+    this.categories = [];
+    this.category = 'none';
+    this.checkCustom = false;
+    this.selfAtt = '';
+    this.complianceDocuments = [];
+    this.complianceLevel = 'NL';
+    this.productAlreadyInCart = false;
+    this.activeTab = 'overview';
+    this.keyFeatures = [];
+    this.businessBenefits = [];
+    this.useCases = [];
+    this.faqs = [];
+    this.howItWorks = '';
+    this.specOverview = '';
+  }
+
+  async loadOffer(id: string) {
+    this.resetOfferState();
     window.scrollTo(0, 0);
 
-    this.id = this.route.snapshot.paramMap.get('id');
+    this.id = id;
     console.log('--- Details ID:')
     console.log(this.id)
     let prod = await this.api.getProductById(this.id);
     let spec = await this.api.getProductSpecification(prod.productSpecification.id);
-    this.prodSpec=spec;
+    this.prodSpec = spec;
+    this.parseProductDetails(this.prodSpec.description);
     this.getOwner();
-    let prodPrices: any[] | undefined= prod.productOfferingPrice;
-    let prices: any[]=[];
-    if(prodPrices!== undefined){
+    let prodPrices: any[] | undefined = prod.productOfferingPrice;
+    let prices: any[] = [];
+    if (prodPrices !== undefined) {
       // Fetch all prices in one bulk request instead of one-by-one
       // (the sequential await loop was the bottleneck on /search/:id).
       prices = await this.api.getProductPrices(prodPrices.map(p => p.id));
-      if(prices.some(price => price?.priceType == 'custom')){
+      if (prices.some(price => price?.priceType == 'custom')) {
         this.checkCustom = true;
       }
     }
     await this.loadUsageMetrics(prices);
 
-    if(this.prodSpec.productSpecCharacteristic != undefined) {
+    if (this.prodSpec.productSpecCharacteristic != undefined) {
       // Avoid displaying the compliance credential && Avoid showing "- enabled" chars
       this.prodChars = this.prodSpec.productSpecCharacteristic.filter((char: any) => {
         return !char.name.startsWith('Compliance:') && !char.name?.endsWith(' - enabled')
@@ -240,7 +325,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
       this.additionalCerts = this.prodSpec.productSpecCharacteristic.filter((char: any) => {
         const cleanedName = char.name.replace('Compliance:', '').trim();
-      
+
         return (
           char.name.startsWith('Compliance:') &&
           !certifications.some(cert => cert.name === cleanedName) && char.name != 'Compliance:SelfAtt'
@@ -250,50 +335,50 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       console.log(this.additionalCerts)
 
       const normalizeName = (name?: string): string =>
-        name?.replace(/compliance:/i, '').trim() ?? '';      
-      
+        name?.replace(/compliance:/i, '').trim() ?? '';
+
       for (let i = 0; i < certifications.length; i++) {
-      
+
         // Buscar característica quitando el prefijo "Compliance:"
         let compProf = this.prodSpec.productSpecCharacteristic.find(p => {
           return normalizeName(p.name) === certifications[i].name;
         });
-      
+
         if (compProf) {
           let cert: any = certifications[i];
           cert.href = compProf.productSpecCharacteristicValue?.at(0)?.value;
           this.complianceProf.push(cert);
         }
-      
+
         // Eliminar certificaciones del array de características
         const index = this.prodChars.findIndex(item =>
           normalizeName(item.name) === certifications[i].name
         );
-      
+
         if (index !== -1) {
           this.prodChars.splice(index, 1);
         }
       }
 
       console.log(this.complianceProf)
-      
-      
+
+
     }
 
-    if(this.prodSpec.serviceSpecification != undefined){
-      for(let j=0; j < this.prodSpec.serviceSpecification.length; j++){
+    if (this.prodSpec.serviceSpecification != undefined) {
+      for (let j = 0; j < this.prodSpec.serviceSpecification.length; j++) {
         let serv = await this.api.getServiceSpec(this.prodSpec.serviceSpecification[j].id);
         this.serviceSpecs.push(serv);
       }
     }
-    if(this.prodSpec.resourceSpecification != undefined){
-      for(let j=0; j < this.prodSpec.resourceSpecification.length; j++){
+    if (this.prodSpec.resourceSpecification != undefined) {
+      for (let j = 0; j < this.prodSpec.resourceSpecification.length; j++) {
         let res = await this.api.getResourceSpec(this.prodSpec.resourceSpecification[j].id);
         this.resourceSpecs.push(res);
       }
     }
 
-    this.productOff={
+    this.productOff = {
       id: prod.id,
       name: prod.name,
       category: prod.category,
@@ -316,7 +401,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     let profile = this.productOff?.attachment?.filter(item => item.name === 'Profile Picture') ?? [];
     console.log('profile...')
     console.log(profile)
-    if(profile.length==0){
+    if (profile.length == 0) {
       this.images = this.productOff?.attachment?.filter(item => item.attachmentType === 'Picture') ?? [];
       this.attatchments = this.productOff?.attachment?.filter(item => item.attachmentType != 'Picture') ?? [];
     } else {
@@ -324,30 +409,30 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       this.attatchments = this.productOff?.attachment?.filter(item => item.name != 'Profile Picture') ?? [];
     }
 
-    this.licenseTerm = this.productOff?.productOfferingTerm?.find(
-      element => element.name === 'License'
-    );
+    this.setOfferingTerms(this.productOff?.productOfferingTerm);
 
-    if(this.prodSpec.productSpecCharacteristic != undefined) {
+    if (this.prodSpec.productSpecCharacteristic != undefined) {
 
       // Find if there is a self attestement
       let selfAttObj = this.prodSpec.productSpecCharacteristic.find((p => {
         return p.name === `Compliance:SelfAtt`
       }));
 
-      if(selfAttObj){
+      if (selfAttObj) {
         this.selfAtt = selfAttObj.productSpecCharacteristicValue?.at(0)?.value
       }
     }
+
+    this.computeComplianceDocuments(this.prodSpec.productSpecCharacteristic);
 
     //Hardcoding compliance lever for the moment
     this.complianceLevel = this.api.getComplianceLevel(this.prodSpec);
     this.complianceDescription = this.getComplianceDescription();
 
-    if(this.check_logged){
+    if (this.check_logged) {
       let cart = await this.cartService.getShoppingCart();
       const exists = cart.some((item: any) => item.id === this.productOff?.id);
-      this.productAlreadyInCart=exists;
+      this.productAlreadyInCart = exists;
       this.cdr.detectChanges();
     }
   }
@@ -463,7 +548,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     return '';
   }
 
-  toggleQuoteModal(){
+  toggleQuoteModal() {
     //Show quote modal
     this.showQuoteModal = true;
   }
@@ -471,13 +556,13 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   getComplianceDescription(): string {
     switch (this.complianceLevel) {
       case 'NL':
-        return `No level. This product hasn't reached any compliance level yet.`;
+        return 'PRODUCT_DETAILS._compliance_no_level_desc';
       case 'BL':
-        return `Basic level. Reached when the provider signs the "self attestation" document (attached below).`;
+        return 'PRODUCT_DETAILS._compliance_baseline_desc';
       case 'P':
-        return `Professional level. The provider has signed the "self attestation" document (attached below) and the product includes the following certifications: BSI-C5, CISPE, EU Cloud CoC, CSA CCM, ISO/IEC 27001, TISAX and SWIPO.`;
+        return 'PRODUCT_DETAILS._compliance_professional_desc';
       case 'PP':
-        return `Professional level. The provider has signed the "self attestation" document (attached below) and the product includes the following certifications: BSI-C5, CISPE, EU Cloud CoC, CSA CCM, ISO/IEC 27001, TISAX, SWIPO and CNDCP (Climate Neutral Data Centre Pact).`;
+        return 'PRODUCT_DETAILS._compliance_professional_plus_desc';
       default:
         return '';
     }
@@ -489,6 +574,28 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
   isCustom() {
     return this.checkCustom;
+  }
+
+  ngAfterViewInit() {
+    if (this.isPreview) { return; }
+    const el = this.summaryBar?.nativeElement;
+    const nav = document.querySelector('bae-header nav');
+    if (el && nav) {
+      this.renderer.appendChild(nav, el);
+      this.summaryBarHeight = el.offsetHeight;
+    }
+  }
+
+  @HostListener('window:scroll') onScroll(): void {
+    if (this.isPreview) { return; }
+    const bottom = this.offerHero?.nativeElement.getBoundingClientRect().bottom;
+    const next = bottom !== undefined && bottom <= this.HEADER_HEIGHT;
+    if (next !== this.showSummaryBar) {
+      this.showSummaryBar = next;
+      const el = this.summaryBar?.nativeElement;
+      if (el) { this.summaryBarHeight = el.offsetHeight; }
+      this.cdr.detectChanges();
+    }
   }
 
   ngAfterViewChecked() {
@@ -536,44 +643,42 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     this.textDivHeight = this.textDiv.nativeElement.offsetHeight;
   }
 
-  toggleCartSelection(){
+  toggleCartSelection() {
     console.log('Add to cart...')
-    if (this.productOff?.productOfferingPrice != undefined){
-      if(this.productOff?.productOfferingPrice.length > 1){
-        this.check_prices=true;
-        this.selected_price=this.productOff?.productOfferingPrice[this.productOff?.productOfferingPrice.length-1]
+    if (this.productOff?.productOfferingPrice != undefined) {
+      if (this.productOff?.productOfferingPrice.length > 1) {
+        this.check_prices = true;
+        this.selected_price = this.productOff?.productOfferingPrice[this.productOff?.productOfferingPrice.length - 1]
       } else {
-        this.selected_price=this.productOff?.productOfferingPrice[0]
+        this.selected_price = this.productOff?.productOfferingPrice[0]
       }
 
       this.cdr.detectChanges();
     }
 
-    if(this.productOff?.productOfferingTerm != undefined){
-      this.licenseTerm = this.productOff.productOfferingTerm.find(
-        element => element.name === 'License'
-      );
-      if(!this.licenseTerm){
-        this.check_terms=false;
+    if (this.productOff?.productOfferingTerm != undefined) {
+      this.setOfferingTerms(this.productOff.productOfferingTerm);
+      if (!this.licenseTerm) {
+        this.check_terms = false;
       } else {
-        this.check_terms=true;
+        this.check_terms = true;
       }
     }
 
-    if(this.prodSpec.productSpecCharacteristic != undefined){
-      for(let i=0; i<this.prodSpec.productSpecCharacteristic.length; i++){
+    if (this.prodSpec.productSpecCharacteristic != undefined) {
+      for (let i = 0; i < this.prodSpec.productSpecCharacteristic.length; i++) {
         let charvalue = this.prodSpec.productSpecCharacteristic[i].productSpecCharacteristicValue;
-        if(charvalue != undefined){
-          if(charvalue?.length>1){
+        if (charvalue != undefined) {
+          if (charvalue?.length > 1) {
             this.check_char = true;
           }
-          for(let j=0; j<charvalue.length;j++){
-            if(charvalue[j]?.isDefault == true){
+          for (let j = 0; j < charvalue.length; j++) {
+            if (charvalue[j]?.isDefault == true) {
               this.selected_chars.push(
                 {
-                "characteristic": this.prodSpec.productSpecCharacteristic[i],
-                "value": charvalue[j]
-              });
+                  "characteristic": this.prodSpec.productSpecCharacteristic[i],
+                  "value": charvalue[j]
+                });
             }
           }
         }
@@ -581,10 +686,10 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       console.log(this.selected_chars)
     }
 
-    if (this.check_prices==false && this.check_char == false && this.check_terms == false){
-      this.addProductToCart(this.productOff,false);
+    if (this.check_prices == false && this.check_char == false && this.check_terms == false) {
+      this.addProductToCart(this.productOff, false);
     } else {
-      this.cartSelection=true;
+      this.cartSelection = true;
       this.cdr.detectChanges();
     }
   }
@@ -778,32 +883,32 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   }
 
 
-async deleteProduct(product: Product | undefined){
-    if(product !== undefined) {
+  async deleteProduct(product: Product | undefined) {
+    if (product !== undefined) {
       //this.localStorage.removeCartItem(product);
       await this.cartService.removeItemShoppingCart(product.id);
       console.log('removed');
       this.eventMessage.emitRemovedCartItem(product as Product);
     }
-    this.toastVisibility=false;
+    this.toastVisibility = false;
   }
 
-  hideCartSelection(){
-    this.cartSelection=false;
-    this.check_char=false;
-    this.check_terms=false;
-    this.check_prices=false;
-    this.selected_chars=[];
-    this.selected_price={};
-    this.selected_terms=false;
+  hideCartSelection() {
+    this.cartSelection = false;
+    this.check_char = false;
+    this.check_terms = false;
+    this.check_prices = false;
+    this.selected_chars = [];
+    this.selected_price = {};
+    this.selected_terms = false;
     this.cdr.detectChanges();
   }
 
-  goTo(path:string) {
+  goTo(path: string) {
     this.router.navigate([path]);
   }
 
-  back(){
+  back() {
     this.location.back();
   }
 
@@ -811,74 +916,150 @@ async deleteProduct(product: Product | undefined){
     return this.images.length > 0 ? this.images?.at(0)?.url : 'https://placehold.co/600x400/svg';
   }
 
-  removeClass(elem: HTMLElement, cls:string) {
+  removeClass(elem: HTMLElement, cls: string) {
     var str = " " + elem.className + " ";
     elem.className = str.replace(" " + cls + " ", " ").replace(/^\s+|\s+$/g, "");
   }
 
-  addClass(elem: HTMLElement, cls:string) {
-      elem.className += (" " + cls);
+  addClass(elem: HTMLElement, cls: string) {
+    elem.className += (" " + cls);
   }
 
-  goToDetails(){
+  goToDetails() {
     this.activeTab = 'overview';
   }
 
-  goToChars(){
+  goToChars() {
     this.activeTab = 'features';
   }
 
-  goToAttach(){
+  goToAttach() {
     this.activeTab = 'overview';
   }
 
-  goToAgreements(){
+  goToAgreements() {
     this.activeTab = 'compliance';
   }
 
-  goToRelationships(){
+  goToRelationships() {
     this.activeTab = 'overview';
   }
 
   tabClass(name: string): string {
     return this.activeTab === name
-      ? 'bg-white text-[#14274A] font-semibold'
-      : 'text-[#526179] font-medium hover:text-[#14274A] hover:bg-white/50';
+      ? 'bg-offerings-dashed-border text-secondary-500 font-semibold'
+      : 'text-secondary-500 font-semibold hover:bg-secondary-50';
   }
 
   toggleTermsReadMore() {
     this.showTermsMore = !this.showTermsMore;
-
-    const el = this.termsTextRef.nativeElement;
-    if (this.showTermsMore) {
-      el.classList.remove('line-clamp-5');
-    } else {
-      el.classList.add('line-clamp-5');
-    }
   }
 
-  goToLink(url: any){
+  goToLink(url: any) {
     window.open(url, "_blank");
   }
 
-  getOwner(){
+  private extractTermsFileAttachments(terms: any[] | undefined): AttachmentRefOrValue[] {
+    return (terms || [])
+      .filter(term => String(term?.name || '').toLowerCase() === 'terms-file' && term?.description)
+      .map((term, index) => ({
+        id: term.id || `terms-file-${index}`,
+        name: this.fileNameFromUrl(term.description),
+        url: term.description,
+        attachmentType: 'terms-file'
+      }));
+  }
+
+  private setOfferingTerms(terms: any[] | undefined): void {
+    this.licenseTerm = terms?.find(
+      term => String(term?.name || '').toLowerCase() === 'license'
+    );
+    this.termsFileAttachments = this.extractTermsFileAttachments(terms);
+    this.showTermsMore = false;
+    this.showReadMoreButton = false;
+  }
+
+  private fileNameFromUrl(value: string): string {
+    const last = value.split('/').pop() || value;
+    let decoded = last;
+    try { decoded = decodeURIComponent(last); } catch { }
+    const underscore = decoded.indexOf('_');
+    return underscore > -1 ? decoded.slice(underscore + 1) : decoded;
+  }
+
+  getOwner() {
     let parties = this.prodSpec?.relatedParty;
-    if(parties)
-    for(let i=0; i<parties.length;i++){
-      if(parties[i].role == environment.SELLER_ROLE){
-        if(parties[i].id.includes('organization')){
-          this.accService.getOrgInfo(parties[i].id).then(org => {
-            this.orgInfo = org;
-            console.log(this.orgInfo)
-          })
+    if (parties)
+      for (let i = 0; i < parties.length; i++) {
+        if (parties[i].role == environment.SELLER_ROLE) {
+          if (parties[i].id.includes('organization')) {
+            this.providerPartyId = parties[i].id;
+            this.accService.getOrgInfo(parties[i].id).then(org => {
+              this.orgInfo = org;
+              console.log(this.orgInfo)
+            })
+            this.loadMoreFromProvider(parties[i].id);
+          }
         }
       }
+  }
+
+  updateMoreVisibleItems() {
+    const width = window.innerWidth;
+    if (width < 768) {
+      this.moreVisibleItems = 1;
+    } else if (width < 1024) {
+      this.moreVisibleItems = 2;
+    } else {
+      this.moreVisibleItems = 3;
     }
   }
 
-  goToOrgDetails(id:any) {
-    //document.querySelector("body > div[modal-backdrop]")?.remove()
-    this.router.navigate(['/org-details', id]);
+  @HostListener('window:resize')
+  onWindowResize() {
+    this.updateMoreVisibleItems();
+    this.cdr.detectChanges();
+  }
+
+  async loadMoreFromProvider(partyId: string) {
+    if (this.isPreview || !partyId) {
+      return;
+    }
+    try {
+      const offers = await this.api.getProductOfferByOwner(0, ['Launched'], partyId, undefined, false);
+      const others = (Array.isArray(offers) ? offers : []).filter((o: any) => o?.id !== this.id).slice(0, 9);
+      if (others.length === 0) {
+        return;
+      }
+      this.updateMoreVisibleItems();
+      this.moreOfferings = await this.api.getProductsDetails(others);
+      this.cdr.detectChanges();
+    } catch (err) {
+      console.error('Error loading more offerings from provider:', err);
+    }
+  }
+
+  getOfferingImage(offering: any): string {
+    const attachments: any[] = offering?.attachment ?? [];
+    const profile = attachments.filter(item => item?.name === 'Profile Picture');
+    const pictures = profile.length > 0 ? profile : attachments.filter(item => item?.attachmentType === 'Picture');
+    return pictures.length > 0 ? pictures.at(0)?.url : 'https://placehold.co/600x400/svg';
+  }
+
+  getOfferingCategories(offering: any): any[] {
+    return (offering?.category ?? []).slice(0, 2);
+  }
+
+  async goToOrgDetails(id: any) {
+    try {
+      const catalogs = await this.api.getCatalogsByUser(0, undefined, ['Launched'], id);
+      const catalogId = Array.isArray(catalogs) ? catalogs[0]?.id : undefined;
+      if (catalogId) {
+        this.router.navigate(['/org-details', catalogId]);
+      }
+    } catch (err) {
+      console.error('Error resolving provider catalog:', err);
+    }
   }
 
   isDrawerOpen = false;
@@ -891,11 +1072,11 @@ async deleteProduct(product: Product | undefined){
   }
 
   hasLongWord(str: string | undefined, threshold = 20) {
-    if(str){
+    if (str) {
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
-    }   
+    }
   }
 
   getCharacteristicValueLabel(valueSpec: any): string {
@@ -995,6 +1176,187 @@ async deleteProduct(product: Product | undefined){
 
   normalizeName(name?: string): string {
     return name?.replace(/compliance:/i, '').trim() ?? '';
-  }  
+  }
+
+  private parseProductDetails(raw: string | undefined): void {
+    this.howItWorks = '';
+    this.keyFeatures = [];
+    this.businessBenefits = [];
+    this.useCases = [];
+    this.faqs = [];
+    this.openFaqIdx = null;
+    const text = (raw ?? '').toString();
+    const startIdx = text.indexOf(this.DETAILS_START);
+    if (startIdx === -1) {
+      this.specOverview = text;
+      return;
+    }
+    this.specOverview = text.slice(0, startIdx).replace(/\n+$/, '');
+    const endIdx = text.indexOf(this.DETAILS_END);
+    const inner = text.slice(startIdx + this.DETAILS_START.length, endIdx > -1 ? endIdx : undefined);
+    try {
+      const doc = new DOMParser().parseFromString(`<div>${inner}</div>`, 'text/html');
+      const how = doc.querySelector('[data-dome-section="how-it-works"]');
+      if (how) this.howItWorks = how.getAttribute('data-text') || how.querySelector('p')?.textContent || '';
+      this.keyFeatures = this.parseDetailItems(doc, 'key-features', true);
+      this.businessBenefits = this.parseDetailItems(doc, 'business-benefits', false);
+      this.useCases = this.parseDetailItems(doc, 'use-cases', true);
+      this.faqs = this.parseFaqs(doc);
+    } catch { }
+  }
+
+  private parseFaqs(doc: Document): { question: string, answer: string }[] {
+    const section = doc.querySelector('[data-dome-section="faqs"]');
+    if (!section) return [];
+    return Array.from(section.querySelectorAll('li')).map((li: any) => ({
+      question: li.getAttribute('data-q') || li.querySelector('strong')?.textContent || '',
+      answer: li.getAttribute('data-a') || li.querySelector('p')?.textContent || ''
+    })).filter(f => f.question || f.answer);
+  }
+
+  toggleFaq(idx: number): void {
+    this.openFaqIdx = this.openFaqIdx === idx ? null : idx;
+  }
+
+  isFaqOpen(idx: number): boolean {
+    return this.openFaqIdx === idx;
+  }
+
+  private parseDetailItems(doc: Document, key: string, withIcon: boolean): any[] {
+    const section = doc.querySelector(`[data-dome-section="${key}"]`);
+    if (!section) return [];
+    return Array.from(section.querySelectorAll('li')).map((li: any) => {
+      const name = li.getAttribute('data-name') || li.querySelector('strong')?.textContent || '';
+      const description = li.getAttribute('data-desc') || '';
+      return withIcon ? { name, description, icon: li.getAttribute('data-icon') || null } : { name, description };
+    });
+  }
+
+  isLongText(str: string | undefined): boolean {
+    return (str ?? '').toString().length > 280;
+  }
+
+  private async applyPreviewOffer(): Promise<void> {
+    const offer = this.previewProductOff!;
+    this.productOff = offer;
+    this.id = offer.id || 'preview';
+    this.prodSpec = (offer as any).productSpecification || {};
+    this.parseProductDetails((this.prodSpec as any)?.description);
+
+    this.serviceSpecs = [];
+    this.resourceSpecs = [];
+    const previewSpec: any = this.prodSpec;
+    if (Array.isArray(previewSpec?.serviceSpecification)) {
+      for (const ref of previewSpec.serviceSpecification) {
+        try {
+          this.serviceSpecs.push(ref?.id ? await this.api.getServiceSpec(ref.id) : ref);
+        } catch (err) {
+          console.error('Failed to load service spec for preview', err);
+        }
+      }
+    }
+    if (Array.isArray(previewSpec?.resourceSpecification)) {
+      for (const ref of previewSpec.resourceSpecification) {
+        try {
+          this.resourceSpecs.push(ref?.id ? await this.api.getResourceSpec(ref.id) : ref);
+        } catch (err) {
+          console.error('Failed to load resource spec for preview', err);
+        }
+      }
+    }
+
+    this.category = offer?.category?.at(0)?.name ?? 'none';
+    this.categories = offer?.category;
+
+    const firstPrice = offer?.productOfferingPrice?.at(0);
+    this.price = firstPrice?.price?.value != null
+      ? `${firstPrice.price.value} ${firstPrice.price.unit ?? ''}`.trim()
+      : '';
+
+    const attachments = (this.prodSpec as any)?.attachment ?? offer?.attachment ?? [];
+    const isImage = (a: any) => a?.attachmentType === 'Picture' || (a?.attachmentType || '').startsWith('image') || (a?.url || '').startsWith('data:image');
+    const profile = attachments.filter((a: any) => a?.name === 'Profile Picture');
+    if (profile.length === 0) {
+      this.images = attachments.filter(isImage);
+      this.attatchments = attachments.filter((a: any) => !isImage(a));
+    } else {
+      this.images = profile;
+      this.attatchments = attachments.filter((a: any) => a?.name !== 'Profile Picture');
+    }
+    console.log('[preview] attachments:', attachments, 'images:', this.images);
+
+    this.setOfferingTerms(offer?.productOfferingTerm);
+
+    if ((this.prodSpec as any)?.productSpecCharacteristic) {
+      this.prodChars = (this.prodSpec as any).productSpecCharacteristic.filter((char: any) =>
+        !char.name?.startsWith('Compliance:') && !char.name?.endsWith(' - enabled')
+      );
+    }
+
+    this.parseComplianceInfo(this.prodSpec);
+
+    this.isLoaded = true;
+    this.cdr.detectChanges();
+  }
+
+  private parseComplianceInfo(prodSpec: any): void {
+    this.complianceProf = [];
+    this.additionalCerts = [];
+    this.selfAtt = '';
+
+    const chars = prodSpec?.productSpecCharacteristic;
+    if (chars != undefined) {
+      this.additionalCerts = chars.filter((char: any) => {
+        const cleanedName = char.name.replace('Compliance:', '').trim();
+        return (
+          char.name.startsWith('Compliance:') &&
+          !certifications.some(cert => cert.name === cleanedName) && char.name != 'Compliance:SelfAtt'
+        );
+      });
+
+      const normalizeName = (name?: string): string =>
+        name?.replace(/compliance:/i, '').trim() ?? '';
+
+      for (let i = 0; i < certifications.length; i++) {
+        let compProf = chars.find((p: any) => {
+          return normalizeName(p.name) === certifications[i].name;
+        });
+        if (compProf) {
+          let cert: any = certifications[i];
+          cert.href = compProf.productSpecCharacteristicValue?.at(0)?.value;
+          this.complianceProf.push(cert);
+        }
+      }
+
+      let selfAttObj = chars.find((p: any) => {
+        return p.name === `Compliance:SelfAtt`
+      });
+      if (selfAttObj) {
+        this.selfAtt = selfAttObj.productSpecCharacteristicValue?.at(0)?.value;
+      }
+    }
+
+    this.computeComplianceDocuments(chars);
+
+    this.complianceLevel = this.api.getComplianceLevel(prodSpec);
+    this.complianceDescription = this.getComplianceDescription();
+  }
+
+  private computeComplianceDocuments(chars: any[] | undefined): void {
+    this.complianceDocuments = [];
+    if (!chars) return;
+    for (const c of chars) {
+      const name = String(c?.name || '');
+      if (!name.startsWith('Compliance:') || name === 'Compliance:VC') continue;
+      const url = c.productSpecCharacteristicValue?.at(0)?.value;
+      if (!url) continue;
+      const isSelfAtt = name === 'Compliance:SelfAtt';
+      this.complianceDocuments.push({
+        name: isSelfAtt ? '' : name.replace(/compliance:/i, '').trim(),
+        url,
+        isSelfAtt
+      });
+    }
+  }
 
 }

@@ -1,0 +1,98 @@
+<div class="bg-offerings-surface dark:bg-secondary-300 rounded-2xl border border-offerings-border dark:border-secondary-200 shadow-sm p-6 w-full flex-1 flex flex-col gap-8">
+  <div class="flex items-start justify-between">
+    <div>
+      <h2 class="text-2xl font-extrabold text-offerings-text dark:text-offerings-on-dark">{{ 'USAGE_SPECS._usage_spec' | translate }}</h2>
+      <p class="text-sm text-offerings-muted-text dark:text-offerings-on-dark-body mt-1">{{ 'OFFERINGS._manage_usage_subtitle' | translate }}</p>
+    </div>
+    <button data-cy="createUsageSpec" (click)="goToCreate()" type="button"
+      class="inline-flex items-center gap-2 bg-primary-100 hover:bg-primary-50 text-offerings-on-dark text-sm font-semibold rounded-lg h-10 px-4">
+      <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.4" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+      {{ 'OFFERINGS._new_usage' | translate }}
+    </button>
+  </div>
+
+  <div class="rounded-2xl flex-1" [class.dashed-pane]="loading || usageSpecs.length === 0">
+    @if (loading) {
+      <div role="status" class="w-full flex justify-center items-center py-24">
+        <svg aria-hidden="true" class="w-10 h-10 text-offerings-on-dark-body animate-spin fill-primary-100" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+          <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+        </svg>
+        <span class="sr-only">{{ 'COMMON._loading' | translate }}</span>
+      </div>
+    } @else if (usageSpecs.length === 0) {
+      <div class="flex flex-col items-center justify-center flex-1 py-12 px-6">
+        <div class="w-[72px] h-[72px] rounded-full flex items-center justify-center mb-5 p-4 bg-secondary-50 dark:bg-secondary-200">
+          <svg class="w-10 h-10 text-primary-100 dark:text-primary-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M3.375 3C2.339 3 1.5 3.84 1.5 4.875v.75c0 1.036.84 1.875 1.875 1.875h17.25c1.035 0 1.875-.84 1.875-1.875v-.75C22.5 3.839 21.66 3 20.625 3H3.375z"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M3.087 9l.54 9.176A3 3 0 006.62 21h10.757a3 3 0 002.995-2.824L20.913 9H3.087zm6.133 2.845a.75.75 0 011.06 0l1.72 1.72 1.72-1.72a.75.75 0 111.06 1.06l-1.72 1.72 1.72 1.72a.75.75 0 11-1.06 1.06L12 15.685l-1.72 1.72a.75.75 0 11-1.06-1.06l1.72-1.72-1.72-1.72a.75.75 0 010-1.06z"/>
+          </svg>
+        </div>
+        <p class="text-base font-bold text-offerings-text dark:text-offerings-on-dark mb-1">{{ 'OFFERINGS._no_usage_yet' | translate }}</p>
+        <p class="text-sm text-offerings-muted-text dark:text-offerings-on-dark-body mb-6">{{ 'OFFERINGS._add_new_to_collect' | translate }}</p>
+        <button (click)="goToCreate()" type="button"
+          class="inline-flex items-center gap-2 bg-primary-100 hover:bg-primary-50 text-offerings-on-dark text-sm font-semibold rounded-lg h-10 px-4">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.4" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          {{ 'OFFERINGS._new_usage' | translate }}
+        </button>
+      </div>
+    } @else {
+      <div class="rounded-2xl overflow-visible bg-offerings-surface dark:bg-secondary-300 border border-offerings-border-strong dark:border-secondary-200">
+        <table data-cy="usageSpecTable" class="w-full text-sm text-left text-offerings-body dark:text-offerings-on-dark-body">
+          <thead class="text-xs text-offerings-muted-text dark:text-offerings-on-dark-body uppercase bg-offerings-surface dark:bg-secondary-200 border-b border-offerings-border dark:border-secondary-200">
+            <tr class="h-[56px]">
+              <th scope="col" class="px-6 font-semibold rounded-tl-2xl">{{ 'OFFERINGS._name' | translate }}</th>
+              <th scope="col" class="hidden md:table-cell px-6 font-semibold">{{ 'USAGE_SPECS._description' | translate }}</th>
+              <th scope="col" class="px-6 font-semibold text-right rounded-tr-2xl">{{ 'OFFERINGS._actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (usage of usageSpecs; track usage.id; let idx = $index; let last = $last) {
+              <tr data-cy="usageSpecRow" class="h-[56px] group" [ngClass]="{ 'border-b border-offerings-border dark:border-secondary-200': !last }">
+                <td [ngClass]="{'break-all': hasLongWord(usage.name, 20),'break-words': !hasLongWord(usage.name, 20), 'rounded-bl-2xl': last}" class="px-6 text-offerings-text dark:text-offerings-on-dark group-hover:bg-offerings-page dark:group-hover:bg-secondary-200">
+                  {{ usage.name }}
+                </td>
+                <td class="hidden md:table-cell px-6 text-offerings-muted-text dark:text-offerings-on-dark-body group-hover:bg-offerings-page dark:group-hover:bg-secondary-200">
+                  {{ usage.description }}
+                </td>
+                <td class="px-6 text-right relative group-hover:bg-offerings-page dark:group-hover:bg-secondary-200" [ngClass]="{'rounded-br-2xl': last}">
+                  <button type="button" (click)="toggleMenu(idx, $event)" class="p-1 hover:bg-offerings-neutral dark:hover:bg-secondary-100 rounded text-offerings-muted-text dark:text-offerings-on-dark-body">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="5" r="2"/>
+                      <circle cx="12" cy="12" r="2"/>
+                      <circle cx="12" cy="19" r="2"/>
+                    </svg>
+                  </button>
+                  @if(openMenuIdx === idx){
+                    <div class="absolute right-4 top-12 z-20 bg-offerings-surface dark:bg-secondary-200 rounded-xl shadow-lg border border-offerings-border dark:border-secondary-100 py-2 w-40 text-left" (click)="$event.stopPropagation()">
+                      <button data-cy="usageSpecEdit" type="button" (click)="goToUpdate(usage); openMenuIdx=null" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-offerings-body dark:text-offerings-on-dark hover:bg-offerings-page dark:hover:bg-secondary-300">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/>
+                        </svg>
+                        {{ 'OFFERINGS._edit' | translate }}
+                      </button>
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (!loading_more && page_check) {
+        <div class="flex pt-4 justify-center">
+          <button data-cy="loadMore" (click)="next()" class="inline-flex items-center px-4 h-9 text-sm font-medium text-offerings-body dark:text-offerings-on-dark-body bg-offerings-surface dark:bg-secondary-300 border border-offerings-border-strong dark:border-secondary-200 rounded-lg hover:bg-offerings-page dark:hover:bg-secondary-200">
+            {{ 'OFFERINGS._load_more' | translate }}
+            <svg class="w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+            </svg>
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>

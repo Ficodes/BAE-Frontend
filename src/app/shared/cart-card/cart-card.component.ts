@@ -27,6 +27,7 @@ export class CartCardComponent implements OnInit {
   check_char:boolean=false;
   check_terms:boolean=false;
   selected_terms:boolean=false;
+  licenseTerms:any[]=[];
   selected_chars:productSpecCharacteristicValueCart[]=[];
   formattedPrices:any[]=[];
   lastAddedProd:cartProduct | undefined;
@@ -71,9 +72,12 @@ export class CartCardComponent implements OnInit {
       this.cdr.detectChanges();
     }
 
-    if(this.productOff?.productOfferingTerm != undefined){
+    this.licenseTerms = (this.productOff?.productOfferingTerm || []).filter(
+      (term: any) => String(term?.name || '').toLowerCase() === 'license' && term?.description
+    );
+    if(this.licenseTerms.length > 0){
       console.log('terms')
-      console.log(this.productOff?.productOfferingTerm)
+      console.log(this.licenseTerms)
       this.check_terms=true;
       this.cdr.detectChanges();
       /*if(this.productOff.productOfferingTerm.length == 1 && this.productOff.productOfferingTerm[0].name == undefined){
@@ -158,6 +162,7 @@ export class CartCardComponent implements OnInit {
     this.selected_chars = [];
     this.selected_price = {};
     this.selected_terms = false;
+    this.licenseTerms = [];
     this.cdr.detectChanges();
   }
 
@@ -172,6 +177,7 @@ export class CartCardComponent implements OnInit {
     this.selected_chars=[];
     this.selected_price={};
     this.selected_terms=false;
+    this.licenseTerms=[];
     this.cdr.detectChanges();
   }
 

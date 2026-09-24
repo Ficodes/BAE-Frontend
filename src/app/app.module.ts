@@ -59,6 +59,9 @@ import { SellerProductSpecComponent } from './pages/seller-offerings/offerings/s
 import { UpdateProductSpecComponent } from './pages/seller-offerings/offerings/seller-product-spec/update-product-spec/update-product-spec.component';
 import { CreateResourceSpecComponent } from './pages/seller-offerings/offerings/seller-resource-spec/create-resource-spec/create-resource-spec.component';
 import { SellerResourceSpecComponent } from './pages/seller-offerings/offerings/seller-resource-spec/seller-resource-spec.component';
+import { SellerUsageSpecComponent } from './pages/seller-offerings/offerings/seller-usage-spec/seller-usage-spec.component';
+import { CreateUsageSpecComponent } from './pages/usage-specs/usage-sections/create-usage-spec/create-usage-spec.component';
+import { UpdateUsageSpecComponent } from './pages/usage-specs/usage-sections/update-usage-spec/update-usage-spec.component';
 import { UpdateResourceSpecComponent } from './pages/seller-offerings/offerings/seller-resource-spec/update-resource-spec/update-resource-spec.component';
 import { CreateServiceSpecComponent } from './pages/seller-offerings/offerings/seller-service-spec/create-service-spec/create-service-spec.component';
 import { SellerServiceSpecComponent } from './pages/seller-offerings/offerings/seller-service-spec/seller-service-spec.component';
@@ -77,6 +80,7 @@ import { ThemeService } from './services/theme.service';
 import { BadgeComponent } from "./shared/badge/badge.component";
 import { BillingAccountFormComponent } from "./shared/billing-account-form/billing-account-form.component";
 import { CardComponent } from "./shared/card/card.component";
+import { CarouselComponent } from "./shared/carousel/carousel.component";
 import { CategoriesFilterComponent } from "./shared/categories-filter/categories-filter.component";
 import { CategoriesPanelComponent } from "./shared/categories-panel/categories-panel.component";
 import { CategoriesRecursionListComponent } from './shared/categories-recursion-list/categories-recursion-list.component';
@@ -134,6 +138,7 @@ import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.c
     SellerProductSpecComponent,
     SellerServiceSpecComponent,
     SellerResourceSpecComponent,
+    SellerUsageSpecComponent,
     SellerOfferComponent,
     CreateProductSpecComponent,
     CreateServiceSpecComponent,
@@ -206,7 +211,10 @@ import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.c
     MarkdownTextareaComponent,
     ProviderRevenueSharingComponent,
     OperatorRevenueSharingComponent,
-    ConfirmDialogComponent
+    CreateUsageSpecComponent,
+    UpdateUsageSpecComponent,
+    ConfirmDialogComponent,
+    CarouselComponent
   ],
   providers: [
     AppInitService,

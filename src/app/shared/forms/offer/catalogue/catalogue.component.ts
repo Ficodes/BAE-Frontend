@@ -41,7 +41,7 @@ export class CatalogueComponent implements ControlValueAccessor, OnInit, AfterVi
   catalogs:any[]=[];
   nextCatalogs:any[]=[];
   selectedCatalogInternal: any = null;
-  
+
   constructor(
       private api: ApiServiceService,
       private paginationService: PaginationService,
@@ -120,8 +120,8 @@ export class CatalogueComponent implements ControlValueAccessor, OnInit, AfterVi
 
   getRowClass(catId: string): string {
     return catId === this.selectedCatalogInternal?.id
-      ? "bg-white dark:bg-secondary-100"
-      : "bg-white dark:bg-secondary-300";
+      ? "bg-offerings-surface dark:bg-secondary-100"
+      : "bg-offerings-surface dark:bg-secondary-300";
   }
 
   hasLongWord(str: string | undefined, threshold = 20) {
@@ -129,7 +129,7 @@ export class CatalogueComponent implements ControlValueAccessor, OnInit, AfterVi
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
-    }   
+    }
   }
 
 }

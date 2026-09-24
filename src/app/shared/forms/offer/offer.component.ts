@@ -1,94 +1,131 @@
-import { NgClass } from "@angular/common";
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
-import { TranslateModule } from "@ngx-translate/core";
+import { DecimalPipe, LowerCasePipe, NgClass } from "@angular/common";
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from "@angular/forms";
+import { TranslateModule, TranslateService } from "@ngx-translate/core";
 import moment from 'moment';
 import { lastValueFrom, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { components } from "src/app/models/product-catalog";
 import { EventMessageService } from "src/app/services/event-message.service";
+import { environment } from 'src/environments/environment';
 import { v4 as uuidv4 } from 'uuid';
-import { environment } from '../../../../environments/environment';
-import { FormChangeState, PricePlanChangeState } from "../../../models/interfaces";
+import { FormChangeState, LoginInfo, PricePlanChangeState } from "../../../models/interfaces";
+import { LocalStorageService } from "../../../services/local-storage.service";
+import { AccountServiceService } from "../../../services/account-service.service";
 import { ApiServiceService } from "../../../services/product-service.service";
+import { ProductSpecServiceService } from "../../../services/product-spec-service.service";
+import { UsageServiceService } from "../../../services/usage-service.service";
+import { ThemeService } from "../../../services/theme.service";
+import { AttachmentServiceService } from "../../../services/attachment-service.service";
 import { CatalogueComponent } from "./catalogue/catalogue.component";
-import { CategoryComponent } from "./category/category.component";
 import { EdcContractDefinitionComponent } from "./edc-contract-definition/edc-contract-definition.component";
 import { GeneralInfoComponent } from "./general-info/general-info.component";
 import { LicenseComponent } from "./license/license.component";
+import { MarkdownTextareaComponent } from "../markdown-textarea/markdown-textarea.component";
 import { OfferSummaryComponent } from "./offer-summary/offer-summary.component";
 import { PricePlansComponent } from "./price-plans/price-plans.component";
 import { ProcurementModeComponent } from "./procurement-mode/procurement-mode.component";
 import { ProdSpecComponent } from "./prod-spec/prod-spec.component";
 import { ReplicationVisibilityComponent } from "./replication-visibility/replication-visibility.component";
+import { availableFilters, searchCategoriesConfig, type Filter } from "src/app/data/availableFilters";
+import { WorkspaceInfoMessageConfig } from "src/app/themes";
+import {
+  applyCharacteristicConstraints,
+  characteristicValuesOverlap,
+  CharacteristicConstraintValueUse,
+  hasConstraintValues,
+  isRangeCharacteristicValue
+} from "../../price-plan-constraint.utils";
 
 type ProductOffering_Create = components["schemas"]["ProductOffering_Create"];
 type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
+type OfferStepKey = 'general' | 'category' | 'terms' | 'contract' | 'price' | 'procurement';
 
-export enum OfferStep {
-  GENERAL_INFO = 'general_info',
-  PROD_SPEC = 'prod_spec',
-  CATALOGUE = 'catalogue',
-  CATEGORY = 'category',
-  LICENSE = 'license',
-  CONTRACT_DEFINITION = 'contract_definition',
-  PRICE = 'price',
-  PROCUREMENT = 'procurement',
-  REPLICATION = 'replication',
-  SUMMARY = 'summary',
+interface ForbiddenCharacteristic extends CharacteristicConstraintValueUse {
+  id: string;
+  name: string;
 }
 
-interface Step {
-  label: string;
-  id: OfferStep;
+interface PricePlanCharacteristicSelection extends ForbiddenCharacteristic {
+  allowed: boolean;
+  sourceValues: any[];
+  allowedValues: any[];
 }
+
+const CONSTRAINT_PRICE_TYPE = 'constraint';
+const DISCOUNT_PRICE_TYPE = 'discount';
+
+interface TermsFileAttachment {
+  name: string;
+  size?: number;
+  url?: string;
+  attachmentType?: string;
+  file?: File;
+}
+
+const NON_PRICE_CONFIG_VALUE_TYPES: string[] = [
+  'credentialsConfiguration',
+  'authorizationPolicy',
+  'endpointUrl',
+  'upstreamAddress',
+  'targetSpecification',
+  'serviceConfiguration',
+  'credentialsConfig',
+  'transferPath',
+  'transferType'
+];
 
 @Component({
   selector: 'app-offer-form',
   standalone: true,
   imports: [
     GeneralInfoComponent,
+    MarkdownTextareaComponent,
     TranslateModule,
     ProdSpecComponent,
     ReactiveFormsModule,
-    CategoryComponent,
     LicenseComponent,
     PricePlansComponent,
     CatalogueComponent,
     ProcurementModeComponent,
     ReplicationVisibilityComponent,
     OfferSummaryComponent,
+    EdcContractDefinitionComponent,
     NgClass,
-    EdcContractDefinitionComponent
+    DecimalPipe,
+    LowerCasePipe
   ],
   templateUrl: './offer.component.html',
   styleUrl: './offer.component.css'
 })
 export class OfferComponent implements OnInit, OnDestroy {
+  private static readonly TERMS_FILE_TERM_NAME = 'terms-file';
 
   @Input() formType: 'create' | 'update' = 'create';
   @Input() offer: any = {};
   @Input() partyId: any;
 
-  productOfferForm: FormGroup;
-  highestStepIdx = 0;
-  contractDefinitionStep: Step = { label: 'Contract Definition', id: OfferStep.CONTRACT_DEFINITION };
-  steps: Step[] = [
-    { label: 'General Info', id: OfferStep.GENERAL_INFO },
-    { label: 'Product Specification', id: OfferStep.PROD_SPEC },
-    { label: 'Catalogue', id: OfferStep.CATALOGUE },
-    { label: 'Category', id: OfferStep.CATEGORY },
-    { label: 'License', id: OfferStep.LICENSE },
-    { label: 'Price Plans', id: OfferStep.PRICE },
-    { label: 'Procurement Mode', id: OfferStep.PROCUREMENT },
-    // { label: 'Replication & Visibility', id: OfferStep.REPLICATION },
-    { label: 'Summary', id: OfferStep.SUMMARY },
-  ];
-  currentStepIdx = 0;
-  get currentStep(): Step { return this.steps[this.currentStepIdx]; }
-  readonly OfferStep = OfferStep;
+  @Output() previewRequested = new EventEmitter<any>();
+  @Output() publishRequested = new EventEmitter<any>();
 
-  isFormValid = false;
+  productOfferForm: FormGroup;
+  currentStep = 0;
+  highestStep = 0;
+  steps = [
+    'CREATE_OFFER._step_general_info',
+    'CREATE_OFFER._step_category',
+    'CREATE_OFFER._step_terms',
+    'CREATE_OFFER._step_price_plans',
+    'CREATE_OFFER._step_procurement_mode'
+  ];
+  private readonly stepLabels: Record<OfferStepKey, string> = {
+    general: 'CREATE_OFFER._step_general_info',
+    category: 'CREATE_OFFER._step_category',
+    terms: 'CREATE_OFFER._step_terms',
+    contract: 'CREATE_OFFER._step_contract_definition',
+    price: 'CREATE_OFFER._step_price_plans',
+    procurement: 'CREATE_OFFER._step_procurement_mode'
+  };
   selectedProdSpec: any;
   pricePlans: any = [];
   errorMessage: any = '';
@@ -98,6 +135,91 @@ export class OfferComponent implements OnInit, OnDestroy {
   offersBundle: any[] = [];
   loadingData: boolean = false;
 
+  showLeaveModal: boolean = false;
+
+  availableProdSpecs: any[] = [];
+  loadingProdSpecs: boolean = false;
+  selectedProdSpecId: string = '';
+
+  catalogManagementEnabled: boolean = environment.CATALOG_MANAGEMENT_ENABLED;
+  availableCatalogs: any[] = [];
+  loadingCatalogs: boolean = false;
+  selectedCatalogId: string = '';
+
+  generalInfoCategoryFilter: Filter | null = null;
+  generalInfoCategoryFilterOptions: any[] = [];
+  loadingGeneralInfoCategoryFilter: boolean = false;
+  selectedGeneralInfoCategoryFilterOptionId: string = '';
+
+  availableRootCategories: any[] = [];
+  availableSubcategories: any[] = [];
+  loadingCategories: boolean = false;
+  selectedRootCategoryId: string = '';
+  selectedSubcategoryId: string = '';
+  offerTags: string[] = [];
+  tagInputValue: string = '';
+  categoryHelpMessage: WorkspaceInfoMessageConfig | null = null;
+
+  selectedPriceTier: '' | 'free' | 'tailored' | 'online' = '';
+  readonly priceTiers: { id: 'free' | 'tailored' | 'online', titleKey: string, descKey: string }[] = [
+    { id: 'free', titleKey: 'CREATE_OFFER._price_tier_free', descKey: 'CREATE_OFFER._price_tier_free_desc' },
+    { id: 'tailored', titleKey: 'CREATE_OFFER._price_tier_tailored', descKey: 'CREATE_OFFER._price_tier_tailored_desc' },
+    { id: 'online', titleKey: 'CREATE_OFFER._price_tier_online', descKey: 'CREATE_OFFER._price_tier_online_desc' }
+  ];
+
+  pricePlanFormMode: 'list' | 'form' = 'list';
+  pricePlanFormType: 'tailored' | 'standard' | 'flex' | null = null;
+  editingPricePlanIndex: number | null = null;
+  openActionMenuIndex: number | null = null;
+  tailoredPricePlanForm!: FormGroup;
+  paidPricePlanForm!: FormGroup;
+
+  showSelectPlanTypeModal = false;
+  selectedNewPlanType: 'standard' | 'flex' | null = null;
+
+  showConfigProfileModal = false;
+  configProfileForm!: FormGroup;
+  showPricePlanCharacteristicsModal = false;
+  pricePlanCharacteristicSelection: PricePlanCharacteristicSelection[] = [];
+  readonly currencyOptions: { code: string, label: string }[] = [
+    { code: 'EUR', label: 'EURO' },
+    { code: 'USD', label: 'US DOLLAR' },
+    { code: 'GBP', label: 'POUND' }
+  ];
+
+  showPriceComponentModal = false;
+  priceDrawerEntered = false;
+  showPriceTypeDropdown = false;
+  editingPriceComponentIndex: number | null = null;
+  usageSpecs: any[] = [];
+  selectedUsageSpec: any = null;
+  selectedTierUsageSpec: any = null;
+
+  tierForm!: FormGroup;
+  flexTiers: any[] = [];
+  showTierForm = false;
+  editingTierIndex: number | null = null;
+  openPriceCompMenuIndex: number | null = null;
+  priceComponentForm!: FormGroup;
+  readonly priceTypeOptions: { id: string, labelKey: string }[] = [
+    { id: 'one time', labelKey: 'CREATE_OFFER._pc_price_type_one_time' },
+    { id: 'recurring', labelKey: 'CREATE_OFFER._pc_price_type_recurring' },
+    { id: 'recurring-prepaid', labelKey: 'CREATE_OFFER._pc_price_type_recurring_prepaid' },
+    { id: 'usage', labelKey: 'CREATE_OFFER._pc_price_type_usage' }
+  ];
+  showRecurringPeriodDropdown = false;
+  readonly recurringPeriodOptions: { id: string, labelKey: string }[] = [
+    { id: 'day', labelKey: 'CREATE_OFFER._pc_recurring_daily' },
+    { id: 'week', labelKey: 'CREATE_OFFER._pc_recurring_weekly' },
+    { id: 'month', labelKey: 'CREATE_OFFER._pc_recurring_monthly' },
+    { id: 'year', labelKey: 'CREATE_OFFER._pc_recurring_yearly' }
+  ];
+
+  autoCatalogue: any = null;
+
+  tcAttachments: TermsFileAttachment[] = [];
+
+
   offerToCreate: ProductOffering_Create | undefined;
 
   private formChanges: { [key: string]: FormChangeState } = {};
@@ -106,35 +228,95 @@ export class OfferComponent implements OnInit, OnDestroy {
   hasChanges: boolean = false;
 
   get dspEnable(): boolean {
-    return environment.DSP_ENABLED && environment.DATA_SPACE_ENABLED
+    return environment.DSP_ENABLED && environment.DATA_SPACE_ENABLED;
   }
 
   constructor(private api: ApiServiceService,
     private eventMessage: EventMessageService,
-    private fb: FormBuilder) {
+    private fb: FormBuilder,
+    private prodSpecService: ProductSpecServiceService,
+    private localStorage: LocalStorageService,
+    private usageService: UsageServiceService,
+    private accountService: AccountServiceService,
+    private translate: TranslateService,
+    private themeService: ThemeService,
+    private attachmentService: AttachmentServiceService) {
 
     this.productOfferForm = this.fb.group({
-      generalInfo: this.fb.group({}),
+      generalInfo: this.fb.group({
+        name: new FormControl('', [Validators.required, Validators.maxLength(100)]),
+        version: new FormControl('0.1', [Validators.required, Validators.pattern('^-?[0-9]\\d*(\\.\\d*)?$')]),
+        status: new FormControl('Active'),
+        description: new FormControl('', [Validators.maxLength(300)])
+      }),
       prodSpec: new FormControl(null, [Validators.required]),
-      catalogue: new FormControl(null, [Validators.required]),
+      catalogue: new FormControl(null),
       category: new FormControl([]),
-      license: this.fb.group({}),
+      license: this.fb.group({
+        treatment: new FormControl('License'),
+        description: new FormControl('')
+      }),
       edcContractDefinition: this.fb.group({}),
       pricePlans: new FormControl([]),
-      procurementMode: this.fb.group({}),
+      procurementMode: this.fb.group({
+        mode: new FormControl('manual'),
+        extBillingEnabled: new FormControl(false),
+        plaSpecId: new FormControl('')
+      }),
       replicationMode: this.fb.group({})
     });
 
-    // Subscribe to form validation changes
-    this.productOfferForm.statusChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(status => {
-        if (!this.productOfferForm.controls['generalInfo'].valid || !this.productOfferForm.get('procurementMode')?.valid || !this.productOfferForm.get('edcContractDefinition')?.valid) {
-          this.isFormValid = false
-        } else {
-          this.isFormValid = true
-        }
-      });
+    this.tailoredPricePlanForm = this.fb.group({
+      name: new FormControl('', [Validators.required, Validators.maxLength(100)]),
+      description: new FormControl('', [Validators.maxLength(300)])
+    });
+
+    this.paidPricePlanForm = this.fb.group({
+      name: new FormControl('', [Validators.required, Validators.maxLength(100)]),
+      description: new FormControl('', [Validators.required, Validators.maxLength(300)]),
+      currency: new FormControl('EUR', [Validators.required]),
+      forbiddenCharacteristic: this.fb.control([] as ForbiddenCharacteristic[]),
+      productProfile: this.fb.group({ selectedValues: this.fb.array([] as FormGroup[]) }),
+      priceComponents: this.fb.control([] as any[])
+    });
+
+    this.configProfileForm = this.fb.group({
+      selectedValues: this.fb.array([] as FormGroup[])
+    });
+
+    this.priceComponentForm = this.fb.group({
+      name: new FormControl('', [Validators.required, Validators.maxLength(100)]),
+      description: new FormControl('', [Validators.maxLength(200)]),
+      basePrice: new FormControl(null, [Validators.required, Validators.min(0)]),
+      priceType: new FormControl('', [Validators.required]),
+      configOption: new FormControl(''),
+      configValue: new FormControl(''),
+      recurringPeriod: new FormControl('month'),
+      usageSpecId: new FormControl(''),
+      usageUnit: new FormControl(''),
+      includeDiscount: new FormControl(false),
+      discountValue: new FormControl(null, [Validators.min(0)]),
+      discountUnit: new FormControl('percentage'),
+      discountDuration: new FormControl(null, [Validators.min(1)]),
+      discountDurationUnit: new FormControl('days')
+    });
+
+    this.tierForm = this.fb.group({
+      min: new FormControl(null, [Validators.required]),
+      max: new FormControl(null, [Validators.required]),
+      price: new FormControl(null, [Validators.required, Validators.min(0)]),
+      priceType: new FormControl('', [Validators.required]),
+      recurringPeriod: new FormControl('month'),
+      usageSpecId: new FormControl(''),
+      usageUnit: new FormControl(''),
+      name: new FormControl('', [Validators.maxLength(100)]),
+      description: new FormControl('', [Validators.maxLength(200)]),
+      includeDiscount: new FormControl(false),
+      discountValue: new FormControl(null, [Validators.min(0)]),
+      discountUnit: new FormControl('percentage'),
+      discountDuration: new FormControl(null, [Validators.min(1)]),
+      discountDurationUnit: new FormControl('month')
+    });
 
     // Subscribe to subform changes
     this.formSubscription = this.eventMessage.messages$
@@ -146,6 +328,15 @@ export class OfferComponent implements OnInit, OnDestroy {
           console.log('Received subform change:', changeState);
           this.handleSubformChange(changeState);
         }
+        if (message.type === 'LeaveOfferEditorRequest') {
+          this.onBackClick();
+        }
+      });
+
+    this.themeService.currentTheme$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(theme => {
+        this.categoryHelpMessage = theme?.workspace?.offerForm?.categoryHelp ?? null;
       });
   }
 
@@ -166,60 +357,173 @@ export class OfferComponent implements OnInit, OnDestroy {
   }
 
   goToStep(index: number) {
-    // Solo validar en modo creación
-    if (this.formType === 'create' && index > this.currentStepIdx) {
-      const currentStepValid = this.validateCurrentStep();
-      if (!currentStepValid) {
-        return;
-      }
+    if (!this.canNavigate(index)) {
+      this.productOfferForm.markAllAsTouched();
+      return;
     }
+    if (this.isOfferStep('price') && this.steps[index] !== this.stepLabels.price && this.pricePlanFormMode === 'form') {
+      this.cancelCurrentPricePlanForm();
+    }
+    this.currentStep = index;
+    if (this.currentStep > this.highestStep) {
+      this.highestStep = this.currentStep
+    }
+  }
 
-    if (this.currentStep.id === 'prod_spec') {
-      // VERIFY EDC compatible and enable if so
-      if (this.isdEdcCompatible() && this.dspEnable) {
-        this.enableContractDefinitionStep()
-      } else {
-        this.disableContractDefinitionStep();
-      }
+  cancelCurrentPricePlanForm(): void {
+    if (this.pricePlanFormType === 'tailored') this.cancelTailoredPricePlanForm();
+    else if (this.pricePlanFormType === 'standard' || this.pricePlanFormType === 'flex') this.cancelPaidPricePlanForm();
+    else {
+      this.pricePlanFormMode = 'list';
+      this.pricePlanFormType = null;
     }
-    this.currentStepIdx = index;
-    if (index > this.highestStepIdx) {
-      this.highestStepIdx = index;
-    }
+  }
+
+  saveCurrentPricePlanForm(): void {
+    if (this.pricePlanFormType === 'tailored') this.saveTailoredPricePlan();
+    else if (this.pricePlanFormType === 'standard' || this.pricePlanFormType === 'flex') this.savePaidPricePlan();
+  }
+
+  canSaveCurrentPricePlanForm(): boolean {
+    if (this.pricePlanFormType === 'tailored') return this.tailoredPricePlanForm.valid;
+    if (this.pricePlanFormType === 'standard' || this.pricePlanFormType === 'flex') return this.canSavePaidPricePlan();
+    return false;
+  }
+
+  get currentPricePlanForm(): FormGroup {
+    if (this.pricePlanFormType === 'tailored') return this.tailoredPricePlanForm;
+    return this.paidPricePlanForm;
   }
 
   validateCurrentStep(): boolean {
-    switch (this.currentStep.id) {
-      case OfferStep.GENERAL_INFO:
-        return this.productOfferForm.get('generalInfo')?.valid || false;
-      case OfferStep.PROD_SPEC:
-        return !!this.productOfferForm.get('prodSpec')?.value;
-      case OfferStep.CATALOGUE:
-        return !!this.productOfferForm.get('catalogue')?.value;
-      case OfferStep.CATEGORY:
+    return this.isStepValid(this.currentStep);
+  }
+
+  private isStepValid(index: number): boolean {
+    switch (this.stepKeyAt(index)) {
+      case 'general':
+        return (this.productOfferForm.get('generalInfo')?.valid || false)
+          && !!this.productOfferForm.get('prodSpec')?.value
+          && (!this.catalogSelectionRequired() || !!this.productOfferForm.get('catalogue')?.value?.id)
+          && (!this.generalInfoCategoryFilter || !!this.selectedGeneralInfoCategoryFilterOptionId);
+      case 'category':
+        return !!this.selectedRootCategoryId;
+      case 'terms':
         return true;
-      case OfferStep.LICENSE:
-        return this.productOfferForm.get('license')?.valid || false;
-      case OfferStep.CONTRACT_DEFINITION:
+      case 'contract':
         return this.productOfferForm.get('edcContractDefinition')?.valid || false;
-      case OfferStep.PRICE:
-        return true;
-      case OfferStep.PROCUREMENT:
+      case 'price':
+        return this.isPriceStepValid();
+      case 'procurement':
         return this.productOfferForm.get('procurementMode')?.valid || false;
-      // case OfferStep.REPLICATION:
-      //   return this.productOfferForm.get('replicationMode')?.valid || false;
       default:
-        return true;
+        return false;
     }
   }
 
-  canNavigate(index: number) {
-    if (this.formType == 'create') {
-      return (this.productOfferForm.get('generalInfo')?.valid && (index <= this.currentStepIdx)) || (this.productOfferForm.get('generalInfo')?.valid && (index <= this.highestStepIdx));
-    } else {
-      //return this.productOfferForm.get('generalInfo')?.valid
-      return this.isFormValid
+  private isPriceStepValid(): boolean {
+    if (this.selectedPriceTier === 'free') return true;
+    if (this.selectedPriceTier === 'tailored') return this.tailoredPricePlans.length > 0;
+    if (this.selectedPriceTier === 'online') return this.onlinePaidPricePlans.length > 0;
+    return false;
+  }
+
+  canNavigate(index: number): boolean {
+    if (index < 0 || index >= this.steps.length) return false;
+    if (index <= this.currentStep) return true;
+    return this.steps
+      .slice(0, index)
+      .every((_: string, i: number) => this.isStepValid(i));
+  }
+
+  canSubmitOffer(): boolean {
+    return this.steps.every((_: string, i: number) => this.isStepValid(i));
+  }
+
+  private firstInvalidStep(): number {
+    const index = this.steps.findIndex((_: string, i: number) => !this.isStepValid(i));
+    return index === -1 ? this.steps.length - 1 : index;
+  }
+
+  isOfferStep(key: OfferStepKey): boolean {
+    return this.steps[this.currentStep] === this.stepLabels[key];
+  }
+
+  private stepKeyAt(index: number): OfferStepKey | null {
+    const label = this.steps[index];
+    return (Object.keys(this.stepLabels) as OfferStepKey[])
+      .find(key => this.stepLabels[key] === label) || null;
+  }
+
+  private getFormSteps(): string[] {
+    const steps = [
+      this.stepLabels.general,
+      this.stepLabels.category,
+      this.stepLabels.terms
+    ];
+    if (this.shouldShowContractDefinitionStep()) {
+      steps.push(this.stepLabels.contract);
     }
+    steps.push(this.stepLabels.price, this.stepLabels.procurement);
+    return steps;
+  }
+
+  private refreshOfferSteps(): void {
+    const currentLabel = this.steps[this.currentStep] || this.stepLabels.general;
+    this.steps = this.getFormSteps();
+    const nextIndex = this.steps.indexOf(currentLabel);
+    this.currentStep = nextIndex >= 0 ? nextIndex : Math.min(this.currentStep, this.steps.length - 1);
+    this.highestStep = Math.min(this.highestStep, this.steps.length - 1);
+  }
+
+  private shouldShowContractDefinitionStep(): boolean {
+    return this.dspEnable && this.isEdcCompatible();
+  }
+
+  private isEdcCompatible(): boolean {
+    const prodSpec = this.productOfferForm.get('prodSpec')?.value;
+    return !!prodSpec?.externalId;
+  }
+
+  private buildEdcContractDefinitionTerm(): any | null {
+    if (!this.shouldShowContractDefinitionStep()) return null;
+    if (this.productOfferForm.get('edcContractDefinition')?.invalid) return null;
+
+    const contractDefinition = this.productOfferForm.get('edcContractDefinition')?.value || {};
+    if (!contractDefinition.dspCompatible) return null;
+
+    return {
+      name: contractDefinition.name || 'edc:contractDefinition',
+      contractPolicy: contractDefinition.contractPolicy ? JSON.parse(contractDefinition.contractPolicy) : '',
+      accessPolicy: contractDefinition.accessPolicy ? JSON.parse(contractDefinition.accessPolicy) : '',
+      '@schemaLocation': environment.DSP_CONTRACT_DEFINITION_SCHEMA
+    };
+  }
+
+  private applyDspOfferingFields(offer: any): void {
+    const term = this.buildEdcContractDefinitionTerm();
+    if (!term) return;
+
+    offer.productOfferingTerm = (offer.productOfferingTerm || [])
+      .filter((existing: any) => existing?.name !== 'edc:contractDefinition');
+    offer.productOfferingTerm.push(term);
+    offer.externalId = this.offer?.externalId || uuidv4();
+    offer['@schemaLocation'] = environment.DSP_SCHEMA;
+  }
+
+  stepHasWarning(i: number): boolean {
+    if (this.completedStep(i)) return false;
+    if (this.currentStep === i) return false;
+    if (this.formType === 'update') return true;
+    return i < this.highestStep;
+  }
+
+  shouldShowRequiredErrors(): boolean {
+    return this.formType === 'update' || this.highestStep > this.currentStep;
+  }
+
+  catalogSelectionRequired(): boolean {
+    return this.catalogManagementEnabled && this.formType === 'create';
   }
 
   handleStepClick(index: number): void {
@@ -228,23 +532,1821 @@ export class OfferComponent implements OnInit, OnDestroy {
     }
   }
 
-  enableContractDefinitionStep(): void {
-    const alreadyAdded = this.steps.some(s => s.id === OfferStep.CONTRACT_DEFINITION);
-    if (alreadyAdded) return;
-    const licenseIdx = this.steps.findIndex(s => s.id === OfferStep.LICENSE);
-    this.steps = [
-      ...this.steps.slice(0, licenseIdx + 1),
-      this.contractDefinitionStep,
-      ...this.steps.slice(licenseIdx + 1),
+  completedStep(index: number): boolean {
+    return this.isStepValid(index);
+  }
+
+  stepShowsComplete(i: number): boolean {
+    if (this.currentStep === i) return false;
+    if (!this.completedStep(i)) return false;
+    return this.formType === 'update' || this.highestStep > i || i < this.currentStep;
+  }
+
+  stepCircleClasses(i: number): string {
+    if (this.currentStep === i) return 'bg-primary-100 text-offerings-on-dark';
+    if (this.stepShowsComplete(i)) return 'bg-status-success-border text-offerings-on-dark';
+    if (this.stepHasWarning(i)) return 'bg-status-warning-border text-offerings-on-dark';
+    return 'bg-offerings-neutral dark:bg-secondary-300 text-offerings-muted-text dark:text-offerings-on-dark-body';
+  }
+
+  stepLabelClasses(i: number): string {
+    if (this.currentStep === i) return 'text-primary-100 dark:text-primary-50';
+    if (this.stepShowsComplete(i)) return 'text-status-success-text dark:text-status-success-bg';
+    if (this.stepHasWarning(i)) return 'text-status-warning-text dark:text-status-warning-bg';
+    return 'text-offerings-muted-text dark:text-offerings-on-dark-body';
+  }
+
+  onBackClick(): void {
+    if (this.formType === 'create' && this.hasAnyDraftData()) {
+      this.showLeaveModal = true;
+    } else {
+      this.goBack();
+    }
+  }
+
+  hasAnyDraftData(): boolean {
+    const gi = this.productOfferForm.get('generalInfo')?.value;
+    const cats = this.productOfferForm.get('category')?.value;
+    const ps = this.productOfferForm.get('prodSpec')?.value;
+    const li = this.productOfferForm.get('license')?.value;
+    return !!(gi?.name || gi?.description || ps || (Array.isArray(cats) && cats.length) || li?.description);
+  }
+
+  cancelLeave(): void {
+    this.showLeaveModal = false;
+  }
+
+  discardLeave(): void {
+    this.showLeaveModal = false;
+    this.goBack();
+  }
+
+  canSaveDraftOffer(): boolean {
+    const generalInfo = this.productOfferForm.get('generalInfo') as FormGroup | null;
+    const name = (generalInfo?.get('name')?.value || '').trim();
+    const prodSpec = this.productOfferForm.get('prodSpec')?.value;
+
+    return !!name
+      && (generalInfo?.get('name')?.valid || false)
+      && (generalInfo?.get('version')?.valid || false)
+      && !!prodSpec?.id
+      && (!this.catalogSelectionRequired() || !!this.productOfferForm.get('catalogue')?.value?.id);
+  }
+
+  async confirmLeave(): Promise<void> {
+    if (!this.canSaveDraftOffer()) {
+      return;
+    }
+
+    this.showLeaveModal = false;
+    if (this.formType === 'create' && this.hasAnyDraftData()) {
+      try {
+        await this.saveDraftOffer();
+        this.eventMessage.emitSpecCreated(this.translate.instant('CREATE_OFFER._draft_saved'));
+      } catch (err: any) {
+        console.error('Failed to save draft offer', err);
+        this.errorMessage = err?.error?.error || err?.message || this.translate.instant('CREATE_OFFER._draft_save_error');
+        this.showError = true;
+        setTimeout(() => (this.showError = false), 4000);
+        return;
+      }
+    }
+    this.goBack();
+  }
+
+  async saveDraftOffer(): Promise<void> {
+    if (!this.canSaveDraftOffer()) {
+      throw new Error(this.translate.instant('CREATE_OFFER._draft_missing_required'));
+    }
+
+    const formValue = this.productOfferForm.value;
+    const generalInfo = formValue.generalInfo || {};
+
+    const categories = (Array.isArray(formValue.category) ? formValue.category : [])
+      .map((c: any) => ({ id: c.id, href: c.id }));
+    const licenseTerm = formValue.license?.description
+      ? [{ name: 'License', description: formValue.license.description }]
+      : [];
+    const catalogue = this.catalogManagementEnabled
+      ? formValue.catalogue
+      : this.autoCatalogue || await this.ensureCatalogue();
+    if (!catalogue?.id) {
+      throw new Error(this.translate.instant('CREATE_OFFER._draft_catalogue_unavailable'));
+    }
+    const termsFileTerms = await this.buildTermsFileTerms();
+
+    const offer: any = {
+      name: generalInfo.name.trim(),
+      description: this.composeDescriptionWithTags(generalInfo.description || ''),
+      lifecycleStatus: 'Active',
+      isBundle: false,
+      place: [],
+      version: generalInfo.version || '0.1',
+      validFor: { startDateTime: new Date().toISOString() },
+      category: categories,
+      productOfferingPrice: [],
+      productOfferingTerm: [...licenseTerm, ...termsFileTerms]
+    };
+    if (formValue.prodSpec?.id) {
+      offer.productSpecification = { id: formValue.prodSpec.id, href: formValue.prodSpec.href || formValue.prodSpec.id };
+    }
+    this.applyDspOfferingFields(offer);
+    await lastValueFrom(this.api.postProductOffering(offer, catalogue.id));
+  }
+
+  async loadAvailableProdSpecs(): Promise<void> {
+    if (!this.partyId) return;
+    this.loadingProdSpecs = true;
+    try {
+      const limit = environment.PROD_SPEC_LIMIT;
+      const all: any[] = [];
+      let offset = 0;
+      while (offset < 10000) {
+        const page = await this.prodSpecService.getProdSpecByUser(offset, ['Launched'], this.partyId);
+        const items = Array.isArray(page) ? page : [];
+        all.push(...items);
+        if (items.length < limit) break;
+        offset += limit;
+      }
+      this.availableProdSpecs = all;
+    } catch (err) {
+      console.error('Failed to load product specs for selector', err);
+      this.availableProdSpecs = [];
+    } finally {
+      this.loadingProdSpecs = false;
+    }
+  }
+
+  async loadAvailableCatalogs(): Promise<void> {
+    if (!this.partyId) return;
+    this.loadingCatalogs = true;
+    try {
+      const limit = environment.CATALOG_LIMIT;
+      const all: any[] = [];
+      let offset = 0;
+      while (offset < 10000) {
+        const page = await this.api.getCatalogsByUser(offset, undefined, ['Active', 'Launched'], this.partyId);
+        const items = Array.isArray(page) ? page : [];
+        all.push(...items);
+        if (items.length < limit) break;
+        offset += limit;
+      }
+      this.availableCatalogs = all;
+    } catch (err) {
+      console.error('Failed to load catalogs for selector', err);
+      this.availableCatalogs = [];
+    } finally {
+      this.loadingCatalogs = false;
+    }
+  }
+
+  onCatalogChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.selectedCatalogId = value;
+    const summary = value ? this.availableCatalogs.find(c => c.id === value) || null : null;
+    this.autoCatalogue = summary;
+    this.productOfferForm.patchValue({ catalogue: summary });
+  }
+
+  async onProdSpecChange(event: Event): Promise<void> {
+    const value = (event.target as HTMLSelectElement).value;
+    this.selectedProdSpecId = value;
+    if (!value) {
+      this.productOfferForm.patchValue({ prodSpec: null });
+      this.refreshOfferSteps();
+      return;
+    }
+    const summary = this.availableProdSpecs.find(p => p.id === value) || null;
+    this.productOfferForm.patchValue({ prodSpec: summary });
+    this.refreshOfferSteps();
+    try {
+      const full = await this.api.getProductSpecification(value);
+      if (full && this.selectedProdSpecId === value) {
+        this.productOfferForm.patchValue({ prodSpec: full });
+        this.refreshOfferSteps();
+      }
+    } catch (err) {
+      console.error('Failed to load full product specification', err);
+    }
+  }
+
+  async loadGeneralInfoCategoryFilterOptions(): Promise<void> {
+    this.loadingGeneralInfoCategoryFilter = true;
+    try {
+      const filter = availableFilters.find(item =>
+        item.source === 'categoryRoot'
+        && item.offerFormPlacement === 'generalInfo'
+        && !!item.rootName
+      );
+      this.generalInfoCategoryFilter = filter || null;
+      this.selectedGeneralInfoCategoryFilterOptionId = '';
+
+      if (!filter?.rootName) {
+        this.generalInfoCategoryFilterOptions = [];
+        return;
+      }
+
+      const roots = await this.api.getDefaultCategories();
+      const list = Array.isArray(roots) ? roots : [];
+      const categoryRoot = list.find((c: any) => c?.name === filter.rootName);
+      if (categoryRoot?.id) {
+        const children = await this.api.getCategoriesByParentId(categoryRoot.id);
+        this.generalInfoCategoryFilterOptions = Array.isArray(children) ? children : [];
+        if (this.generalInfoCategoryFilterOptions.length === 0) {
+          this.generalInfoCategoryFilter = null;
+        }
+      } else {
+        this.generalInfoCategoryFilterOptions = [];
+        this.generalInfoCategoryFilter = null;
+      }
+    } catch (err) {
+      console.error('Failed to load general info category filter options', err);
+      this.generalInfoCategoryFilter = null;
+      this.generalInfoCategoryFilterOptions = [];
+    } finally {
+      this.loadingGeneralInfoCategoryFilter = false;
+    }
+  }
+
+  get generalInfoCategoryFilterLabel(): string {
+    return this.generalInfoCategoryFilter?.label || this.generalInfoCategoryFilter?.name || '';
+  }
+
+  onGeneralInfoCategoryFilterChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.selectedGeneralInfoCategoryFilterOptionId = value;
+    const optionIds = new Set(this.generalInfoCategoryFilterOptions.map(s => s.id));
+    const current = this.productOfferForm.get('category')?.value || [];
+    const withoutPriorSelection = (Array.isArray(current) ? current : []).filter((c: any) => !optionIds.has(c?.id));
+    const chosen = this.generalInfoCategoryFilterOptions.find(s => s.id === value);
+    const next = chosen ? [...withoutPriorSelection, chosen] : withoutPriorSelection;
+    this.productOfferForm.patchValue({ category: next });
+  }
+
+  async loadCategories(): Promise<void> {
+    this.loadingCategories = true;
+    try {
+      const roots = await this.api.getDefaultCategories();
+      const list = Array.isArray(roots) ? roots : [];
+
+      if (searchCategoriesConfig.primaryCategoriesMode === 'catalogFirstLevel') {
+        this.availableRootCategories = list;
+        return;
+      }
+
+      const configuredRootName = searchCategoriesConfig.primaryRootName;
+      const primaryCategoryRoot = configuredRootName
+        ? list.find((c: any) => c?.name === configuredRootName)
+        : null;
+
+      if (primaryCategoryRoot?.id) {
+        const children = await this.api.getCategoriesByParentId(primaryCategoryRoot.id);
+        this.availableRootCategories = Array.isArray(children) ? children : [];
+      } else {
+        this.availableRootCategories = [];
+      }
+    } catch (err) {
+      console.error('Failed to load categories', err);
+      this.availableRootCategories = [];
+    } finally {
+      this.loadingCategories = false;
+    }
+  }
+
+  async onRootCategoryChange(event: Event): Promise<void> {
+    const value = (event.target as HTMLSelectElement).value;
+    this.selectedRootCategoryId = value;
+    this.selectedSubcategoryId = '';
+    this.availableSubcategories = [];
+
+    const rootIds = new Set(this.availableRootCategories.map(c => c.id));
+    const current = this.productOfferForm.get('category')?.value || [];
+    const preserved = (Array.isArray(current) ? current : []).filter((c: any) => {
+      if (!c?.id) return true;
+      if (rootIds.has(c.id)) return false;
+      if (c?.parentId && rootIds.has(c.parentId)) return false;
+      return true;
+    });
+    const chosenRoot = this.availableRootCategories.find(c => c.id === value);
+    const next = chosenRoot ? [...preserved, chosenRoot] : preserved;
+    this.productOfferForm.patchValue({ category: next });
+
+    if (value) {
+      try {
+        const children = await this.api.getCategoriesByParentId(value);
+        if (this.selectedRootCategoryId === value) {
+          this.availableSubcategories = Array.isArray(children) ? children : [];
+        }
+      } catch (err) {
+        console.error('Failed to load subcategories', err);
+        this.availableSubcategories = [];
+      }
+    }
+  }
+
+  onSubcategoryChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.selectedSubcategoryId = value;
+    const subIds = new Set(this.availableSubcategories.map(c => c.id));
+    const current = this.productOfferForm.get('category')?.value || [];
+    const withoutPriorSub = (Array.isArray(current) ? current : []).filter((c: any) => !subIds.has(c?.id));
+    const chosen = this.availableSubcategories.find(c => c.id === value);
+    const next = chosen ? [...withoutPriorSub, chosen] : withoutPriorSub;
+    this.productOfferForm.patchValue({ category: next });
+  }
+
+  onTagInput(event: Event): void {
+    const raw = (event.target as HTMLInputElement).value;
+    const sanitized = raw.replace(/[^a-zA-Z0-9-]/g, '').slice(0, 20);
+    this.tagInputValue = sanitized;
+    (event.target as HTMLInputElement).value = sanitized;
+  }
+
+  addTag(event: KeyboardEvent): void {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    const value = this.tagInputValue.trim();
+    if (!value || this.offerTags.length >= 5 || this.offerTags.includes(value)) return;
+    if (!/^[a-zA-Z0-9-]{1,20}$/.test(value)) return;
+    this.offerTags = [...this.offerTags, value];
+    this.tagInputValue = '';
+    const input = (event.target as HTMLInputElement);
+    input.value = '';
+  }
+
+  removeTag(index: number): void {
+    this.offerTags = this.offerTags.filter((_, i) => i !== index);
+  }
+
+  private static readonly TAGS_MARKER = '[TAGS]:';
+  private static readonly TAGS_REGEX = /\n*\[TAGS\]:(\[.*\])\s*$/;
+
+  private composeDescriptionWithTags(description: string): string {
+    const clean = (description || '').trimEnd();
+    if (!this.offerTags.length) return clean;
+    return `${clean}\n\n${OfferComponent.TAGS_MARKER}${JSON.stringify(this.offerTags)}`;
+  }
+
+  private extractTagsFromDescription(raw: string): { description: string; tags: string[] } {
+    const text = raw || '';
+    const match = text.match(OfferComponent.TAGS_REGEX);
+    if (!match) return { description: text, tags: [] };
+    let tags: string[] = [];
+    try {
+      const parsed = JSON.parse(match[1]);
+      if (Array.isArray(parsed)) tags = parsed.filter((t) => typeof t === 'string').slice(0, 5);
+    } catch {
+      return { description: text, tags: [] };
+    }
+    return { description: text.slice(0, match.index).trimEnd(), tags };
+  }
+
+  get generalInfoFormGroup(): FormGroup {
+    return this.productOfferForm.get('generalInfo') as FormGroup;
+  }
+  get licenseFormGroup(): FormGroup {
+    return this.productOfferForm.get('license') as FormGroup;
+  }
+
+  get tailoredPricePlans(): any[] {
+    const plans = this.productOfferForm.get('pricePlans')?.value || [];
+    return Array.isArray(plans) ? plans.filter((p: any) => p?.priceType === 'custom') : [];
+  }
+
+  get onlinePaidPricePlans(): any[] {
+    const plans = this.productOfferForm.get('pricePlans')?.value || [];
+    return Array.isArray(plans) ? plans.filter((p: any) => p?.paymentOnline === true) : [];
+  }
+
+  get currentTierPricePlans(): any[] {
+    if (this.selectedPriceTier === 'tailored') return this.tailoredPricePlans;
+    if (this.selectedPriceTier === 'online') return this.onlinePaidPricePlans;
+    return [];
+  }
+
+  selectPriceTier(id: 'free' | 'tailored' | 'online'): void {
+    if (this.selectedPriceTier === id) return;
+    if (this.currentTierPricePlans.length > 0) {
+      return;
+    }
+    this.selectedPriceTier = id;
+  }
+
+  toggleActionMenu(index: number): void {
+    this.openActionMenuIndex = this.openActionMenuIndex === index ? null : index;
+  }
+
+  removePricePlan(plan: any): void {
+    const plans = (this.productOfferForm.get('pricePlans')?.value || []).slice();
+    const index = plans.findIndex((p: any) => p?.id === plan?.id);
+    if (index === -1) return;
+    plans.splice(index, 1);
+    this.productOfferForm.patchValue({ pricePlans: plans });
+    this.openActionMenuIndex = null;
+  }
+
+  editPricePlan(plan: any): void {
+    if (plan?.priceType === 'custom') {
+      this.startEditTailoredPricePlan(plan);
+    } else if (plan?.paymentOnline) {
+      this.startEditPaidPricePlan(plan);
+    }
+  }
+
+  openAddTailoredPricePlan(): void {
+    this.editingPricePlanIndex = null;
+    this.tailoredPricePlanForm.reset({ name: '', description: '' });
+    this.pricePlanFormType = 'tailored';
+    this.pricePlanFormMode = 'form';
+  }
+
+  startEditTailoredPricePlan(plan: any): void {
+    const plans = this.productOfferForm.get('pricePlans')?.value || [];
+    const index = plans.findIndex((p: any) => p?.id === plan?.id);
+    if (index === -1) return;
+    this.editingPricePlanIndex = index;
+    this.tailoredPricePlanForm.reset({
+      name: plan?.name || '',
+      description: plan?.description || ''
+    });
+    this.openActionMenuIndex = null;
+    this.pricePlanFormType = 'tailored';
+    this.pricePlanFormMode = 'form';
+  }
+
+  cancelTailoredPricePlanForm(): void {
+    this.editingPricePlanIndex = null;
+    this.tailoredPricePlanForm.reset({ name: '', description: '' });
+    this.pricePlanFormType = null;
+    this.pricePlanFormMode = 'list';
+  }
+
+  saveTailoredPricePlan(): void {
+    if (this.tailoredPricePlanForm.invalid) {
+      this.tailoredPricePlanForm.markAllAsTouched();
+      return;
+    }
+    const { name, description } = this.tailoredPricePlanForm.value;
+    const plans = (this.productOfferForm.get('pricePlans')?.value || []).slice();
+    if (this.editingPricePlanIndex !== null && plans[this.editingPricePlanIndex]) {
+      plans[this.editingPricePlanIndex] = {
+        ...plans[this.editingPricePlanIndex],
+        name,
+        description
+      };
+    } else {
+      plans.push({
+        id: `temp-id:${uuidv4()}`,
+        name,
+        description,
+        isBundle: false,
+        priceType: 'custom',
+        paymentOnline: false,
+        lifecycleStatus: 'Active',
+        currency: 'EUR',
+        priceComponents: []
+      });
+    }
+    this.productOfferForm.patchValue({ pricePlans: plans });
+    this.cancelTailoredPricePlanForm();
+  }
+
+  openSelectPlanTypeModal(): void {
+    this.selectedNewPlanType = null;
+    this.showSelectPlanTypeModal = true;
+  }
+
+  closeSelectPlanTypeModal(): void {
+    this.showSelectPlanTypeModal = false;
+    this.selectedNewPlanType = null;
+  }
+
+  confirmSelectPlanType(): void {
+    if (!this.selectedNewPlanType ||
+      (this.selectedNewPlanType === 'standard' && !this.hasPricePlanConfigurationOptions)) return;
+    this.editingPricePlanIndex = null;
+    this.pricePlanFormType = this.selectedNewPlanType;
+    this.paidPricePlanForm.reset({
+      name: '',
+      description: '',
+      currency: 'EUR',
+      forbiddenCharacteristic: [],
+      productProfile: { selectedValues: [] },
+      priceComponents: []
+    });
+    this.paidProductProfile.clear();
+    this.paidPriceComponents = [];
+    this.showSelectPlanTypeModal = false;
+    this.selectedNewPlanType = null;
+    this.pricePlanFormMode = 'form';
+  }
+
+  startEditPaidPricePlan(plan: any): void {
+    const plans = this.productOfferForm.get('pricePlans')?.value || [];
+    const index = plans.findIndex((p: any) => p?.id === plan?.id);
+    if (index === -1) return;
+    this.editingPricePlanIndex = index;
+    this.pricePlanFormType = this.getPaidPlanSubType(plan);
+    const priceComponents = this.normalizeLoadedPriceComponents(plan?.priceComponents || []);
+    const productProfile = plan?.productProfile instanceof FormGroup
+      ? plan.productProfile.getRawValue()
+      : plan?.productProfile;
+    this.paidPricePlanForm.reset({
+      name: plan?.name || '',
+      description: plan?.description || '',
+      currency: plan?.currency || 'EUR',
+      forbiddenCharacteristic: Array.isArray(plan?.forbiddenCharacteristic) ? plan.forbiddenCharacteristic : [],
+      productProfile: productProfile || { selectedValues: [] },
+      priceComponents
+    });
+    this.paidProductProfile.clear();
+    (productProfile?.selectedValues || [])
+      .forEach((sv: any) => {
+        this.paidProductProfile.push(this.fb.group({
+          id: [sv?.id || null],
+          name: [sv?.name || ''],
+          selectedValue: [sv?.selectedValue ?? null]
+        }));
+      });
+    this.paidPriceComponents = priceComponents.slice();
+    this.openActionMenuIndex = null;
+    this.pricePlanFormMode = 'form';
+  }
+
+  cancelPaidPricePlanForm(): void {
+    this.editingPricePlanIndex = null;
+    this.paidPricePlanForm.reset({
+      name: '',
+      description: '',
+      currency: 'EUR',
+      forbiddenCharacteristic: [],
+      productProfile: { selectedValues: [] },
+      priceComponents: []
+    });
+    this.paidProductProfile.clear();
+    this.paidPriceComponents = [];
+    this.pricePlanFormType = null;
+    this.pricePlanFormMode = 'list';
+  }
+
+  savePaidPricePlan(): void {
+    if (!this.canSavePaidPricePlan()) {
+      this.paidPricePlanForm.markAllAsTouched();
+      this.paidProductProfile.markAllAsTouched();
+      return;
+    }
+    const { name, description, currency, forbiddenCharacteristic } = this.paidPricePlanForm.value;
+    const productProfile = { selectedValues: this.paidProductProfile.getRawValue() };
+    const plans = (this.productOfferForm.get('pricePlans')?.value || []).slice();
+    if (this.editingPricePlanIndex !== null && plans[this.editingPricePlanIndex]) {
+      plans[this.editingPricePlanIndex] = {
+        ...plans[this.editingPricePlanIndex],
+        name,
+        description,
+        currency,
+        forbiddenCharacteristic: Array.isArray(forbiddenCharacteristic) ? forbiddenCharacteristic : [],
+        planSubType: this.pricePlanFormType,
+        productProfile,
+        priceComponents: this.paidPriceComponents.slice()
+      };
+    } else {
+      plans.push({
+        id: `temp-id:${uuidv4()}`,
+        name,
+        description,
+        currency,
+        priceType: 'one time',
+        paymentOnline: true,
+        lifecycleStatus: 'Active',
+        forbiddenCharacteristic: Array.isArray(forbiddenCharacteristic) ? forbiddenCharacteristic : [],
+        planSubType: this.pricePlanFormType,
+        productProfile,
+        priceComponents: this.paidPriceComponents.slice()
+      });
+    }
+    this.productOfferForm.patchValue({ pricePlans: plans });
+    this.cancelPaidPricePlanForm();
+  }
+
+  paidPriceComponents: any[] = [];
+
+  private getPaidPlanSubType(plan: any): 'standard' | 'flex' {
+    if (plan?.planSubType === 'standard' || plan?.planSubType === 'flex') {
+      return plan.planSubType;
+    }
+
+    return this.hasPlanConfigurationProfile(plan) ? 'standard' : 'flex';
+  }
+
+  private hasPlanConfigurationProfile(plan: any): boolean {
+    if (Array.isArray(plan?.prodSpecCharValueUse) && plan.prodSpecCharValueUse.length > 0) {
+      return true;
+    }
+
+    const profile = plan?.productProfile;
+    if (Array.isArray(profile)) {
+      return profile.length > 0;
+    }
+    if (Array.isArray(profile?.selectedValues)) {
+      return profile.selectedValues.length > 0;
+    }
+    if (typeof profile?.get === 'function') {
+      const selectedValues = profile.get('selectedValues');
+      return Array.isArray(selectedValues?.value)
+        ? selectedValues.value.length > 0
+        : Number(selectedValues?.length || 0) > 0;
+    }
+
+    return false;
+  }
+
+  get paidProductProfile(): FormArray {
+    return (this.paidPricePlanForm.get('productProfile') as FormGroup).get('selectedValues') as FormArray;
+  }
+
+  get configProfileSelectedValues(): FormArray {
+    return this.configProfileForm.get('selectedValues') as FormArray;
+  }
+
+  get pricePlanCharacteristics(): any[] {
+    const prodSpec = this.productOfferForm.get('prodSpec')?.value;
+    const list = prodSpec?.productSpecCharacteristic;
+    if (!Array.isArray(list)) return [];
+    return list.filter((c: any) =>
+      !String(c?.name || '').startsWith('Compliance:')
+      && !NON_PRICE_CONFIG_VALUE_TYPES.includes(c?.valueType)
+    );
+  }
+
+  get hasPricePlanConfigurationOptions(): boolean {
+    return this.pricePlanCharacteristics.length > 0;
+  }
+
+  get prodSpecCharacteristics(): any[] {
+    return applyCharacteristicConstraints(
+      this.pricePlanCharacteristics,
+      this.getCurrentForbiddenCharacteristics()
+    );
+  }
+
+  get allowedPricePlanCharacteristicCount(): number {
+    return this.prodSpecCharacteristics.length;
+  }
+
+  openPricePlanCharacteristicsModal(): void {
+    if (this.paidProductProfile.length > 0) return;
+    const currentConstraints = this.getCurrentForbiddenCharacteristics();
+    this.pricePlanCharacteristicSelection = this.pricePlanCharacteristics
+      .filter((characteristic: any) => characteristic?.id && characteristic?.name)
+      .map((characteristic: any) => {
+        const matchingConstraints = currentConstraints.filter((constraint) =>
+          constraint.name === characteristic.name
+        );
+        const fullyForbidden = matchingConstraints.some((constraint) => !hasConstraintValues(constraint));
+        const effectiveCharacteristic = applyCharacteristicConstraints(
+          [characteristic],
+          matchingConstraints
+        )[0];
+        const sourceValues = (characteristic.productSpecCharacteristicValue || [])
+          .map((value: any) => ({ ...value }));
+
+        return {
+          id: characteristic.id,
+          name: characteristic.name,
+          allowed: !fullyForbidden,
+          sourceValues,
+          allowedValues: fullyForbidden
+            ? sourceValues.map((value: any) => ({ ...value }))
+            : (effectiveCharacteristic?.productSpecCharacteristicValue || [])
+              .map((value: any) => ({ ...value }))
+        };
+      });
+    this.showPricePlanCharacteristicsModal = true;
+  }
+
+  closePricePlanCharacteristicsModal(): void {
+    this.showPricePlanCharacteristicsModal = false;
+    this.pricePlanCharacteristicSelection = [];
+  }
+
+  togglePricePlanCharacteristic(index: number): void {
+    const characteristic = this.pricePlanCharacteristicSelection[index];
+    if (!characteristic) return;
+    if (characteristic.allowed && this.isPricePlanCharacteristicUsed(characteristic)) return;
+    characteristic.allowed = !characteristic.allowed;
+  }
+
+  isPricePlanCharacteristicRange(characteristic: PricePlanCharacteristicSelection): boolean {
+    return characteristic.sourceValues.some(isRangeCharacteristicValue);
+  }
+
+  isPricePlanCharacteristicValueAllowed(characteristic: PricePlanCharacteristicSelection, value: any): boolean {
+    return characteristic.allowedValues.some((allowedValue) =>
+      characteristicValuesOverlap(allowedValue, value)
+    );
+  }
+
+  togglePricePlanCharacteristicValue(characteristicIndex: number, valueIndex: number): void {
+    const characteristic = this.pricePlanCharacteristicSelection[characteristicIndex];
+    const value = characteristic?.sourceValues[valueIndex];
+    if (!characteristic || !value) return;
+
+    const isAllowed = this.isPricePlanCharacteristicValueAllowed(characteristic, value);
+    if (isAllowed && this.isPricePlanCharacteristicValueUsed(characteristic, value)) return;
+
+    characteristic.allowedValues = isAllowed
+      ? characteristic.allowedValues.filter((allowedValue) => !characteristicValuesOverlap(allowedValue, value))
+      : [...characteristic.allowedValues, { ...value }];
+  }
+
+  getPricePlanCharacteristicSourceRange(characteristic: PricePlanCharacteristicSelection): any {
+    return characteristic.sourceValues.find(isRangeCharacteristicValue) || {};
+  }
+
+  getPricePlanCharacteristicAllowedRange(characteristic: PricePlanCharacteristicSelection): any {
+    return characteristic.allowedValues.find(isRangeCharacteristicValue) ||
+      this.getPricePlanCharacteristicSourceRange(characteristic);
+  }
+
+  setPricePlanCharacteristicRange(
+    characteristic: PricePlanCharacteristicSelection,
+    bound: 'valueFrom' | 'valueTo',
+    event: Event
+  ): void {
+    const sourceRange = this.getPricePlanCharacteristicSourceRange(characteristic);
+    const allowedRange = this.getPricePlanCharacteristicAllowedRange(characteristic);
+    characteristic.allowedValues = [{
+      ...sourceRange,
+      ...allowedRange,
+      [bound]: Number((event.target as HTMLInputElement).value)
+    }];
+  }
+
+  hasPricePlanCharacteristicSelectionError(): boolean {
+    return this.pricePlanCharacteristicSelection.some((characteristic) => {
+      if (!characteristic.allowed || characteristic.sourceValues.length === 0) return false;
+      if (characteristic.allowedValues.length === 0) return true;
+
+      if (this.isPricePlanCharacteristicRange(characteristic)) {
+        const sourceRange = this.getPricePlanCharacteristicSourceRange(characteristic);
+        const allowedRange = this.getPricePlanCharacteristicAllowedRange(characteristic);
+        const sourceFrom = Number(sourceRange.valueFrom);
+        const sourceTo = Number(sourceRange.valueTo);
+        const allowedFrom = Number(allowedRange.valueFrom);
+        const allowedTo = Number(allowedRange.valueTo);
+        if (allowedFrom < sourceFrom || allowedTo > sourceTo || allowedFrom > allowedTo) return true;
+      }
+
+      const forbiddenCharacteristic = this.buildForbiddenCharacteristic(characteristic);
+      return (forbiddenCharacteristic?.productSpecCharacteristicValue || []).some((forbiddenValue) =>
+        this.isPricePlanCharacteristicValueUsed(characteristic, forbiddenValue)
+      );
+    });
+  }
+
+  savePricePlanCharacteristics(): void {
+    if (this.paidProductProfile.length > 0 || this.hasPricePlanCharacteristicSelectionError()) return;
+    const forbiddenCharacteristics = this.pricePlanCharacteristicSelection
+      .map((characteristic) => this.buildForbiddenCharacteristic(characteristic))
+      .filter((characteristic): characteristic is ForbiddenCharacteristic => characteristic !== null);
+    this.paidPricePlanForm.get('forbiddenCharacteristic')?.setValue(forbiddenCharacteristics);
+    this.closePricePlanCharacteristicsModal();
+  }
+
+  isPricePlanCharacteristicUsed(characteristic: ForbiddenCharacteristic): boolean {
+    return this.paidPriceComponents.some((component: any) => {
+      if (component?.configOption === characteristic.id || component?.configOptionName === characteristic.name) {
+        return true;
+      }
+      const characteristicUses = Array.isArray(component?.selectedCharacteristic)
+        ? component.selectedCharacteristic
+        : Array.isArray(component?.prodSpecCharValueUse)
+          ? component.prodSpecCharValueUse
+          : [];
+      return characteristicUses.some((characteristicUse: any) =>
+        characteristicUse?.name === characteristic.name
+      );
+    });
+  }
+
+  isPricePlanCharacteristicValueUsed(characteristic: ForbiddenCharacteristic, value: any): boolean {
+    return this.paidPriceComponents.some((component: any) => {
+      if (component?.configOption === characteristic.id || component?.configOptionName === characteristic.name) {
+        if (Array.isArray(component?.tiers)) {
+          return component.tiers.some((tier: any) => characteristicValuesOverlap(
+            { valueFrom: tier?.min, valueTo: tier?.max },
+            value
+          ));
+        }
+        if (component?.configValue !== undefined && component?.configValue !== '') {
+          return characteristicValuesOverlap({ value: component.configValue }, value);
+        }
+      }
+
+      const characteristicUses = Array.isArray(component?.selectedCharacteristic)
+        ? component.selectedCharacteristic
+        : Array.isArray(component?.prodSpecCharValueUse)
+          ? component.prodSpecCharValueUse
+          : [];
+      return characteristicUses
+        .filter((characteristicUse: any) => characteristicUse?.name === characteristic.name)
+        .flatMap((characteristicUse: any) => characteristicUse.productSpecCharacteristicValue || [])
+        .some((usedValue: any) => characteristicValuesOverlap(usedValue, value));
+    });
+  }
+
+  private getCurrentForbiddenCharacteristics(): ForbiddenCharacteristic[] {
+    const forbiddenCharacteristics = this.paidPricePlanForm?.get('forbiddenCharacteristic')?.value;
+    return Array.isArray(forbiddenCharacteristics) ? forbiddenCharacteristics : [];
+  }
+
+  hasPricePlanConstraints(): boolean {
+    return this.getCurrentForbiddenCharacteristics().length > 0;
+  }
+
+  removePricePlanConstraints(): void {
+    this.paidPricePlanForm.get('forbiddenCharacteristic')?.setValue([]);
+    this.closePricePlanCharacteristicsModal();
+  }
+
+  openConfigProfileModal(): void {
+    if (this.hasPricePlanConstraints()) return;
+    this.configProfileSelectedValues.clear();
+    const existing = this.paidProductProfile.getRawValue();
+    const existingById = new Map<string, any>(existing.map((s: any) => [s?.id, s]));
+    this.prodSpecCharacteristics.forEach((char: any) => {
+      const prev = existingById.get(char?.id);
+      this.configProfileSelectedValues.push(this.fb.group({
+        id: [char?.id],
+        name: [char?.name || ''],
+        selectedValue: [this.getInitialConfigProfileValue(char, prev), this.requiredConfigProfileValue]
+      }));
+    });
+    this.showConfigProfileModal = true;
+  }
+
+  closeConfigProfileModal(): void {
+    this.showConfigProfileModal = false;
+  }
+
+  saveConfigProfile(): void {
+    if (!this.canSaveConfigProfile()) {
+      this.configProfileForm.markAllAsTouched();
+      return;
+    }
+    const values = this.configProfileSelectedValues.getRawValue();
+    this.paidProductProfile.clear();
+    values.forEach((v: any) => {
+      this.paidProductProfile.push(this.fb.group({
+        id: [v?.id],
+        name: [v?.name || ''],
+        selectedValue: [v?.selectedValue ?? null]
+      }));
+    });
+    this.showConfigProfileModal = false;
+  }
+
+  hasConfiguredProfile(): boolean {
+    return this.hasCompleteConfiguredProfile();
+  }
+
+  canSaveConfigProfile(): boolean {
+    return !this.hasPricePlanConstraints() && this.configProfileSelectedValues.length > 0 && this.configProfileForm.valid;
+  }
+
+  canSavePaidPricePlan(): boolean {
+    if (this.paidPricePlanForm.invalid) return false;
+    if (this.paidProductProfile.length > 0 && this.hasPricePlanConstraints()) return false;
+    if (this.pricePlanFormType === 'standard' && !this.hasCompleteConfiguredProfile()) return false;
+    return this.paidPriceComponents.length > 0;
+  }
+
+  hasCompleteConfiguredProfile(): boolean {
+    const selectedValues = this.paidProductProfile.getRawValue();
+    return this.prodSpecCharacteristics.length > 0 &&
+      selectedValues.length === this.prodSpecCharacteristics.length &&
+      selectedValues.every((v: any) => v?.selectedValue != null && v?.selectedValue !== '');
+  }
+
+  getCharacteristicValues(charId: string): any[] {
+    const char = this.prodSpecCharacteristics.find((c: any) => c?.id === charId);
+    return Array.isArray(char?.productSpecCharacteristicValue) ? char.productSpecCharacteristicValue : [];
+  }
+
+  onConfigProfileValueChange(controlIndex: number, event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.setConfigProfileSelectedValue(controlIndex, value || null);
+  }
+
+  onConfigProfileRangeChange(controlIndex: number, event: Event): void {
+    const rawValue = (event.target as HTMLInputElement).value;
+    this.setConfigProfileSelectedValue(controlIndex, rawValue === '' ? null : Number(rawValue));
+  }
+
+  toggleConfigProfileBoolean(controlIndex: number): void {
+    const control = this.configProfileSelectedValues.at(controlIndex)?.get('selectedValue');
+    const currentValue = control?.value === true || control?.value === 'true';
+    this.setConfigProfileSelectedValue(controlIndex, !currentValue);
+  }
+
+  isConfigProfileRange(controlIndex: number): boolean {
+    return this.getCharacteristicValuesForConfigProfileControl(controlIndex)
+      .some((value: any) => Object.prototype.hasOwnProperty.call(value || {}, 'valueFrom'));
+  }
+
+  isConfigProfileBoolean(controlIndex: number): boolean {
+    const values = this.getCharacteristicValuesForConfigProfileControl(controlIndex);
+    return values.length > 0 &&
+      !this.isConfigProfileRange(controlIndex) &&
+      values.every((value: any) => this.isBooleanLike(value?.value));
+  }
+
+  getConfigProfileRangeBounds(controlIndex: number): { min: number, max: number, unitOfMeasure: string } {
+    const rangeValue = this.getCharacteristicValuesForConfigProfileControl(controlIndex)
+      .find((value: any) => Object.prototype.hasOwnProperty.call(value || {}, 'valueFrom')) || {};
+    return {
+      min: Number(rangeValue?.valueFrom ?? 0),
+      max: Number(rangeValue?.valueTo ?? 100),
+      unitOfMeasure: rangeValue?.unitOfMeasure || ''
+    };
+  }
+
+  getConfigProfileSelectedValue(controlIndex: number): any {
+    return this.configProfileSelectedValues.at(controlIndex)?.get('selectedValue')?.value;
+  }
+
+  getConfigProfileRangeDisplayValue(controlIndex: number): string {
+    const bounds = this.getConfigProfileRangeBounds(controlIndex);
+    const value = this.getConfigProfileSelectedValue(controlIndex) ?? bounds.min;
+    return `${value}${bounds.unitOfMeasure ? ' ' + bounds.unitOfMeasure : ''}`;
+  }
+
+  private setConfigProfileSelectedValue(controlIndex: number, value: any): void {
+    const control = this.configProfileSelectedValues.at(controlIndex)?.get('selectedValue');
+    control?.setValue(value);
+    control?.markAsTouched();
+    control?.markAsDirty();
+  }
+
+  private getCharacteristicValuesForConfigProfileControl(controlIndex: number): any[] {
+    const id = this.configProfileSelectedValues.at(controlIndex)?.get('id')?.value;
+    return id ? this.getCharacteristicValues(id) : [];
+  }
+
+  private getInitialConfigProfileValue(char: any, previousValue: any): any {
+    if (previousValue && previousValue.selectedValue !== null && previousValue.selectedValue !== undefined && previousValue.selectedValue !== '') {
+      return previousValue.selectedValue;
+    }
+
+    const values = Array.isArray(char?.productSpecCharacteristicValue) ? char.productSpecCharacteristicValue : [];
+    const defaultOption = values.find((value: any) => value?.isDefault);
+    if (defaultOption) {
+      return defaultOption.value ?? defaultOption.valueFrom ?? null;
+    }
+
+    const rangeOption = values.find((value: any) => Object.prototype.hasOwnProperty.call(value || {}, 'valueFrom'));
+    if (rangeOption) {
+      return Number(rangeOption.valueFrom ?? 0);
+    }
+
+    if (values.length > 0 && values.every((value: any) => this.isBooleanLike(value?.value))) {
+      return false;
+    }
+
+    return null;
+  }
+
+  private requiredConfigProfileValue(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    return value === null || value === undefined || value === '' ? { required: true } : null;
+  }
+
+  private isBooleanLike(value: any): boolean {
+    return value === true || value === false || value === 'true' || value === 'false';
+  }
+
+  private async loadUsageSpecs(): Promise<void> {
+    if (!this.partyId) return;
+    try {
+      const data = await this.usageService.getAllUsageSpecs(this.partyId);
+      this.usageSpecs = Array.isArray(data) ? data : [];
+    } catch {
+      this.usageSpecs = [];
+    }
+  }
+
+  onUsageSpecChange(event: Event): void {
+    const id = (event.target as HTMLSelectElement).value;
+    this.selectedUsageSpec = this.usageSpecs.find(s => s.id === id) || null;
+    this.priceComponentForm.patchValue({
+      usageSpecId: id,
+      usageUnit: this.selectedUsageSpec?.specCharacteristic?.[0]?.name || ''
+    });
+  }
+
+  onTierPriceTypeChange(): void {
+    if (this.tierForm.get('priceType')?.value !== 'usage') {
+      this.selectedTierUsageSpec = null;
+      this.tierForm.patchValue({ usageSpecId: '', usageUnit: '' });
+    }
+  }
+
+  onTierUsageSpecChange(event: Event): void {
+    const id = (event.target as HTMLSelectElement).value;
+    this.selectedTierUsageSpec = this.usageSpecs.find(s => s.id === id) || null;
+    this.tierForm.patchValue({
+      usageSpecId: id,
+      usageUnit: this.selectedTierUsageSpec?.specCharacteristic?.[0]?.name || ''
+    });
+  }
+
+  openAddPriceComponentModal(): void {
+    this.editingPriceComponentIndex = null;
+    this.selectedUsageSpec = null;
+    this.selectedTierUsageSpec = null;
+    this.flexTiers = [];
+    this.showTierForm = false;
+    this.editingTierIndex = null;
+    this.priceComponentForm.reset({
+      name: '', description: '', basePrice: null, priceType: '', configOption: '', configValue: '',
+      recurringPeriod: 'month', usageSpecId: '', usageUnit: '',
+      includeDiscount: false, discountValue: null, discountUnit: 'percentage',
+      discountDuration: null, discountDurationUnit: 'days'
+    });
+    this.applyPriceComponentValidators();
+    this.openPriceDrawer();
+  }
+
+  editPriceComponent(comp: any, index: number): void {
+    this.editingPriceComponentIndex = index;
+    this.selectedUsageSpec = this.usageSpecs.find(s => s.id === comp?.usageSpecId) || null;
+    this.flexTiers = Array.isArray(comp?.tiers) ? [...comp.tiers] : [];
+    const configuration = this.getPriceComponentConfiguration(comp);
+    this.showTierForm = false;
+    this.editingTierIndex = null;
+    this.priceComponentForm.reset({
+      name: comp?.name || '',
+      description: comp?.description || '',
+      basePrice: comp?.price ?? null,
+      priceType: comp?.priceType || '',
+      configOption: configuration.configOption,
+      configValue: configuration.configValue,
+      recurringPeriod: comp?.recurringPeriod || 'month',
+      usageSpecId: comp?.usageSpecId || '',
+      usageUnit: comp?.usageUnit || '',
+      includeDiscount: !!comp?.discountValue,
+      discountValue: comp?.discountValue ?? null,
+      discountUnit: comp?.discountUnit || 'percentage',
+      discountDuration: comp?.discountDuration ?? null,
+      discountDurationUnit: comp?.discountDurationUnit || 'days'
+    });
+    this.openPriceCompMenuIndex = null;
+    this.applyPriceComponentValidators();
+    this.openPriceDrawer();
+  }
+
+  private getPriceComponentConfiguration(component: any): { configOption: string, configValue: any } {
+    if (component?.configOption) {
+      return {
+        configOption: component.configOption,
+        configValue: component.configValue ?? ''
+      };
+    }
+
+    const selectedCharacteristic = this.getFirstSelectedCharacteristic(component);
+    if (!selectedCharacteristic?.id) {
+      return { configOption: '', configValue: '' };
+    }
+
+    const selectedValue = selectedCharacteristic.productSpecCharacteristicValue?.[0];
+    return {
+      configOption: selectedCharacteristic.id,
+      configValue: selectedValue?.value ?? ''
+    };
+  }
+
+  private getFirstSelectedCharacteristic(component: any): any {
+    const selectedCharacteristic = component?.selectedCharacteristic ?? component?.prodSpecCharValueUse;
+    return Array.isArray(selectedCharacteristic) ? selectedCharacteristic[0] : null;
+  }
+
+  private normalizeLoadedPriceComponents(components: any[]): any[] {
+    const normalized: any[] = [];
+    const rangeGroups = new Map<string, any>();
+
+    components.forEach((component: any) => {
+      if (Array.isArray(component?.tiers) && component.tiers.length > 0) {
+        normalized.push(component);
+        return;
+      }
+
+      const selectedCharacteristic = this.getFirstSelectedCharacteristic(component);
+      const selectedValue = selectedCharacteristic?.productSpecCharacteristicValue?.[0];
+      const isRange = !!selectedValue &&
+        Object.prototype.hasOwnProperty.call(selectedValue, 'valueFrom') &&
+        Object.prototype.hasOwnProperty.call(selectedValue, 'valueTo');
+
+      if (!isRange) {
+        const configuration = this.getPriceComponentConfiguration(component);
+        normalized.push({
+          ...component,
+          configOption: component?.configOption || configuration.configOption,
+          configValue: component?.configValue ?? configuration.configValue
+        });
+        return;
+      }
+
+      const groupKey = selectedCharacteristic?.id || component?.id;
+      if (!rangeGroups.has(groupKey)) {
+        const group = {
+          id: `tier-group:${groupKey}`,
+          name: selectedCharacteristic?.name || component?.name || '',
+          description: selectedCharacteristic?.description || component?.description || '',
+          lifecycleStatus: component?.lifecycleStatus || 'Active',
+          paymentOnline: component?.paymentOnline,
+          currency: component?.currency,
+          configOption: selectedCharacteristic?.id || '',
+          configOptionName: selectedCharacteristic?.name || component?.name || '',
+          selectedCharacteristic: selectedCharacteristic ? [selectedCharacteristic] : null,
+          tiers: []
+        };
+        rangeGroups.set(groupKey, group);
+        normalized.push(group);
+      }
+
+      rangeGroups.get(groupKey).tiers.push(this.mapLoadedRangeComponentToTier(component, selectedValue));
+    });
+
+    return normalized;
+  }
+
+  private mapLoadedRangeComponentToTier(component: any, rangeValue: any): any {
+    const tier: any = {
+      id: component?.id,
+      name: component?.name || '',
+      description: component?.description || '',
+      min: rangeValue?.valueFrom,
+      max: rangeValue?.valueTo,
+      price: component?.price,
+      priceType: component?.priceType
+    };
+
+    if (this.isRecurringPriceType(component?.priceType)) {
+      tier.recurringPeriod = component?.recurringPeriod || 'month';
+    }
+    if (component?.discountValue != null) {
+      tier.discountValue = component.discountValue;
+      tier.discountUnit = component.discountUnit;
+      tier.discountDuration = component.discountDuration;
+      tier.discountDurationUnit = component.discountDurationUnit;
+    }
+
+    return tier;
+  }
+
+  private openPriceDrawer(): void {
+    this.showPriceComponentModal = true;
+    setTimeout(() => this.priceDrawerEntered = true, 10);
+  }
+
+  closePriceComponentModal(): void {
+    this.priceDrawerEntered = false;
+    this.showPriceTypeDropdown = false;
+    this.showRecurringPeriodDropdown = false;
+    setTimeout(() => {
+      this.showPriceComponentModal = false;
+      this.editingPriceComponentIndex = null;
+    }, 250);
+  }
+
+  selectPriceType(id: string): void {
+    const control = this.priceComponentForm.get('priceType');
+    control?.setValue(id);
+    control?.markAsTouched();
+    this.showPriceTypeDropdown = false;
+  }
+
+  recurringPeriodLabelKey(id: string): string {
+    return this.recurringPeriodOptions.find(o => o.id === id)?.labelKey || '';
+  }
+
+  get isFlexComponent(): boolean {
+    return this.pricePlanFormType === 'flex';
+  }
+
+  get selectedConfigOption(): any {
+    const id = this.priceComponentForm?.get('configOption')?.value;
+    return id ? this.prodSpecCharacteristics.find((c: any) => c?.id === id) : null;
+  }
+
+  get isRangeConfigOption(): boolean {
+    const first = this.selectedConfigOption?.productSpecCharacteristicValue?.[0];
+    return !!first && 'valueFrom' in first;
+  }
+
+  get selectedConfigOptionValues(): any[] {
+    return Array.isArray(this.selectedConfigOption?.productSpecCharacteristicValue)
+      ? this.selectedConfigOption.productSpecCharacteristicValue
+      : [];
+  }
+
+  get showConfigValueField(): boolean {
+    return this.isFlexComponent && !!this.selectedConfigOption && !this.isRangeConfigOption;
+  }
+
+  get rangeBounds(): { min: number, max: number } {
+    const v = this.selectedConfigOption?.productSpecCharacteristicValue?.[0];
+    return { min: Number(v?.valueFrom ?? 0), max: Number(v?.valueTo ?? 1000) };
+  }
+
+  onConfigOptionChange(): void {
+    this.flexTiers = [];
+    this.showTierForm = false;
+    this.editingTierIndex = null;
+    this.applyPriceComponentValidators();
+  }
+
+  applyPriceComponentValidators(): void {
+    const base = this.priceComponentForm.get('basePrice');
+    const type = this.priceComponentForm.get('priceType');
+    const value = this.priceComponentForm.get('configValue');
+    const name = this.priceComponentForm.get('name');
+    if (this.isFlexComponent && this.isRangeConfigOption) {
+      base?.setValidators([Validators.min(0)]);
+      type?.clearValidators();
+      name?.clearValidators();
+    } else {
+      base?.setValidators([Validators.required, Validators.min(0)]);
+      type?.setValidators([Validators.required]);
+      name?.setValidators([Validators.required, Validators.maxLength(100)]);
+    }
+    if (this.isFlexComponent && this.selectedConfigOption && !this.isRangeConfigOption) {
+      value?.setValidators([Validators.required]);
+    } else {
+      value?.clearValidators();
+    }
+    base?.updateValueAndValidity();
+    type?.updateValueAndValidity();
+    value?.updateValueAndValidity();
+    name?.updateValueAndValidity();
+  }
+
+  canSavePriceComponent(): boolean {
+    if (this.priceComponentForm.invalid) return false;
+    if (this.isFlexComponent && this.isRangeConfigOption && (this.flexTiers.length === 0 || !this.tiersCoverRange)) return false;
+    return true;
+  }
+
+  addTier(): void {
+    this.editingTierIndex = null;
+    const b = this.rangeBounds;
+    const gap = this.tierCoverageGaps[0] ?? { from: b.min, to: b.max };
+    this.selectedTierUsageSpec = null;
+    this.tierForm.reset({
+      min: gap.from, max: gap.to, price: null, priceType: '', recurringPeriod: 'month', usageSpecId: '', usageUnit: '', name: '', description: '',
+      includeDiscount: false, discountValue: null, discountUnit: 'percentage',
+      discountDuration: null, discountDurationUnit: 'month'
+    });
+    this.showTierForm = true;
+  }
+
+  editTier(index: number): void {
+    const t = this.flexTiers[index];
+    if (!t) return;
+    this.editingTierIndex = index;
+    this.selectedTierUsageSpec = this.usageSpecs.find(s => s.id === t?.usageSpecId) || null;
+    this.tierForm.reset({
+      min: t.min, max: t.max, price: t.price, priceType: t.priceType || '', recurringPeriod: t.recurringPeriod || 'month',
+      usageSpecId: t.usageSpecId || '', usageUnit: t.usageUnit || '',
+      name: t.name || '', description: t.description || '',
+      includeDiscount: !!t.discountValue, discountValue: t.discountValue ?? null,
+      discountUnit: t.discountUnit || 'percentage', discountDuration: t.discountDuration ?? null,
+      discountDurationUnit: t.discountDurationUnit || 'month'
+    });
+    this.showTierForm = true;
+  }
+
+  resetTierForm(): void {
+    const b = this.rangeBounds;
+    this.selectedTierUsageSpec = null;
+    this.tierForm.reset({
+      min: b.min, max: b.max, price: null, priceType: '', recurringPeriod: 'month', usageSpecId: '', usageUnit: '', name: '', description: '',
+      includeDiscount: false, discountValue: null, discountUnit: 'percentage',
+      discountDuration: null, discountDurationUnit: 'days'
+    });
+  }
+
+  saveTier(): void {
+    if (this.tierForm.invalid || this.tierFormErrorKey) {
+      this.tierForm.markAllAsTouched();
+      return;
+    }
+    const v = this.tierForm.value;
+    const existingTier = this.editingTierIndex !== null ? this.flexTiers[this.editingTierIndex] : null;
+    const tier: any = {
+      id: existingTier?.id,
+      min: v.min, max: v.max, price: v.price, priceType: v.priceType,
+      name: v.name, description: v.description
+    };
+    if (this.isRecurringPriceType(v.priceType)) {
+      tier.recurringPeriod = v.recurringPeriod;
+    }
+    if (v.priceType === 'usage') {
+      tier.usageSpecId = v.usageSpecId;
+      tier.usageUnit = v.usageUnit;
+    }
+    if (v.includeDiscount && v.discountValue != null) {
+      tier.discountValue = v.discountValue;
+      tier.discountUnit = v.discountUnit;
+      tier.discountDuration = v.discountDuration;
+      tier.discountDurationUnit = v.discountDurationUnit;
+    }
+    if (this.editingTierIndex !== null) {
+      this.flexTiers[this.editingTierIndex] = tier;
+    } else {
+      this.flexTiers = [...this.flexTiers, tier];
+    }
+    this.showTierForm = false;
+    this.editingTierIndex = null;
+    this.selectedTierUsageSpec = null;
+  }
+
+  deleteTier(index: number): void {
+    this.flexTiers = this.flexTiers.filter((_, i) => i !== index);
+    if (this.editingTierIndex === index) {
+      this.showTierForm = false;
+      this.editingTierIndex = null;
+    }
+  }
+
+  cancelTierForm(): void {
+    this.showTierForm = false;
+    this.editingTierIndex = null;
+    this.selectedTierUsageSpec = null;
+  }
+
+  canSaveTier(): boolean {
+    if (this.tierForm.invalid || this.tierFormErrorKey) return false;
+    if (this.editingTierIndex !== null) return this.tierForm.dirty;
+    return true;
+  }
+
+  private tierOverlaps(min: number, max: number, excludeIndex: number | null): boolean {
+    return this.flexTiers.some((t, i) =>
+      i !== excludeIndex && min <= Number(t.max) && Number(t.min) <= max
+    );
+  }
+
+  get tierFormErrorKey(): string | null {
+    const min = Number(this.tierForm.get('min')?.value);
+    const max = Number(this.tierForm.get('max')?.value);
+    if (Number.isNaN(min) || Number.isNaN(max)) return null;
+    const b = this.rangeBounds;
+    if (min < b.min || max > b.max) return 'CREATE_OFFER._pc_tier_err_bounds';
+    if (min > max) return 'CREATE_OFFER._pc_tier_err_min_max';
+    if (this.tierOverlaps(min, max, this.editingTierIndex)) return 'CREATE_OFFER._pc_tier_err_overlap';
+    return null;
+  }
+
+  get tierCoverageGaps(): { from: number, to: number }[] {
+    const b = this.rangeBounds;
+    if (!this.flexTiers.length) return [{ from: b.min, to: b.max }];
+    const sorted = [...this.flexTiers].sort((a, b) => Number(a.min) - Number(b.min));
+    const gaps: { from: number, to: number }[] = [];
+    let cursor = b.min;
+    for (const t of sorted) {
+      const tMin = Number(t.min);
+      if (tMin > cursor) gaps.push({ from: cursor, to: tMin - 1 });
+      cursor = Math.max(cursor, Number(t.max) + 1);
+    }
+    if (cursor <= b.max) gaps.push({ from: cursor, to: b.max });
+    return gaps;
+  }
+
+  get tiersCoverRange(): boolean {
+    return this.tierCoverageGaps.length === 0;
+  }
+
+  formatTierGaps(): string {
+    return this.tierCoverageGaps.map(g => g.from === g.to ? `${g.from}` : `${g.from}-${g.to}`).join(', ');
+  }
+
+  deleteCurrentTier(): void {
+    if (this.editingTierIndex !== null) {
+      this.deleteTier(this.editingTierIndex);
+    } else {
+      this.cancelTierForm();
+    }
+  }
+
+  get currencySymbol(): string {
+    const c = this.paidPricePlanForm.get('currency')?.value;
+    return c === 'USD' ? '$' : c === 'GBP' ? '£' : '€';
+  }
+
+  computeFinalPrice(price: any, discountValue: any, unit: string): number {
+    const p = Number(price) || 0;
+    const d = Number(discountValue) || 0;
+    if (!d) return p;
+    return unit === 'fixed' ? Math.max(0, p - d) : p * (1 - d / 100);
+  }
+
+  tierFinalPrice(tier: any): number {
+    return this.computeFinalPrice(tier?.price, tier?.discountValue, tier?.discountUnit);
+  }
+
+  periodLabelKey(value: string): string {
+    switch (value) {
+      case 'day': case 'days': return 'CREATE_OFFER._pc_recurring_daily';
+      case 'week': case 'weeks': return 'CREATE_OFFER._pc_recurring_weekly';
+      case 'month': case 'months': return 'CREATE_OFFER._pc_recurring_monthly';
+      case 'year': case 'years': return 'CREATE_OFFER._pc_recurring_yearly';
+      default: return '';
+    }
+  }
+
+  isRecurringPriceType(priceType: any): boolean {
+    return ['recurring', 'recurring-prepaid'].includes(priceType);
+  }
+
+  componentPeriodKey(comp: any): string {
+    if (this.isRecurringPriceType(comp?.priceType)) return this.periodLabelKey(comp?.recurringPeriod);
+    if (comp?.discountValue != null) return this.periodLabelKey(comp?.discountDurationUnit);
+    return '';
+  }
+
+  discountLabel(item: any): string {
+    if (item?.discountValue == null) return '';
+    return item.discountUnit === 'fixed' ? `${item.discountValue} ${this.currencySymbol}` : `${item.discountValue}%`;
+  }
+
+  get tierFormFinalPrice(): number {
+    const v = this.tierForm.value;
+    return this.computeFinalPrice(v.price, v.includeDiscount ? v.discountValue : null, v.discountUnit);
+  }
+
+  private boundsPercent(value: any): number {
+    const { min: lo, max: hi } = this.rangeBounds;
+    if (hi <= lo) return 0;
+    return Math.min(100, Math.max(0, ((Number(value) - lo) / (hi - lo)) * 100));
+  }
+
+  get tierSliderMinPercent(): number {
+    return this.boundsPercent(this.tierForm.get('min')?.value ?? this.rangeBounds.min);
+  }
+
+  get tierSliderMaxPercent(): number {
+    return this.boundsPercent(this.tierForm.get('max')?.value ?? this.rangeBounds.max);
+  }
+
+  setTierBound(which: 'min' | 'max', event: Event): void {
+    const value = Number((event.target as HTMLInputElement).value);
+    this.tierForm.get(which)?.setValue(value);
+    this.tierForm.markAsDirty();
+    const min = Number(this.tierForm.get('min')?.value);
+    const max = Number(this.tierForm.get('max')?.value);
+    if (which === 'min' && min > max) {
+      this.tierForm.get('max')?.setValue(min);
+    } else if (which === 'max' && max < min) {
+      this.tierForm.get('min')?.setValue(max);
+    }
+  }
+
+  savePriceComponent(): void {
+    if (this.priceComponentForm.invalid) {
+      this.priceComponentForm.markAllAsTouched();
+      return;
+    }
+    const {
+      name, description, basePrice, priceType, configOption, configValue, recurringPeriod, usageSpecId, usageUnit,
+      includeDiscount, discountValue, discountUnit, discountDuration, discountDurationUnit
+    } = this.priceComponentForm.value;
+    const isRange = this.isFlexComponent && this.isRangeConfigOption;
+    const component: any = {
+      id: `temp-id:${uuidv4()}`,
+      name: isRange ? (this.selectedConfigOption?.name || name) : name,
+      description: isRange ? '' : description,
+      price: basePrice,
+      priceType,
+      currency: this.paidPricePlanForm.get('currency')?.value || 'EUR',
+      lifecycleStatus: 'Active',
+      includeDiscount: !!includeDiscount
+    };
+    if (this.isFlexComponent && configOption) {
+      component.configOption = configOption;
+      component.configOptionName = this.selectedConfigOption?.name || '';
+      if (this.isRangeConfigOption) {
+        component.tiers = [...this.flexTiers];
+      } else {
+        component.configValue = configValue;
+        component.selectedCharacteristic = this.buildConfigValueSelectedCharacteristic(configOption, configValue);
+      }
+    }
+    if (this.isRecurringPriceType(priceType)) {
+      component.recurringPeriod = recurringPeriod;
+    }
+    if (priceType === 'usage') {
+      component.usageSpecId = usageSpecId;
+      component.usageUnit = usageUnit;
+    }
+    if (includeDiscount && discountValue != null) {
+      component.discountValue = discountValue;
+      component.discountUnit = discountUnit;
+      component.discountDuration = discountDuration;
+      component.discountDurationUnit = discountDurationUnit;
+    }
+    if (this.editingPriceComponentIndex !== null && this.paidPriceComponents[this.editingPriceComponentIndex]) {
+      const existing = this.paidPriceComponents[this.editingPriceComponentIndex];
+      this.paidPriceComponents[this.editingPriceComponentIndex] = { ...existing, ...component, id: existing.id };
+    } else {
+      this.paidPriceComponents = [...this.paidPriceComponents, component];
+    }
+    this.closePriceComponentModal();
+  }
+
+  removePriceComponent(index: number): void {
+    this.paidPriceComponents = this.paidPriceComponents.filter((_, i) => i !== index);
+    this.openPriceCompMenuIndex = null;
+  }
+
+  togglePriceCompMenu(index: number): void {
+    this.openPriceCompMenuIndex = this.openPriceCompMenuIndex === index ? null : index;
+  }
+
+  priceTypeLabelKey(id: string): string {
+    return this.priceTypeOptions.find(o => o.id === id)?.labelKey || '';
+  }
+
+  onTCFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      Array.from(input.files).forEach(file => this.tcAttachments.push({
+        name: file.name,
+        size: file.size,
+        attachmentType: file.type,
+        file
+      }));
+      input.value = '';
+    }
+  }
+
+  removeTCFile(index: number): void {
+    this.tcAttachments.splice(index, 1);
+  }
+
+  private buildPersistedTermsFileTerms(): any[] {
+    return this.tcAttachments
+      .filter(attachment => !!attachment.url)
+      .map(attachment => ({
+        name: OfferComponent.TERMS_FILE_TERM_NAME,
+        description: attachment.url
+      }));
+  }
+
+  private async buildTermsFileTerms(): Promise<any[]> {
+    const terms: any[] = [];
+    for (const attachment of this.tcAttachments) {
+      const url = attachment.url || await this.uploadTermsFileAttachment(attachment);
+      terms.push({
+        name: OfferComponent.TERMS_FILE_TERM_NAME,
+        description: url
+      });
+    }
+    return terms;
+  }
+
+  private replaceTermsFileTerms(productOfferingTerm: any[] = [], termsFileTerms: any[]): any[] {
+    return [
+      ...productOfferingTerm.filter(term => term?.name !== OfferComponent.TERMS_FILE_TERM_NAME),
+      ...termsFileTerms
     ];
   }
 
-  disableContractDefinitionStep(): void {
-    this.steps = this.steps.filter(s => s.id !== OfferStep.CONTRACT_DEFINITION);
+  private isLicenseTerm(term: any): boolean {
+    return String(term?.name || '').toLowerCase() === 'license';
+  }
+
+  private async uploadTermsFileAttachment(attachment: TermsFileAttachment): Promise<string> {
+    if (!attachment.file) {
+      throw new Error('Terms file is missing.');
+    }
+
+    const base64 = await this.readFileAsBase64(attachment.file);
+    const fileBody = {
+      content: {
+        name: uuidv4() + '_' + attachment.file.name,
+        data: base64
+      },
+      contentType: attachment.file.type,
+      isPublic: true
+    };
+    const data = await lastValueFrom(this.attachmentService.uploadFile(fileBody));
+    const uploadedUrl = data?.content;
+    if (typeof uploadedUrl !== 'string' || uploadedUrl.trim() === '') {
+      throw new Error('The uploaded terms file did not return a URL.');
+    }
+
+    attachment.url = uploadedUrl;
+    attachment.attachmentType = attachment.file.type;
+    return uploadedUrl;
+  }
+
+  private readFileAsBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        const dataUrl: string = e?.target?.result || '';
+        resolve(dataUrl.split(',')[1] || '');
+      };
+      reader.onerror = () => reject(reader.error || new Error('Unable to read terms file.'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  private handleTermsFileUploadError(error: any): void {
+    console.error('There was an error while uploading terms files!', error);
+    this.errorMessage = error?.error?.error
+      ? this.translate.instant('ERRORS._error_prefix', { message: error.error.error })
+      : error?.message || 'There was an error while uploading the terms file.';
+    this.loading = false;
+    this.showError = true;
+    setTimeout(() => (this.showError = false), 3000);
+  }
+
+  private filenameFromTermsFileUrl(value: string): string {
+    if (!value) return 'Terms file';
+    const last = value.split('/').pop() || value;
+    let decoded = last;
+    try { decoded = decodeURIComponent(last); } catch { }
+    const underscore = decoded.indexOf('_');
+    return underscore > -1 ? decoded.slice(underscore + 1) : decoded;
+  }
+
+  emitPreview(): void {
+    this.previewRequested.emit(this.buildPreviewProductOff());
+  }
+
+  private buildPreviewProductOff(): any {
+    const formValue = this.productOfferForm.value;
+    const generalInfo = formValue.generalInfo || {};
+    const prodSpec = formValue.prodSpec || null;
+
+    const offeringTerms: any[] = [];
+    if (formValue.license?.description) {
+      offeringTerms.push({ name: 'License', description: formValue.license.description });
+    }
+    offeringTerms.push(...this.buildPersistedTermsFileTerms());
+    if (formValue.procurementMode?.mode) {
+      offeringTerms.push({ name: 'procurement', description: formValue.procurementMode.mode });
+    }
+    const contractTerm = this.buildEdcContractDefinitionTerm();
+    if (contractTerm) {
+      offeringTerms.push(contractTerm);
+    }
+
+    const prices = (formValue.pricePlans || []).map((p: any) => {
+      const priceValue = p?.priceComponents?.[0]?.price;
+      const priceUnit = p?.currency || p?.priceComponents?.[0]?.currency || 'EUR';
+      const productProfile = Array.isArray(p?.productProfile?.selectedValues)
+        ? p.productProfile.selectedValues
+        : [];
+      return {
+        id: p?.id,
+        href: p?.id,
+        name: p?.name,
+        description: p?.description,
+        priceType: p?.priceType || p?.priceComponents?.[0]?.priceType || 'one time',
+        forbiddenCharacteristic: this.getPlanForbiddenCharacteristics(p),
+        prodSpecCharValueUse: productProfile.length > 0
+          ? productProfile.map((item: any) => this.buildProductProfileCharacteristicUse(item))
+          : undefined,
+        price: priceValue != null ? { value: priceValue, unit: priceUnit } : undefined
+      };
+    });
+
+    const preview: any = {
+      id: this.formType === 'update' && this.offer?.id ? this.offer.id : 'preview',
+      name: generalInfo.name || '',
+      description: generalInfo.description || '',
+      version: generalInfo.version || '',
+      lifecycleStatus: generalInfo.status || 'Active',
+      category: Array.isArray(formValue.category) ? formValue.category : [],
+      productSpecification: prodSpec || undefined,
+      attachment: (prodSpec as any)?.attachment || [],
+      productOfferingTerm: offeringTerms,
+      productOfferingPrice: prices,
+      lastUpdate: new Date().toISOString()
+    };
+    if (contractTerm) {
+      preview.externalId = this.offer?.externalId || 'preview-external-id';
+      preview['@schemaLocation'] = environment.DSP_SCHEMA;
+    }
+    return preview;
+  }
+
+  async ensureCatalogue(): Promise<any> {
+    if (this.autoCatalogue) return this.autoCatalogue;
+    if (!this.partyId) return null;
+    try {
+      const existing = await this.api.getCatalogsByUser(0, undefined, ['Launched'], this.partyId);
+      if (Array.isArray(existing) && existing.length > 0) {
+        this.autoCatalogue = existing[0];
+        this.productOfferForm.patchValue({ catalogue: this.autoCatalogue });
+        return this.autoCatalogue;
+      }
+      const catalogueName = await this.getDefaultCatalogueName();
+      if (!catalogueName) return null;
+      const created = await lastValueFrom(this.api.postCatalog({
+        name: catalogueName,
+        description: '',
+        lifecycleStatus: 'Launched',
+        relatedParty: [{ id: this.partyId, role: environment.SELLER_ROLE, '@referredType': '' }]
+      }));
+      if (created?.id) {
+        this.autoCatalogue = created;
+        this.productOfferForm.patchValue({ catalogue: created });
+      }
+      return this.autoCatalogue;
+    } catch (err) {
+      console.error('Failed to ensure provider catalogue', err);
+      return null;
+    }
+  }
+
+  private async getDefaultCatalogueName(): Promise<string> {
+    let catalogueName = this.getCachedLoggedPartyName();
+
+    if (!catalogueName) {
+      try {
+        const party = this.isOrganizationParty()
+          ? await this.accountService.getOrgInfo(this.partyId)
+          : await this.accountService.getUserInfo(this.partyId);
+        catalogueName = this.isOrganizationParty()
+          ? this.pickOrganizationPartyName(party)
+          : this.pickIndividualPartyName(party);
+      } catch (err) {
+        console.error('Failed to resolve default catalogue name', err);
+      }
+    }
+
+    return catalogueName;
+  }
+
+  private getCachedLoggedPartyName(): string {
+    const loginInfo = this.localStorage.getObject('login_items') as LoginInfo;
+    if (!loginInfo || JSON.stringify(loginInfo) === '{}') return '';
+
+    if (loginInfo.logged_as && loginInfo.id && loginInfo.logged_as !== loginInfo.id) {
+      const loggedOrg = loginInfo.organizations?.find((org: any) => org.id === loginInfo.logged_as || org.partyId === this.partyId);
+      return this.pickOrganizationPartyName(loggedOrg);
+    }
+
+    return this.normalizeCatalogueName(loginInfo.user);
+  }
+
+  private pickOrganizationPartyName(party: any): string {
+    const value = party?.tradingName ?? party?.name;
+    return this.normalizeCatalogueName(value);
+  }
+
+  private pickIndividualPartyName(party: any): string {
+    return [party?.givenName, party?.familyName]
+      .filter((value: any) => typeof value === 'string' && value.trim().length > 0)
+      .join(' ')
+      .trim()
+      .slice(0, 100);
+  }
+
+  private normalizeCatalogueName(value: any): string {
+    return typeof value === 'string' ? value.trim().slice(0, 100) : '';
+  }
+
+  private isOrganizationParty(): boolean {
+    return String(this.partyId || '').toLowerCase().includes('organization');
   }
 
 
   submitForm() {
+    if (this.loading) return;
+    if (!this.canSubmitOffer()) {
+      this.productOfferForm.markAllAsTouched();
+      this.highestStep = this.steps.length - 1;
+      this.currentStep = this.firstInvalidStep();
+      return;
+    }
+
+    this.publishRequested.emit(this.buildPreviewProductOff());
+  }
+
+  confirmPublish() {
+    if (this.loading) return;
+    if (!this.canSubmitOffer()) {
+      this.productOfferForm.markAllAsTouched();
+      this.highestStep = this.steps.length - 1;
+      this.currentStep = this.firstInvalidStep();
+      return;
+    }
+
     if (this.formType === 'update') {
       this.eventMessage.emitUpdateOffer(true);
       console.log('🔄 Starting offer update process...');
@@ -260,15 +2362,69 @@ export class OfferComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    if (!this.partyId) {
+      const aux = this.localStorage.getObject('login_items') as LoginInfo;
+      if (aux && aux.organizations) {
+        if (aux.logged_as == aux.id) {
+          this.partyId = aux.partyId;
+        } else {
+          const loggedOrg = aux.organizations.find((e: any) => e.id == aux.logged_as);
+          if (loggedOrg) this.partyId = loggedOrg.partyId;
+        }
+      }
+    }
+
+    this.loadUsageSpecs();
+
     if (this.formType === 'update' && this.offer) {
       this.loadingData = true;
-      this.steps = this.steps.filter(step => step.id !== 'catalogue');
+      await Promise.all([this.loadAvailableProdSpecs(), this.loadGeneralInfoCategoryFilterOptions(), this.loadCategories()]);
       await this.loadOfferData();
+      if (this.offer.productSpecification?.id) {
+        this.selectedProdSpecId = this.offer.productSpecification.id;
+        if (!this.availableProdSpecs.some(p => p.id === this.selectedProdSpecId)) {
+          const fallback = this.selectedProdSpec || this.offer.productSpecification;
+          this.availableProdSpecs = [...this.availableProdSpecs, { id: this.selectedProdSpecId, name: fallback?.name || this.offer.productSpecification.name || this.selectedProdSpecId }];
+        }
+      }
+      const generalInfoCategoryFilterOptionIds = new Set(this.generalInfoCategoryFilterOptions.map(s => s.id));
+      const existingGeneralInfoCategoryFilterOption = (this.offer.category || []).find((c: any) => generalInfoCategoryFilterOptionIds.has(c?.id));
+      if (existingGeneralInfoCategoryFilterOption) this.selectedGeneralInfoCategoryFilterOptionId = existingGeneralInfoCategoryFilterOption.id;
+
+      const rootIds = new Set(this.availableRootCategories.map(c => c.id));
+      const existingRoot = (this.offer.category || []).find((c: any) => rootIds.has(c?.id));
+      if (existingRoot) {
+        this.selectedRootCategoryId = existingRoot.id;
+        const children = await this.api.getCategoriesByParentId(existingRoot.id);
+        this.availableSubcategories = Array.isArray(children) ? children : [];
+        const subIds = new Set(this.availableSubcategories.map(c => c.id));
+        const existingSub = (this.offer.category || []).find((c: any) => subIds.has(c?.id));
+        if (existingSub) this.selectedSubcategoryId = existingSub.id;
+      }
       this.loadingData = false;
+    } else {
+      this.loadAvailableProdSpecs();
+      this.loadGeneralInfoCategoryFilterOptions();
+      this.loadCategories();
+      if (this.catalogManagementEnabled) {
+        this.loadAvailableCatalogs();
+      } else {
+        this.ensureCatalogue();
+      }
+      this.refreshOfferSteps();
     }
   }
   async loadOfferData() {
     console.log('Loading offer into form...', this.offer);
+
+    const { description: cleanDescription, tags: parsedTags } = this.extractTagsFromDescription(this.offer.description || '');
+    this.offerTags = parsedTags;
+    this.generalInfoFormGroup.patchValue({
+      name: this.offer.name || '',
+      version: this.offer.version || '0.1',
+      status: this.offer.lifecycleStatus || 'Active',
+      description: cleanDescription
+    });
 
     // Product Specification
     if (this.offer.productSpecification) {
@@ -278,6 +2434,7 @@ export class OfferComponent implements OnInit, OnDestroy {
       this.productOfferForm.patchValue({
         prodSpec: this.selectedProdSpec || null // Cargar si existe, o dejar en null
       });
+      this.refreshOfferSteps();
     }
 
     //CATEGORIES
@@ -294,13 +2451,13 @@ export class OfferComponent implements OnInit, OnDestroy {
       // Mantener el primer término (licencia) incluso si está vacío
       //const licenseTerm = this.offer.productOfferingTerm[0];
       const licenseTerm = this.offer.productOfferingTerm.find(
-        (element: { name: string; }) => element.name === 'License'
+        (element: { name: string; }) => this.isLicenseTerm(element)
       );
 
       // Filtrar el resto de términos
 
       /*const otherTerms = this.offer.productOfferingTerm.filter(
-        (term: any) => term.name !== 'License'
+        (term: any) => !this.isLicenseTerm(term)
       ) ?? [];
 
 
@@ -323,41 +2480,25 @@ export class OfferComponent implements OnInit, OnDestroy {
         });
       }
 
+      this.tcAttachments = this.offer.productOfferingTerm
+        .filter((term: any) => term?.name === OfferComponent.TERMS_FILE_TERM_NAME && term?.description)
+        .map((term: any) => ({
+          name: this.filenameFromTermsFileUrl(term.description),
+          url: term.description
+        }));
+
       //PROCUREMENT
       const procurementTerm = this.offer.productOfferingTerm.find(
         (element: { name: string; }) => element.name === 'procurement'
       );
-      if (procurementTerm) {
-        const procurementValue = {
-          id: procurementTerm.description,
-          name: procurementTerm.description
-        };
-        console.log('Setting procurement value:', procurementValue);
-        this.productOfferForm.patchValue({
-          procurementMode: procurementValue
-        });
-      } else {
-        this.productOfferForm.patchValue({
-          procurementMode: {
-            id: 'manual',
-            name: 'Manual'
-          }
-        });
-      }
-
-      // EDC Contract Definition
-      if (environment.DSP_ENABLED) {
-        const contractDefinition = this.offer.productOfferingTerm.find(
-          (element: { name: string; }) => element.name === 'edc:contractDefinition'
-        ) || { name: 'edc:contractDefinition' };
-        this.productOfferForm.patchValue(({
-          contractDefinition: {
-            name: contractDefinition.name,
-            accessPolicy: contractDefinition.accessPolicy ? JSON.stringify(contractDefinition.accessPolicy) : '',
-            contractPolicy: contractDefinition.contractPolicy ? JSON.stringify(contractDefinition.contractPolicy) : ''
-          }
-        }))
-      }
+      const plaSpecId = this.offer.pricingLogicAlgorithm?.[0]?.plaSpecId ?? '';
+      this.productOfferForm.patchValue({
+        procurementMode: {
+          mode: procurementTerm?.description || 'manual',
+          extBillingEnabled: plaSpecId !== '',
+          plaSpecId
+        }
+      });
       /*console.log('Checking procurement terms...');
       this.offer.productOfferingTerm.forEach((term: any) => {
         console.log('Checking term:', term);
@@ -389,13 +2530,18 @@ export class OfferComponent implements OnInit, OnDestroy {
         } else {
           configProfileCheck = false
         }
+        const constraintPrice = await this.getRelatedOfferingPriceByType(pricePlan, CONSTRAINT_PRICE_TYPE);
 
         let priceInfo: any = {
           id: pricePlan.id,
           name: pricePlan.name,
           description: pricePlan.description,
           lifecycleStatus: pricePlan.lifecycleStatus,
+          priceType: pricePlan?.priceType,
           paymentOnline: pricePlan?.paymentOnline ?? !!pricePlan?.bundledPopRelationship,
+          popRelationship: Array.isArray(pricePlan?.popRelationship) ? pricePlan.popRelationship : [],
+          constraintPriceId: constraintPrice?.id,
+          forbiddenCharacteristic: this.getConstraintCharacteristics(constraintPrice),
           productProfile: configProfileCheck ? this.mapProductProfile(pricePlan?.prodSpecCharValueUse || []) : [],
         }
 
@@ -427,18 +2573,20 @@ export class OfferComponent implements OnInit, OnDestroy {
             }
 
             if (data?.popRelationship) {
-              let alter = await this.api.getOfferingPrice(data?.popRelationship[0].id)
+              const alter = await this.getRelatedOfferingPriceByType(data, DISCOUNT_PRICE_TYPE);
               console.log('----- alter')
               console.log(alter)
-              if (alter.percentage) {
+              if (alter?.percentage !== undefined && alter?.percentage !== null) {
                 priceComp.discountValue = alter?.percentage
                 priceComp.discountUnit = 'percentage'
-              } else {
+              } else if (alter?.price) {
                 priceComp.discountValue = alter?.price?.value
                 priceComp.discountUnit = 'fixed'
               }
-              priceComp.discountDuration = alter?.unitOfMeasure?.amount
-              priceComp.discountDurationUnit = alter?.unitOfMeasure?.units
+              if (alter) {
+                priceComp.discountDuration = alter?.unitOfMeasure?.amount
+                priceComp.discountDurationUnit = alter?.unitOfMeasure?.units
+              }
               //priceComp.discountDurationUnit=alter?.
               //priceComp.discountDuration=this.calculateDiscountDuration(alter?.validFor,alter?.)
             }
@@ -446,7 +2594,8 @@ export class OfferComponent implements OnInit, OnDestroy {
           }
         }
 
-        priceInfo.priceComponents = relatedPrices;
+        priceInfo.priceComponents = this.normalizeLoadedPriceComponents(relatedPrices);
+        priceInfo.planSubType = this.getPaidPlanSubType(priceInfo);
         console.log(priceInfo)
         //}
 
@@ -460,8 +2609,12 @@ export class OfferComponent implements OnInit, OnDestroy {
       });
     }
 
-    if (this.offer.externalId && this.isdEdcCompatible() && this.dspEnable) {
-      this.enableContractDefinitionStep()
+    if (this.pricePlans.some((p: any) => p.priceType === 'custom')) {
+      this.selectedPriceTier = 'tailored';
+    } else if (this.pricePlans.some((p: any) => p.paymentOnline)) {
+      this.selectedPriceTier = 'online';
+    } else {
+      this.selectedPriceTier = 'free';
     }
   }
 
@@ -484,9 +2637,33 @@ export class OfferComponent implements OnInit, OnDestroy {
 
   private handleApiError(error: any): void {
     console.error('Error while creating offer price!', error);
-    this.errorMessage = error?.error?.error ? 'Error: ' + error.error.error : 'Error creating offer price!';
+    this.errorMessage = error?.error?.error
+      ? this.translate.instant('ERRORS._error_prefix', { message: error.error.error })
+      : this.translate.instant('CREATE_OFFER._price_create_error');
     this.showError = true;
     setTimeout(() => (this.showError = false), 3000);
+  }
+
+  private async getRelatedOfferingPriceByType(price: any, priceType: string): Promise<any | null> {
+    const relationships = Array.isArray(price?.popRelationship) ? price.popRelationship : [];
+    for (const relationship of relationships) {
+      if (!relationship?.id) continue;
+      const relationshipType = String(relationship.relationshipType || '').toLowerCase();
+      if (relationshipType && relationshipType !== priceType) continue;
+
+      const relatedPrice = await this.api.getOfferingPrice(relationship.id);
+      if (String(relatedPrice?.priceType || '').toLowerCase() === priceType) {
+        return relatedPrice;
+      }
+    }
+    return null;
+  }
+
+  private getConstraintCharacteristics(constraintPrice: any): ForbiddenCharacteristic[] {
+    const characteristicUses = Array.isArray(constraintPrice?.prodSpecCharValueUse)
+      ? constraintPrice.prodSpecCharValueUse
+      : [];
+    return this.normalizeForbiddenCharacteristics(characteristicUses);
   }
 
   private async createPriceAlteration(component: any, currency: string): Promise<any> {
@@ -512,54 +2689,122 @@ export class OfferComponent implements OnInit, OnDestroy {
     return await lastValueFrom(this.api.postOfferingPrice(priceAlter));
   }
 
+  private expandPriceComponentsForApi(components: any[]): any[] {
+    return components.flatMap((component: any) => {
+      if (!Array.isArray(component?.tiers) || component.tiers.length === 0) {
+        return [component];
+      }
+
+      return component.tiers.map((tier: any, index: number) => ({
+        id: tier.id || `temp-tier:${component.id || component.configOption || index}:${index}`,
+        name: tier.name || `${component.configOptionName || component.name || 'Tier'} ${tier.min}-${tier.max}`,
+        description: tier.description || '',
+        lifecycleStatus: component.lifecycleStatus || 'Active',
+        price: tier.price,
+        priceType: tier.priceType,
+        recurringPeriod: tier.recurringPeriod,
+        usageSpecId: tier.usageSpecId,
+        usageUnit: tier.usageUnit,
+        discountValue: tier.discountValue,
+        discountUnit: tier.discountUnit,
+        discountDuration: tier.discountDuration,
+        discountDurationUnit: tier.discountDurationUnit,
+        selectedCharacteristic: this.buildTierSelectedCharacteristic(component, tier)
+      }));
+    });
+  }
+
+  private buildTierSelectedCharacteristic(component: any, tier: any): any[] {
+    const characteristic = this.prodSpecCharacteristics.find((char: any) => char?.id === component?.configOption);
+    const sourceRange = characteristic?.productSpecCharacteristicValue?.find((value: any) =>
+      Object.prototype.hasOwnProperty.call(value || {}, 'valueFrom')
+    ) || {};
+    const rangeValue: any = {
+      valueFrom: tier.min,
+      valueTo: tier.max,
+      isDefault: true
+    };
+    if (sourceRange.unitOfMeasure) {
+      rangeValue.unitOfMeasure = sourceRange.unitOfMeasure;
+    }
+
+    return [{
+      id: characteristic?.id || component?.configOption,
+      name: characteristic?.name || component?.configOptionName || component?.name || '',
+      description: characteristic?.description || '',
+      valueType: characteristic?.valueType,
+      productSpecCharacteristicValue: [rangeValue]
+    }];
+  }
+
+  private buildConfigValueSelectedCharacteristic(configOptionId: string, configValue: any): any[] {
+    const characteristic = this.prodSpecCharacteristics.find((char: any) => char?.id === configOptionId);
+    const selectedValue = characteristic?.productSpecCharacteristicValue?.find((value: any) =>
+      String(value?.value) === String(configValue)
+    );
+
+    if (!characteristic || !selectedValue) {
+      return [];
+    }
+
+    return [{
+      id: characteristic.id,
+      name: characteristic.name,
+      description: characteristic.description || '',
+      valueType: characteristic.valueType,
+      productSpecCharacteristicValue: [selectedValue]
+    }];
+  }
+
   private async createPriceComponent(component: any, currency: string): Promise<any> {
     console.log('component format')
     console.log(component)
+    const value = component?.newValue || component;
     let priceComp: ProductOfferingPrice = {
-      name: component.name,
+      name: value.name,
       isBundle: false,
-      description: component.description ?? component?.newValue.description,
-      lifecycleStatus: component?.lifecycleStatus ?? component?.newValue?.lifecycleStatus ?? 'Active',
-      priceType: component.priceType ?? component?.newValue?.priceType,
-      price: { unit: currency, value: component?.price ?? component?.newValue.price },
+      description: value.description,
+      lifecycleStatus: value.lifecycleStatus ?? 'Active',
+      priceType: value.priceType,
+      price: { unit: currency, value: value.price },
       recurringChargePeriodType: undefined,
       recurringChargePeriodLength: undefined,
       unitOfMeasure: undefined,
       prodSpecCharValueUse: undefined
     };
 
-    let priceType = component.priceType ?? component?.newValue?.priceType;
+    let priceType = value.priceType;
 
     if (['recurring', 'recurring-prepaid'].includes(priceType)) {
-      priceComp.recurringChargePeriodType = component.recurringPeriod;
+      priceComp.recurringChargePeriodType = value.recurringPeriod;
       priceComp.recurringChargePeriodLength = 1;
     }
 
     if (priceType === 'usage') {
-      console.log(component.newValue)
+      console.log(value)
       priceComp.unitOfMeasure = {
         amount: 1,
-        units: component.usageUnit ?? component.newValue.usageUnit
+        units: value.usageUnit
       }
       priceComp['@baseType'] = "ProductOfferingPrice";
       priceComp['@schemaLocation'] = "https://raw.githubusercontent.com/laraminones/tmf-new-schemas/main/UsageSpecId.json";
-      (priceComp as any).usageSpecId = component.usageSpecId ?? component?.newValue?.usageSpecId;
+      (priceComp as any).usageSpecId = value.usageSpecId;
 
 
       console.log('-- here')
       console.log(priceComp)
     }
 
-    if (component?.selectedCharacteristic || component?.newValue?.selectedCharacteristic) {
-      priceComp.prodSpecCharValueUse = component.selectedCharacteristic ?? component.newValue.selectedCharacteristic;
+    if (value.selectedCharacteristic) {
+      priceComp.prodSpecCharValueUse = value.selectedCharacteristic;
     }
 
-    if (component?.unitOfMeasure) {
-      priceComp.unitOfMeasure = component.usageUnit;
+    if (value.unitOfMeasure) {
+      priceComp.unitOfMeasure = value.usageUnit;
     }
 
-    if (component?.discountValue != null) {
-      const discount = await this.createPriceAlteration(component, currency);
+    if (value.discountValue != null) {
+      const discount = await this.createPriceAlteration(value, currency);
       priceComp.popRelationship = [{ id: discount.id, href: discount.id, name: discount.name }];
     }
     console.log('create price comp')
@@ -630,13 +2875,66 @@ export class OfferComponent implements OnInit, OnDestroy {
     return { id: updated.id, href: updated.id, name: updated.name };
   }
 
-  private createBundledPricePlan(plan: any, compRel: any[]): ProductOfferingPrice {
+  private getConstraintPriceId(plan: any): string | null {
+    const directId = plan?.constraintPriceId ?? plan?.newValue?.constraintPriceId ?? plan?.oldValue?.constraintPriceId;
+    if (directId) return directId;
+
+    const relationships = plan?.popRelationship ?? plan?.newValue?.popRelationship ?? plan?.oldValue?.popRelationship;
+    const constraintRef = (Array.isArray(relationships) ? relationships : []).find((relationship: any) =>
+      String(relationship?.relationshipType || '').toLowerCase() === CONSTRAINT_PRICE_TYPE
+    );
+    return constraintRef?.id || null;
+  }
+
+  private async persistPricePlanConstraint(plan: any): Promise<any | null> {
+    const forbiddenCharacteristics = this.getPlanForbiddenCharacteristics(plan);
+    const constraintPriceId = this.getConstraintPriceId(plan);
+    if (forbiddenCharacteristics.length === 0) {
+      return null;
+    }
+
+    const constraintPrice: ProductOfferingPrice = {
+      name: 'Forbidden characteristics',
+      description: 'Product specification characteristics that cannot be used by this price plan',
+      isBundle: false,
+      lifecycleStatus: 'Active',
+      priceType: CONSTRAINT_PRICE_TYPE,
+      prodSpecCharValueUse: forbiddenCharacteristics
+    };
+
+    const persistedConstraint = constraintPriceId
+      ? await lastValueFrom(this.api.updateOfferingPrice(constraintPrice, constraintPriceId))
+      : await lastValueFrom(this.api.postOfferingPrice(constraintPrice));
+
+    return {
+      id: persistedConstraint.id,
+      href: persistedConstraint.href || persistedConstraint.id,
+      name: persistedConstraint.name || constraintPrice.name,
+      relationshipType: CONSTRAINT_PRICE_TYPE
+    };
+  }
+
+  private getPricePlanRelationships(plan: any, constraintRef: any | null): any[] {
+    const relationships = plan?.popRelationship ?? plan?.newValue?.popRelationship ?? plan?.oldValue?.popRelationship;
+    const constraintPriceId = this.getConstraintPriceId(plan);
+    const retainedRelationships = (Array.isArray(relationships) ? relationships : []).filter((relationship: any) =>
+      relationship?.id !== constraintPriceId &&
+      String(relationship?.relationshipType || '').toLowerCase() !== CONSTRAINT_PRICE_TYPE
+    );
+    if (constraintRef) {
+      retainedRelationships.push(constraintRef);
+    }
+    return retainedRelationships;
+  }
+
+  private createBundledPricePlan(plan: any, compRel: any[], constraintRef: any | null = null): ProductOfferingPrice {
+    const isCustomNoComponents = (plan?.priceType === 'custom' || plan?.newValue?.priceType === 'custom') && compRel.length === 0;
     const price: ProductOfferingPrice = {
       name: plan.name ?? plan?.newValue?.name,
-      isBundle: true,
+      isBundle: !isCustomNoComponents,
       description: plan.description ?? plan?.newValue?.description,
       lifecycleStatus: plan.lifecycleStatus ?? plan?.newValue?.lifecycleStatus,
-      bundledPopRelationship: compRel
+      ...(isCustomNoComponents ? {} : { bundledPopRelationship: compRel })
     };
 
     if (plan?.priceType) {
@@ -647,6 +2945,20 @@ export class OfferComponent implements OnInit, OnDestroy {
       if (plan?.newValue?.priceType == 'custom') {
         price.priceType = 'custom'
       }
+    }
+
+    const relationships = this.getPricePlanRelationships(plan, constraintRef);
+    if (!isCustomNoComponents && relationships.length > 0) {
+      price.popRelationship = relationships;
+    }
+
+    const productProfile = Array.isArray(plan?.productProfile?.selectedValues)
+      ? plan.productProfile.selectedValues
+      : [];
+    if (productProfile.length > 0) {
+      price.prodSpecCharValueUse = productProfile.map((item: any) =>
+        this.buildProductProfileCharacteristicUse(item)
+      );
     }
 
     if (plan.prodSpecCharValueUse) {
@@ -686,10 +2998,12 @@ export class OfferComponent implements OnInit, OnDestroy {
     console.log(plan)
     console.log(plan.id)
     console.log(compRel)
+    const constraintRef = await this.persistPricePlanConstraint(plan);
     let price: ProductOfferingPrice = {
       name: plan.newValue.name,
       isBundle: true,
-      bundledPopRelationship: compRel
+      bundledPopRelationship: compRel,
+      popRelationship: this.getPricePlanRelationships(plan, constraintRef)
     }
     if (modifiedFields.includes('description')) {
       price.description = plan.newValue.description
@@ -704,18 +3018,176 @@ export class OfferComponent implements OnInit, OnDestroy {
     return updatedPrice;
   }
 
+  private async persistCurrentFormPricePlans(plans: any[], persistExistingPlans: boolean): Promise<any[]> {
+    const priceRefs: any[] = [];
+
+    for (const plan of plans) {
+      if (this.isPersistedId(plan?.id)) {
+        if (persistExistingPlans) {
+          const compRel = await this.persistPricePlanComponents(plan);
+          await this.updateCurrentFormPricePlan(plan, compRel);
+        }
+        priceRefs.push({ id: plan.id, href: plan.id });
+      } else {
+        const compRel = await this.persistPricePlanComponents(plan);
+        const constraintRef = await this.persistPricePlanConstraint(plan);
+        const bundledPlan = this.createBundledPricePlan(plan, compRel, constraintRef);
+        const created = await lastValueFrom(this.api.postOfferingPrice(bundledPlan));
+        priceRefs.push({ id: created.id, href: created.id });
+      }
+    }
+
+    return priceRefs;
+  }
+
+  private async persistPricePlanComponents(plan: any): Promise<any[]> {
+    const components = this.expandPriceComponentsForApi(plan?.priceComponents || []);
+    const currency = plan?.currency || 'EUR';
+    const relations: any[] = [];
+
+    for (const component of components) {
+      relations.push(await this.persistPriceComponent(component, currency));
+    }
+
+    return relations;
+  }
+
+  private async persistPriceComponent(component: any, currency: string): Promise<any> {
+    if (this.isPersistedId(component?.id)) {
+      return this.updatePriceComponent({ id: component.id, newValue: component }, currency);
+    }
+
+    return this.createPriceComponent(component, currency);
+  }
+
+  private async updateCurrentFormPricePlan(plan: any, compRel: any[]): Promise<ProductOfferingPrice> {
+    const constraintRef = await this.persistPricePlanConstraint(plan);
+    const price: ProductOfferingPrice = {
+      name: plan?.name,
+      isBundle: true,
+      description: plan?.description,
+      lifecycleStatus: plan?.lifecycleStatus || 'Active',
+      bundledPopRelationship: compRel,
+      popRelationship: this.getPricePlanRelationships(plan, constraintRef)
+    };
+
+    const productProfile = Array.isArray(plan?.productProfile?.selectedValues)
+      ? plan.productProfile.selectedValues
+      : [];
+    if (productProfile.length > 0) {
+      price.prodSpecCharValueUse = productProfile.map((item: any) =>
+        this.buildProductProfileCharacteristicUse(item)
+      );
+    }
+
+    return lastValueFrom(this.api.updateOfferingPrice(price, plan.id));
+  }
+
+  private buildProductProfileCharacteristicUse(item: any): any {
+    const characteristic = this.pricePlanCharacteristics.find((char: any) => char?.id === item?.id);
+    const characteristicValues = Array.isArray(characteristic?.productSpecCharacteristicValue)
+      ? characteristic.productSpecCharacteristicValue
+      : [];
+    const selectedValue = characteristicValues.find((value: any) =>
+      String(value?.value) === String(item?.selectedValue)
+    ) || characteristicValues.find((value: any) =>
+      Object.prototype.hasOwnProperty.call(value || {}, 'valueFrom')
+    );
+    const isRange = Object.prototype.hasOwnProperty.call(selectedValue || {}, 'valueFrom');
+
+    return {
+      id: item?.id,
+      name: item?.name || characteristic?.name || '',
+      description: characteristic?.description || '',
+      valueType: characteristic?.valueType,
+      productSpecCharacteristicValue: selectedValue
+        ? [{ ...selectedValue, ...(isRange ? { value: item?.selectedValue } : {}), isDefault: true }]
+        : []
+    };
+  }
+
+  private getPlanForbiddenCharacteristics(plan: any): ForbiddenCharacteristic[] {
+    const forbiddenCharacteristics = plan?.forbiddenCharacteristic ?? plan?.newValue?.forbiddenCharacteristic;
+    return this.normalizeForbiddenCharacteristics(forbiddenCharacteristics);
+  }
+
+  private normalizeForbiddenCharacteristics(forbiddenCharacteristics: any): ForbiddenCharacteristic[] {
+    if (!Array.isArray(forbiddenCharacteristics)) return [];
+    return forbiddenCharacteristics
+      .filter((characteristic: any) => characteristic?.id && characteristic?.name)
+      .map((characteristic: any) => ({
+        id: characteristic.id,
+        name: characteristic.name,
+        ...(Array.isArray(characteristic.productSpecCharacteristicValue) &&
+          characteristic.productSpecCharacteristicValue.length > 0
+          ? {
+            productSpecCharacteristicValue: characteristic.productSpecCharacteristicValue
+              .map((value: any) => ({ ...value }))
+          }
+          : {})
+      }));
+  }
+
+  private buildForbiddenCharacteristic(
+    characteristic: PricePlanCharacteristicSelection
+  ): ForbiddenCharacteristic | null {
+    const base = { id: characteristic.id, name: characteristic.name };
+    if (!characteristic.allowed) return base;
+
+    let forbiddenValues: any[];
+    if (this.isPricePlanCharacteristicRange(characteristic)) {
+      const sourceRange = this.getPricePlanCharacteristicSourceRange(characteristic);
+      const allowedRange = this.getPricePlanCharacteristicAllowedRange(characteristic);
+      forbiddenValues = [];
+      if (Number(allowedRange.valueFrom) > Number(sourceRange.valueFrom)) {
+        forbiddenValues.push({
+          ...sourceRange,
+          valueFrom: sourceRange.valueFrom,
+          valueTo: Number(allowedRange.valueFrom) - 1
+        });
+      }
+      if (Number(allowedRange.valueTo) < Number(sourceRange.valueTo)) {
+        forbiddenValues.push({
+          ...sourceRange,
+          valueFrom: Number(allowedRange.valueTo) + 1,
+          valueTo: sourceRange.valueTo
+        });
+      }
+    } else {
+      forbiddenValues = characteristic.sourceValues.filter((sourceValue) =>
+        !this.isPricePlanCharacteristicValueAllowed(characteristic, sourceValue)
+      );
+    }
+
+    if (forbiddenValues.length === 0) return null;
+    return {
+      ...base,
+      productSpecCharacteristicValue: forbiddenValues.map((value) => {
+        const { isDefault, ...constraintValue } = value;
+        return constraintValue;
+      })
+    };
+  }
+
+  private isPersistedId(id: any): boolean {
+    return !!id &&
+      !String(id).startsWith('temp-id') &&
+      !String(id).startsWith('temp-tier') &&
+      !String(id).startsWith('tier-group');
+  }
+
   async createOffer() {
     this.loading = true;
     const plans = this.productOfferForm.value.pricePlans;
 
     if (plans.length === 0) {
-      this.saveOfferInfo();
+      await this.saveOfferInfo();
       return;
     }
 
     for (let i = 0; i < plans.length; i++) {
       const plan = plans[i];
-      const components = plan.priceComponents || [];
+      const components = this.expandPriceComponentsForApi(plan.priceComponents || []);
 
       try {
         let createdPriceId: string;
@@ -723,14 +3195,15 @@ export class OfferComponent implements OnInit, OnDestroy {
         const compRel = await Promise.all(
           components.map((comp: any) => this.createPriceComponent(comp, plan.currency))
         );
-        const bundledPricePlan = this.createBundledPricePlan(plan, compRel);
+        const constraintRef = await this.persistPricePlanConstraint(plan);
+        const bundledPricePlan = this.createBundledPricePlan(plan, compRel, constraintRef);
         const created = await lastValueFrom(this.api.postOfferingPrice(bundledPricePlan));
         createdPriceId = created.id;
 
         this.productOfferForm.value.pricePlans[i].id = createdPriceId;
 
         if (i === plans.length - 1) {
-          this.saveOfferInfo();
+          await this.saveOfferInfo();
         }
       } catch (error: any) {
         this.handleApiError(error);
@@ -738,13 +3211,20 @@ export class OfferComponent implements OnInit, OnDestroy {
     }
   }
 
-  saveOfferInfo(): void {
+  async saveOfferInfo(): Promise<void> {
     const formValue = this.productOfferForm.value;
 
-    const categories = formValue.category.map((cat: any) => ({
-      id: cat.id,
-      href: cat.id
-    }));
+    const seenCategoryIds = new Set<string>();
+    const categories = formValue.category
+      .filter((cat: any) => {
+        if (!cat?.id || seenCategoryIds.has(cat.id)) return false;
+        seenCategoryIds.add(cat.id);
+        return true;
+      })
+      .map((cat: any) => ({
+        id: cat.id,
+        href: cat.id
+      }));
 
     const prices = formValue.pricePlans.map((plan: any) => ({
       id: plan.id,
@@ -753,10 +3233,28 @@ export class OfferComponent implements OnInit, OnDestroy {
 
     const generalInfo = formValue.generalInfo;
     const lifecycleStatus = this.formType === 'update' ? generalInfo.status : 'Active';
+    const catalogueId = this.catalogManagementEnabled
+      ? formValue.catalogue?.id
+      : formValue.catalogue?.id || this.autoCatalogue?.id;
+    if (this.formType === 'create' && !catalogueId) {
+      this.errorMessage = this.translate.instant('CREATE_OFFER._no_catalogue_available');
+      this.loading = false;
+      this.showError = true;
+      setTimeout(() => (this.showError = false), 3000);
+      return;
+    }
+
+    let termsFileTerms: any[] = [];
+    try {
+      termsFileTerms = await this.buildTermsFileTerms();
+    } catch (error: any) {
+      this.handleTermsFileUploadError(error);
+      return;
+    }
 
     const offer: any = {
       name: generalInfo.name,
-      description: generalInfo.description || '',
+      description: this.composeDescriptionWithTags(generalInfo.description || ''),
       lifecycleStatus,
       isBundle: this.bundleChecked,
       bundledProductOffering: this.offersBundle,
@@ -776,35 +3274,26 @@ export class OfferComponent implements OnInit, OnDestroy {
           name: 'License',
           description: formValue.license.description || ''
         },
+        ...termsFileTerms,
         {
           name: 'procurement',
           description: formValue.procurementMode.mode
         }
       ]
     };
+    this.applyDspOfferingFields(offer);
 
-    if (this.dspEnable && this.isdEdcCompatible()) {
-      const contractDefinition = formValue.edcContractDefinition;
-      offer.productOfferingTerm.push({
-        name: contractDefinition.name,
-        contractPolicy: contractDefinition.contractPolicy ? JSON.parse(contractDefinition.contractPolicy) : '',
-        accessPolicy: contractDefinition.accessPolicy ? JSON.parse(contractDefinition.accessPolicy) : '',
-        '@schemaLocation': environment.DSP_CONTRACT_DEFINITION_SCHEMA
-      })
-      offer.externalId = uuidv4()
-      offer['@schemaLocation'] = environment.DSP_SCHEMA
-    }
-    if (!this.bundleChecked && this.formType === 'create') {
+    if (!this.bundleChecked && this.formType === 'create' && formValue.prodSpec?.id) {
       offer.productSpecification = {
         id: formValue.prodSpec.id,
-        href: formValue.prodSpec.href
+        href: formValue.prodSpec.href || formValue.prodSpec.id
       };
     }
 
     this.offerToCreate = offer;
 
     const request$ = this.formType === 'create'
-      ? this.api.postProductOffering(offer, formValue.catalogue.id)
+      ? this.api.postProductOffering(offer, catalogueId)
       : this.api.updateProductOffering(offer, this.offer.id);
 
     request$.subscribe({
@@ -812,11 +3301,14 @@ export class OfferComponent implements OnInit, OnDestroy {
         console.log('product offer created:');
         console.log(data);
         this.loading = false;
+        this.eventMessage.emitSpecCreated(this.translate.instant(this.formType === 'create' ? 'CREATE_OFFER._create_success' : 'UPDATE_OFFER._update_success'));
         this.goBack();
       },
       error: (error) => {
         console.error('Error during offer save/update:', error);
-        this.errorMessage = error?.error?.error ? 'Error: ' + error.error.error : 'An error occurred while saving the offer!';
+        this.errorMessage = error?.error?.error
+          ? this.translate.instant('ERRORS._error_prefix', { message: error.error.error })
+          : this.translate.instant('CREATE_OFFER._save_error');
         this.loading = false;
         this.showError = true;
         setTimeout(() => (this.showError = false), 3000);
@@ -862,43 +3354,53 @@ export class OfferComponent implements OnInit, OnDestroy {
     console.log('🔄 Starting offer update process...');
     console.log('📝 Current form changes:', this.formChanges);
 
-    // Preparar el payload base con los datos que no han cambiado
+    const formGeneralInfo = (this.productOfferForm.get('generalInfo')?.value || {});
+    const formProdSpec = this.productOfferForm.get('prodSpec')?.value;
+    const formCategories = (this.productOfferForm.get('category')?.value || []);
+    const formPricePlans: any[] = (this.productOfferForm.get('pricePlans')?.value || []);
+
     const basePayload: any = {
-      name: this.offer.name,
-      description: this.offer.description,
-      lifecycleStatus: this.offer.lifecycleStatus,
-      version: this.offer.version,
-      category: this.offer.category,
-      productOfferingPrice: this.offer.productOfferingPrice.map((price: any) => {
-        return { // WORKARROUND ISSUE WITH THE PRICE PLAN TO BE INCLUDED IN THE REF
-          id: price.id,
-          href: price.href
-        }
-      }),
+      name: formGeneralInfo.name,
+      description: this.composeDescriptionWithTags(formGeneralInfo.description || ''),
+      lifecycleStatus: formGeneralInfo.status,
+      version: formGeneralInfo.version,
+      category: formCategories.map((c: any) => ({ id: c.id, href: c.id })),
+      productOfferingPrice: this.offer.productOfferingPrice.map((price: any) => ({
+        id: price.id,
+        href: price.href
+      })),
       validFor: this.offer.validFor,
-      productOfferingTerm: this.offer.productOfferingTerm
+      productOfferingTerm: (this.offer.productOfferingTerm || []).map((t: any) => ({ ...t }))
     };
+
+    if (formProdSpec?.id) {
+      basePayload.productSpecification = {
+        id: formProdSpec.id,
+        href: formProdSpec.href || formProdSpec.id
+      };
+    }
+
+    const licenseDesc = this.productOfferForm.get('license')?.value?.description ?? '';
+    const existingLicense = basePayload.productOfferingTerm.find((t: any) => this.isLicenseTerm(t));
+    if (existingLicense) {
+      existingLicense.description = licenseDesc;
+    } else {
+      basePayload.productOfferingTerm.unshift({ name: 'License', description: licenseDesc });
+    }
+
+    const procMode = this.productOfferForm.get('procurementMode')?.value?.mode;
+    if (procMode) {
+      const existingProc = basePayload.productOfferingTerm.find((t: any) => t.name === 'procurement');
+      if (existingProc) existingProc.description = procMode;
+      else basePayload.productOfferingTerm.push({ name: 'procurement', description: procMode });
+    }
+    this.applyDspOfferingFields(basePayload);
 
     // Procesar cada cambio emitido por los subformularios
     for (const [subformType, change] of Object.entries(this.formChanges)) {
       console.log(`📝 Processing changes for ${subformType}:`, change);
 
       switch (subformType) {
-        case 'generalInfo':
-          // Actualizar información general
-          basePayload.name = change.currentValue.name;
-          basePayload.description = change.currentValue.description;
-          basePayload.version = change.currentValue.version;
-          basePayload.lifecycleStatus = change.currentValue.status;
-          break;
-
-        case 'productSpecification':
-          // Actualizar especificación del producto
-          basePayload.productSpecification = {
-            id: change.currentValue.id,
-            href: change.currentValue.id
-          };
-          break;
 
         case 'category':
           // Actualizar categorías
@@ -910,7 +3412,7 @@ export class OfferComponent implements OnInit, OnDestroy {
 
         case 'license':
           // Actualizar términos de licencia
-          const licenseTerm = basePayload.productOfferingTerm.find((term: any) => term.name === 'License');
+          const licenseTerm = basePayload.productOfferingTerm.find((term: any) => this.isLicenseTerm(term));
           if (licenseTerm) {
             licenseTerm.description = change.currentValue.description;
           } else {
@@ -936,9 +3438,10 @@ export class OfferComponent implements OnInit, OnDestroy {
             let finalPriceComps: any[] = [];
             if (pricePlanChangeInfo[i].priceComponents.added.length > 0) {
               //Crear price comp
-              for (let j = 0; j < pricePlanChangeInfo[i].priceComponents.added.length; j++) {
+              const addedComponents = this.expandPriceComponentsForApi(pricePlanChangeInfo[i].priceComponents.added);
+              for (let j = 0; j < addedComponents.length; j++) {
                 //finalPriceComps.push(this.createPriceComponent(pricePlanChangeInfo[i].priceComponents.added[j],change.currentValue.currency))
-                let compCreated = await this.createPriceComponent(pricePlanChangeInfo[i].priceComponents.added[j], pricePlanChangeInfo[i]?.newValue.currency)
+                let compCreated = await this.createPriceComponent(addedComponents[j], pricePlanChangeInfo[i]?.newValue.currency)
                 finalPriceComps.push(compCreated)
               }
               console.log('The following price comps has been created:')
@@ -955,8 +3458,11 @@ export class OfferComponent implements OnInit, OnDestroy {
                 console.log(pricePlanChangeInfo[i].priceComponents.modified[j].id == pricePlanChangeInfo[i].id)
                 if ((pricePlanChangeInfo[i].priceComponents.modified[j].id == pricePlanChangeInfo[i].id) && (!pricePlanChangeInfo[i]?.oldValue.isBundle && pricePlanChangeInfo[i].priceComponents.added.length > 0)) {
                   console.log('Si entra en el check')
-                  let compUpdated = await this.createPriceComponent(pricePlanChangeInfo[i].priceComponents.modified[j], pricePlanChangeInfo[i]?.newValue.currency)
-                  finalPriceComps.push(compUpdated)
+                  const modifiedComponents = this.expandPriceComponentsForApi([pricePlanChangeInfo[i].priceComponents.modified[j]]);
+                  for (const modifiedComponent of modifiedComponents) {
+                    let compUpdated = await this.createPriceComponent(modifiedComponent, pricePlanChangeInfo[i]?.newValue.currency)
+                    finalPriceComps.push(compUpdated)
+                  }
                 } else if (pricePlanChangeInfo[i].priceComponents.modified[j].id != pricePlanChangeInfo[i].id) {
                   let compUpdated = await this.updatePriceComponent(pricePlanChangeInfo[i].priceComponents.modified[j], pricePlanChangeInfo[i]?.newValue.currency)
                   finalPriceComps.push(compUpdated)
@@ -973,7 +3479,8 @@ export class OfferComponent implements OnInit, OnDestroy {
               console.log('Modified price plan')
               console.log(updatedPricePlan)
             } else {
-              let createdPricePlan = await this.createBundledPricePlan(pricePlanChangeInfo[i], finalPriceComps);
+              const constraintRef = await this.persistPricePlanConstraint(pricePlanChangeInfo[i]);
+              let createdPricePlan = this.createBundledPricePlan(pricePlanChangeInfo[i], finalPriceComps, constraintRef);
               const created = await lastValueFrom(this.api.postOfferingPrice(createdPricePlan));
               let index = basePayload.productOfferingPrice.findIndex(
                 (plan: any) => plan.id === pricePlanChangeInfo[i].id
@@ -1004,32 +3511,19 @@ export class OfferComponent implements OnInit, OnDestroy {
           }
           break;
 
-        case 'contractDefinition': {
-          if (change.currentValue.dspCompatible) {
-            const edcTerm = basePayload.productOfferingTerm.find((term: any) => term.name === 'edc:contractDefinition');
-            if (edcTerm) {
-              edcTerm.accessPolicy = JSON.parse(change.currentValue.accessPolicy);
-              edcTerm.contractPolicy = JSON.parse(change.currentValue.contractPolicy);
-            } else {
-              basePayload.productOfferingTerm.push({
-                name: change.currentValue.name,
-                contractPolicy: change.currentValue.contractPolicy ? JSON.parse(change.currentValue.contractPolicy) : '',
-                accessPolicy: change.currentValue.accessPolicy ? JSON.parse(change.currentValue.accessPolicy) : '',
-                '@schemaLocation': environment.DSP_CONTRACT_DEFINITION_SCHEMA
-              })
-            }
-          } else {
-            basePayload.productOfferingTerm = basePayload.productOfferingTerm.filter(
-              (term: any) => term.name !== 'edc:contractDefinition'
-            );
-          }
-          break;
-        }
-
         case 'replication':
           // Actualizar configuración de replicación
           // TODO: Implementar cuando se tenga la estructura de replicación
           break;
+        case 'contractDefinition': {
+          this.applyDspOfferingFields(basePayload);
+          if (!this.productOfferForm.get('edcContractDefinition')?.value?.dspCompatible) {
+            basePayload.productOfferingTerm = basePayload.productOfferingTerm.filter(
+              (term: any) => term?.name !== 'edc:contractDefinition'
+            );
+          }
+          break;
+        }
       }
     }
 
@@ -1044,7 +3538,7 @@ export class OfferComponent implements OnInit, OnDestroy {
     /*if (basePayload.productOfferingTerm) {
       // Mantener el primer término (licencia) incluso si está vacío
       //const licenseTerm = basePayload.productOfferingTerm[0];
-      let licenseTerm = basePayload.productOfferingTerm.find((element: { name: any; }) => element.name == 'License')
+      let licenseTerm = basePayload.productOfferingTerm.find((element: { name: any; }) => this.isLicenseTerm(element))
       if(!licenseTerm){
         licenseTerm={
           name: 'License',
@@ -1054,12 +3548,35 @@ export class OfferComponent implements OnInit, OnDestroy {
 
       // Filtrar el resto de términos
       const otherTerms = this.offer.productOfferingTerm.filter(
-        (term: any) => term.name !== 'License'
+        (term: any) => !this.isLicenseTerm(term)
       ) ?? [];
 
       // Reconstruir el array con el término de licencia en la posición 0
       basePayload.productOfferingTerm = [licenseTerm, ...otherTerms];
     }*/
+
+    if (formPricePlans.length > 0) {
+      try {
+        basePayload.productOfferingPrice = await this.persistCurrentFormPricePlans(
+          formPricePlans,
+          !this.formChanges['pricePlans']
+        );
+      } catch (error: any) {
+        this.handleApiError(error);
+        this.loading = false;
+        return;
+      }
+    } else {
+      basePayload.productOfferingPrice = [];
+    }
+
+    try {
+      const termsFileTerms = await this.buildTermsFileTerms();
+      basePayload.productOfferingTerm = this.replaceTermsFileTerms(basePayload.productOfferingTerm, termsFileTerms);
+    } catch (error: any) {
+      this.handleTermsFileUploadError(error);
+      return;
+    }
 
     console.log('📝 Final update payload:', basePayload);
 
@@ -1071,16 +3588,12 @@ export class OfferComponent implements OnInit, OnDestroy {
       this.goBack();
     } catch (error: any) {
       console.error('❌ Error updating offer:', error);
-      this.errorMessage = error?.error?.error ? 'Error: ' + error.error.error : 'An error occurred while updating the offer!';
+      this.errorMessage = error?.error?.error
+        ? this.translate.instant('ERRORS._error_prefix', { message: error.error.error })
+        : this.translate.instant('UPDATE_OFFER._update_error');
       this.loading = false;
       this.showError = true;
       setTimeout(() => (this.showError = false), 3000);
     }
-  }
-
-  private isdEdcCompatible() {
-
-    const prodSpec = this.productOfferForm.controls['prodSpec'].value
-    return prodSpec && (prodSpec as any).externalId;
   }
 }

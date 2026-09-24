@@ -18,7 +18,7 @@ describe('PricePlanDrawerComponent', () => {
   let cartServiceSpy: jasmine.SpyObj<ShoppingCartServiceService>;
   let eventMessageSpy: jasmine.SpyObj<EventMessageService>;
 
-  const priceServiceSpy = jasmine.createSpyObj<PriceServiceService>('PriceServiceService', ['calculatePrice']);
+  const priceServiceSpy = jasmine.createSpyObj<PriceServiceService>('PriceServiceService', ['calculatePrice', 'getProductPrice']);
   const pricePlanMetricsSpy = jasmine.createSpyObj<PricePlanMetricsService>('PricePlanMetricsService', ['getAppliedMetrics']);
 
   beforeEach(async () => {
@@ -26,6 +26,7 @@ describe('PricePlanDrawerComponent', () => {
     eventMessageSpy = jasmine.createSpyObj<EventMessageService>('EventMessageService', ['emitAddedCartItem']);
 
     priceServiceSpy.calculatePrice.and.returnValue(of({ orderTotalPrice: [] }));
+    priceServiceSpy.getProductPrice.and.resolveTo(null);
     cartServiceSpy.addItemShoppingCart.and.resolveTo();
     pricePlanMetricsSpy.getAppliedMetrics.and.resolveTo([]);
 
@@ -276,6 +277,84 @@ describe('PricePlanDrawerComponent', () => {
     expect(component.hasProfile).toBeTrue();
     expect(component.characteristics).toEqual(pricePlan.prodSpecCharValueUse);
     expect(component.selectedPricePlan).toEqual(pricePlan);
+  });
+
+  it('onPricePlanSelected should hide characteristics listed by the related constraint price', async () => {
+    component.prodSpec = {
+      productSpecCharacteristic: [
+        { id: 'char-region', name: 'Region', productSpecCharacteristicValue: [{ value: 'EU', isDefault: true }] },
+        { id: 'char-size', name: 'Size', productSpecCharacteristicValue: [{ value: 'Small', isDefault: true }] }
+      ]
+    } as any;
+    const pricePlan = {
+      id: 'pp-1',
+      priceType: 'usage',
+      popRelationship: [{ id: 'constraint-1', relationshipType: 'constraint' }]
+    };
+    priceServiceSpy.getProductPrice.and.resolveTo({
+      id: 'constraint-1',
+      priceType: 'constraint',
+      prodSpecCharValueUse: [{ id: 'char-size', name: 'Size' }]
+    });
+    spyOn(component, 'calculatePrice').and.resolveTo();
+
+    await component.onPricePlanSelected(pricePlan);
+
+    expect(component.filteredCharacteristics.map((characteristic) => characteristic.name)).toEqual(['Region']);
+    expect(priceServiceSpy.getProductPrice).toHaveBeenCalledWith('constraint-1');
+  });
+
+  it('onPricePlanSelected should remove only the values listed by a partial constraint', async () => {
+    component.prodSpec = {
+      productSpecCharacteristic: [
+        {
+          id: 'char-region',
+          name: 'Region',
+          productSpecCharacteristicValue: [
+            { value: 'EU', isDefault: true },
+            { value: 'US', isDefault: false }
+          ]
+        },
+        {
+          id: 'char-vcores',
+          name: 'vCores',
+          productSpecCharacteristicValue: [
+            { valueFrom: 1, valueTo: 386, isDefault: true }
+          ]
+        }
+      ]
+    } as any;
+    const pricePlan = {
+      id: 'pp-1',
+      priceType: 'usage',
+      popRelationship: [{ id: 'constraint-1', relationshipType: 'constraint' }]
+    };
+    priceServiceSpy.getProductPrice.and.resolveTo({
+      id: 'constraint-1',
+      priceType: 'constraint',
+      prodSpecCharValueUse: [
+        {
+          id: 'char-region',
+          name: 'Region',
+          productSpecCharacteristicValue: [{ value: 'EU' }]
+        },
+        {
+          id: 'char-vcores',
+          name: 'vCores',
+          productSpecCharacteristicValue: [{ valueFrom: 1, valueTo: 3 }]
+        }
+      ]
+    });
+    spyOn(component, 'calculatePrice').and.resolveTo();
+
+    await component.onPricePlanSelected(pricePlan);
+
+    expect(component.filteredCharacteristics[0].productSpecCharacteristicValue as any).toEqual([
+      { value: 'US', isDefault: true }
+    ]);
+    expect(component.filteredCharacteristics[1].productSpecCharacteristicValue as any).toEqual([
+      { valueFrom: 4, valueTo: 386, isDefault: true }
+    ]);
   });
 
   it('onPricePlanSelected should load bundled usage metrics', async () => {
