@@ -3152,6 +3152,7 @@
     "_draft": "Draft",
     "_validated": "Validated",
     "_unpublished": "Unpublished",
+    "_retired": "Retired",
     "_deleted": "Deleted",
     "_archived": "Archived",
     "_edit": "Edit",

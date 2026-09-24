@@ -39,13 +39,14 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
   partyId:any;
   status:any[]=['Active'];
   selectedTab: string = 'Draft';
+  readonly tabs: string[] = ['Draft', 'Published', 'Retired', 'Deleted'];
   tabStatusMap: { [k: string]: string[] } = {
     Draft: ['Active'],
     Published: ['Launched'],
-    Unpublished: ['Retired'],
-    Archived: ['Obsolete']
+    Retired: ['Retired'],
+    Deleted: ['Obsolete']
   };
-  statusCounts: { [k: string]: number } = { Draft: 0, Published: 0, Unpublished: 0, Archived: 0 };
+  statusCounts: { [k: string]: number } = { Draft: 0, Published: 0, Retired: 0, Deleted: 0 };
   openMenuIdx: number | null = null;
   openMenuCatalog: Catalog | null = null;
   menuPosition = { top: 0, left: 0 };

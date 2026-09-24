@@ -51,7 +51,7 @@
   </div>
 
   <div class="border-b border-offerings-border dark:border-secondary-200 flex items-stretch">
-    @for (tab of ['Draft','Published','Unpublished','Archived']; track tab) {
+    @for (tab of tabs; track tab) {
       <button type="button" (click)="selectTab(tab)" [disabled]="loading"
         class="w-56 flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold tracking-[0.5px] leading-6 border-b-[3px] -mb-px transition-colors disabled:cursor-not-allowed disabled:opacity-50"
         [ngClass]="selectedTab === tab ? 'text-offerings-text dark:text-offerings-on-dark border-primary-100 dark:border-primary-50' : 'text-offerings-muted-text dark:text-offerings-on-dark-body border-transparent hover:text-offerings-body dark:hover:text-offerings-on-dark'">
@@ -115,7 +115,7 @@
                   {{ offer.lastUpdate | date:'dd/MM/yyyy - HH:mm' }}
                 </td>
                 <td data-cy="offerActions" class="px-6 text-right relative group-hover:bg-offerings-page dark:group-hover:bg-secondary-200" [ngClass]="{'rounded-br-2xl': last}">
-                  @if(selectedTab !== 'Archived'){
+                  @if(selectedTab !== 'Deleted'){
                     <button type="button" (click)="toggleMenu(idx, $event)" class="p-1 hover:bg-offerings-neutral dark:hover:bg-secondary-100 rounded text-offerings-muted-text dark:text-offerings-on-dark-body">
                       <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                         <circle cx="12" cy="5" r="2"/>

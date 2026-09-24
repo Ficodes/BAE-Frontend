@@ -64,12 +64,12 @@ describe('SellerCatalogsComponent', () => {
     expect(getCatalogsSpy).toHaveBeenCalledWith(false);
   });
 
-  it('selectTab should map the archived tab to obsolete catalogs', () => {
+  it('selectTab should map the deleted tab to obsolete catalogs', () => {
     const getCatalogsSpy = spyOn(component, 'getCatalogs');
 
-    component.selectTab('Archived');
+    component.selectTab('Deleted');
 
-    expect(component.selectedTab).toBe('Archived');
+    expect(component.selectedTab).toBe('Deleted');
     expect(component.status).toEqual(['Obsolete']);
     expect(getCatalogsSpy).toHaveBeenCalledWith(false);
   });

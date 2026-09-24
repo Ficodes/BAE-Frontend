@@ -14,7 +14,7 @@
   </div>
 
   <div class="border-b border-offerings-border dark:border-secondary-200 flex items-stretch overflow-x-auto">
-    @for (tab of ['Draft','Published','Unpublished','Archived']; track tab) {
+    @for (tab of tabs; track tab) {
       <button type="button" (click)="selectTab(tab)" [disabled]="loading"
         class="w-56 flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold tracking-[0.5px] leading-6 border-b-[3px] -mb-px transition-colors disabled:cursor-not-allowed disabled:opacity-50"
         [ngClass]="selectedTab === tab ? 'text-offerings-text dark:text-offerings-on-dark border-primary-100 dark:border-primary-50' : 'text-offerings-muted-text dark:text-offerings-on-dark-body border-transparent hover:text-offerings-body dark:hover:text-offerings-on-dark'">
