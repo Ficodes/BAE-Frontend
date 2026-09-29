@@ -1,0 +1,154 @@
+@if (isSectionVisible) {
+<section class="bg-[#f5f7fb] py-24" data-cy="dashboard-news">
+  <div class="max-w-[1180px] mx-auto px-6">
+
+    <div class="flex flex-col gap-6 mb-16 md:flex-row md:items-start md:justify-between">
+      <div>
+        <h2 class="text-[32px] md:text-[38px] lg:text-[42px] font-extrabold text-[#0f172a] leading-tight">
+          {{ 'DASHBOARD.news._title' | translate }}
+        </h2>
+
+        <p class="mt-4 text-base md:text-lg text-slate-600">
+          {{ 'DASHBOARD.news._subtitle' | translate }}
+        </p>
+      </div>
+
+      <a class="flex items-center gap-2 text-blue-700 font-semibold" [routerLink]="routeBase"
+        data-cy="dashboard-news-viewall">
+        {{ 'DASHBOARD.news._viewAll' | translate }}
+        <fa-icon [icon]="faArrowRight"></fa-icon>
+      </a>
+    </div>
+
+    <div class="-mx-3 sm:mx-0 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f7fb]"
+      role="region" aria-roledescription="carousel" [attr.aria-label]="'DASHBOARD.news._title' | translate"
+      [attr.tabindex]="!isLoading && hasMultipleEntries ? 0 : null" (keydown)="onKeydown($event)"
+      data-cy="dashboard-news-carousel">
+
+      <div class="grid grid-cols-[40px_minmax(0,1fr)_40px] md:grid-cols-[48px_minmax(0,1fr)_48px] items-center gap-2 md:gap-4 lg:gap-6">
+
+        <div class="flex justify-center">
+          @if (!isLoading && hasMultipleEntries) {
+          <button type="button"
+            class="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-[#D8DADE] text-blue-700 hover:bg-blue-700 hover:text-white hover:border-blue-700 transition-colors motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2"
+            [attr.aria-label]="'DASHBOARD.news._previous' | translate" (click)="previous()"
+            data-cy="dashboard-news-prev">
+            <fa-icon [icon]="faChevronLeft" aria-hidden="true"></fa-icon>
+          </button>
+          }
+        </div>
+
+        <div class="min-w-0" aria-live="polite">
+          @if (isLoading) {
+          <div
+            class="flex flex-col lg:flex-row w-full bg-white rounded-[16px] border border-[#D8DADE] font-[Blinker] overflow-hidden"
+            data-cy="dashboard-news-skeleton" aria-hidden="true">
+            <div class="news-image-col">
+              <div class="news-image-frame animate-pulse motion-reduce:animate-none" data-cy="dashboard-news-image-frame"></div>
+            </div>
+
+            <div class="news-text-col">
+              <div class="news-text-body">
+                <div class="h-6 w-4/5 rounded animate-pulse motion-reduce:animate-none bg-[#EBECEE] mb-2"></div>
+                <div class="h-4 w-1/3 rounded animate-pulse motion-reduce:animate-none bg-[#EBECEE] mb-4"></div>
+
+                <div class="flex-1 min-h-0 overflow-hidden flex flex-col gap-2">
+                  <div class="h-4 w-full rounded animate-pulse motion-reduce:animate-none bg-[#EBECEE]"></div>
+                  <div class="h-4 w-full rounded animate-pulse motion-reduce:animate-none bg-[#EBECEE]"></div>
+                  <div class="h-4 w-2/3 rounded animate-pulse motion-reduce:animate-none bg-[#EBECEE]"></div>
+                </div>
+
+                <div class="mt-4 h-[46px] w-full lg:w-[160px] shrink-0 rounded-lg animate-pulse motion-reduce:animate-none bg-[#EBECEE]"></div>
+              </div>
+            </div>
+          </div>
+          } @else {
+          @if (activeEntry; as entry) {
+          <div
+            class="dashboard-news-slide flex flex-col lg:flex-row w-full bg-white rounded-[16px] border border-[#D8DADE] hover:shadow-md transition-shadow font-[Blinker] overflow-hidden"
+            [class.dashboard-news-slide--a]="transitionTick % 2 === 1"
+            [class.dashboard-news-slide--b]="transitionTick > 0 && transitionTick % 2 === 0"
+            role="group" aria-roledescription="slide"
+            [attr.aria-label]="'DASHBOARD.news._slideLabel' | translate: { index: activeIndex + 1, total: entries.length }"
+            (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)" (touchcancel)="resetTouch()"
+            data-cy="dashboard-news-card">
+
+            <div class="news-image-col">
+              <div class="news-image-frame" data-cy="dashboard-news-image-frame">
+                @for (featuredImage of [getFeaturedImage(entry)]; track featuredImage) {
+                  @if (featuredImage) {
+                  <img class="news-image-fill" [src]="featuredImage" alt="" aria-hidden="true"
+                    data-cy="dashboard-news-image-fill">
+                  <img class="relative z-10 h-full w-full object-contain" [src]="featuredImage" [alt]="entry.title"
+                    data-cy="dashboard-news-image">
+                  }
+                }
+              </div>
+            </div>
+
+            <div class="news-text-col">
+              <div class="news-text-body">
+              <h3 class="text-[20px] lg:text-[24px] font-bold leading-tight line-clamp-2 text-[#14274A] mb-2 break-words shrink-0">
+                {{ entry.title }}
+              </h3>
+
+              @if (getEntryDate(entry); as entryDate) {
+              <time class="text-[13px] text-slate-500 shrink-0" [attr.datetime]="entryDate.toISOString()">
+                {{ entryDate | date:'dd MMM yyyy' }}
+              </time>
+              }
+
+              <div class="flex-1 min-h-0 overflow-hidden mt-2" data-cy="dashboard-news-excerpt-box">
+                <p class="text-[14px] lg:text-[15px] font-normal leading-[22px] lg:leading-[24px] text-[#0B1528] line-clamp-3 lg:line-clamp-2 xl:line-clamp-4"
+                  data-cy="dashboard-news-excerpt">
+                  {{ getEntryExcerpt(entry) }}
+                </p>
+              </div>
+
+              <a class="mt-4 shrink-0 w-full lg:w-auto lg:self-start lg:px-8 border-2 border-blue-700 text-blue-700 rounded-lg py-2.5 font-semibold flex items-center justify-center gap-2 hover:bg-blue-700 hover:text-white transition-all motion-reduce:transition-none"
+                [routerLink]="[routeBase, getEntryRouteId(entry)]" data-cy="dashboard-news-readmore">
+                {{ 'DASHBOARD.news._readMore' | translate }}
+              </a>
+              </div>
+            </div>
+          </div>
+          }
+          }
+        </div>
+
+        <div class="flex justify-center">
+          @if (!isLoading && hasMultipleEntries) {
+          <button type="button"
+            class="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-[#D8DADE] text-blue-700 hover:bg-blue-700 hover:text-white hover:border-blue-700 transition-colors motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2"
+            [attr.aria-label]="'DASHBOARD.news._next' | translate" (click)="next()"
+            data-cy="dashboard-news-next">
+            <fa-icon [icon]="faChevronRight" aria-hidden="true"></fa-icon>
+          </button>
+          }
+        </div>
+      </div>
+
+      <div class="mt-6 h-10 flex items-center justify-center gap-1" data-cy="dashboard-news-dots">
+        @if (isLoading) {
+          @for (dot of placeholderDots; track $index) {
+          <span class="block w-2.5 h-2.5 mx-1.5 rounded-full animate-pulse motion-reduce:animate-none bg-[#D8DADE]"
+            aria-hidden="true" data-cy="dashboard-news-dot-placeholder"></span>
+          }
+        } @else if (hasMultipleEntries) {
+          @for (item of entries; track item._id; let i = $index) {
+          <button type="button"
+            class="group flex items-center justify-center h-10 min-w-[24px] px-1.5 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-700"
+            [attr.aria-label]="'DASHBOARD.news._goTo' | translate: { index: i + 1, total: entries.length }"
+            [attr.aria-current]="i === activeIndex ? 'true' : null" (click)="goTo(i)"
+            data-cy="dashboard-news-dot">
+            <span class="block h-2.5 rounded-full transition-all duration-200 motion-reduce:transition-none"
+              [ngClass]="i === activeIndex ? 'w-6 bg-blue-700' : 'w-2.5 bg-[#B4BAC5] group-hover:bg-blue-400'"></span>
+          </button>
+          }
+        }
+      </div>
+    </div>
+
+  </div>
+</section>
+}

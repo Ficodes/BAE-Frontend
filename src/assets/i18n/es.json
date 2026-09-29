@@ -164,6 +164,16 @@
       "_ctaCustomers": "For customers",
       "_ctaProviders": "For providers"
     },
+    "news": {
+      "_title": "Latest News & Updates",
+      "_subtitle": "Announcements, releases and stories from across the DOME ecosystem.",
+      "_viewAll": "View all",
+      "_readMore": "Read more",
+      "_previous": "Previous news",
+      "_next": "Next news",
+      "_goTo": "Go to news {{index}} of {{total}}",
+      "_slideLabel": "News {{index}} of {{total}}"
+    },
     "hero": {
       "_titleLine1Part1": "The Trusted",
       "_titleLine1Accent": "European",
