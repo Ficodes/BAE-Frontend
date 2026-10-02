@@ -124,7 +124,7 @@ export class PriceComponentDrawerComponent implements OnInit {
       }
     }
     this.initPartyInfo();
-    this.usageService.getAllUsageSpecs(this.partyId).then(data => {
+    this.usageService.getUsageSpecsByStatus(['Launched'], this.partyId).then(data => {
       this.usageSpecs=data;
       if(this.priceComponentForm.get('usageSpecId')){
         this.selectedUsageSpec = this.usageSpecs.find((element: { id: any; }) => element.id == this.priceComponentForm.get('usageSpecId')?.value)

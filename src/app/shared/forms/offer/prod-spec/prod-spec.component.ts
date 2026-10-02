@@ -133,16 +133,16 @@ export class ProdSpecComponent implements ControlValueAccessor, OnInit, OnDestro
 
   getStatusClass(status: string): string {
     const statusClasses: Record<string, string> = {
-      "Active": "text-blue-600 border-blue-400",
-      "Launched": "text-green-500 border-green-500",
-      "Retired": "text-yellow-500 border-yellow-500",
-      "Obsolete": "text-red-500 border-red-500"
+      "Active": "text-primary-100 border-primary-100",
+      "Launched": "text-status-success-border border-status-success-border",
+      "Retired": "text-status-warning-text border-status-warning-text",
+      "Obsolete": "text-status-danger-border border-status-danger-border"
     };
-    return statusClasses[status] || "text-gray-500 border-gray-400";
+    return statusClasses[status] || "text-offerings-muted-text border-offerings-border-strong";
   }
 
   getBundleClass(isBundle: boolean): string {
-    return isBundle ? "text-green-500 border-green-500" : "text-blue-600 border-blue-400";
+    return isBundle ? "text-status-success-border border-status-success-border" : "text-primary-100 border-primary-100";
   }
 
   // As ControlValueAccessor
@@ -176,7 +176,7 @@ export class ProdSpecComponent implements ControlValueAccessor, OnInit, OnDestro
       console.log('📝 Cannot change product spec in update mode');
       return;
     }
-    
+
     console.log('🔄 Toggling selection:', prod);
     // Si el producto ya está seleccionado, lo deseleccionamos. Si no, lo seleccionamos.
     this.selectedProdSpecInternal = this.selectedProdSpecInternal?.id === prod.id ? null : prod;
@@ -186,8 +186,8 @@ export class ProdSpecComponent implements ControlValueAccessor, OnInit, OnDestro
 
   getRowClass(prodId: string): string {
     return prodId === this.selectedProdSpecInternal?.id
-      ? "bg-white dark:bg-secondary-100"
-      : "bg-white dark:bg-secondary-300";
+      ? "bg-offerings-surface dark:bg-secondary-100"
+      : "bg-offerings-surface dark:bg-secondary-300";
   }
 
   private getDirtyFields(): string[] {

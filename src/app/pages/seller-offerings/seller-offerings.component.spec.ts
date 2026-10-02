@@ -6,6 +6,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { EventMessageService } from '../../services/event-message.service';
 import { QuoteService } from 'src/app/features/quotes/services/quote.service';
 import { ApiServiceService } from 'src/app/services/product-service.service';
+import { environment } from 'src/environments/environment';
 
 import { SellerOfferingsComponent } from './seller-offerings.component';
 
@@ -51,15 +52,15 @@ describe('SellerOfferingsComponent', () => {
   });
 
   it('goToCatalogs should activate catalogs section and reset others', () => {
-    spyOn(component, 'selectCatalogs');
     const detectSpy = spyOn((component as any).cdr, 'detectChanges');
 
     component.goToCatalogs();
 
+    expect(component.activeView).toBe('catalogs');
     expect(component.show_catalogs).toBeTrue();
     expect(component.show_offers).toBeFalse();
     expect(component.show_prod_specs).toBeFalse();
-    expect(component.selectCatalogs).toHaveBeenCalled();
+    expect(component.showWorkspaceNav).toBeTrue();
     expect(detectSpy).toHaveBeenCalled();
   });
 
@@ -68,10 +69,38 @@ describe('SellerOfferingsComponent', () => {
 
     component.goToCreateOffer();
 
+    expect(component.activeView).toBe('createOffer');
     expect(component.show_create_offer).toBeTrue();
     expect(component.show_catalogs).toBeFalse();
     expect(component.show_offers).toBeFalse();
+    expect(component.showWorkspaceNav).toBeFalse();
     expect(detectSpy).toHaveBeenCalled();
+  });
+
+  it('typed activeView should only expose one active view getter', () => {
+    component.goToOffers();
+    expect([
+      component.show_catalogs,
+      component.show_offers,
+      component.show_prod_specs,
+      component.show_service_specs,
+      component.show_resource_specs,
+      component.show_usage_specs,
+      component.show_create_offer,
+      component.show_update_offer,
+    ].filter(Boolean).length).toBe(1);
+
+    component.goToUpdateOffer();
+    expect([
+      component.show_catalogs,
+      component.show_offers,
+      component.show_prod_specs,
+      component.show_service_specs,
+      component.show_resource_specs,
+      component.show_usage_specs,
+      component.show_create_offer,
+      component.show_update_offer,
+    ].filter(Boolean).length).toBe(1);
   });
 
   it('event subscription should route to update offer and store payload', () => {
@@ -91,4 +120,33 @@ describe('SellerOfferingsComponent', () => {
 
     expect(goToProdSpecSpy).toHaveBeenCalled();
   });
+
+  it('should hide workspace help box when theme does not configure it', () => {
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-cy="sellerWorkspaceHelp"]')).toBeNull();
+  });
+
+  it('should show workspace help box when theme configures it', () => {
+    fixture.detectChanges();
+
+    component.workspaceHelpAction = {
+      title: 'OFFERINGS._need_help',
+      description: 'OFFERINGS._explore_guidelines',
+      actionLabel: 'OFFERINGS._view_kb'
+    };
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-cy="sellerWorkspaceHelp"]')).not.toBeNull();
+  });
+
+  it('goToResources should open configured knowledge base URL', () => {
+    const openSpy = spyOn(window, 'open');
+    const fallbackUrl = environment.KNOWLEDGE_BASE_URL || environment.KB_GUIDELNES_URL;
+
+    component.goToResources();
+
+    expect(openSpy).toHaveBeenCalledWith(fallbackUrl, '_blank', 'noopener');
+  });
+
 });

@@ -26,6 +26,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   show_revenue:boolean = false;
   show_email:boolean = false;
   show_analytics:boolean = false;
+  show_search:boolean = false;
   show_search_filters:boolean = false;
   show_features:boolean = false;
   show_default_catalog:boolean = false;
@@ -40,14 +41,14 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
     .subscribe(ev => {
-      if(ev.type === 'AdminCategories' && ev.value == true) {        
+      if(ev.type === 'AdminCategories' && ev.value == true) {
         this.goToCategories();
       }
-      if(ev.type === 'CreateCategory' && ev.value == true) {        
+      if(ev.type === 'CreateCategory' && ev.value == true) {
         this.goToCreateCategories();
       }
-      if(ev.type === 'UpdateCategory') {       
-        this.category_to_update=ev.value; 
+      if(ev.type === 'UpdateCategory') {
+        this.category_to_update=ev.value;
         this.goToUpdateCategories();
       }
     })
@@ -71,6 +72,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_revenue = false;
     this.show_email = false;
     this.show_analytics = false;
+    this.show_search = false;
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = false;
@@ -85,6 +87,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_revenue = false;
     this.show_email = false;
     this.show_analytics = false;
+    this.show_search = false;
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = false;
@@ -99,6 +102,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_revenue = false;
     this.show_email = false;
     this.show_analytics = false;
+    this.show_search = false;
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = false;
@@ -114,6 +118,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_revenue = false;
     this.show_email = false;
     this.show_analytics = false;
+    this.show_search = false;
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = false;
@@ -129,6 +134,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_revenue = true;
     this.show_email = false;
     this.show_analytics = false;
+    this.show_search = false;
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = false;
@@ -144,6 +150,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_revenue = false;
     this.show_email = true;
     this.show_analytics = false;
+    this.show_search = false;
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = false;
@@ -159,6 +166,23 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_revenue = false;
     this.show_email = false;
     this.show_analytics = true;
+    this.show_search = false;
+    this.show_search_filters = false;
+    this.show_features = false;
+    this.show_default_catalog = false;
+    this.cdr.detectChanges();
+  }
+
+  goToSearch() {
+    this.selectSearch()
+    this.show_categories = false;
+    this.show_create_categories = false;
+    this.show_update_categories = false;
+    this.show_verification = false;
+    this.show_revenue = false;
+    this.show_email = false;
+    this.show_analytics = false;
+    this.show_search = true;
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = false;
@@ -174,6 +198,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_revenue = false;
     this.show_email = false;
     this.show_analytics = false;
+    this.show_search = false;
     this.show_search_filters = true;
     this.show_features = false;
     this.show_default_catalog = false;
@@ -189,6 +214,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_revenue = false;
     this.show_email = false;
     this.show_analytics = false;
+    this.show_search = false;
     this.show_search_filters = false;
     this.show_features = true;
     this.show_default_catalog = false;
@@ -204,6 +230,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_revenue = false;
     this.show_email = false;
     this.show_analytics = false;
+    this.show_search = false;
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = true;
@@ -216,6 +243,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     let revenue_button = document.getElementById('revenue-button')
     let email_button = document.getElementById('email-button')
     let analytics_button = document.getElementById('analytics-button')
+    let search_button = document.getElementById('search-button')
     let search_filters_button = document.getElementById('search-filters-button')
     let features_button = document.getElementById('features-button')
     let default_catalog_button = document.getElementById('default-catalog-button')
@@ -225,6 +253,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.unselectMenu(revenue_button,'text-white bg-primary-100');
     this.unselectMenu(email_button,'text-white bg-primary-100');
     this.unselectMenu(analytics_button,'text-white bg-primary-100');
+    this.unselectMenu(search_button,'text-white bg-primary-100');
     this.unselectMenu(search_filters_button,'text-white bg-primary-100');
     this.unselectMenu(features_button,'text-white bg-primary-100');
     this.unselectMenu(default_catalog_button,'text-white bg-primary-100');
@@ -236,6 +265,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     let revenue_button = document.getElementById('revenue-button')
     let email_button = document.getElementById('email-button')
     let analytics_button = document.getElementById('analytics-button')
+    let search_button = document.getElementById('search-button')
     let search_filters_button = document.getElementById('search-filters-button')
     let features_button = document.getElementById('features-button')
     let default_catalog_button = document.getElementById('default-catalog-button')
@@ -245,6 +275,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.unselectMenu(revenue_button,'text-white bg-primary-100');
     this.unselectMenu(email_button,'text-white bg-primary-100');
     this.unselectMenu(analytics_button,'text-white bg-primary-100');
+    this.unselectMenu(search_button,'text-white bg-primary-100');
     this.unselectMenu(search_filters_button,'text-white bg-primary-100');
     this.unselectMenu(features_button,'text-white bg-primary-100');
     this.unselectMenu(default_catalog_button,'text-white bg-primary-100');
@@ -256,6 +287,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     let revenue_button = document.getElementById('revenue-button')
     let email_button = document.getElementById('email-button')
     let analytics_button = document.getElementById('analytics-button')
+    let search_button = document.getElementById('search-button')
     let search_filters_button = document.getElementById('search-filters-button')
     let features_button = document.getElementById('features-button')
     let default_catalog_button = document.getElementById('default-catalog-button')
@@ -265,6 +297,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.selectMenu(revenue_button,'text-white bg-primary-100')
     this.unselectMenu(email_button,'text-white bg-primary-100');
     this.unselectMenu(analytics_button,'text-white bg-primary-100');
+    this.unselectMenu(search_button,'text-white bg-primary-100');
     this.unselectMenu(search_filters_button,'text-white bg-primary-100');
     this.unselectMenu(features_button,'text-white bg-primary-100');
     this.unselectMenu(default_catalog_button,'text-white bg-primary-100');
@@ -276,6 +309,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     let revenue_button = document.getElementById('revenue-button')
     let email_button = document.getElementById('email-button')
     let analytics_button = document.getElementById('analytics-button')
+    let search_button = document.getElementById('search-button')
     let search_filters_button = document.getElementById('search-filters-button')
     let features_button = document.getElementById('features-button')
     let default_catalog_button = document.getElementById('default-catalog-button')
@@ -285,6 +319,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.unselectMenu(revenue_button,'text-white bg-primary-100');
     this.selectMenu(email_button,'text-white bg-primary-100')
     this.unselectMenu(analytics_button,'text-white bg-primary-100')
+    this.unselectMenu(search_button,'text-white bg-primary-100')
     this.unselectMenu(search_filters_button,'text-white bg-primary-100')
     this.unselectMenu(features_button,'text-white bg-primary-100')
     this.unselectMenu(default_catalog_button,'text-white bg-primary-100')
@@ -296,6 +331,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     let revenue_button = document.getElementById('revenue-button')
     let email_button = document.getElementById('email-button')
     let analytics_button = document.getElementById('analytics-button')
+    let search_button = document.getElementById('search-button')
     let search_filters_button = document.getElementById('search-filters-button')
     let features_button = document.getElementById('features-button')
     let default_catalog_button = document.getElementById('default-catalog-button')
@@ -305,6 +341,29 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.unselectMenu(revenue_button,'text-white bg-primary-100');
     this.unselectMenu(email_button,'text-white bg-primary-100')
     this.selectMenu(analytics_button,'text-white bg-primary-100')
+    this.unselectMenu(search_button,'text-white bg-primary-100')
+    this.unselectMenu(search_filters_button,'text-white bg-primary-100')
+    this.unselectMenu(features_button,'text-white bg-primary-100')
+    this.unselectMenu(default_catalog_button,'text-white bg-primary-100')
+  }
+
+  selectSearch(){
+    let categories_button = document.getElementById('categories-button')
+    let verify_button = document.getElementById('verify-button')
+    let revenue_button = document.getElementById('revenue-button')
+    let email_button = document.getElementById('email-button')
+    let analytics_button = document.getElementById('analytics-button')
+    let search_button = document.getElementById('search-button')
+    let search_filters_button = document.getElementById('search-filters-button')
+    let features_button = document.getElementById('features-button')
+    let default_catalog_button = document.getElementById('default-catalog-button')
+
+    this.unselectMenu(verify_button,'text-white bg-primary-100');
+    this.unselectMenu(categories_button,'text-white bg-primary-100');
+    this.unselectMenu(revenue_button,'text-white bg-primary-100');
+    this.unselectMenu(email_button,'text-white bg-primary-100');
+    this.unselectMenu(analytics_button,'text-white bg-primary-100');
+    this.selectMenu(search_button,'text-white bg-primary-100')
     this.unselectMenu(search_filters_button,'text-white bg-primary-100')
     this.unselectMenu(features_button,'text-white bg-primary-100')
     this.unselectMenu(default_catalog_button,'text-white bg-primary-100')
@@ -316,6 +375,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     let revenue_button = document.getElementById('revenue-button')
     let email_button = document.getElementById('email-button')
     let analytics_button = document.getElementById('analytics-button')
+    let search_button = document.getElementById('search-button')
     let search_filters_button = document.getElementById('search-filters-button')
     let features_button = document.getElementById('features-button')
     let default_catalog_button = document.getElementById('default-catalog-button')
@@ -325,6 +385,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.unselectMenu(revenue_button,'text-white bg-primary-100');
     this.unselectMenu(email_button,'text-white bg-primary-100');
     this.unselectMenu(analytics_button,'text-white bg-primary-100');
+    this.unselectMenu(search_button,'text-white bg-primary-100');
     this.selectMenu(search_filters_button,'text-white bg-primary-100')
     this.unselectMenu(features_button,'text-white bg-primary-100')
     this.unselectMenu(default_catalog_button,'text-white bg-primary-100')
@@ -336,6 +397,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     let revenue_button = document.getElementById('revenue-button')
     let email_button = document.getElementById('email-button')
     let analytics_button = document.getElementById('analytics-button')
+    let search_button = document.getElementById('search-button')
     let search_filters_button = document.getElementById('search-filters-button')
     let features_button = document.getElementById('features-button')
     let default_catalog_button = document.getElementById('default-catalog-button')
@@ -345,6 +407,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.unselectMenu(revenue_button,'text-white bg-primary-100');
     this.unselectMenu(email_button,'text-white bg-primary-100');
     this.unselectMenu(analytics_button,'text-white bg-primary-100');
+    this.unselectMenu(search_button,'text-white bg-primary-100');
     this.unselectMenu(search_filters_button,'text-white bg-primary-100');
     this.selectMenu(features_button,'text-white bg-primary-100')
     this.unselectMenu(default_catalog_button,'text-white bg-primary-100')
@@ -356,6 +419,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     let revenue_button = document.getElementById('revenue-button')
     let email_button = document.getElementById('email-button')
     let analytics_button = document.getElementById('analytics-button')
+    let search_button = document.getElementById('search-button')
     let search_filters_button = document.getElementById('search-filters-button')
     let features_button = document.getElementById('features-button')
     let default_catalog_button = document.getElementById('default-catalog-button')
@@ -365,6 +429,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.unselectMenu(revenue_button,'text-white bg-primary-100');
     this.unselectMenu(email_button,'text-white bg-primary-100');
     this.unselectMenu(analytics_button,'text-white bg-primary-100');
+    this.unselectMenu(search_button,'text-white bg-primary-100');
     this.unselectMenu(search_filters_button,'text-white bg-primary-100');
     this.unselectMenu(features_button,'text-white bg-primary-100');
     this.selectMenu(default_catalog_button,'text-white bg-primary-100')

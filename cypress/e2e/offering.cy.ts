@@ -41,21 +41,11 @@ describe('/my-offerings',{
 
         cy.getBySel('newOffering').click()
 
-        step1(productOffering)
-
-        step2(0, length = 1)
-
-        step3(0, length = 1)
-
-        step4(0, length = 1)
-
-        step5('description test')
-
-        step6()
-
-        step7()
-
-        step8()
+        fillGeneralInfo(productOffering, productSpec, newCatalog)
+        fillCategory(category_dft)
+        fillTermsAndConditions('description test')
+        selectFreePricing()
+        fillProcurementAndSubmit()
 
         cy.wait('@offPOST').then((interception) => {
             const payload = interception.request.body
@@ -63,12 +53,7 @@ describe('/my-offerings',{
             expect(payload).to.have.property('description', productOffering.description).and.be.a('string')
             expect(payload).to.have.property('lifecycleStatus', productOffering.lifecycleStatus).and.be.a('string')
         });
-        cy.getBySel('offers').should('have.length', 1)
-        cy.getBySel('offers').find('td').eq(0).should('contain.text', productOffering.name)
-        cy.getBySel('offers').find('td').eq(1).should('contain.text', productOffering.lifecycleStatus)
-        cy.getBySel('offers').find('td').eq(2).should('contain.text', 'Bundle')
-        cy.getBySel('offers').find('td').eq(3).should('include.text', 'Friday, 16/05/25, 11:28')
-        cy.getBySel('offers').find('td').eq(4).find('button').should('have.length', 1)
+        assertCreatedOfferRow(productOffering.name)
 
     })
     it('should create a offering with recurring price plan correctly', () => {
@@ -103,21 +88,11 @@ describe('/my-offerings',{
 
         cy.getBySel('newOffering').click()
 
-        step1(productOffering)
-
-        step2(0, length = 1)
-
-        step3(0, length = 1)
-
-        step4(0, length = 1)
-
-        step5('description test')
-
-        step6(true, pricePlan, priceComponent)
-
-        step7()
-
-        step8()
+        fillGeneralInfo(productOffering, productSpec, newCatalog)
+        fillCategory(category_dft)
+        fillTermsAndConditions('description test')
+        addOnlinePaidPricePlan(pricePlan, priceComponent)
+        fillProcurementAndSubmit()
 
 
         cy.wait('@offPricePOST').then((interception) => {
@@ -142,12 +117,7 @@ describe('/my-offerings',{
             expect(payload).to.have.property('description', productOffering.description).and.be.a('string')
             expect(payload).to.have.property('lifecycleStatus', productOffering.lifecycleStatus).and.be.a('string')
         });
-        cy.getBySel('offers').should('have.length', 1)
-        cy.getBySel('offers').find('td').eq(0).should('contain.text', productOffering.name)
-        cy.getBySel('offers').find('td').eq(1).should('contain.text', productOffering.lifecycleStatus)
-        cy.getBySel('offers').find('td').eq(2).should('contain.text', 'Bundle')
-        cy.getBySel('offers').find('td').eq(3).should('include.text', 'Friday, 16/05/25, 11:28')
-        cy.getBySel('offers').find('td').eq(4).find('button').should('have.length', 1)
+        assertCreatedOfferRow(productOffering.name)
 
     })
     it('should create a offering with per usage price plan correctly', () => {
@@ -211,21 +181,11 @@ describe('/my-offerings',{
 
         cy.getBySel('newOffering').click()
 
-        step1(productOffering)
-
-        step2(0, length = 1)
-        
-        step3(0, length = 1)
-
-        step4(0, length = 1)
-
-        step5('description test')
-
-        step6(true, pricePlan, priceComponent)
-
-        step7()
-
-        step8()
+        fillGeneralInfo(productOffering, productSpec, newCatalog)
+        fillCategory(category_dft)
+        fillTermsAndConditions('description test')
+        addOnlinePaidPricePlan(pricePlan, priceComponent)
+        fillProcurementAndSubmit()
 
         cy.wait('@offPricePOST').then((interception) => {
             const payload = interception.request.body
@@ -250,12 +210,7 @@ describe('/my-offerings',{
             expect(payload).to.have.property('description', productOffering.description).and.be.a('string')
             expect(payload).to.have.property('lifecycleStatus', productOffering.lifecycleStatus).and.be.a('string')
         });
-        cy.getBySel('offers').should('have.length', 1)
-        cy.getBySel('offers').find('td').eq(0).should('contain.text', productOffering.name)
-        cy.getBySel('offers').find('td').eq(1).should('contain.text', productOffering.lifecycleStatus)
-        cy.getBySel('offers').find('td').eq(2).should('contain.text', 'Bundle')
-        cy.getBySel('offers').find('td').eq(3).should('include.text', 'Friday, 16/05/25, 11:28')
-        cy.getBySel('offers').find('td').eq(4).find('button').should('have.length', 1)
+        assertCreatedOfferRow(productOffering.name)
 
     })
     it('should create a offering with recurring-prepaid price plan correctly', () => {
@@ -290,21 +245,11 @@ describe('/my-offerings',{
 
         cy.getBySel('newOffering').click()
 
-        step1(productOffering)
-
-        step2(0, length = 1)
-
-        step3(0, length = 1)
-
-        step4(0, length = 1)
-
-        step5('description test')
-
-        step6(true, pricePlan, priceComponent)
-
-        step7()
-
-        step8()
+        fillGeneralInfo(productOffering, productSpec, newCatalog)
+        fillCategory(category_dft)
+        fillTermsAndConditions('description test')
+        addOnlinePaidPricePlan(pricePlan, priceComponent)
+        fillProcurementAndSubmit()
 
         cy.wait('@offPricePOST').then((interception) => {
             const payload = interception.request.body
@@ -329,12 +274,7 @@ describe('/my-offerings',{
             expect(payload).to.have.property('description', productOffering.description).and.be.a('string')
             expect(payload).to.have.property('lifecycleStatus', productOffering.lifecycleStatus).and.be.a('string')
         });
-        cy.getBySel('offers').should('have.length', 1)
-        cy.getBySel('offers').find('td').eq(0).should('contain.text', productOffering.name)
-        cy.getBySel('offers').find('td').eq(1).should('contain.text', productOffering.lifecycleStatus)
-        cy.getBySel('offers').find('td').eq(2).should('contain.text', 'Bundle')
-        cy.getBySel('offers').find('td').eq(3).should('include.text', 'Friday, 16/05/25, 11:28')
-        cy.getBySel('offers').find('td').eq(4).find('button').should('have.length', 1)
+        assertCreatedOfferRow(productOffering.name)
 
     })
   })
@@ -342,134 +282,142 @@ describe('/my-offerings',{
 
 
 const interceptors = (productSpec:any, productOfferingPOST:any, newCatalog:any, defaultCatalog: any, defaultCategory:any, offPricePOST:any) => {
-    const specResponse = [[productSpec], []]
-    const sr = [[newCatalog],[],[newCatalog], []]
-    let specCall = 0
-    let scall = 0
     let offeringCreated = false
+    let priceCreateCalls = 0
 
-    cy.intercept({method: 'GET', url: 'http://proxy.docker:8004/catalog/catalog?*'}, (res)=>{
+    cy.intercept({method: 'GET', url: '**/catalog/catalog?*'}, (res)=>{
         res.reply({
             statusCode: 200,
-            body: sr[scall++]
+            body: [newCatalog]
         })
     }).as('catalogs')
-    cy.intercept({method: 'GET', url: 'http://proxy.docker:8004/catalog/productOffering?*'}, (res)=>{
+    cy.intercept({method: 'GET', url: '**/catalog/productOffering?*'}, (res)=>{
         res.reply({
             statusCode: 200,
             body: offeringCreated ? [productOfferingPOST] : []
         })
     }).as('productOff')
-    cy.intercept({method: 'GET', url: 'http://proxy.docker:8004/catalog/productSpecification?*'}, (res)=>{
+    cy.intercept({method: 'GET', url: '**/catalog/productSpecification?*'}, (res)=>{
         res.reply({
             statusCode: 200,
-            body: specResponse[specCall++]
+            body: [productSpec]
         })
     }).as('productSpec')
+    cy.intercept({method: 'GET', url: '**/catalog/productSpecification/urn:ngsi-ld:product-specification:*'}, {
+        statusCode: 200,
+        body: productSpec
+    }).as('productSpecDetail')
 
 
-    cy.intercept({method: 'GET', url: 'http://proxy.docker:8004/catalog/catalog/urn:ngsi-ld:catalog:32828e1d-4652-4f4c-b13e-327450ce83c6'}, (res)=>{
+    cy.intercept({method: 'GET', url: '**/catalog/catalog/urn:ngsi-ld:catalog:32828e1d-4652-4f4c-b13e-327450ce83c6'}, (res)=>{
         res.reply({
             statusCode: 200,
             body: defaultCatalog
         })
     }).as('defaultCatalog')
 
-    cy.intercept({method: 'GET', url: 'http://proxy.docker:8004/catalog/category/urn:ngsi-ld:category:26435cca-2707-4c89-8f0c-79464573c9e2'}, (res)=>{
+    cy.intercept({method: 'GET', url: '**/catalog/category/urn:ngsi-ld:category:26435cca-2707-4c89-8f0c-79464573c9e2'}, (res)=>{
         res.reply({
             statusCode: 200,
             body: defaultCategory
         })
     }).as('defaultCategory')
+    cy.intercept({method: 'GET', url: '**/catalog/category?*'}, (res)=>{
+        res.reply({
+            statusCode: 200,
+            body: res.url.includes('parentId=') ? [] : [defaultCategory]
+        })
+    }).as('categories')
 
 
-    cy.intercept({method: 'POST', url: `http://proxy.docker:8004/catalog/catalog/${newCatalog.id}/productOffering`}, (req)=>{
+    cy.intercept({method: 'POST', url: `**/catalog/catalog/${newCatalog.id}/productOffering`}, (req)=>{
         offeringCreated = true
         req.reply({statusCode: 201, body: productOfferingPOST})
     }).as('offPOST')
     if (offPricePOST){
-        cy.intercept({method: 'GET', url: 'http://proxy.docker:8004//usage/usageSpecification?*'}, (res)=>{
-        res.reply({
-            statusCode: 200,
-            body: offPricePOST.usage
-        })
-    }).as('usageGET')
-        cy.intercept({method: 'POST', url: 'http://proxy.docker:8004/catalog//productOfferingPrice'}, {statusCode: 201, body: offPricePOST}).as('offPricePOST')
+        cy.intercept({method: 'GET', url: '**/usage/usageSpecification?*'}, (res)=>{
+            res.reply({
+                statusCode: 200,
+                body: offPricePOST.usage
+            })
+        }).as('usageGET')
+        cy.intercept({method: 'POST', url: '**/catalog/productOfferingPrice'}, (req) => {
+            const id = `urn:ngsi-ld:product-offering-price:${priceCreateCalls++}`
+            req.reply({
+                statusCode: 201,
+                body: {
+                    ...req.body,
+                    id,
+                    href: id
+                }
+            })
+        }).as('offPricePOST')
 
     }
 
 }
 
-const step1 = (productOffering: any) => {
-
-    cy.getBySel('offerName').type(productOffering.name)
-    cy.getBySel('offerVersion').should('have.value', productOffering.version)
-    cy.getBySel('textArea').type(productOffering.description)
-    cy.getBySel('offerNext').click()
-}
-
-const step2 = (pos: number, length: number) => {
+const fillGeneralInfo = (productOffering: any, productSpec: any, catalog: any) => {
     cy.wait('@productSpec')
-    cy.getBySel('prodSpecs').should('have.length', length)
-    cy.getBySel('prodSpecs').eq(pos).click()
-    cy.getBySel('offerNext').click()
-}
-
-const step3 = (pos: number, length: number) => {
     cy.wait('@catalogs')
-    cy.getBySel('catalogList').should('have.length', length)
-    cy.getBySel('catalogList').eq(pos).click()
+    cy.getBySel('offerName').type(productOffering.name)
+    cy.get('#prodSpecSelect').select(productSpec.id)
+    cy.wait('@productSpecDetail')
+    cy.getBySel('offerCatalogSelect').select(catalog.id)
+    cy.getBySel('offerOverview').type(productOffering.description)
     cy.getBySel('offerNext').click()
 }
 
-const step4 = (pos: number, length: number) => {
-    cy.wait('@defaultCatalog')
-    cy.wait('@defaultCategory')
-    cy.getBySel('categoryList').should('have.length', length)
-    cy.getBySel('categoryList').eq(pos).click()
+const assertCreatedOfferRow = (name: string) => {
+    cy.getBySel('offerRow').should('have.length', 1)
+    cy.getBySel('offerTitle').should('contain.text', name)
+    cy.getBySel('offerStatus').should('contain.text', 'Not completed')
+    cy.getBySel('offerActions').find('button').should('have.length.at.least', 1)
+}
+
+const fillCategory = (category: any) => {
+    cy.get('#rootCategorySelect').find('option').should('contain.text', category.name)
+    cy.get('#rootCategorySelect').select(category.id)
     cy.getBySel('offerNext').click()
 }
 
-const step5 = (description: string) => {
-    //cy.getBySel('treatment').type(treatment)
-    cy.getBySel('textArea').type(description)
+const fillTermsAndConditions = (description: string) => {
+    cy.getBySel('tcText').find('[data-cy="textArea"]').type(description)
     cy.getBySel('offerNext').click()
 }
 
-const step6 = (online: boolean=false, pricePlan:any = null, priceComponent:PriceComponent = null) => {
-    if(online){
-        cy.getBySel('pricePlanType').select('paid')
+const selectFreePricing = () => {
+    cy.contains('button.plan-card', 'Free').click()
+    cy.getBySel('offerNext').click()
+}
+
+const addOnlinePaidPricePlan = (pricePlan:any, priceComponent:PriceComponent) => {
+    cy.contains('button.plan-card', 'Online paid price').click()
+    cy.getBySel('addPricePlan').first().click()
+    cy.contains('button.plan-card', 'Flex plan').click()
+    cy.getBySel('selectPlanTypeContinue').click()
+
+    cy.getBySel('paidName').type(pricePlan.name)
+    cy.getBySel('paidDescription').find('[data-cy="textArea"]').type(pricePlan.description)
+    cy.getBySel('addPriceComponent').click()
+    cy.getBySel('pcName').type(priceComponent.name)
+    cy.getBySel('pcDescription').type(priceComponent.description)
+    cy.getBySel('pcBasePrice').type(String(priceComponent.price))
+    cy.getBySel('pcPriceType').click()
+    cy.get(`[data-cy="pcPriceType-${priceComponent.type}"]`).click()
+    if (priceComponent.recurringType){
+        cy.get(`[data-cy="pcRecurringPeriod-${priceComponent.recurringType}"]`).check()
     }
-    if(pricePlan){
-        cy.getBySel('newPricePlan').click()
-        cy.getBySel('pricePlanName').type(pricePlan.name)
-        cy.getBySel('textArea').type(pricePlan.description)
-        cy.getBySel('savePricePlan').should('have.attr', 'disabled')
-        if(priceComponent){
-            cy.getBySel('newPriceComponent').click()
-            cy.getBySel('priceComponentName').type(priceComponent.name)
-            cy.getBySel('priceComponentDescription').find('[data-cy="textArea"]').type(priceComponent.description)
-            cy.getBySel('price').type(String(priceComponent.price))
-            cy.getBySel('priceType').select(priceComponent.type)
-            if (priceComponent.recurringType){
-                cy.getBySel('recurringType').select(priceComponent.recurringType)
-            }
-            else if (priceComponent.usageInput){
-                cy.wait('@usageGET')
-                cy.getBySel('usageInput').select(priceComponent.usageInput[0])
-                cy.getBySel('usageMetric').select(priceComponent.usageInput[1])
-            }
-            cy.getBySel('savePriceComponent').click()
-        }
-        cy.getBySel('savePricePlan').click()
+    else if (priceComponent.usageInput){
+        cy.wait('@usageGET')
+        cy.getBySel('pcUsageSpec').select(priceComponent.usageInput[0])
+        cy.getBySel('pcMetric').select(priceComponent.usageInput[1])
     }
+    cy.getBySel('pcSave').click()
+    cy.getBySel('ppSave').should('not.be.disabled').click()
     cy.getBySel('offerNext').click()
 }
 
-const step7 = () => {
-    cy.getBySel('offerNext').click()
-}
-
-const step8 = () => {
+const fillProcurementAndSubmit = () => {
     cy.getBySel('offerFinish').click()
 }

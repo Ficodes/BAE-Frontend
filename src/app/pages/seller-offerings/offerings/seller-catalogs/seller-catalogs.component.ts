@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
@@ -13,6 +13,8 @@ import { PaginationService } from 'src/app/services/pagination.service';
 import { initFlowbite } from 'flowbite';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
+import { formatApiErrorMessage } from 'src/app/shared/error-message/api-error-message';
 
 @Component({
   selector: 'seller-catalogs',
@@ -35,7 +37,19 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
   page_check:boolean = true;
   filter:any=undefined;
   partyId:any;
-  status:any[]=['Active','Launched'];
+  status:any[]=['Active'];
+  selectedTab: string = 'Draft';
+  readonly tabs: string[] = ['Draft', 'Published', 'Retired', 'Deleted'];
+  tabStatusMap: { [k: string]: string[] } = {
+    Draft: ['Active'],
+    Published: ['Launched'],
+    Retired: ['Retired'],
+    Deleted: ['Obsolete']
+  };
+  statusCounts: { [k: string]: number } = { Draft: 0, Published: 0, Retired: 0, Deleted: 0 };
+  openMenuIdx: number | null = null;
+  openMenuCatalog: Catalog | null = null;
+  menuPosition = { top: 0, left: 0 };
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -44,7 +58,8 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
-    private paginationService: PaginationService
+    private paginationService: PaginationService,
+    private translate: TranslateService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -55,27 +70,11 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
     })
   }
 
-  private searchInputListener = (_e: Event) => {
-    console.log(`Input updated`)
-    if (this.searchField.value == '') {
-      this.filter = undefined;
-      this.getCatalogs(false);
-    }
-  }
-
   ngOnInit() {
     this.initCatalogs();
-    const input = document.querySelector('[type=search]')
-    if (input != undefined) {
-      input.addEventListener('input', this.searchInputListener);
-    }
   }
 
   ngOnDestroy(){
-    const input = document.querySelector('[type=search]')
-    if (input != undefined) {
-      input.removeEventListener('input', this.searchInputListener);
-    }
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -86,6 +85,37 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
 
   goToUpdate(cat:any){
     this.eventMessage.emitSellerUpdateCatalog(cat);
+  }
+
+  toggleMenu(idx: number, cat: Catalog, event: MouseEvent){
+    event.stopPropagation();
+    if (this.openMenuIdx === idx) {
+      this.closeMenu();
+      return;
+    }
+
+    const trigger = event.currentTarget as HTMLElement;
+    const rect = trigger.getBoundingClientRect();
+    const menuWidth = 176;
+    this.menuPosition = {
+      top: rect.bottom + 8,
+      left: Math.max(8, rect.right - menuWidth)
+    };
+    this.openMenuCatalog = cat;
+    this.openMenuIdx = idx;
+  }
+
+  @HostListener('document:click')
+  onDocClick(){
+    if(this.openMenuIdx !== null){
+      this.closeMenu();
+      this.cdr.detectChanges();
+    }
+  }
+
+  private closeMenu() {
+    this.openMenuIdx = null;
+    this.openMenuCatalog = null;
   }
 
   initCatalogs(){
@@ -101,6 +131,18 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
     }
 
     this.getCatalogs(false);
+    this.loadStatusCounts();
+    let input = document.querySelector('[type=search]')
+    if(input!=undefined){
+      input.addEventListener('input', e => {
+        // Easy way to get the value of the element who trigger the current `e` event
+        console.log(`Input updated`)
+        if(this.searchField.value==''){
+          this.filter=undefined;
+          this.getCatalogs(false);
+        }
+      });
+    }
     initFlowbite();
   }
 
@@ -120,21 +162,18 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
       "partyId": this.partyId
     }
 
-    try {
-      const data = await this.paginationService.getItemsPaginated(this.page, this.CATALOG_LIMIT, next, this.catalogs, this.nextCatalogs, options,
-        this.api.getCatalogsByUser.bind(this.api));
+    this.paginationService.getItemsPaginated(this.page, this.CATALOG_LIMIT, next, this.catalogs, this.nextCatalogs, options,
+      this.api.getCatalogsByUser.bind(this.api)).then(data => {
       this.page_check=data.page_check;
       this.catalogs=data.items;
       this.nextCatalogs=data.nextItems;
       this.page=data.page;
-    } finally {
       this.loading=false;
       this.loading_more=false;
-    }
+    })
   }
 
   async next(){
-    this.loading_more = true;
     await this.getCatalogs(true);
   }
 
@@ -160,11 +199,110 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
     this.getCatalogs(false);
   }
 
+  selectTab(tab: string) {
+    if (tab === this.selectedTab) return;
+    this.selectedTab = tab;
+    this.status = [...this.tabStatusMap[tab]];
+    this.loading=true;
+    this.page=0;
+    this.catalogs=[];
+    this.nextCatalogs=[];
+    this.getCatalogs(false);
+  }
+
+  async loadStatusCounts() {
+    try {
+      const all: any[] = [];
+      let offset = 0;
+      while (offset < 10000) {
+        const page = await this.api.getCatalogsByUser(offset, undefined, [], this.partyId);
+        const items = Array.isArray(page) ? page : [];
+        all.push(...items);
+        if (items.length < this.CATALOG_LIMIT) break;
+        offset += this.CATALOG_LIMIT;
+      }
+      const counts: { [k: string]: number } = {};
+      for (const tab of Object.keys(this.tabStatusMap)) counts[tab] = 0;
+      for (const item of all) {
+        const status = item?.lifecycleStatus;
+        for (const tab of Object.keys(this.tabStatusMap)) {
+          if (this.tabStatusMap[tab].includes(status)) {
+            counts[tab]++;
+            break;
+          }
+        }
+      }
+      this.statusCounts = counts;
+    } catch {
+    }
+    this.cdr.detectChanges();
+  }
+
+  rowStatusBadge(cat: any): { text: string, bg: string, color: string } {
+    switch (cat?.lifecycleStatus) {
+      case 'Active':
+        return { text: 'Draft', bg: 'rgb(var(--theme-status-warning-bg))', color: 'rgb(var(--theme-status-warning-text))' };
+      case 'Launched':
+        return { text: 'Published', bg: 'rgb(var(--theme-status-success-bg))', color: 'rgb(var(--theme-status-success-text))' };
+      case 'Retired':
+        return { text: 'Unpublished', bg: 'rgb(var(--theme-status-warning-bg))', color: 'rgb(var(--theme-status-warning-text))' };
+      case 'Obsolete':
+        return { text: 'Archived', bg: 'rgb(var(--theme-status-danger-bg))', color: 'rgb(var(--theme-status-danger-text))' };
+      default:
+        return { text: cat?.lifecycleStatus || '-', bg: 'rgb(var(--theme-status-neutral-bg))', color: 'rgb(var(--theme-status-neutral-text))' };
+    }
+  }
+
+  publishCatalog(cat: any) {
+    this.updateCatalogLifecycle(cat, 'Launched', 'OFFERINGS._catalog_publish_success', 'OFFERINGS._catalog_publish_error');
+  }
+
+  unpublishCatalog(cat: any) {
+    this.updateCatalogLifecycle(cat, 'Retired', 'OFFERINGS._catalog_unpublish_success', 'OFFERINGS._catalog_unpublish_error');
+  }
+
+  archiveCatalog(cat: any) {
+    this.updateCatalogLifecycle(cat, 'Obsolete', 'OFFERINGS._catalog_archive_success', 'OFFERINGS._catalog_archive_error');
+  }
+
+  private updateCatalogLifecycle(cat: any, lifecycleStatus: string, successKey: string, errorKey: string) {
+    if(!cat?.id) return;
+    this.closeMenu();
+    this.api.updateCatalog({ lifecycleStatus }, cat.id).subscribe({
+      next: () => {
+        this.eventMessage.emitSpecCreated(this.translate.instant(successKey));
+        this.getCatalogs(false);
+        this.loadStatusCounts();
+      },
+      error: (error: any) => {
+        this.eventMessage.emitSpecCreated(
+          formatApiErrorMessage(this.translate, errorKey, error),
+          'error'
+        );
+      }
+    });
+  }
+
+  getStatusBadgeClass(status: string | undefined): string {
+    switch (status) {
+      case 'Active':
+        return 'border-secondary-50 bg-secondary-50 text-primary-100';
+      case 'Launched':
+        return 'border-status-success-bg bg-offerings-metric-success text-status-success-text';
+      case 'Retired':
+        return 'border-status-warning-bg bg-status-warning-bg text-status-warning-text';
+      case 'Obsolete':
+        return 'border-status-danger-bg bg-status-danger-bg text-status-danger-text';
+      default:
+        return 'border-offerings-border bg-offerings-page text-offerings-body';
+    }
+  }
+
   hasLongWord(str: string | undefined, threshold = 20) {
     if(str){
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
-    }   
+    }
   }
 }

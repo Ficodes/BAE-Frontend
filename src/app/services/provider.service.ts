@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { EMPTY, Observable, catchError, expand, forkJoin, map, of, reduce } from 'rxjs';
+import { EMPTY, Observable, catchError, expand, forkJoin, lastValueFrom, map, of, reduce } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { FilterOptions } from '../models/filter-options.model';
 import {
@@ -14,11 +14,21 @@ import {
 export interface Provider {
   id?: string;
   href?: string;
+  name?: string;
   tradingName?: string;
+  partyCharacteristic?: Array<{
+    name?: string;
+    value?: string;
+  }>;
   externalReference?: Array<{
     externalReferenceType?: string;
     name?: string;
   }>;
+}
+
+export interface ProviderPageResponse {
+  items: Provider[];
+  filteredPaginationToken: string | null;
 }
 
 @Injectable({
@@ -28,7 +38,7 @@ export class ProviderService {
   private http = inject(HttpClient);
   private readonly endpoint = `${environment.BASE_URL}/party/organization`;
 
-  getProviders(params: { fields?: string; offset?: number; limit?: number } = {}): Observable<Provider[]> {
+  getProviders(params: { fields?: string; offset?: number; limit?: number; keyword?: string } = {}): Observable<Provider[]> {
     let httpParams = new HttpParams();
     if (params.fields) {
       httpParams = httpParams.set('fields', params.fields);
@@ -38,6 +48,9 @@ export class ProviderService {
     }
     if (params.limit !== undefined) {
       httpParams = httpParams.set('limit', params.limit.toString());
+    }
+    if (params.keyword) {
+      httpParams = httpParams.set('keyword', params.keyword);
     }
 
     const url = `${this.endpoint}${httpParams.toString() ? '?' + httpParams.toString() : ''}`;
@@ -51,6 +64,38 @@ export class ProviderService {
         return of([]);
       })
     );
+  }
+
+  getProviderDirectoryPage(params: {
+    offset: number;
+    limit: number;
+    keyword?: string;
+    filteredPaginationToken?: string | null;
+  }): Promise<ProviderPageResponse> {
+    const tokenRequestHeader = 'X-Filtered-Pagination-Token';
+    const tokenResponseHeader = 'x-filtered-pagination-token';
+    let httpParams = new HttpParams()
+      .set('offset', params.offset.toString())
+      .set('limit', params.limit.toString());
+
+    if (params.keyword) {
+      httpParams = httpParams.set('keyword', params.keyword);
+    }
+
+    let options: { observe: 'response', params: HttpParams, headers?: { [header: string]: string } } = {
+      observe: 'response',
+      params: httpParams
+    };
+
+    if (params.filteredPaginationToken) {
+      options.headers = { [tokenRequestHeader]: params.filteredPaginationToken };
+    }
+
+    return lastValueFrom(this.http.get<Provider[]>(this.endpoint, options)).then(response => ({
+      items: response.body ?? [],
+      filteredPaginationToken: response.headers.get(tokenResponseHeader)
+        || response.headers.get(tokenRequestHeader)
+    }));
   }
 
   getProviderById(id: string): Observable<Provider> {
@@ -183,4 +228,3 @@ export class ProviderService {
   }
 
 }
-

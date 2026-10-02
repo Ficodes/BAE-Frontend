@@ -11,8 +11,9 @@ export interface EventMessage {
   'AdminCategories' | 'CreateCategory' | 'UpdateCategory' | 'ShowCartToast' | 'HideCartToast' | 'CloseContact' | 'OpenServiceDetails' | 'OpenResourceDetails' | 'OpenProductInvDetails' |
   'SavePricePlan' | 'UpdatePricePlan' | 'ToggleEditPrice' | 'ToggleNewPrice' |
   'SubformChange' | 'CloseFeedback' | 'UpdateOffer' | 'CloseQuoteRequest' | 'UpdateUsageSpec' | 'UsageSpecList' | 'CreateUsageSpec' | 'AiSearchFacets' | 'AiSearchCleared' |
-  'FiltersCommitted';
+  'FiltersCommitted' | 'SpecCreated' | 'LeaveOfferEditorRequest' | 'LeaveProductSpecEditorRequest';
   text?: string,
+  toastType?: 'success' | 'error',
   value?: object | boolean | FormChangeState | PricePlanChangeState
 }
 
@@ -90,6 +91,10 @@ export class EventMessageService {
     this.eventMessageSubject.next({ type: 'SellerResourceSpec', value: show });
   }
 
+  emitSpecCreated(text: string, toastType: 'success' | 'error' = 'success'){
+    this.eventMessageSubject.next({ type: 'SpecCreated', text: text, toastType: toastType });
+  }
+
   emitSellerCreateResourceSpec(show:boolean){
     this.eventMessageSubject.next({ type: 'SellerCreateResourceSpec', value: show });
   }
@@ -114,7 +119,15 @@ export class EventMessageService {
     this.eventMessageSubject.next({type: 'SellerCreateCustomOffer', value: {offer, partyId}})
   }
 
-  emitSellerCatalog(show:boolean){    
+  emitLeaveOfferEditorRequest(){
+    this.eventMessageSubject.next({ type: 'LeaveOfferEditorRequest' });
+  }
+
+  emitLeaveProductSpecEditorRequest(){
+    this.eventMessageSubject.next({ type: 'LeaveProductSpecEditorRequest' });
+  }
+
+  emitSellerCatalog(show:boolean){
     this.eventMessageSubject.next({ type: 'SellerCatalog', value: show });
   }
 
@@ -144,7 +157,7 @@ export class EventMessageService {
   emitHideCartToast(val:cartProduct | undefined){
     this.eventMessageSubject.next({type:'HideCartToast', value: val})
   }
-  
+
   emitAdminCategories(show:boolean){
     this.eventMessageSubject.next({ type: 'AdminCategories', value: show });
   }
@@ -191,8 +204,8 @@ export class EventMessageService {
 
   emitSubformChange(changeState: FormChangeState | PricePlanChangeState) {
     this.eventMessageSubject.next({
-      type: 'SubformChange', 
-      value: changeState 
+      type: 'SubformChange',
+      value: changeState
     });
   }
 
@@ -202,7 +215,7 @@ export class EventMessageService {
 
   emitCloseQuoteRequest(show:boolean) {
     this.eventMessageSubject.next({type: 'CloseQuoteRequest', value: show})
-  }  
+  }
 
   emitUpdateOffer(show:boolean) {
     this.eventMessageSubject.next({type: 'UpdateOffer', value: show})

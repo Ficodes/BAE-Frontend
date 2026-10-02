@@ -102,4 +102,45 @@ describe('ProviderService', () => {
     // Second page was partial → stops; all results combined
     expect(result).toEqual([...page1, ...page2]);
   });
+
+  it('loads a provider directory page with keyword, offset, limit, and response token', async () => {
+    const resultPromise = service.getProviderDirectoryPage({
+      offset: 12,
+      limit: 6,
+      keyword: 'cloud'
+    });
+
+    const req = httpMock.expectOne(
+      `${environment.BASE_URL}/party/organization?offset=12&limit=6&keyword=cloud`
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush([{ id: 'provider-1', tradingName: 'Provider One' }], {
+      headers: { 'x-filtered-pagination-token': 'provider-token-1' }
+    });
+
+    await expectAsync(resultPromise).toBeResolvedTo({
+      items: [{ id: 'provider-1', tradingName: 'Provider One' }],
+      filteredPaginationToken: 'provider-token-1'
+    });
+  });
+
+  it('sends the provider directory continuation token header', async () => {
+    const resultPromise = service.getProviderDirectoryPage({
+      offset: 18,
+      limit: 6,
+      filteredPaginationToken: 'provider-token-1'
+    });
+
+    const req = httpMock.expectOne(
+      `${environment.BASE_URL}/party/organization?offset=18&limit=6`
+    );
+    expect(req.request.method).toBe('GET');
+    expect(req.request.headers.get('X-Filtered-Pagination-Token')).toBe('provider-token-1');
+    req.flush([{ id: 'provider-2', tradingName: 'Provider Two' }]);
+
+    await expectAsync(resultPromise).toBeResolvedTo({
+      items: [{ id: 'provider-2', tradingName: 'Provider Two' }],
+      filteredPaginationToken: null
+    });
+  });
 });

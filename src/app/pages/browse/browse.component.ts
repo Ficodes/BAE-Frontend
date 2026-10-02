@@ -9,7 +9,9 @@ import { ApiServiceService } from 'src/app/services/product-service.service';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
 import { Category } from 'src/app/models/interfaces';
 import { iconForCategory } from 'src/app/data/categoryIcons';
+
 import { searchCategoriesConfig, SEARCH_ACTIVE_CATEGORY_STORAGE_KEY } from 'src/app/data/availableFilters';
+import { getShortOfferDescription } from 'src/app/shared/card/offer-card-text.util';
 
 interface PopularOffer {
   id: string;
@@ -177,6 +179,10 @@ export class BrowseComponent implements OnInit {
 
   goToOffer(offer: PopularOffer): void {
     this.router.navigate(['/search', offer.id]);
+  }
+
+  getShortDescription(description: string | undefined): string {
+    return getShortOfferDescription(description);
   }
 
   onSearch(event: Event) {

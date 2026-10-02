@@ -21,6 +21,7 @@ import { environment } from 'src/environments/environment';
 import { DashboardCustomersComponent } from './dashboard-customers/dashboard-customers.component';
 import { DashboardEcosystemComponent } from './dashboard-ecosystem/dashboard-ecosystem.component';
 import { DashboardHeroComponent } from './dashboard-hero/dashboard-hero.component';
+import { DashboardNewsComponent } from './dashboard-news/dashboard-news.component';
 import { DashboardProvidersComponent } from './dashboard-providers/dashboard-providers.component';
 import { DashboardServicesComponent } from './dashboard-services/dashboard-services.component';
 import { DashboardStatsComponent } from './dashboard-stats/dashboard-stats.component';
@@ -36,7 +37,7 @@ export interface IDashboardStats {
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
   standalone: true,
-  imports: [TranslateModule, ReactiveFormsModule, FeaturedComponent, NgClass, DashboardWhatsDome, DashboardHeroComponent, DashboardStatsComponent, DashboardServicesComponent, DashboardCustomersComponent, DashboardProvidersComponent, DashboardEcosystemComponent],
+  imports: [TranslateModule, ReactiveFormsModule, FeaturedComponent, NgClass, DashboardWhatsDome, DashboardHeroComponent, DashboardStatsComponent, DashboardServicesComponent, DashboardCustomersComponent, DashboardProvidersComponent, DashboardNewsComponent, DashboardEcosystemComponent],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   customersLink = environment.DOME_CUSTOMER_REGISTER_LINK;
