@@ -196,8 +196,8 @@ export class ApiServiceService {
     return lastValueFrom(this.http.get<any>(url));
   }
 
-  getLaunchedProductOffersByOwnerAndCategory(page: any, keywords: any, categories: Category[], partyId: any) {
-    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering?limit=${ApiServiceService.PRODUCT_LIMIT}&offset=${page}&relatedParty.id=${partyId}&lifecycleStatus=Launched`;
+  getLaunchedProductOffersByOwnerAndCategory(page: any, keywords: any, categories: Category[], partyId: any, limit = ApiServiceService.PRODUCT_LIMIT) {
+    let url = `${ApiServiceService.BASE_URL}${ApiServiceService.API_PRODUCT}/productOffering?limit=${limit}&offset=${page}&relatedParty.id=${partyId}&lifecycleStatus=Launched`;
 
     const categoryIds = (categories ?? [])
       .map(category => category?.id)
