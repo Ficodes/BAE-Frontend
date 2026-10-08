@@ -1,7 +1,6 @@
 import { ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { initFlowbite } from 'flowbite';
-import { jwtDecode } from "jwt-decode";
 import moment from 'moment';
 import { FileSystemDirectoryEntry, FileSystemFileEntry, NgxFileDropEntry } from 'ngx-file-drop';
 import { Subject } from 'rxjs';
@@ -16,6 +15,7 @@ import { PaginationService } from 'src/app/services/pagination.service';
 import { ProductSpecServiceService } from 'src/app/services/product-spec-service.service';
 import { ResourceSpecServiceService } from 'src/app/services/resource-spec-service.service';
 import { ServiceSpecServiceService } from 'src/app/services/service-spec-service.service';
+import { extractComplianceLevelFromVcToken } from 'src/app/shared/compliance-credential.utils';
 import { jsonValidator, noWhitespaceValidator } from 'src/app/validators/validators';
 import { environment } from 'src/environments/environment';
 import { v4 as uuidv4 } from 'uuid';
@@ -637,35 +637,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   private applyComplianceDataFromVcToken(vcToken: any) {
-    if (!vcToken || typeof vcToken !== 'string') {
-      this.complianceLevel = 'NL';
-      return;
-    }
-
-    const allowedLevels = ['NL', 'BL', 'P', 'PP'];
-
-    try {
-      const decoded: any = jwtDecode(vcToken);
-      let credential: any = null;
-
-      if ('verifiableCredential' in decoded) {
-        credential = decoded.verifiableCredential;
-      } else if ('vc' in decoded) {
-        credential = decoded.vc;
-      }
-
-      const subject = credential?.credentialSubject;
-      if (!subject) {
-        this.complianceLevel = 'NL';
-        return;
-      }
-
-      const level = subject['gx:labelLevel'];
-      this.complianceLevel = (typeof level === 'string' && allowedLevels.includes(level)) ? level : 'NL';
-    } catch (error) {
-      this.complianceLevel = 'NL';
-      console.log(error);
-    }
+    this.complianceLevel = extractComplianceLevelFromVcToken(vcToken);
   }
 
   openRequestValidationModal() {

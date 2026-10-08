@@ -543,6 +543,40 @@ describe('UpdateProductSpecComponent', () => {
     expect(component.complianceLevel).toBe('P');
   });
 
+  it('populateProductInfo should decode root-level Compliance:VC credentials', () => {
+    const vcToken = asJwt({
+      credentialSubject: {
+        id: 'urn:ngsi-ld:product-specification:7436c6e6-5d98-491d-b160-fed5bc9aeb49',
+        'gx:labelLevel': 'BL',
+        'gx:engineVersion': '1.2.1',
+        'gx:rulesVersion': 'CD25.03',
+        'gx:compliantCredentials': [],
+        'gx:validatedCriteria': []
+      },
+      type: [
+        'VerifiableCredential',
+        'gx.labelcredential.w3c.2'
+      ]
+    });
+
+    component.prod = {
+      ...component.prod,
+      productSpecCharacteristic: [
+        {
+          id: 'urn:ngsi-ld:characteristic:vc-id',
+          name: 'Compliance:VC',
+          productSpecCharacteristicValue: [{ isDefault: true, value: vcToken }]
+        }
+      ]
+    } as any;
+
+    component.populateProductInfo();
+
+    expect(component.complianceVCId).toBe('urn:ngsi-ld:characteristic:vc-id');
+    expect(component.complianceVC).toBe(vcToken);
+    expect(component.complianceLevel).toBe('BL');
+  });
+
   it('hasUnsavedComplianceProfileChanges should return false when compliance profile matches persisted data', () => {
     component.prod = {
       ...component.prod,
