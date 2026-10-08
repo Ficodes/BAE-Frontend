@@ -4,7 +4,7 @@ import { UsageServiceService } from 'src/app/services/usage-service.service';
 import { PaginationService } from 'src/app/services/pagination.service';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
 import { LoginInfo } from 'src/app/models/interfaces';
-import { EventMessageService, UsageSpecChange } from 'src/app/services/event-message.service';
+import { EventMessageService } from 'src/app/services/event-message.service';
 import { initFlowbite } from 'flowbite';
 import moment from 'moment';
 import { Subject } from 'rxjs';
@@ -12,6 +12,7 @@ import { takeUntil } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { formatApiErrorMessage } from 'src/app/shared/error-message/api-error-message';
 import { ApiServiceService } from 'src/app/services/product-service.service';
+import { LifecycleStatus, ProviderStats, tabCountsFromProviderStats } from 'src/app/models/provider-stats.model';
 
 @Component({
   selector: 'seller-usage-spec',
@@ -30,7 +31,7 @@ export class SellerUsageSpecComponent implements OnInit, OnDestroy {
   USAGE_SPEC_LIMIT: number = environment.USAGE_SPEC_LIMIT;
   status:any[]=['Active'];
   selectedTab: string = 'Draft';
-  tabStatusMap: { [k: string]: string[] } = {
+  tabStatusMap: { [k: string]: LifecycleStatus[] } = {
     Draft: ['Active'],
     Validated: ['Launched'],
     Deleted: ['Retired', 'Obsolete']
@@ -60,8 +61,14 @@ export class SellerUsageSpecComponent implements OnInit, OnDestroy {
       if(ev.type === 'ChangedSession') {
         this.initUsageSpecs();
       }
-      if(ev.type === 'UsageSpecChanged') {
-        this.applyUsageSpecChange(ev.value as UsageSpecChange);
+      if(ev.type === 'ProviderStatsTransition' && (ev.value as any)?.entity === 'usageSpecification') {
+        const transition = ev.value as any;
+        if (transition.previousLifecycleStatus !== null || this.selectedTab === 'Draft') {
+          this.getUsageSpecs(false);
+        }
+      }
+      if(ev.type === 'ProviderStatsLoaded') {
+        this.applyProviderStats(ev.value as ProviderStats);
       }
     })
   }
@@ -128,89 +135,21 @@ export class SellerUsageSpecComponent implements OnInit, OnDestroy {
     this.getUsageSpecs(false);
   }
 
-  async loadStatusCounts() {
-    try {
-      const all: any[] = [];
-      let offset = 0;
-      while (offset < 10000) {
-        const page = await this.usageService.getUsageSpecs(offset, [], this.partyId);
-        const items = Array.isArray(page) ? page : [];
-        all.push(...items);
-        if (items.length < this.USAGE_SPEC_LIMIT) break;
-        offset += this.USAGE_SPEC_LIMIT;
-      }
-      const counts: { [k: string]: number } = {};
-      for (const tab of Object.keys(this.tabStatusMap)) counts[tab] = 0;
-      for (const item of all) {
-        const status = item?.lifecycleStatus;
-        for (const tab of Object.keys(this.tabStatusMap)) {
-          if (this.tabStatusMap[tab].includes(status)) { counts[tab]++; break; }
-        }
-      }
-      this.statusCounts = counts;
-    } catch {
-    }
+  loadStatusCounts() {
+    this.applyProviderStats((this.eventMessage as any).getLatestProviderStats?.() ?? null);
+  }
+
+  private applyProviderStats(stats: ProviderStats | null): void {
+    this.statusCounts = tabCountsFromProviderStats(stats, 'usageSpecification', this.tabStatusMap);
     this.cdr.detectChanges();
-  }
-
-  private tabForStatus(status: string | undefined): string | null {
-    if (!status) return null;
-    if (this.tabStatusMap['Draft'].includes(status)) return 'Draft';
-    if (this.tabStatusMap['Validated'].includes(status)) return 'Validated';
-    if (this.tabStatusMap['Deleted'].includes(status)) return 'Deleted';
-    return null;
-  }
-
-  private incrementTabCount(tab: string, amount: number): void {
-    this.statusCounts = {
-      ...this.statusCounts,
-      [tab]: Math.max((this.statusCounts[tab] || 0) + amount, 0)
-    };
-  }
-
-  private moveTabCount(fromStatus: string | undefined, toStatus: string): void {
-    const fromTab = this.tabForStatus(fromStatus);
-    const toTab = this.tabForStatus(toStatus);
-
-    if (!toTab || fromTab === toTab) return;
-    if (fromTab) {
-      this.incrementTabCount(fromTab, -1);
-    }
-    this.incrementTabCount(toTab, 1);
   }
 
   private applyStatusChangeToCurrentTab(usageSpec: any, nextStatus: string): void {
-    this.eventMessage.emitUsageSpecChanged({
-      action: 'updated',
-      usageSpec: { ...usageSpec, lifecycleStatus: nextStatus },
-      previousLifecycleStatus: usageSpec?.lifecycleStatus,
-      nextLifecycleStatus: nextStatus
+    this.eventMessage.emitProviderStatsTransition({
+      entity: 'usageSpecification',
+      previousLifecycleStatus: usageSpec.lifecycleStatus as LifecycleStatus,
+      nextLifecycleStatus: nextStatus as LifecycleStatus
     });
-  }
-
-  private applyUsageSpecChange(change: UsageSpecChange): void {
-    const usageSpec = change?.usageSpec;
-    if (!usageSpec) return;
-
-    if (change.action === 'created') {
-      const status = change.nextLifecycleStatus || usageSpec.lifecycleStatus;
-      if (this.tabStatusMap['Draft'].includes(status)) {
-        this.incrementTabCount('Draft', 1);
-      }
-      if (this.selectedTab === 'Draft' && this.tabStatusMap['Draft'].includes(status)) {
-        this.getUsageSpecs(false);
-      }
-    }
-
-    if (change.action === 'updated') {
-      const nextStatus = change.nextLifecycleStatus || usageSpec.lifecycleStatus;
-      if (nextStatus) {
-        this.moveTabCount(change.previousLifecycleStatus || nextStatus, nextStatus);
-      }
-      this.getUsageSpecs(false);
-    }
-
-    this.cdr.detectChanges();
   }
 
   goToCreate(){

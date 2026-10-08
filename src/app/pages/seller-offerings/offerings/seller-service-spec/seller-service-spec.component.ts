@@ -15,6 +15,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { formatApiErrorMessage } from 'src/app/shared/error-message/api-error-message';
+import { LifecycleStatus, ProviderStats, tabCountsFromProviderStats } from 'src/app/models/provider-stats.model';
 
 @Component({
   selector: 'seller-service-spec',
@@ -38,7 +39,7 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
   filter:any=undefined;
   status:any[]=['Active'];
   selectedTab: string = 'Draft';
-  tabStatusMap: { [k: string]: string[] } = {
+  tabStatusMap: { [k: string]: LifecycleStatus[] } = {
     Draft: ['Active'],
     Validated: ['Launched'],
     Deleted: ['Retired', 'Obsolete']
@@ -66,6 +67,9 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
     .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initServices();
+      }
+      if(ev.type === 'ProviderStatsLoaded') {
+        this.applyProviderStats(ev.value as ProviderStats);
       }
     })
   }
@@ -165,28 +169,12 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
     this.getServSpecs(false);
   }
 
-  async loadStatusCounts() {
-    try {
-      const all: any[] = [];
-      let offset = 0;
-      while (offset < 10000) {
-        const page = await this.servSpecService.getServiceSpecByUser(offset, [], this.partyId, undefined);
-        const items = Array.isArray(page) ? page : [];
-        all.push(...items);
-        if (items.length < this.SERV_SPEC_LIMIT) break;
-        offset += this.SERV_SPEC_LIMIT;
-      }
-      const counts: { [k: string]: number } = {};
-      for (const tab of Object.keys(this.tabStatusMap)) counts[tab] = 0;
-      for (const item of all) {
-        const status = item?.lifecycleStatus;
-        for (const tab of Object.keys(this.tabStatusMap)) {
-          if (this.tabStatusMap[tab].includes(status)) { counts[tab]++; break; }
-        }
-      }
-      this.statusCounts = counts;
-    } catch {
-    }
+  loadStatusCounts() {
+    this.applyProviderStats((this.eventMessage as any).getLatestProviderStats?.() ?? null);
+  }
+
+  private applyProviderStats(stats: ProviderStats | null): void {
+    this.statusCounts = tabCountsFromProviderStats(stats, 'serviceSpecification', this.tabStatusMap);
     this.cdr.detectChanges();
   }
 
@@ -222,10 +210,15 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
     this.servSpecService.updateServSpec({ lifecycleStatus: 'Launched' }, serv.id).subscribe({
       next: () => {
         this.openMenuIdx = null;
-        this.eventMessage.emitSpecCreated(this.translate.instant('CREATE_SERV_SPEC._validate_success'));
-        this.getServSpecs(false);
-        this.loadStatusCounts();
-      },
+          this.eventMessage.emitSpecCreated(this.translate.instant('CREATE_SERV_SPEC._validate_success'));
+          this.eventMessage.emitProviderStatsTransition({
+            entity: 'serviceSpecification',
+            previousLifecycleStatus: serv.lifecycleStatus as LifecycleStatus,
+            nextLifecycleStatus: 'Launched'
+          });
+          this.getServSpecs(false);
+          this.loadStatusCounts();
+        },
       error: (error: any) => {
         this.openMenuIdx = null;
         this.eventMessage.emitSpecCreated(
@@ -265,11 +258,16 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
 
   private performDeleteServ(serv: any){
     const onSuccess = () => {
-      this.clearDeleteConfirmation();
-      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._service_spec_delete_success'));
-      this.getServSpecs(false);
-      this.loadStatusCounts();
-    };
+        this.clearDeleteConfirmation();
+        this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._service_spec_delete_success'));
+        this.eventMessage.emitProviderStatsTransition({
+          entity: 'serviceSpecification',
+          previousLifecycleStatus: serv.lifecycleStatus as LifecycleStatus,
+          nextLifecycleStatus: lifecycleStatus as LifecycleStatus
+        });
+        this.getServSpecs(false);
+        this.loadStatusCounts();
+      };
     const onError = (err: any) => {
       this.clearDeleteConfirmation();
       console.error('Service spec delete failed', err);

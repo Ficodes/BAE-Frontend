@@ -12,6 +12,7 @@ import { noWhitespaceValidator } from 'src/app/validators/validators';
 import { v4 as uuidv4 } from 'uuid';
 import { TranslateService } from '@ngx-translate/core';
 import { formatApiErrorMessage } from 'src/app/shared/error-message/api-error-message';
+import { LifecycleStatus } from 'src/app/models/provider-stats.model';
 
 import { components } from "src/app/models/resource-catalog";
 import { environment } from 'src/environments/environment';
@@ -164,6 +165,13 @@ export class CreateResourceSpecComponent implements OnInit, OnDestroy {
 
   finishAsDraft() {
     this.eventMessage.emitSpecCreated(this.translate.instant(this.isEditMode ? 'CREATE_RES_SPEC._update_success' : 'CREATE_RES_SPEC._create_success'));
+    if (!this.isEditMode) {
+      this.eventMessage.emitProviderStatsTransition({
+        entity: 'resourceSpecification',
+        previousLifecycleStatus: null,
+        nextLifecycleStatus: 'Active'
+      });
+    }
     this.showSuccessModal = false;
     this.eventMessage.emitSellerResourceSpec(true);
   }
@@ -178,6 +186,11 @@ export class CreateResourceSpecComponent implements OnInit, OnDestroy {
       next: () => {
         this.loading = false;
         this.eventMessage.emitSpecCreated(this.translate.instant('CREATE_RES_SPEC._validate_success'));
+        this.eventMessage.emitProviderStatsTransition({
+          entity: 'resourceSpecification',
+          previousLifecycleStatus: this.isEditMode ? this.res?.lifecycleStatus as LifecycleStatus : null,
+          nextLifecycleStatus: 'Launched'
+        });
         this.showSuccessModal = false;
         this.eventMessage.emitSellerResourceSpec(true);
       },

@@ -15,6 +15,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { formatApiErrorMessage } from 'src/app/shared/error-message/api-error-message';
+import { LifecycleStatus, ProviderStats, tabCountsFromProviderStats } from 'src/app/models/provider-stats.model';
 
 @Component({
   selector: 'seller-catalogs',
@@ -40,7 +41,7 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
   status:any[]=['Active'];
   selectedTab: string = 'Draft';
   readonly tabs: string[] = ['Draft', 'Published', 'Retired', 'Deleted'];
-  tabStatusMap: { [k: string]: string[] } = {
+  tabStatusMap: { [k: string]: LifecycleStatus[] } = {
     Draft: ['Active'],
     Published: ['Launched'],
     Retired: ['Retired'],
@@ -66,6 +67,9 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
     .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initCatalogs();
+      }
+      if(ev.type === 'ProviderStatsLoaded') {
+        this.applyProviderStats(ev.value as ProviderStats);
       }
     })
   }
@@ -210,31 +214,12 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
     this.getCatalogs(false);
   }
 
-  async loadStatusCounts() {
-    try {
-      const all: any[] = [];
-      let offset = 0;
-      while (offset < 10000) {
-        const page = await this.api.getCatalogsByUser(offset, undefined, [], this.partyId);
-        const items = Array.isArray(page) ? page : [];
-        all.push(...items);
-        if (items.length < this.CATALOG_LIMIT) break;
-        offset += this.CATALOG_LIMIT;
-      }
-      const counts: { [k: string]: number } = {};
-      for (const tab of Object.keys(this.tabStatusMap)) counts[tab] = 0;
-      for (const item of all) {
-        const status = item?.lifecycleStatus;
-        for (const tab of Object.keys(this.tabStatusMap)) {
-          if (this.tabStatusMap[tab].includes(status)) {
-            counts[tab]++;
-            break;
-          }
-        }
-      }
-      this.statusCounts = counts;
-    } catch {
-    }
+  loadStatusCounts() {
+    this.applyProviderStats((this.eventMessage as any).getLatestProviderStats?.() ?? null);
+  }
+
+  private applyProviderStats(stats: ProviderStats | null): void {
+    this.statusCounts = tabCountsFromProviderStats(stats, 'catalog', this.tabStatusMap);
     this.cdr.detectChanges();
   }
 
@@ -271,6 +256,11 @@ export class SellerCatalogsComponent implements OnInit, OnDestroy {
     this.api.updateCatalog({ lifecycleStatus }, cat.id).subscribe({
       next: () => {
         this.eventMessage.emitSpecCreated(this.translate.instant(successKey));
+        this.eventMessage.emitProviderStatsTransition({
+          entity: 'catalog',
+          previousLifecycleStatus: cat.lifecycleStatus as LifecycleStatus,
+          nextLifecycleStatus: lifecycleStatus as LifecycleStatus
+        });
         this.getCatalogs(false);
         this.loadStatusCounts();
       },

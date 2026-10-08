@@ -15,7 +15,6 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { POPULAR_ICON_CATEGORIES, findIconByName, IconCategory } from 'src/app/config/popular-icons';
 import { TranslateService } from '@ngx-translate/core';
-
 import {components} from "src/app/models/product-catalog";
 import { environment } from 'src/environments/environment';
 type ProductSpecification_Create = components["schemas"]["ProductSpecification_Create"];
@@ -445,6 +444,13 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
       ? 'CREATE_PROD_SPEC._validate_success'
       : (this.isEditMode ? 'CREATE_PROD_SPEC._update_success' : 'CREATE_PROD_SPEC._create_success'));
     this.eventMessage.emitSpecCreated(msg);
+    if (!this.isEditMode) {
+      this.eventMessage.emitProviderStatsTransition({
+        entity: 'productSpecification',
+        previousLifecycleStatus: null,
+        nextLifecycleStatus: launched ? 'Launched' : 'Active'
+      });
+    }
     this.eventMessage.emitSellerProductSpec(true);
   }
 

@@ -36,6 +36,7 @@ import {
   hasConstraintValues,
   isRangeCharacteristicValue
 } from "../../price-plan-constraint.utils";
+import { LifecycleStatus } from "src/app/models/provider-stats.model";
 
 type ProductOffering_Create = components["schemas"]["ProductOffering_Create"];
 type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
@@ -3346,6 +3347,13 @@ export class OfferComponent implements OnInit, OnDestroy {
         console.log('product offer created:');
         console.log(data);
         this.loading = false;
+        if (this.formType === 'create') {
+          this.eventMessage.emitProviderStatsTransition({
+            entity: 'productOffering',
+            previousLifecycleStatus: null,
+            nextLifecycleStatus: (offer.lifecycleStatus || 'Active') as LifecycleStatus
+          });
+        }
         this.eventMessage.emitSpecCreated(this.translate.instant(this.formType === 'create' ? 'CREATE_OFFER._create_success' : 'UPDATE_OFFER._update_success'));
         this.goBack();
       },

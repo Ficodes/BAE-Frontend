@@ -15,6 +15,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { formatApiErrorMessage } from 'src/app/shared/error-message/api-error-message';
+import { LifecycleStatus, ProviderStats, tabCountsFromProviderStats } from 'src/app/models/provider-stats.model';
 
 @Component({
   selector: 'seller-offer',
@@ -40,7 +41,7 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
   status:any[]=['Active'];
   selectedTab: string = 'Draft';
   readonly tabs: string[] = ['Draft', 'Published', 'Retired', 'Deleted'];
-  tabStatusMap: { [k: string]: string[] } = {
+  tabStatusMap: { [k: string]: LifecycleStatus[] } = {
     Draft: ['Active'],
     Published: ['Launched'],
     Retired: ['Retired'],
@@ -52,7 +53,7 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
   publishedDelta: number = 2;
   viewsDelta: number = 18;
   openMenuIdx: number | null = null;
-  deleteConfirmation: { offer: any; permanent: boolean } | null = null;
+  deleteConfirmation: any | null = null;
   deleteLoading: boolean = false;
 
   get totalOffersCount(): number {
@@ -82,6 +83,9 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
       if(ev.type === 'ChangedSession') {
         this.initOffers();
       }
+      if(ev.type === 'ProviderStatsLoaded') {
+        this.applyProviderStats(ev.value as ProviderStats);
+      }
     })
   }
 
@@ -107,7 +111,6 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     this.nextOffers=[];
     this.getOffers(false);
     this.loadStatusCounts();
-    this.loadOffersDelta();
     let input = document.querySelector('[type=search]')
     if(input!=undefined){
       input.addEventListener('input', e => {
@@ -182,51 +185,13 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     this.getOffers(false);
   }
 
-  async loadStatusCounts() {
-    try {
-      const all = await this.fetchAllOffers([]);
-      const counts: { [k: string]: number } = { Draft: 0, Published: 0, Retired: 0, Deleted: 0 };
-      for (const offer of all) {
-        const status = offer?.lifecycleStatus;
-        for (const tab of Object.keys(this.tabStatusMap)) {
-          if (this.tabStatusMap[tab].includes(status)) { counts[tab]++; break; }
-        }
-      }
-      this.statusCounts = counts;
-    } catch {
-    }
+  loadStatusCounts() {
+    this.applyProviderStats((this.eventMessage as any).getLatestProviderStats?.() ?? null);
+  }
+
+  private applyProviderStats(stats: ProviderStats | null): void {
+    this.statusCounts = tabCountsFromProviderStats(stats, 'productOffering', this.tabStatusMap);
     this.cdr.detectChanges();
-  }
-
-  async loadOffersDelta() {
-    try {
-      const all = await this.fetchAllOffers([]);
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-      this.offersDelta = all.filter(o => this.offerCreatedAt(o) >= startOfMonth).length;
-    } catch {
-      this.offersDelta = 0;
-    }
-    this.cdr.detectChanges();
-  }
-
-  private offerCreatedAt(offer: any): number {
-    const date = offer?.validFor?.startDateTime || offer?.lastUpdate;
-    return date ? new Date(date).getTime() : 0;
-  }
-
-  private async fetchAllOffers(status: string[]): Promise<any[]> {
-    const limit = environment.PRODUCT_LIMIT;
-    const all: any[] = [];
-    let offset = 0;
-    while (offset < 10000) {
-      const page = await this.api.getProductOfferByOwner(offset, status, this.partyId, undefined, undefined);
-      const items = Array.isArray(page) ? page : [];
-      all.push(...items);
-      if (items.length < limit) break;
-      offset += limit;
-    }
-    return all;
   }
 
   toggleMenu(idx: number, event: Event){
@@ -285,6 +250,11 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     this.api.updateProductOffering({ lifecycleStatus: 'Launched' }, offer.id).subscribe({
       next: () => {
         this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_publish_success'));
+        this.eventMessage.emitProviderStatsTransition({
+          entity: 'productOffering',
+          previousLifecycleStatus: offer.lifecycleStatus as LifecycleStatus,
+          nextLifecycleStatus: 'Launched'
+        });
         this.getOffers(false);
         this.loadStatusCounts();
       },
@@ -300,6 +270,11 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     this.api.updateProductOffering({ lifecycleStatus: 'Retired' }, offer.id).subscribe({
       next: () => {
         this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_unpublish_success'));
+        this.eventMessage.emitProviderStatsTransition({
+          entity: 'productOffering',
+          previousLifecycleStatus: offer.lifecycleStatus as LifecycleStatus,
+          nextLifecycleStatus: 'Retired'
+        });
         this.getOffers(false);
         this.loadStatusCounts();
       },
@@ -340,6 +315,11 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     this.api.postProductOffering(copy, catalogId).subscribe({
       next: () => {
         this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_duplicate_success'));
+        this.eventMessage.emitProviderStatsTransition({
+          entity: 'productOffering',
+          previousLifecycleStatus: null,
+          nextLifecycleStatus: 'Active'
+        });
         this.getOffers(false);
         this.loadStatusCounts();
       },
@@ -354,6 +334,11 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     this.openMenuIdx = null;
     const onSuccess = () => {
       this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_restore_success'));
+      this.eventMessage.emitProviderStatsTransition({
+        entity: 'productOffering',
+        previousLifecycleStatus: offer.lifecycleStatus as LifecycleStatus,
+        nextLifecycleStatus: 'Active'
+      });
       this.getOffers(false);
       this.loadStatusCounts();
     };
@@ -372,12 +357,6 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     });
   }
 
-  deleteOfferPermanent(offer: any){
-    if(!offer?.id) return;
-    this.openMenuIdx = null;
-    this.deleteConfirmation = { offer, permanent: true };
-  }
-
   cancelDeleteOffer(): void {
     if (this.deleteLoading) return;
     this.deleteConfirmation = null;
@@ -385,35 +364,25 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
 
   confirmDeleteOffer(): void {
     if (!this.deleteConfirmation || this.deleteLoading) return;
-    const { offer, permanent } = this.deleteConfirmation;
+    const offer = this.deleteConfirmation;
     this.deleteLoading = true;
-    if (permanent) {
-      this.performPermanentDeleteOffer(offer);
-    } else {
-      this.performDeleteOffer(offer);
-    }
+    this.performDeleteOffer(offer);
   }
 
   get deleteOfferTitleKey(): string {
-    return this.deleteConfirmation?.permanent
-      ? 'OFFERINGS._delete_offer_permanent_title'
-      : 'OFFERINGS._delete_offer_title';
+    return 'OFFERINGS._delete_offer_title';
   }
 
   get deleteOfferDescriptionKey(): string {
-    return this.deleteConfirmation?.permanent
-      ? 'OFFERINGS._delete_offer_permanent_desc'
-      : 'OFFERINGS._delete_offer_desc';
+    return 'OFFERINGS._delete_offer_desc';
   }
 
   get deleteOfferConfirmKey(): string {
-    return this.deleteConfirmation?.permanent
-      ? 'OFFERINGS._delete_permanently'
-      : 'OFFERINGS._delete';
+    return 'OFFERINGS._delete';
   }
 
   get deleteOfferName(): string {
-    return this.deleteConfirmation?.offer?.name || '';
+    return this.deleteConfirmation?.name || '';
   }
 
   private clearDeleteConfirmation(): void {
@@ -421,32 +390,21 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     this.deleteConfirmation = null;
   }
 
-  private performPermanentDeleteOffer(offer: any){
-    this.api.deleteProductOffering(offer.id).subscribe({
-      next: () => {
-        this.clearDeleteConfirmation();
-        this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_delete_permanent_success'));
-        this.getOffers(false);
-        this.loadStatusCounts();
-      },
-      error: (err: any) => {
-        this.clearDeleteConfirmation();
-        console.error('Permanent delete failed', err);
-        this.emitApiError('OFFERINGS._offer_delete_permanent_error', err);
-      }
-    });
-  }
-
   deleteOffer(offer: any){
     if(!offer?.id) return;
     this.openMenuIdx = null;
-    this.deleteConfirmation = { offer, permanent: false };
+    this.deleteConfirmation = offer;
   }
 
   private performDeleteOffer(offer: any){
     const onSuccess = () => {
       this.clearDeleteConfirmation();
       this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_delete_success'));
+      this.eventMessage.emitProviderStatsTransition({
+        entity: 'productOffering',
+        previousLifecycleStatus: offer.lifecycleStatus as LifecycleStatus,
+        nextLifecycleStatus: 'Obsolete'
+      });
       this.getOffers(false);
       this.loadStatusCounts();
     };

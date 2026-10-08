@@ -24,6 +24,18 @@ describe('SellerUsageSpecComponent', () => {
     }
   }
 
+  function providerStatsFixture(usageSpecification: any) {
+    const empty = { Active: 0, Launched: 0, Retired: 0, Obsolete: 0 };
+    return {
+      productOffering: { ...empty },
+      catalog: { ...empty },
+      productSpecification: { ...empty },
+      serviceSpecification: { ...empty },
+      resourceSpecification: { ...empty },
+      usageSpecification: { ...empty, ...usageSpecification }
+    };
+  }
+
   beforeEach(async () => {
     usageService = jasmine.createSpyObj('UsageServiceService', ['getUsageSpecs', 'updateUsageSpec']);
     paginationService = jasmine.createSpyObj('PaginationService', ['getItemsPaginated']);
@@ -81,18 +93,17 @@ describe('SellerUsageSpecComponent', () => {
     const usageSpec = { id: 'usage-1', lifecycleStatus: 'Active' };
     usageService.updateUsageSpec.and.returnValue(of({}) as any);
     spyOn(eventMessage, 'emitSpecCreated');
-    const changeSpy = spyOn(eventMessage, 'emitUsageSpecChanged').and.callThrough();
+    const transitionSpy = spyOn(eventMessage, 'emitProviderStatsTransition').and.callThrough();
     const loadCountsSpy = spyOn(component, 'loadStatusCounts');
     const getUsageSpecsSpy = spyOn(component, 'getUsageSpecs').and.resolveTo(undefined);
-    component.statusCounts = { Draft: 2, Validated: 1, Deleted: 0 };
+    eventMessage.emitProviderStatsLoaded(providerStatsFixture({ Active: 2, Launched: 1 }));
 
     component.validateUsageSpec(usageSpec);
 
     expect(usageService.updateUsageSpec).toHaveBeenCalledOnceWith({ lifecycleStatus: 'Launched' }, 'usage-1');
     expect(component.statusCounts).toEqual({ Draft: 1, Validated: 2, Deleted: 0 });
-    expect(changeSpy).toHaveBeenCalledOnceWith({
-      action: 'updated',
-      usageSpec: { id: 'usage-1', lifecycleStatus: 'Launched' },
+    expect(transitionSpy).toHaveBeenCalledOnceWith({
+      entity: 'usageSpecification',
       previousLifecycleStatus: 'Active',
       nextLifecycleStatus: 'Launched'
     });
@@ -104,10 +115,10 @@ describe('SellerUsageSpecComponent', () => {
     const usageSpec = { id: 'usage-2', lifecycleStatus: 'Launched' };
     usageService.updateUsageSpec.and.returnValue(of({}) as any);
     spyOn(eventMessage, 'emitSpecCreated');
-    const changeSpy = spyOn(eventMessage, 'emitUsageSpecChanged').and.callThrough();
+    const transitionSpy = spyOn(eventMessage, 'emitProviderStatsTransition').and.callThrough();
     const loadCountsSpy = spyOn(component, 'loadStatusCounts');
     const getUsageSpecsSpy = spyOn(component, 'getUsageSpecs').and.resolveTo(undefined);
-    component.statusCounts = { Draft: 1, Validated: 3, Deleted: 1 };
+    eventMessage.emitProviderStatsLoaded(providerStatsFixture({ Active: 1, Launched: 3, Retired: 1 }));
 
     component.deleteUsageSpec(usageSpec);
     await flushPromises();
@@ -115,9 +126,8 @@ describe('SellerUsageSpecComponent', () => {
 
     expect(usageService.updateUsageSpec).toHaveBeenCalledOnceWith({ lifecycleStatus: 'Retired' }, 'usage-2');
     expect(component.statusCounts).toEqual({ Draft: 1, Validated: 2, Deleted: 2 });
-    expect(changeSpy).toHaveBeenCalledOnceWith({
-      action: 'updated',
-      usageSpec: { id: 'usage-2', lifecycleStatus: 'Retired' },
+    expect(transitionSpy).toHaveBeenCalledOnceWith({
+      entity: 'usageSpecification',
       previousLifecycleStatus: 'Launched',
       nextLifecycleStatus: 'Retired'
     });
@@ -131,16 +141,16 @@ describe('SellerUsageSpecComponent', () => {
     const usageSpec = { id: 'usage-3', lifecycleStatus: 'Launched' };
     usageService.updateUsageSpec.and.returnValue(throwError(() => ({ error: { error: 'In use' } })) as any);
     spyOn(eventMessage, 'emitSpecCreated');
-    const changeSpy = spyOn(eventMessage, 'emitUsageSpecChanged').and.callThrough();
+    const transitionSpy = spyOn(eventMessage, 'emitProviderStatsTransition').and.callThrough();
     const getUsageSpecsSpy = spyOn(component, 'getUsageSpecs').and.resolveTo(undefined);
-    component.statusCounts = { Draft: 1, Validated: 3, Deleted: 1 };
+    eventMessage.emitProviderStatsLoaded(providerStatsFixture({ Active: 1, Launched: 3, Retired: 1 }));
 
     component.deleteUsageSpec(usageSpec);
     await flushPromises();
     component.confirmDeleteUsageSpec();
 
     expect(component.statusCounts).toEqual({ Draft: 1, Validated: 3, Deleted: 1 });
-    expect(changeSpy).not.toHaveBeenCalled();
+    expect(transitionSpy).not.toHaveBeenCalled();
     expect(component.deleteConfirmation).toBeNull();
     expect(component.deleteLoading).toBeFalse();
     expect(getUsageSpecsSpy).not.toHaveBeenCalled();
@@ -184,11 +194,11 @@ describe('SellerUsageSpecComponent', () => {
   it('should increment Draft after create even when another tab is selected without refreshing that tab', () => {
     const getUsageSpecsSpy = spyOn(component, 'getUsageSpecs').and.resolveTo(undefined);
     component.selectedTab = 'Validated';
-    component.statusCounts = { Draft: 4, Validated: 2, Deleted: 1 };
+    eventMessage.emitProviderStatsLoaded(providerStatsFixture({ Active: 4, Launched: 2, Retired: 1 }));
 
-    eventMessage.emitUsageSpecChanged({
-      action: 'created',
-      usageSpec: { id: 'usage-4', lifecycleStatus: 'Active' },
+    eventMessage.emitProviderStatsTransition({
+      entity: 'usageSpecification',
+      previousLifecycleStatus: null,
       nextLifecycleStatus: 'Active'
     });
 
@@ -199,11 +209,11 @@ describe('SellerUsageSpecComponent', () => {
   it('should increment Draft and refresh the current tab after create when Draft is selected', () => {
     const getUsageSpecsSpy = spyOn(component, 'getUsageSpecs').and.resolveTo(undefined);
     component.selectedTab = 'Draft';
-    component.statusCounts = { Draft: 4, Validated: 2, Deleted: 1 };
+    eventMessage.emitProviderStatsLoaded(providerStatsFixture({ Active: 4, Launched: 2, Retired: 1 }));
 
-    eventMessage.emitUsageSpecChanged({
-      action: 'created',
-      usageSpec: { id: 'usage-5', lifecycleStatus: 'Active' },
+    eventMessage.emitProviderStatsTransition({
+      entity: 'usageSpecification',
+      previousLifecycleStatus: null,
       nextLifecycleStatus: 'Active'
     });
 

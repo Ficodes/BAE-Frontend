@@ -14,6 +14,7 @@ import { ProductSpecServiceService } from 'src/app/services/product-spec-service
 import { environment } from 'src/environments/environment';
 import { TranslateService } from '@ngx-translate/core';
 import { formatApiErrorMessage } from 'src/app/shared/error-message/api-error-message';
+import { LifecycleStatus, ProviderStats, tabCountsFromProviderStats } from 'src/app/models/provider-stats.model';
 
 @Component({
   selector: 'seller-product-spec',
@@ -38,7 +39,7 @@ export class SellerProductSpecComponent implements OnInit, OnDestroy {
   filter: any = undefined;
   status: any[] = ['Active'];
   selectedTab: string = 'Draft';
-  tabStatusMap: { [k: string]: string[] } = {
+  tabStatusMap: { [k: string]: LifecycleStatus[] } = {
     Draft: ['Active'],
     Validated: ['Launched'],
     Deleted: ['Retired', 'Obsolete']
@@ -67,6 +68,9 @@ export class SellerProductSpecComponent implements OnInit, OnDestroy {
       .subscribe(ev => {
         if (ev.type === 'ChangedSession') {
           this.initProdSpecs();
+        }
+        if (ev.type === 'ProviderStatsLoaded') {
+          this.applyProviderStats(ev.value as ProviderStats);
         }
       })
   }
@@ -168,28 +172,12 @@ export class SellerProductSpecComponent implements OnInit, OnDestroy {
     this.getProdSpecs(false);
   }
 
-  async loadStatusCounts() {
-    try {
-      const all: any[] = [];
-      let offset = 0;
-      while (offset < 10000) {
-        const page = await this.prodSpecService.getProdSpecByUser(offset, [], this.partyId);
-        const items = Array.isArray(page) ? page : [];
-        all.push(...items);
-        if (items.length < this.PROD_SPEC_LIMIT) break;
-        offset += this.PROD_SPEC_LIMIT;
-      }
-      const counts: { [k: string]: number } = {};
-      for (const tab of Object.keys(this.tabStatusMap)) counts[tab] = 0;
-      for (const item of all) {
-        const status = item?.lifecycleStatus;
-        for (const tab of Object.keys(this.tabStatusMap)) {
-          if (this.tabStatusMap[tab].includes(status)) { counts[tab]++; break; }
-        }
-      }
-      this.statusCounts = counts;
-    } catch {
-    }
+  loadStatusCounts() {
+    this.applyProviderStats((this.eventMessage as any).getLatestProviderStats?.() ?? null);
+  }
+
+  private applyProviderStats(stats: ProviderStats | null): void {
+    this.statusCounts = tabCountsFromProviderStats(stats, 'productSpecification', this.tabStatusMap);
     this.cdr.detectChanges();
   }
 
@@ -225,10 +213,15 @@ export class SellerProductSpecComponent implements OnInit, OnDestroy {
     this.prodSpecService.updateProdSpec({ lifecycleStatus: 'Launched' }, prod.id).subscribe({
       next: () => {
         this.openMenuIdx = null;
-        this.eventMessage.emitSpecCreated(this.translate.instant('CREATE_PROD_SPEC._validate_success'));
-        this.getProdSpecs(false);
-        this.loadStatusCounts();
-      },
+          this.eventMessage.emitSpecCreated(this.translate.instant('CREATE_PROD_SPEC._validate_success'));
+          this.eventMessage.emitProviderStatsTransition({
+            entity: 'productSpecification',
+            previousLifecycleStatus: prod.lifecycleStatus as LifecycleStatus,
+            nextLifecycleStatus: 'Launched'
+          });
+          this.getProdSpecs(false);
+          this.loadStatusCounts();
+        },
       error: (error: any) => {
         this.openMenuIdx = null;
         this.eventMessage.emitSpecCreated(
@@ -268,11 +261,16 @@ export class SellerProductSpecComponent implements OnInit, OnDestroy {
 
   private performDeleteProd(prod: any) {
     const onSuccess = () => {
-      this.clearDeleteConfirmation();
-      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._product_spec_delete_success'));
-      this.getProdSpecs(false);
-      this.loadStatusCounts();
-    };
+        this.clearDeleteConfirmation();
+        this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._product_spec_delete_success'));
+        this.eventMessage.emitProviderStatsTransition({
+          entity: 'productSpecification',
+          previousLifecycleStatus: prod.lifecycleStatus as LifecycleStatus,
+          nextLifecycleStatus: lifecycleStatus as LifecycleStatus
+        });
+        this.getProdSpecs(false);
+        this.loadStatusCounts();
+      };
     const onError = (err: any) => {
       this.clearDeleteConfirmation();
       console.error('Product spec delete failed', err);

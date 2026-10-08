@@ -44,8 +44,10 @@ describe('SellerOfferingsComponent', () => {
 
   function renderUsageSpecsCount(count: number): jasmine.Spy {
     const loadCountsSpy = spyOn(component, 'loadCounts').and.resolveTo(undefined);
-    component.usageSpecsCount = count;
     component.goToUsageSpec();
+    eventMessage.emitProviderStatsLoaded(providerStatsFixture({
+      usageSpecification: { Active: count }
+    }));
     fixture.detectChanges();
     loadCountsSpy.calls.reset();
     return loadCountsSpy;
@@ -55,13 +57,25 @@ describe('SellerOfferingsComponent', () => {
     return fixture.nativeElement.querySelector('[data-cy="usageSpecSection"] span:last-child').textContent.trim();
   }
 
+  function providerStatsFixture(overrides: any = {}) {
+    const empty = { Active: 0, Launched: 0, Retired: 0, Obsolete: 0 };
+    return {
+      productOffering: { ...empty, ...(overrides.productOffering || {}) },
+      catalog: { ...empty, ...(overrides.catalog || {}) },
+      productSpecification: { ...empty, ...(overrides.productSpecification || {}) },
+      serviceSpecification: { ...empty, ...(overrides.serviceSpecification || {}) },
+      resourceSpecification: { ...empty, ...(overrides.resourceSpecification || {}) },
+      usageSpecification: { ...empty, ...(overrides.usageSpecification || {}) }
+    };
+  }
+
   it('should increment the sidebar count after creating a usage spec without reloading counts', () => {
     const loadCountsSpy = renderUsageSpecsCount(3);
     component.goToCreateUsage();
 
-    eventMessage.emitUsageSpecChanged({
-      action: 'created',
-      usageSpec: { id: 'usage-new', lifecycleStatus: 'Active' },
+    eventMessage.emitProviderStatsTransition({
+      entity: 'usageSpecification',
+      previousLifecycleStatus: null,
       nextLifecycleStatus: 'Active'
     });
     eventMessage.emitUsageSpecList(true);
@@ -86,13 +100,15 @@ describe('SellerOfferingsComponent', () => {
   for (const [previousStatus, nextStatus] of [['Active', 'Obsolete'], ['Launched', 'Retired']]) {
     it(`should decrement the sidebar count after deleting a ${previousStatus} usage spec`, fakeAsync(() => {
       const loadCountsSpy = renderUsageSpecsCount(3);
+      eventMessage.emitProviderStatsLoaded(providerStatsFixture({
+        usageSpecification: { [previousStatus]: 3 }
+      }));
 
       eventMessage.emitSpecCreated('Metric deleted', 'success', false);
-      eventMessage.emitUsageSpecChanged({
-        action: 'updated',
-        usageSpec: { id: 'usage-deleted', lifecycleStatus: nextStatus },
-        previousLifecycleStatus: previousStatus,
-        nextLifecycleStatus: nextStatus
+      eventMessage.emitProviderStatsTransition({
+        entity: 'usageSpecification',
+        previousLifecycleStatus: previousStatus as any,
+        nextLifecycleStatus: nextStatus as any
       });
 
       expect(sidebarUsageSpecsCount()).toBe('2');
@@ -105,10 +121,9 @@ describe('SellerOfferingsComponent', () => {
     const loadCountsSpy = renderUsageSpecsCount(3);
 
     for (const previousStatus of ['Active', 'Launched']) {
-      eventMessage.emitUsageSpecChanged({
-        action: 'updated',
-        usageSpec: { id: 'usage-existing', lifecycleStatus: 'Launched' },
-        previousLifecycleStatus: previousStatus,
+      eventMessage.emitProviderStatsTransition({
+        entity: 'usageSpecification',
+        previousLifecycleStatus: previousStatus as any,
         nextLifecycleStatus: 'Launched'
       });
       expect(sidebarUsageSpecsCount()).toBe('3');
@@ -128,45 +143,39 @@ describe('SellerOfferingsComponent', () => {
     tick(4000);
   }));
 
-  it('should refresh other workspace counts even while viewing usage specs', fakeAsync(() => {
+  it('should update other workspace counts without reloading stats while viewing usage specs', fakeAsync(() => {
     const loadCountsSpy = renderUsageSpecsCount(3);
 
-    eventMessage.emitSpecCreated('Product specification created');
+    eventMessage.emitProviderStatsTransition({
+      entity: 'productSpecification',
+      previousLifecycleStatus: null,
+      nextLifecycleStatus: 'Active'
+    });
 
-    expect(loadCountsSpy).toHaveBeenCalledTimes(1);
+    expect(component.productSpecsCount).toBe(1);
+    expect(loadCountsSpy).not.toHaveBeenCalled();
     tick(4000);
   }));
 
-  it('should refresh only usage specs when an initial count response predates a creation', fakeAsync(() => {
+  it('should not refetch or replay transitions emitted before the initial stats response', fakeAsync(() => {
     component.userInfo = { id: 'user-1', logged_as: 'user-1', partyId: 'party-1' };
     component.goToUsageSpec();
     const http = TestBed.inject(HttpTestingController);
 
     component.loadCounts();
-    const initialRequests = http.match(() => true);
-    eventMessage.emitUsageSpecChanged({
-      action: 'created',
-      usageSpec: { id: 'usage-new', lifecycleStatus: 'Active' },
+    const initialRequest = http.expectOne(`${environment.BASE_URL}/stats/provider/party-1`);
+    eventMessage.emitProviderStatsTransition({
+      entity: 'usageSpecification',
+      previousLifecycleStatus: null,
       nextLifecycleStatus: 'Active'
     });
 
-    for (const request of initialRequests) {
-      request.flush(request.request.url.includes('/usage/usageSpecification')
-        ? [{ lifecycleStatus: 'Active' }, { lifecycleStatus: 'Launched' }, { lifecycleStatus: 'Active' }]
-        : []);
-    }
+    initialRequest.flush(providerStatsFixture({
+      usageSpecification: { Active: 2, Launched: 1, Retired: 0, Obsolete: 0 }
+    }));
     flushMicrotasks();
 
-    const refresh = http.expectOne(request => request.url.includes('/usage/usageSpecification'));
-    refresh.flush([
-      { lifecycleStatus: 'Active' },
-      { lifecycleStatus: 'Launched' },
-      { lifecycleStatus: 'Active' },
-      { id: 'usage-new', lifecycleStatus: 'Active' }
-    ]);
-    flushMicrotasks();
-
-    expect(sidebarUsageSpecsCount()).toBe('4');
+    expect(sidebarUsageSpecsCount()).toBe('3');
     http.verify();
   }));
 

@@ -2,6 +2,11 @@ import { Injectable } from '@angular/core';
 import {Subject} from "rxjs";
 import {Category, cartProduct, FormChangeState, PricePlanChangeState, SubformType} from "../models/interfaces";
 import { LoginInfo } from 'src/app/models/interfaces';
+import {
+  applyProviderStatsTransition,
+  ProviderStats,
+  ProviderStatsTransition
+} from '../models/provider-stats.model';
 
 export interface EventMessage {
   type: 'AddedFilter' | 'RemovedFilter' | 'AddedCartItem' | 'RemovedCartItem' | 'FilterShown' | 'ToggleCartDrawer' | 'LoginProcess' | 'BillAccChanged' |
@@ -11,11 +16,11 @@ export interface EventMessage {
   'AdminCategories' | 'CreateCategory' | 'UpdateCategory' | 'ShowCartToast' | 'HideCartToast' | 'CloseContact' | 'OpenServiceDetails' | 'OpenResourceDetails' | 'OpenProductInvDetails' |
   'SavePricePlan' | 'UpdatePricePlan' | 'ToggleEditPrice' | 'ToggleNewPrice' |
   'SubformChange' | 'CloseFeedback' | 'UpdateOffer' | 'CloseQuoteRequest' | 'UpdateUsageSpec' | 'UsageSpecList' | 'CreateUsageSpec' | 'AiSearchFacets' | 'AiSearchCleared' |
-  'FiltersCommitted' | 'SpecCreated' | 'LeaveOfferEditorRequest' | 'LeaveProductSpecEditorRequest' | 'UsageSpecChanged';
+  'FiltersCommitted' | 'SpecCreated' | 'LeaveOfferEditorRequest' | 'LeaveProductSpecEditorRequest' | 'UsageSpecChanged' | 'ProviderStatsLoaded' | 'ProviderStatsTransition';
   text?: string,
   toastType?: 'success' | 'error',
   refreshCounts?: boolean,
-  value?: object | boolean | FormChangeState | PricePlanChangeState | UsageSpecChange
+  value?: object | boolean | FormChangeState | PricePlanChangeState | UsageSpecChange | ProviderStats | ProviderStatsTransition | null
 }
 
 export interface UsageSpecChange {
@@ -33,6 +38,7 @@ export class EventMessageService {
 
   // Tip: never expose the Subject itself.
   private eventMessageSubject = new Subject<EventMessage>();
+  private latestProviderStats: ProviderStats | null = null;
 
   /** Observable of all messages */
   messages$ = this.eventMessageSubject.asObservable();
@@ -243,6 +249,31 @@ export class EventMessageService {
 
   emitUsageSpecChanged(change: UsageSpecChange){
     this.eventMessageSubject.next({type: 'UsageSpecChanged', value: change})
+  }
+
+  emitProviderStatsLoaded(stats: ProviderStats | null){
+    this.latestProviderStats = stats;
+    this.eventMessageSubject.next({type: 'ProviderStatsLoaded', value: this.latestProviderStats})
+  }
+
+  getLatestProviderStats(): ProviderStats | null {
+    return this.latestProviderStats;
+  }
+
+  clearProviderStats(){
+    this.latestProviderStats = null;
+    this.eventMessageSubject.next({type: 'ProviderStatsLoaded', value: null})
+  }
+
+  emitProviderStatsTransition(transition: ProviderStatsTransition){
+    if (!this.latestProviderStats) {
+      this.eventMessageSubject.next({type: 'ProviderStatsTransition', value: transition});
+      return;
+    }
+
+    this.latestProviderStats = applyProviderStatsTransition(this.latestProviderStats, transition);
+    this.eventMessageSubject.next({type: 'ProviderStatsTransition', value: transition});
+    this.eventMessageSubject.next({type: 'ProviderStatsLoaded', value: this.latestProviderStats});
   }
 
   emitAiSearchFacets(facets: Record<string, Record<string | number, number>>){

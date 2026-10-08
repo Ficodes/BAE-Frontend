@@ -20,6 +20,7 @@ import { environment } from 'src/environments/environment';
 import {Subject} from "rxjs";
 import { takeUntil } from 'rxjs/operators';
 import { uniqueNameValidatorFactory } from 'src/app/validators/validators';
+import { LifecycleStatus } from 'src/app/models/provider-stats.model';
 
 function atLeastOneMetricValidator(control: AbstractControl): ValidationErrors | null {
   return Array.isArray(control.value) && control.value.length > 0
@@ -248,6 +249,7 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   async createUsageSpec(){
+    if (this.formType !== 'create') return;
 
     const formValue = this.usageSpecForm.value;
     const generalInfo = formValue.generalInfo;
@@ -272,10 +274,10 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
       next: data => {
         console.log('usageSpec created:')
         console.log(data)
-        this.eventMessage.emitUsageSpecChanged({
-          action: 'created',
-          usageSpec: data || usageSpec,
-          nextLifecycleStatus: (data || usageSpec).lifecycleStatus
+        this.eventMessage.emitProviderStatsTransition({
+          entity: 'usageSpecification',
+          previousLifecycleStatus: null,
+          nextLifecycleStatus: (usageSpec.lifecycleStatus || 'Active') as LifecycleStatus
         });
         this.goBack();
       },
@@ -335,19 +337,8 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
 
     try {
       // Llamar a la API para actualizar la oferta
-      const data = await lastValueFrom(this.usageSpecService.updateUsageSpec(basePayload, this.usageSpec.id));
+      await lastValueFrom(this.usageSpecService.updateUsageSpec(basePayload, this.usageSpec.id));
       console.log('✅ Usage Spec updated successfully');
-      const updatedUsageSpec = data || {
-        ...this.usageSpec,
-        ...basePayload,
-        id: this.usageSpec.id
-      };
-      this.eventMessage.emitUsageSpecChanged({
-        action: 'updated',
-        usageSpec: updatedUsageSpec,
-        previousLifecycleStatus: this.usageSpec.lifecycleStatus,
-        nextLifecycleStatus: updatedUsageSpec.lifecycleStatus
-      });
       this.goBack();
     } catch (error: any) {
       console.error('❌ Error updating Usage Spec:', error);

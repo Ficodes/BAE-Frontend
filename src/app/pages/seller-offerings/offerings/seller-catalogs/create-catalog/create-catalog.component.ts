@@ -150,6 +150,11 @@ export class CreateCatalogComponent implements OnInit, OnDestroy {
     this.api.postCatalog(this.catalogToCreate).subscribe({
       next: data => {
         this.loading=false;
+        this.eventMessage.emitProviderStatsTransition({
+          entity: 'catalog',
+          previousLifecycleStatus: null,
+          nextLifecycleStatus: 'Active'
+        });
         this.goBack();
       },
       error: error => {

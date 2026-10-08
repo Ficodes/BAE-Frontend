@@ -1,5 +1,4 @@
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
@@ -10,12 +9,14 @@ import { ApiServiceService } from 'src/app/services/product-service.service';
 import {LocalStorageService} from "src/app/services/local-storage.service";
 import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
-import {EventMessageService, UsageSpecChange} from "../../services/event-message.service";
+import {EventMessageService} from "../../services/event-message.service";
 import { firstValueFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { QuoteService } from 'src/app/features/quotes/services/quote.service';
 import { ThemeService } from 'src/app/services/theme.service';
 import { WorkspaceHelpConfig } from 'src/app/themes';
+import { countStatuses, ProviderStats } from 'src/app/models/provider-stats.model';
+import { StatsServiceService } from 'src/app/services/stats-service.service';
 
 type SellerWorkspaceSection = 'catalogs' | 'offers' | 'productspec' | 'servicespec' | 'resourcespec' | 'usagespec';
 type SellerWorkspaceView =
@@ -75,7 +76,6 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
   //partyIdCustom:string='urn:ngsi-ld:organization:02922d6d-2e7e-4235-a1aa-4f393a75bc52'
   //partyIdCustom:any=null
   private destroy$ = new Subject<void>();
-  private usageSpecsCountRevision = 0;
 
   get show_catalogs(): boolean { return this.activeView === 'catalogs'; }
   get show_prod_specs(): boolean { return this.activeView === 'productspec'; }
@@ -108,8 +108,8 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     private router: Router,
     private quoteService: QuoteService,
     private api: ApiServiceService,
-    private http: HttpClient,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private statsService: StatsServiceService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -143,7 +143,16 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
         this.goToUpdateUsage();
       }
       if(ev.type === 'UsageSpecChanged') {
-        this.applyUsageSpecCountChange(ev.value as UsageSpecChange);
+        return;
+      }
+      if(ev.type === 'ProviderStatsLoaded') {
+        this.applyProviderStats(ev.value as ProviderStats | null);
+        this.cdr.detectChanges();
+      }
+      if(ev.type === 'ChangedSession') {
+        this.userInfo = (ev.value as LoginInfo) || (this.localStorage.getObject('login_items') as LoginInfo);
+        this.eventMessage.clearProviderStats();
+        this.loadCounts();
       }
       if(ev.type === 'SellerOffer' && ev.value == true) {
         this.goToOffers();
@@ -186,9 +195,6 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
       if(ev.type === 'SpecCreated' && ev.text) {
         this.toastMessage = ev.text;
         this.toastType = ev.toastType ?? 'success';
-        if (ev.refreshCounts !== false) {
-          this.loadCounts();
-        }
         setTimeout(() => { this.toastMessage = null; this.cdr.detectChanges(); }, 4000);
       }
     })
@@ -260,78 +266,41 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.router.navigate(['/dashboard']);
   }
 
-  private applyUsageSpecCountChange(change: UsageSpecChange): void {
-    if (!change?.usageSpec) return;
+  async loadCounts() {
+    const organizationId = this.getProviderOrganizationId();
+    if (!organizationId) return;
 
-    const excludedStatuses = ['Retired', 'Obsolete'];
-    const nextStatus = change.nextLifecycleStatus || change.usageSpec.lifecycleStatus;
-    const previousStatus = change.previousLifecycleStatus || nextStatus;
-    const previouslyCounted = change.action !== 'created' && !excludedStatuses.includes(previousStatus);
-    const nextCounted = !excludedStatuses.includes(nextStatus);
-    const delta = Number(nextCounted) - Number(previouslyCounted);
-
-    if (delta !== 0) {
-      this.usageSpecsCountRevision++;
+    try {
+      const stats = await this.statsService.getProviderStats(organizationId);
+      this.eventMessage.emitProviderStatsLoaded(stats);
+    } catch {
+      this.eventMessage.emitProviderStatsLoaded(null);
     }
-    this.usageSpecsCount = Math.max(this.usageSpecsCount + delta, 0);
+
     this.cdr.detectChanges();
   }
 
-  async loadCounts() {
+  private getProviderOrganizationId(): string | null {
     const aux = this.userInfo as LoginInfo;
-    if (!aux) return;
-    let partyId: string;
-    if (aux.logged_as == aux.id) {
-      partyId = aux.partyId;
-    } else {
-      const loggedOrg = aux.organizations?.find((e: any) => e.id == aux.logged_as);
-      if (!loggedOrg) return;
-      partyId = loggedOrg.partyId;
+    if (!aux) return null;
+
+    if (aux.logged_as === aux.id) {
+      return aux.partyId || null;
     }
 
-    let usageSpecsCountRevision = this.usageSpecsCountRevision;
-    const limit = 1000;
-    const base = environment.BASE_URL;
-    const partyParam = `relatedParty.id=${partyId}`;
-    const offersUrl = `${base}${environment.PRODUCT_CATALOG}/productOffering?limit=${limit}&${partyParam}`;
-    const catalogsUrl = `${base}${environment.PRODUCT_CATALOG}/catalog?limit=${limit}&${partyParam}`;
-    const prodSpecUrl = `${base}${environment.PRODUCT_CATALOG}${environment.PRODUCT_SPEC}?limit=${limit}&${partyParam}`;
-    const servSpecUrl = `${base}${environment.SERVICE}${environment.SERVICE_SPEC}?limit=${limit}&${partyParam}`;
-    const resSpecUrl = `${base}${environment.RESOURCE}${environment.RESOURCE_SPEC}?limit=${limit}&${partyParam}`;
-    const usageSpecUrl = `${base}/usage/usageSpecification?limit=${limit}&${partyParam}`;
+    const loggedOrg = aux.organizations?.find((e: any) => e.id === aux.logged_as);
+    return loggedOrg?.partyId || aux.partyId || null;
+  }
 
-    const safeCount = async (url: string, excludedStatuses: string[] = []) => {
-      try {
-        const items = await firstValueFrom(this.http.get<any[]>(url));
-        return Array.isArray(items)
-          ? items.filter(item => !excludedStatuses.includes(item?.lifecycleStatus)).length
-          : 0;
-      } catch {
-        return 0;
-      }
-    };
-
-    const [offers, catalogs, prods, servs, ress, usages] = await Promise.all([
-      safeCount(offersUrl, ['Obsolete']),
-      this.catalogManagementEnabled ? safeCount(catalogsUrl, ['Obsolete']) : Promise.resolve(0),
-      safeCount(prodSpecUrl, ['Retired', 'Obsolete']),
-      safeCount(servSpecUrl, ['Retired', 'Obsolete']),
-      safeCount(resSpecUrl, ['Retired', 'Obsolete']),
-      safeCount(usageSpecUrl, ['Retired', 'Obsolete']),
-    ]);
-
-    this.productOffersCount = offers;
-    this.catalogsCount = catalogs;
-    this.productSpecsCount = prods;
-    this.serviceSpecsCount = servs;
-    this.resourceSpecsCount = ress;
-    let usageCount = usages;
-    while (usageSpecsCountRevision !== this.usageSpecsCountRevision) {
-      usageSpecsCountRevision = this.usageSpecsCountRevision;
-      usageCount = await safeCount(usageSpecUrl, ['Retired', 'Obsolete']);
-    }
-    this.usageSpecsCount = usageCount;
-    this.cdr.detectChanges();
+  private applyProviderStats(stats: ProviderStats | null): void {
+    this.productOffersCount = countStatuses(stats, 'productOffering', ['Active', 'Launched', 'Retired']);
+    this.catalogsCount = this.catalogManagementEnabled
+      ? countStatuses(stats, 'catalog', ['Active', 'Launched', 'Retired'])
+      : 0;
+    this.productSpecsCount = countStatuses(stats, 'productSpecification', ['Active', 'Launched']);
+    this.serviceSpecsCount = countStatuses(stats, 'serviceSpecification', ['Active', 'Launched']);
+    this.resourceSpecsCount = countStatuses(stats, 'resourceSpecification', ['Active', 'Launched']);
+    this.usageSpecsCount = countStatuses(stats, 'usageSpecification', ['Active', 'Launched']);
   }
 
   private normalizeSection(section: string | null | undefined): SellerWorkspaceSection | null {
