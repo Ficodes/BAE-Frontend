@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, DoCheck, ElementRef, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import moment from 'moment';
@@ -25,7 +25,7 @@ type ResourceSpecificationCharacteristic = components["schemas"]["ResourceSpecif
   templateUrl: './create-resource-spec.component.html',
   styleUrl: './create-resource-spec.component.css'
 })
-export class CreateResourceSpecComponent implements OnInit, OnDestroy {
+export class CreateResourceSpecComponent implements OnInit, OnDestroy, DoCheck {
 
   @Input() res: any = null;
   isEditMode: boolean = false;
@@ -82,6 +82,7 @@ export class CreateResourceSpecComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   editingCharIdx: number | null = null;
   openCharMenuIdx: number | null = null;
+  showLeaveModal: boolean = false;
   showSuccessModal: boolean = false;
   createdResourceId: string | null = null;
 
@@ -108,6 +109,8 @@ export class CreateResourceSpecComponent implements OnInit, OnDestroy {
       .subscribe(ev => {
         if (ev.type === 'ChangedSession') {
           this.initPartyInfo();
+        } else if (ev.type === 'LeaveResourceSpecEditorRequest') {
+          this.onBackClick();
         }
       })
   }
@@ -142,7 +145,13 @@ export class CreateResourceSpecComponent implements OnInit, OnDestroy {
     }
   }
 
+  ngDoCheck() {
+    const open = !!(this.showCreateChar || this.showSuccessModal || this.showLeaveModal);
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+
   ngOnDestroy() {
+    document.body.style.overflow = '';
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -161,6 +170,54 @@ export class CreateResourceSpecComponent implements OnInit, OnDestroy {
 
   goBack() {
     this.eventMessage.emitSellerResourceSpec(true);
+  }
+
+  onBackClick(): void {
+    if (!this.isEditMode && this.hasAnyDraftData()) {
+      this.showLeaveModal = true;
+    } else {
+      this.goBack();
+    }
+  }
+
+  hasAnyDraftData(): boolean {
+    return !!(
+      this.generalForm.value.name ||
+      this.generalForm.value.description ||
+      this.prodChars.length > 0 ||
+      this.charsForm.value.name ||
+      this.charsForm.value.description ||
+      this.creatingChars.length > 0 ||
+      this.stringValue ||
+      this.numberValue ||
+      this.numberUnit ||
+      this.fromValue ||
+      this.toValue ||
+      this.rangeUnit
+    );
+  }
+
+  cancelLeave(): void {
+    this.showLeaveModal = false;
+  }
+
+  discardLeave(): void {
+    this.showLeaveModal = false;
+    this.goBack();
+  }
+
+  canSaveDraftResourceSpec(): boolean {
+    return !this.loading && this.generalForm.valid;
+  }
+
+  confirmLeave(): void {
+    if (!this.canSaveDraftResourceSpec()) {
+      this.generalForm.markAllAsTouched();
+      return;
+    }
+
+    this.showLeaveModal = false;
+    this.persistResource(false);
   }
 
   finishAsDraft() {
@@ -467,6 +524,10 @@ export class CreateResourceSpecComponent implements OnInit, OnDestroy {
   }
 
   createResource() {
+    this.persistResource(true);
+  }
+
+  private persistResource(showReadyModal: boolean) {
     this.buildResourceToCreate();
     this.loading = true;
     if (this.isEditMode && this.createdResourceId) {
@@ -474,7 +535,11 @@ export class CreateResourceSpecComponent implements OnInit, OnDestroy {
       this.resSpecService.updateResSpec(patchBody, this.createdResourceId).subscribe({
         next: (data: any) => {
           this.loading = false;
-          this.showSuccessModal = true;
+          if (showReadyModal) {
+            this.showSuccessModal = true;
+          } else {
+            this.finishAsDraft();
+          }
         },
         error: error => {
           console.error('There was an error while updating!', error);
@@ -490,7 +555,11 @@ export class CreateResourceSpecComponent implements OnInit, OnDestroy {
       next: (data: any) => {
         this.loading = false;
         this.createdResourceId = data?.id || null;
-        this.showSuccessModal = true;
+        if (showReadyModal) {
+          this.showSuccessModal = true;
+        } else {
+          this.finishAsDraft();
+        }
       },
       error: error => {
         console.error('There was an error while creating!', error);

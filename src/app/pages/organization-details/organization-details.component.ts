@@ -29,7 +29,7 @@ type ToolbarFilter = {
 type OrganizationDetailsMode = 'catalog' | 'organization';
 type ContactMediumKind = 'email' | 'phone' | 'address' | 'website';
 const CONTACT_MEDIUM_KIND_ORDER: ContactMediumKind[] = ['email', 'phone', 'address'];
-const ORGANIZATION_MODE_PRODUCT_LIMIT = 100;
+const ORGANIZATION_MODE_PRODUCT_LIMIT = 300;
 
 interface DisplayContactMedium {
   kind: ContactMediumKind;

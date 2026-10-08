@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, DoCheck, ElementRef, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import moment from 'moment';
@@ -25,7 +25,7 @@ type ProductSpecificationCharacteristic = components["schemas"]["CharacteristicS
   templateUrl: './create-service-spec.component.html',
   styleUrl: './create-service-spec.component.css'
 })
-export class CreateServiceSpecComponent implements OnInit, OnDestroy {
+export class CreateServiceSpecComponent implements OnInit, OnDestroy, DoCheck {
 
   @Input() serv: any = null;
   isEditMode: boolean = false;
@@ -82,6 +82,7 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   editingCharIdx: number | null = null;
   openCharMenuIdx: number | null = null;
+  showLeaveModal: boolean = false;
   showSuccessModal: boolean = false;
   createdServiceId: string | null = null;
 
@@ -108,6 +109,8 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy {
       .subscribe(ev => {
         if (ev.type === 'ChangedSession') {
           this.initPartyInfo();
+        } else if (ev.type === 'LeaveServiceSpecEditorRequest') {
+          this.onBackClick();
         }
       })
   }
@@ -142,7 +145,13 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy {
     }
   }
 
+  ngDoCheck() {
+    const open = !!(this.showCreateChar || this.showSuccessModal || this.showLeaveModal);
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+
   ngOnDestroy() {
+    document.body.style.overflow = '';
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -161,6 +170,54 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy {
 
   goBack() {
     this.eventMessage.emitSellerServiceSpec(true);
+  }
+
+  onBackClick(): void {
+    if (!this.isEditMode && this.hasAnyDraftData()) {
+      this.showLeaveModal = true;
+    } else {
+      this.goBack();
+    }
+  }
+
+  hasAnyDraftData(): boolean {
+    return !!(
+      this.generalForm.value.name ||
+      this.generalForm.value.description ||
+      this.prodChars.length > 0 ||
+      this.charsForm.value.name ||
+      this.charsForm.value.description ||
+      this.creatingChars.length > 0 ||
+      this.stringValue ||
+      this.numberValue ||
+      this.numberUnit ||
+      this.fromValue ||
+      this.toValue ||
+      this.rangeUnit
+    );
+  }
+
+  cancelLeave(): void {
+    this.showLeaveModal = false;
+  }
+
+  discardLeave(): void {
+    this.showLeaveModal = false;
+    this.goBack();
+  }
+
+  canSaveDraftServiceSpec(): boolean {
+    return !this.loading && this.generalForm.valid;
+  }
+
+  confirmLeave(): void {
+    if (!this.canSaveDraftServiceSpec()) {
+      this.generalForm.markAllAsTouched();
+      return;
+    }
+
+    this.showLeaveModal = false;
+    this.persistService(false);
   }
 
   finishAsDraft() {
@@ -467,6 +524,10 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy {
   }
 
   createService() {
+    this.persistService(true);
+  }
+
+  private persistService(showReadyModal: boolean) {
     this.buildServiceToCreate();
     this.loading = true;
     if (this.isEditMode && this.createdServiceId) {
@@ -474,7 +535,11 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy {
       this.servSpecService.updateServSpec(patchBody, this.createdServiceId).subscribe({
         next: (data: any) => {
           this.loading = false;
-          this.showSuccessModal = true;
+          if (showReadyModal) {
+            this.showSuccessModal = true;
+          } else {
+            this.finishAsDraft();
+          }
         },
         error: error => {
           console.error('There was an error while updating!', error);
@@ -490,7 +555,11 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy {
       next: (data: any) => {
         this.loading = false;
         this.createdServiceId = data?.id || null;
-        this.showSuccessModal = true;
+        if (showReadyModal) {
+          this.showSuccessModal = true;
+        } else {
+          this.finishAsDraft();
+        }
       },
       error: error => {
         console.error('There was an error while creating!', error);

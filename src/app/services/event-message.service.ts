@@ -16,7 +16,7 @@ export interface EventMessage {
   'AdminCategories' | 'CreateCategory' | 'UpdateCategory' | 'ShowCartToast' | 'HideCartToast' | 'CloseContact' | 'OpenServiceDetails' | 'OpenResourceDetails' | 'OpenProductInvDetails' |
   'SavePricePlan' | 'UpdatePricePlan' | 'ToggleEditPrice' | 'ToggleNewPrice' |
   'SubformChange' | 'CloseFeedback' | 'UpdateOffer' | 'CloseQuoteRequest' | 'UpdateUsageSpec' | 'UsageSpecList' | 'CreateUsageSpec' | 'AiSearchFacets' | 'AiSearchCleared' |
-  'FiltersCommitted' | 'SpecCreated' | 'LeaveOfferEditorRequest' | 'LeaveProductSpecEditorRequest' | 'UsageSpecChanged' | 'ProviderStatsLoaded' | 'ProviderStatsTransition';
+  'FiltersCommitted' | 'SpecCreated' | 'LeaveOfferEditorRequest' | 'LeaveProductSpecEditorRequest' | 'LeaveServiceSpecEditorRequest' | 'LeaveResourceSpecEditorRequest' | 'UsageSpecChanged' | 'ProviderStatsLoaded' | 'ProviderStatsTransition';
   text?: string,
   toastType?: 'success' | 'error',
   refreshCounts?: boolean,
@@ -139,6 +139,14 @@ export class EventMessageService {
 
   emitLeaveProductSpecEditorRequest(){
     this.eventMessageSubject.next({ type: 'LeaveProductSpecEditorRequest' });
+  }
+
+  emitLeaveServiceSpecEditorRequest(){
+    this.eventMessageSubject.next({ type: 'LeaveServiceSpecEditorRequest' });
+  }
+
+  emitLeaveResourceSpecEditorRequest(){
+    this.eventMessageSubject.next({ type: 'LeaveResourceSpecEditorRequest' });
   }
 
   emitSellerCatalog(show:boolean){
