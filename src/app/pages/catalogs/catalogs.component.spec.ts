@@ -171,8 +171,26 @@ describe('CatalogsComponent', () => {
     expect(fixture.nativeElement.querySelector('input[type="search"]')).not.toBeNull();
   });
 
-  it('should hide search and ignore keywords for organization-backed provider directories', async () => {
+  it('should render search and pass keywords for organization-backed provider directories', async () => {
     Object.defineProperty(directorySource, 'mode', { value: 'provider' });
+    fixture.detectChanges();
+    await flushPromises();
+    fixture.detectChanges();
+
+    expect(component.canSearchDirectory).toBeTrue();
+    expect(fixture.nativeElement.querySelector('input[type="search"]')).not.toBeNull();
+
+    component.searchField.setValue('cloud');
+    component.filterProviders();
+    await flushPromises();
+
+    expect(directorySource.loadPage.calls.mostRecent().args[0]).toEqual(jasmine.objectContaining({
+      keyword: 'cloud'
+    }));
+  });
+
+  it('should hide search and ignore keywords when search is disabled', async () => {
+    component.searchEnabled = false;
     fixture.detectChanges();
     await flushPromises();
     fixture.detectChanges();
