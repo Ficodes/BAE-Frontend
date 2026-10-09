@@ -6,6 +6,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { OrganizationDetailsComponent } from './organization-details.component';
+import { environment } from 'src/environments/environment';
 
 describe('OrganizationDetailsComponent', () => {
   let component: OrganizationDetailsComponent;
@@ -26,6 +27,14 @@ describe('OrganizationDetailsComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should use the same services page size in organization and catalog modes', () => {
+    component.mode = 'organization';
+    expect((component as any).servicePageSize).toBe(environment.PRODUCT_LIMIT);
+
+    component.mode = 'catalog';
+    expect((component as any).servicePageSize).toBe(environment.PRODUCT_LIMIT);
   });
 
   it('should render contact medium title from contactType', () => {

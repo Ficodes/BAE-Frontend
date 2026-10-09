@@ -29,7 +29,6 @@ type ToolbarFilter = {
 type OrganizationDetailsMode = 'catalog' | 'organization';
 type ContactMediumKind = 'email' | 'phone' | 'address' | 'website';
 const CONTACT_MEDIUM_KIND_ORDER: ContactMediumKind[] = ['email', 'phone', 'address'];
-const ORGANIZATION_MODE_PRODUCT_LIMIT = 300;
 
 interface DisplayContactMedium {
   kind: ContactMediumKind;
@@ -112,7 +111,7 @@ export class OrganizationDetailsComponent implements OnInit, AfterViewInit, OnDe
   ];
   get serviceSortLabel() { return this.serviceSortOptions.find(o => o.value === this.serviceSort)?.label ?? ''; }
   private get servicePageSize(): number {
-    return this.mode === 'organization' ? ORGANIZATION_MODE_PRODUCT_LIMIT : environment.PRODUCT_LIMIT;
+    return environment.PRODUCT_LIMIT;
   }
 
   private destroy$ = new Subject<void>();
