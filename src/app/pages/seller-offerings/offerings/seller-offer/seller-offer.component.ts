@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import {faIdCard, faSort, faSwatchbook, faSparkles} from "@fortawesome/pro-solid-svg-icons";
@@ -13,6 +13,9 @@ import { initFlowbite } from 'flowbite';
 import { PriceServiceService } from 'src/app/services/price-service.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
+import { formatApiErrorMessage } from 'src/app/shared/error-message/api-error-message';
+import { LifecycleStatus, ProviderStats, tabCountsFromProviderStats } from 'src/app/models/provider-stats.model';
 
 @Component({
   selector: 'seller-offer',
@@ -35,9 +38,31 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
   loading_more: boolean = false;
   page_check:boolean = true;
   filter:any=undefined;
-  status:any[]=['Active','Launched'];
+  status:any[]=['Active'];
+  selectedTab: string = 'Draft';
+  readonly tabs: string[] = ['Draft', 'Published', 'Retired', 'Deleted'];
+  tabStatusMap: { [k: string]: LifecycleStatus[] } = {
+    Draft: ['Active'],
+    Published: ['Launched'],
+    Retired: ['Retired'],
+    Deleted: ['Obsolete']
+  };
+  statusCounts: { [k: string]: number } = { Draft: 0, Published: 0, Retired: 0, Deleted: 0 };
+  totalViewsCount: number = 0;
+  offersDelta: number = 0;
+  publishedDelta: number = 2;
+  viewsDelta: number = 18;
+  openMenuIdx: number | null = null;
+  deleteConfirmation: any | null = null;
+  deleteLoading: boolean = false;
+
+  get totalOffersCount(): number {
+    return Object.entries(this.statusCounts)
+      .filter(([tab]) => tab !== 'Deleted')
+      .reduce((sum, [, n]) => sum + (n || 0), 0);
+  }
   partyId:any;
-  sort:any=undefined;
+  sort:any='name';
   isBundle:any=undefined;
   customMap: Record<string, boolean> = {};
   private destroy$ = new Subject<void>();
@@ -49,7 +74,8 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
     private paginationService: PaginationService,
-    private priceService: PriceServiceService
+    private priceService: PriceServiceService,
+    private translate: TranslateService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -57,30 +83,17 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
       if(ev.type === 'ChangedSession') {
         this.initOffers();
       }
+      if(ev.type === 'ProviderStatsLoaded') {
+        this.applyProviderStats(ev.value as ProviderStats);
+      }
     })
-  }
-
-  private searchInputListener = (_e: Event) => {
-    console.log(`Input updated`)
-    if (this.searchField.value == '') {
-      this.filter = undefined;
-      this.getOffers(false);
-    }
   }
 
   ngOnInit() {
     this.initOffers();
-    const input = document.querySelector('[type=search]')
-    if (input != undefined) {
-      input.addEventListener('input', this.searchInputListener);
-    }
   }
 
   ngOnDestroy(){
-    const input = document.querySelector('[type=search]')
-    if (input != undefined) {
-      input.removeEventListener('input', this.searchInputListener);
-    }
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -97,6 +110,16 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     this.offers=[];
     this.nextOffers=[];
     this.getOffers(false);
+    this.loadStatusCounts();
+    let input = document.querySelector('[type=search]')
+    if(input!=undefined){
+      input.addEventListener('input', e => {
+        if(this.searchField.value==''){
+          this.filter=undefined;
+          this.getOffers(false);
+        }
+      });
+    }
     initFlowbite();
   }
 
@@ -120,47 +143,299 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
     if(next == false){
       this.loading=true;
     }
-    
+
     let options = {
       "filters": this.status,
       "partyId": this.partyId,
       "sort": this.sort,
       "isBundle": this.isBundle
     }
-    
-    try {
-      const data = await this.paginationService.getItemsPaginated(this.page, this.PROD_SPEC_LIMIT, next, this.offers,this.nextOffers, options,
-        this.api.getProductOfferByOwner.bind(this.api));
+
+    this.paginationService.getItemsPaginated(this.page, this.PROD_SPEC_LIMIT, next, this.offers,this.nextOffers, options,
+      this.api.getProductOfferByOwner.bind(this.api)).then(async data => {
       this.page_check=data.page_check;
-      this.offers=data.items;
-      this.nextOffers=data.nextItems;
+      this.offers=this.sortByName(data.items);
+      this.nextOffers=this.sortByName(data.nextItems);
       this.page=data.page;
+      this.loading=false;
+      this.loading_more=false;
 
       this.customMap={}
       for (const offer of this.offers) {
         this.customMap[offer.id] = await this.priceService.isCustomOffering(offer);
       }
-    } finally {
-      this.loading=false;
-      this.loading_more=false;
-    }
+    })
 
   }
 
+  private sortByName(items: any[]): any[] {
+    if (!Array.isArray(items)) return items;
+    return [...items].sort((a, b) => (a?.name || '').localeCompare(b?.name || ''));
+  }
+
   async next(){
-    this.loading_more = true;
     await this.getOffers(true);
+  }
+
+  selectTab(tab: string) {
+    if (tab === this.selectedTab) return;
+    this.selectedTab = tab;
+    this.status = [...this.tabStatusMap[tab]];
+    this.page = 0;
+    this.getOffers(false);
+  }
+
+  loadStatusCounts() {
+    this.applyProviderStats((this.eventMessage as any).getLatestProviderStats?.() ?? null);
+  }
+
+  private applyProviderStats(stats: ProviderStats | null): void {
+    this.statusCounts = tabCountsFromProviderStats(stats, 'productOffering', this.tabStatusMap);
+    this.cdr.detectChanges();
+  }
+
+  toggleMenu(idx: number, event: Event){
+    event.stopPropagation();
+    this.openMenuIdx = this.openMenuIdx === idx ? null : idx;
+  }
+
+  @HostListener('document:click')
+  onDocClick(){
+    if(this.openMenuIdx !== null){
+      this.openMenuIdx = null;
+      this.cdr.detectChanges();
+    }
+  }
+
+  rowStatusBadge(offer: any): { text: string, bg: string, color: string } {
+    if(offer?.lifecycleStatus === 'Launched'){
+      return { text: 'Published', bg: 'rgb(var(--theme-status-success-bg))', color: 'rgb(var(--theme-status-success-text))' };
+    }
+    if(offer?.lifecycleStatus === 'Retired'){
+      return { text: 'Unpublished', bg: 'rgb(var(--theme-status-warning-bg))', color: 'rgb(var(--theme-status-warning-text))' };
+    }
+    if(offer?.lifecycleStatus === 'Obsolete'){
+      return { text: 'Archived', bg: 'rgb(var(--theme-status-danger-bg))', color: 'rgb(var(--theme-status-danger-text))' };
+    }
+    if(this.isOfferComplete(offer)){
+      return { text: 'Ready to be published', bg: 'rgb(var(--theme-status-ready-bg))', color: 'rgb(var(--theme-status-ready-text))' };
+    }
+    return { text: 'Not completed', bg: 'rgb(var(--theme-status-warning-bg))', color: 'rgb(var(--theme-status-warning-text))' };
+  }
+
+  isOfferComplete(offer: any): boolean {
+    if (!offer?.name) return false;
+    const hasSpec = !!(offer?.productSpecification?.id || (Array.isArray(offer?.bundledProductOffering) && offer.bundledProductOffering.length > 0));
+    if (!hasSpec) return false;
+    if (!Array.isArray(offer?.category) || offer.category.length === 0) return false;
+    const terms = Array.isArray(offer?.productOfferingTerm) ? offer.productOfferingTerm : [];
+    const hasProcurement = terms.some((t: any) => t?.name === 'procurement' && (t?.description || '').trim().length > 0);
+    return hasProcurement;
+  }
+
+  private emitApiError(errorKey: string, error: any): void {
+    this.eventMessage.emitSpecCreated(
+      formatApiErrorMessage(this.translate, errorKey, error),
+      'error'
+    );
+  }
+
+  publishOffer(offer: any){
+    if(!offer?.id) return;
+    this.openMenuIdx = null;
+    if(!this.isOfferComplete(offer)){
+      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._publish_incomplete_error'), 'error');
+      return;
+    }
+    this.api.updateProductOffering({ lifecycleStatus: 'Launched' }, offer.id).subscribe({
+      next: () => {
+        this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_publish_success'));
+        this.eventMessage.emitProviderStatsTransition({
+          entity: 'productOffering',
+          previousLifecycleStatus: offer.lifecycleStatus as LifecycleStatus,
+          nextLifecycleStatus: 'Launched'
+        });
+        this.getOffers(false);
+        this.loadStatusCounts();
+      },
+      error: (error: any) => {
+        this.emitApiError('OFFERINGS._offer_publish_error', error);
+      }
+    });
+  }
+
+  unpublishOffer(offer: any){
+    if(!offer?.id) return;
+    this.openMenuIdx = null;
+    this.api.updateProductOffering({ lifecycleStatus: 'Retired' }, offer.id).subscribe({
+      next: () => {
+        this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_unpublish_success'));
+        this.eventMessage.emitProviderStatsTransition({
+          entity: 'productOffering',
+          previousLifecycleStatus: offer.lifecycleStatus as LifecycleStatus,
+          nextLifecycleStatus: 'Retired'
+        });
+        this.getOffers(false);
+        this.loadStatusCounts();
+      },
+      error: (error: any) => {
+        this.emitApiError('OFFERINGS._offer_unpublish_error', error);
+      }
+    });
+  }
+
+  duplicateOffer(offer: any){
+    if(!offer?.id) return;
+    this.openMenuIdx = null;
+    const copy: any = {
+      name: 'Copy of ' + (offer.name || 'offer'),
+      description: offer.description,
+      lifecycleStatus: 'Active',
+      isBundle: offer.isBundle ?? false,
+      version: offer.version,
+      place: offer.place ?? [],
+      validFor: { startDateTime: new Date().toISOString() },
+      category: (offer.category || []).map((c: any) => ({ id: c.id, href: c.href || c.id })),
+      productOfferingPrice: (offer.productOfferingPrice || []).map((p: any) => ({ id: p.id, href: p.href || p.id })),
+      productOfferingTerm: (offer.productOfferingTerm || []).map((t: any) => ({ name: t.name, description: t.description })),
+    };
+    if (offer.bundledProductOffering) {
+      copy.bundledProductOffering = offer.bundledProductOffering;
+    }
+    if (offer.productSpecification?.id) {
+      copy.productSpecification = {
+        id: offer.productSpecification.id,
+        href: offer.productSpecification.href || offer.productSpecification.id
+      };
+    }
+    if (Array.isArray(offer.pricingLogicAlgorithm) && offer.pricingLogicAlgorithm.length > 0) {
+      copy.pricingLogicAlgorithm = offer.pricingLogicAlgorithm.map((p: any) => ({ name: p.name, plaSpecId: p.plaSpecId }));
+    }
+    const catalogId = Array.isArray(offer.catalog) && offer.catalog.length > 0 ? offer.catalog[0].id : null;
+    this.api.postProductOffering(copy, catalogId).subscribe({
+      next: () => {
+        this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_duplicate_success'));
+        this.eventMessage.emitProviderStatsTransition({
+          entity: 'productOffering',
+          previousLifecycleStatus: null,
+          nextLifecycleStatus: 'Active'
+        });
+        this.getOffers(false);
+        this.loadStatusCounts();
+      },
+      error: (error: any) => {
+        this.emitApiError('OFFERINGS._offer_duplicate_error', error);
+      }
+    });
+  }
+
+  restoreOffer(offer: any){
+    if(!offer?.id) return;
+    this.openMenuIdx = null;
+    const onSuccess = () => {
+      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_restore_success'));
+      this.eventMessage.emitProviderStatsTransition({
+        entity: 'productOffering',
+        previousLifecycleStatus: offer.lifecycleStatus as LifecycleStatus,
+        nextLifecycleStatus: 'Active'
+      });
+      this.getOffers(false);
+      this.loadStatusCounts();
+    };
+    const onError = (err: any) => {
+      console.error('Product offer restore failed', err);
+      this.emitApiError('OFFERINGS._offer_restore_error', err);
+    };
+    this.api.updateProductOffering({ lifecycleStatus: 'Retired' }, offer.id).subscribe({
+      next: () => {
+        this.api.updateProductOffering({ lifecycleStatus: 'Active' }, offer.id).subscribe({
+          next: onSuccess,
+          error: onError
+        });
+      },
+      error: onError
+    });
+  }
+
+  cancelDeleteOffer(): void {
+    if (this.deleteLoading) return;
+    this.deleteConfirmation = null;
+  }
+
+  confirmDeleteOffer(): void {
+    if (!this.deleteConfirmation || this.deleteLoading) return;
+    const offer = this.deleteConfirmation;
+    this.deleteLoading = true;
+    this.performDeleteOffer(offer);
+  }
+
+  get deleteOfferTitleKey(): string {
+    return 'OFFERINGS._delete_offer_title';
+  }
+
+  get deleteOfferDescriptionKey(): string {
+    return 'OFFERINGS._delete_offer_desc';
+  }
+
+  get deleteOfferConfirmKey(): string {
+    return 'OFFERINGS._delete';
+  }
+
+  get deleteOfferName(): string {
+    return this.deleteConfirmation?.name || '';
+  }
+
+  private clearDeleteConfirmation(): void {
+    this.deleteLoading = false;
+    this.deleteConfirmation = null;
+  }
+
+  deleteOffer(offer: any){
+    if(!offer?.id) return;
+    this.openMenuIdx = null;
+    this.deleteConfirmation = offer;
+  }
+
+  private performDeleteOffer(offer: any){
+    const onSuccess = () => {
+      this.clearDeleteConfirmation();
+      this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._offer_delete_success'));
+      this.eventMessage.emitProviderStatsTransition({
+        entity: 'productOffering',
+        previousLifecycleStatus: offer.lifecycleStatus as LifecycleStatus,
+        nextLifecycleStatus: 'Obsolete'
+      });
+      this.getOffers(false);
+      this.loadStatusCounts();
+    };
+    const onError = (err: any) => {
+      this.clearDeleteConfirmation();
+      console.error('Product offer delete failed', err);
+      this.emitApiError('OFFERINGS._offer_delete_error', err);
+    };
+    if(offer.lifecycleStatus === 'Launched'){
+      this.api.updateProductOffering({ lifecycleStatus: 'Retired' }, offer.id).subscribe({
+        next: () => {
+          this.api.updateProductOffering({ lifecycleStatus: 'Obsolete' }, offer.id).subscribe({
+            next: onSuccess,
+            error: onError
+          });
+        },
+        error: onError
+      });
+    } else {
+      this.api.updateProductOffering({ lifecycleStatus: 'Obsolete' }, offer.id).subscribe({
+        next: onSuccess,
+        error: onError
+      });
+    }
   }
 
   onStateFilterChange(filter:string){
     const index = this.status.findIndex(item => item === filter);
     if (index !== -1) {
       this.status.splice(index, 1);
-      console.log('elimina filtro')
-      console.log(this.status)
     } else {
-      console.log('añade filtro')
-      console.log(this.status)
       this.status.push(filter)
     }
     this.getOffers(false);
@@ -196,7 +471,7 @@ export class SellerOfferComponent implements OnInit, OnDestroy {
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
-    }   
+    }
   }
 
 }

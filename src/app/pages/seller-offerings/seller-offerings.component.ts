@@ -6,12 +6,34 @@ import {components} from "src/app/models/product-catalog";
 type Catalog = components["schemas"]["Catalog"];
 import { environment } from 'src/environments/environment';
 import { ApiServiceService } from 'src/app/services/product-service.service';
+import {LocalStorageService} from "src/app/services/local-storage.service";
+import { LoginInfo } from 'src/app/models/interfaces';
 import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "../../services/event-message.service";
-import moment from 'moment';
 import { firstValueFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { QuoteService } from 'src/app/features/quotes/services/quote.service';
+import { ThemeService } from 'src/app/services/theme.service';
+import { WorkspaceHelpConfig } from 'src/app/themes';
+import { countStatuses, ProviderStats } from 'src/app/models/provider-stats.model';
+import { StatsServiceService } from 'src/app/services/stats-service.service';
+
+type SellerWorkspaceSection = 'catalogs' | 'offers' | 'productspec' | 'servicespec' | 'resourcespec' | 'usagespec';
+type SellerWorkspaceView =
+  | SellerWorkspaceSection
+  | 'createProductSpec'
+  | 'updateProductSpec'
+  | 'createServiceSpec'
+  | 'updateServiceSpec'
+  | 'createResourceSpec'
+  | 'updateResourceSpec'
+  | 'createOffer'
+  | 'updateOffer'
+  | 'createCatalog'
+  | 'updateCatalog'
+  | 'createCustomOffer'
+  | 'createUsage'
+  | 'updateUsage';
 
 @Component({
   selector: 'app-seller-offerings',
@@ -20,46 +42,74 @@ import { QuoteService } from 'src/app/features/quotes/services/quote.service';
 })
 export class SellerOfferingsComponent implements OnInit, OnDestroy {
 
-  show_catalogs: boolean = true;
-  show_prod_specs: boolean = false;
-  show_service_specs: boolean = false;
-  show_resource_specs: boolean = false;
-  show_offers: boolean = false;
-  show_create_prod_spec: boolean = false;
-  show_create_res_spec: boolean = false;
-  show_create_serv_spec: boolean = false;
-  show_create_offer: boolean = false;
-  show_create_catalog:boolean = false;
-  show_update_prod_spec:boolean=false;
-  show_update_serv_spec:boolean=false;
-  show_update_res_spec:boolean=false;
-  show_update_offer:boolean=false;
-  show_update_catalog:boolean=false;
-  show_create_custom_offer:boolean=false;
+  catalogManagementEnabled: boolean = environment.CATALOG_MANAGEMENT_ENABLED;
+  activeView: SellerWorkspaceView = this.catalogManagementEnabled ? 'catalogs' : 'offers';
+  usage_to_update:any;
   prod_to_update:any;
   serv_to_update:any;
   res_to_update:any;
   offer_to_update:any;
   custom_offer_partyId:any=null;
   catalog_to_update:any;
-  activeSection: string = 'catalogs'; // default
-  sectionActions : Record<string, () => void> = {
+  userInfo:any;
+  productOffersCount: number = 0;
+  catalogsCount: number = 0;
+  productSpecsCount: number = 0;
+  serviceSpecsCount: number = 0;
+  resourceSpecsCount: number = 0;
+  usageSpecsCount: number = 0;
+  workspaceLogoUrl: string | null = null;
+  workspaceThemeName: string = 'DOME';
+  workspaceHelpAction?: WorkspaceHelpConfig;
+  userInitials: string = '';
+  activeSection: SellerWorkspaceSection = this.catalogManagementEnabled ? 'catalogs' : 'offers';
+  toastMessage: string | null = null;
+  toastType: 'success' | 'error' = 'success';
+  sectionActions : Record<SellerWorkspaceSection, () => void> = {
     catalogs: this.goToCatalogs,
     offers: this.goToOffers,
     productspec: this.goToProdSpec,
     servicespec: this.goToServiceSpec,
-    resourcespec: this.goToResourceSpec
+    resourcespec: this.goToResourceSpec,
+    usagespec: this.goToUsageSpec
   };
   //partyIdCustom:string='urn:ngsi-ld:organization:02922d6d-2e7e-4235-a1aa-4f393a75bc52'
   //partyIdCustom:any=null
   private destroy$ = new Subject<void>();
 
+  get show_catalogs(): boolean { return this.activeView === 'catalogs'; }
+  get show_prod_specs(): boolean { return this.activeView === 'productspec'; }
+  get show_service_specs(): boolean { return this.activeView === 'servicespec'; }
+  get show_resource_specs(): boolean { return this.activeView === 'resourcespec'; }
+  get show_usage_specs(): boolean { return this.activeView === 'usagespec'; }
+  get show_offers(): boolean { return this.activeView === 'offers'; }
+  get show_create_prod_spec(): boolean { return this.activeView === 'createProductSpec'; }
+  get show_create_res_spec(): boolean { return this.activeView === 'createResourceSpec'; }
+  get show_create_serv_spec(): boolean { return this.activeView === 'createServiceSpec'; }
+  get show_create_offer(): boolean { return this.activeView === 'createOffer'; }
+  get show_create_catalog(): boolean { return this.activeView === 'createCatalog'; }
+  get show_update_prod_spec(): boolean { return this.activeView === 'updateProductSpec'; }
+  get show_update_serv_spec(): boolean { return this.activeView === 'updateServiceSpec'; }
+  get show_update_res_spec(): boolean { return this.activeView === 'updateResourceSpec'; }
+  get show_update_offer(): boolean { return this.activeView === 'updateOffer'; }
+  get show_update_catalog(): boolean { return this.activeView === 'updateCatalog'; }
+  get show_create_custom_offer(): boolean { return this.activeView === 'createCustomOffer'; }
+  get show_create_usage(): boolean { return this.activeView === 'createUsage'; }
+  get show_update_usage(): boolean { return this.activeView === 'updateUsage'; }
+
+  get showWorkspaceNav(): boolean {
+    return ['catalogs', 'offers', 'productspec', 'servicespec', 'resourcespec', 'usagespec'].includes(this.activeView);
+  }
+
   constructor(
+    private localStorage: LocalStorageService,
     private cdr: ChangeDetectorRef,
     private eventMessage: EventMessageService,
     private router: Router,
     private quoteService: QuoteService,
-    private api: ApiServiceService
+    private api: ApiServiceService,
+    private themeService: ThemeService,
+    private statsService: StatsServiceService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -82,16 +132,38 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
       if(ev.type === 'SellerCreateResourceSpec' && ev.value == true) {
         this.goToCreateResSpec();
       }
+      if(ev.type === 'UsageSpecList' && ev.value == true) {
+        this.goToUsageSpec();
+      }
+      if(ev.type === 'CreateUsageSpec' && ev.value == true) {
+        this.goToCreateUsage();
+      }
+      if(ev.type === 'UpdateUsageSpec' && ev.value) {
+        this.usage_to_update = ev.value;
+        this.goToUpdateUsage();
+      }
+      if(ev.type === 'UsageSpecChanged') {
+        return;
+      }
+      if(ev.type === 'ProviderStatsLoaded') {
+        this.applyProviderStats(ev.value as ProviderStats | null);
+        this.cdr.detectChanges();
+      }
+      if(ev.type === 'ChangedSession') {
+        this.userInfo = (ev.value as LoginInfo) || (this.localStorage.getObject('login_items') as LoginInfo);
+        this.eventMessage.clearProviderStats();
+        this.loadCounts();
+      }
       if(ev.type === 'SellerOffer' && ev.value == true) {
         this.goToOffers();
       }
-      if(ev.type == 'SellerCatalog' && ev.value == true){
+      if(ev.type == 'SellerCatalog' && ev.value == true && this.catalogManagementEnabled){
         this.goToCatalogs();
       }
       if(ev.type === 'SellerCreateOffer' && ev.value == true) {
         this.goToCreateOffer();
       }
-      if(ev.type === 'SellerCatalogCreate' && ev.value == true) {
+      if(ev.type === 'SellerCatalogCreate' && ev.value == true && this.catalogManagementEnabled) {
         this.goToCreateCatalog();
       }
       if(ev.type === 'SellerUpdateProductSpec') {
@@ -116,20 +188,44 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
         this.custom_offer_partyId = evValue.partyId || null;
         this.goToCreateCustomOffer();
       }
-      if(ev.type === 'SellerCatalogUpdate') {
+      if(ev.type === 'SellerCatalogUpdate' && this.catalogManagementEnabled) {
         this.catalog_to_update=ev.value;
         this.goToUpdateCatalog();
+      }
+      if(ev.type === 'SpecCreated' && ev.text) {
+        this.toastMessage = ev.text;
+        this.toastType = ev.toastType ?? 'success';
+        setTimeout(() => { this.toastMessage = null; this.cdr.detectChanges(); }, 4000);
       }
     })
   }
 
+  dismissToast(){
+    this.toastMessage = null;
+  }
+
+  goToResources() {
+    const targetUrl = environment.KNOWLEDGE_BASE_URL || environment.KB_GUIDELNES_URL;
+    if (!targetUrl) return;
+
+    window.open(targetUrl, '_blank', 'noopener');
+  }
+
   async ngOnInit() {
-    const saved = localStorage.getItem('activeSection');
-    console.log(saved)
-    if (saved) this.activeSection = saved;
-    if (saved && this.sectionActions[saved]) {
-      this.sectionActions[saved].call(this); // bind `this` context
+    this.userInfo = this.localStorage.getObject('login_items') as LoginInfo;
+    const theme = this.themeService.getCurrentThemeConfig();
+    this.workspaceLogoUrl = theme?.assets?.logoUrl ?? null;
+    this.workspaceThemeName = theme?.displayName ?? 'DOME';
+    this.workspaceHelpAction = theme?.workspace?.sellerOfferingsHelp;
+    this.userInitials = this.computeInitials(this.userInfo);
+    const saved = localStorage.getItem('activeSection') as SellerWorkspaceSection | null;
+    const initialSection = this.normalizeSection(saved) || this.activeSection;
+    this.activeSection = initialSection;
+    if (this.sectionActions[initialSection]) {
+      this.sectionActions[initialSection].call(this);
     }
+
+    this.loadCounts();
 
     const state = history.state as { quoteId?: string };
     console.log('Checking state')
@@ -154,250 +250,131 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  setActiveSection(section: string) {
+  private computeInitials(info: any): string {
+    if (!info || JSON.stringify(info) === '{}') return '';
+    let label = '';
+    if (info.logged_as && info.id && info.logged_as !== info.id) {
+      const org = info.organizations?.find((o: any) => o.id === info.logged_as);
+      label = org?.name ?? '';
+    } else {
+      label = info.user ?? '';
+    }
+    return (label.slice(0, 2) || '').toUpperCase();
+  }
+
+  backToMarketplace() {
+    this.router.navigate(['/dashboard']);
+  }
+
+  async loadCounts() {
+    const organizationId = this.getProviderOrganizationId();
+    if (!organizationId) return;
+
+    try {
+      const stats = await this.statsService.getProviderStats(organizationId);
+      this.eventMessage.emitProviderStatsLoaded(stats);
+    } catch {
+      this.eventMessage.emitProviderStatsLoaded(null);
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  private getProviderOrganizationId(): string | null {
+    const aux = this.userInfo as LoginInfo;
+    if (!aux) return null;
+
+    if (aux.logged_as === aux.id) {
+      return aux.partyId || null;
+    }
+
+    const loggedOrg = aux.organizations?.find((e: any) => e.id === aux.logged_as);
+    return loggedOrg?.partyId || aux.partyId || null;
+  }
+
+  private applyProviderStats(stats: ProviderStats | null): void {
+    this.productOffersCount = countStatuses(stats, 'productOffering', ['Active', 'Launched', 'Retired']);
+    this.catalogsCount = this.catalogManagementEnabled
+      ? countStatuses(stats, 'catalog', ['Active', 'Launched', 'Retired'])
+      : 0;
+    this.productSpecsCount = countStatuses(stats, 'productSpecification', ['Active', 'Launched']);
+    this.serviceSpecsCount = countStatuses(stats, 'serviceSpecification', ['Active', 'Launched']);
+    this.resourceSpecsCount = countStatuses(stats, 'resourceSpecification', ['Active', 'Launched']);
+    this.usageSpecsCount = countStatuses(stats, 'usageSpecification', ['Active', 'Launched']);
+  }
+
+  private normalizeSection(section: string | null | undefined): SellerWorkspaceSection | null {
+    if (!section) return null;
+    if (section === 'catalogs' && !this.catalogManagementEnabled) return 'offers';
+    return ['catalogs', 'offers', 'productspec', 'servicespec', 'resourcespec', 'usagespec'].includes(section)
+      ? section as SellerWorkspaceSection
+      : null;
+  }
+
+  private activateView(view: SellerWorkspaceView, section?: SellerWorkspaceSection) {
+    if ((view === 'catalogs' || view === 'createCatalog' || view === 'updateCatalog') && !this.catalogManagementEnabled) {
+      this.goToOffers();
+      return;
+    }
+    this.activeView = view;
+    if (section) {
+      this.setActiveSection(section);
+    }
+    this.cdr.detectChanges();
+  }
+
+  setActiveSection(section: SellerWorkspaceSection) {
     this.activeSection = section;
     localStorage.setItem('activeSection', section);
     console.log('Saved to localStorage:', section);
   }
 
   goToCreateProdSpec(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=true;
-    this.show_create_serv_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.cdr.detectChanges();
+    this.activateView('createProductSpec');
   }
 
   goToUpdateProdSpec(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=true;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.cdr.detectChanges();
+    this.activateView('updateProductSpec');
   }
 
   goToCreateCatalog(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=true;
-    this.show_create_custom_offer=false;
-    this.cdr.detectChanges();
+    this.activateView('createCatalog');
   }
 
   goToUpdateCatalog(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_create_catalog=false;
-    this.show_update_catalog=true;
-    this.show_create_custom_offer=false;
-    this.cdr.detectChanges();
+    this.activateView('updateCatalog');
   }
 
   goToUpdateOffer(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=true;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.cdr.detectChanges();
+    this.activateView('updateOffer');
   }
 
   goToCreateCustomOffer(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=true;
-    this.cdr.detectChanges();
+    this.activateView('createCustomOffer');
   }
 
   goToUpdateServiceSpec(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=true;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.cdr.detectChanges();
+    this.activateView('updateServiceSpec');
   }
 
   goToUpdateResourceSpec(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=true;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.cdr.detectChanges();
+    this.activateView('updateResourceSpec');
   }
 
   goToCreateServSpec(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_serv_spec=true;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.cdr.detectChanges();
+    this.activateView('createServiceSpec');
   }
 
   goToCreateResSpec(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_serv_spec=false;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=true;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.cdr.detectChanges();
+    this.activateView('createResourceSpec');
   }
 
   goToCreateOffer(){
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_serv_spec=false;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_offer=true;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.cdr.detectChanges();
+    this.activateView('createOffer');
   }
 
   goToCatalogs(){
-    this.setActiveSection('catalogs');
-    this.selectCatalogs();
-    this.show_catalogs=true;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.cdr.detectChanges();
+    this.activateView('catalogs', 'catalogs');
   }
 
   selectCatalogs(){
@@ -407,33 +384,15 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     let resourceSpec_button = document.getElementById('res-spec-button')
     let offer_button = document.getElementById('offers-button')
 
-    this.selectMenu(catalog_button,'text-white bg-primary-100');
-    this.unselectMenu(prodSpec_button,'text-white bg-primary-100');
-    this.unselectMenu(serviceSpec_button,'text-white bg-primary-100');
-    this.unselectMenu(resourceSpec_button,'text-white bg-primary-100');
-    this.unselectMenu(offer_button,'text-white bg-primary-100');
+    this.selectMenu(catalog_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(prodSpec_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(serviceSpec_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(resourceSpec_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(offer_button,'text-offerings-on-dark bg-primary-100');
   }
 
   goToProdSpec(){
-    this.setActiveSection('productspec');
-    this.selectProdSpec();
-    this.show_catalogs=false;
-    this.show_prod_specs=true;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.cdr.detectChanges();
+    this.activateView('productspec', 'productspec');
   }
 
   selectProdSpec(){
@@ -443,33 +402,15 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     let resourceSpec_button = document.getElementById('res-spec-button')
     let offer_button = document.getElementById('offers-button')
 
-    this.selectMenu(prodSpec_button,'text-white bg-primary-100');
-    this.unselectMenu(catalog_button,'text-white bg-primary-100');
-    this.unselectMenu(serviceSpec_button,'text-white bg-primary-100');
-    this.unselectMenu(resourceSpec_button,'text-white bg-primary-100');
-    this.unselectMenu(offer_button,'text-white bg-primary-100');
+    this.selectMenu(prodSpec_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(catalog_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(serviceSpec_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(resourceSpec_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(offer_button,'text-offerings-on-dark bg-primary-100');
   }
 
   goToServiceSpec(){
-    this.setActiveSection('servicespec');
-    this.selectServiceSpec();
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=true;
-    this.show_resource_specs=false;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.cdr.detectChanges();
+    this.activateView('servicespec', 'servicespec');
   }
 
   selectServiceSpec(){
@@ -479,33 +420,15 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     let resourceSpec_button = document.getElementById('res-spec-button')
     let offer_button = document.getElementById('offers-button')
 
-    this.selectMenu(serviceSpec_button,'text-white bg-primary-100');
-    this.unselectMenu(catalog_button,'text-white bg-primary-100');
-    this.unselectMenu(prodSpec_button,'text-white bg-primary-100');
-    this.unselectMenu(resourceSpec_button,'text-white bg-primary-100');
-    this.unselectMenu(offer_button,'text-white bg-primary-100');
+    this.selectMenu(serviceSpec_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(catalog_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(prodSpec_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(resourceSpec_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(offer_button,'text-offerings-on-dark bg-primary-100');
   }
 
   goToResourceSpec(){
-    this.setActiveSection('resourcespec');
-    this.selectResourceSpec();
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=true;
-    this.show_offers=false;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.cdr.detectChanges();
+    this.activateView('resourcespec', 'resourcespec');
   }
 
   selectResourceSpec(){
@@ -515,33 +438,27 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     let resourceSpec_button = document.getElementById('res-spec-button')
     let offer_button = document.getElementById('offers-button')
 
-    this.selectMenu(resourceSpec_button,'text-white bg-primary-100');
-    this.unselectMenu(catalog_button,'text-white bg-primary-100');
-    this.unselectMenu(prodSpec_button,'text-white bg-primary-100');
-    this.unselectMenu(serviceSpec_button,'text-white bg-primary-100');
-    this.unselectMenu(offer_button,'text-white bg-primary-100');
+    this.selectMenu(resourceSpec_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(catalog_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(prodSpec_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(serviceSpec_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(offer_button,'text-offerings-on-dark bg-primary-100');
+  }
+
+  goToUsageSpec(){
+    this.activateView('usagespec', 'usagespec');
+  }
+
+  goToCreateUsage(){
+    this.activateView('createUsage');
+  }
+
+  goToUpdateUsage(){
+    this.activateView('updateUsage');
   }
 
   goToOffers(){
-    this.setActiveSection('offers');
-    this.selectOffers();
-    this.show_catalogs=false;
-    this.show_prod_specs=false;
-    this.show_service_specs=false;
-    this.show_resource_specs=false;
-    this.show_offers=true;
-    this.show_create_prod_spec=false;
-    this.show_create_res_spec=false;
-    this.show_create_serv_spec=false;
-    this.show_create_offer=false;
-    this.show_update_prod_spec=false;
-    this.show_update_res_spec=false;
-    this.show_update_serv_spec=false;
-    this.show_update_offer=false;
-    this.show_update_catalog=false;
-    this.show_create_catalog=false;
-    this.show_create_custom_offer=false;
-    this.cdr.detectChanges();
+    this.activateView('offers', 'offers');
   }
 
   selectOffers(){
@@ -551,11 +468,11 @@ export class SellerOfferingsComponent implements OnInit, OnDestroy {
     let resourceSpec_button = document.getElementById('res-spec-button')
     let offer_button = document.getElementById('offers-button')
 
-    this.selectMenu(offer_button,'text-white bg-primary-100');
-    this.unselectMenu(catalog_button,'text-white bg-primary-100');
-    this.unselectMenu(prodSpec_button,'text-white bg-primary-100');
-    this.unselectMenu(serviceSpec_button,'text-white bg-primary-100');
-    this.unselectMenu(resourceSpec_button,'text-white bg-primary-100');
+    this.selectMenu(offer_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(catalog_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(prodSpec_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(serviceSpec_button,'text-offerings-on-dark bg-primary-100');
+    this.unselectMenu(resourceSpec_button,'text-offerings-on-dark bg-primary-100');
   }
 
   removeClass(elem: HTMLElement, cls:string) {

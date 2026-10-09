@@ -543,6 +543,40 @@ describe('UpdateProductSpecComponent', () => {
     expect(component.complianceLevel).toBe('P');
   });
 
+  it('populateProductInfo should decode root-level Compliance:VC credentials', () => {
+    const vcToken = asJwt({
+      credentialSubject: {
+        id: 'urn:ngsi-ld:product-specification:7436c6e6-5d98-491d-b160-fed5bc9aeb49',
+        'gx:labelLevel': 'BL',
+        'gx:engineVersion': '1.2.1',
+        'gx:rulesVersion': 'CD25.03',
+        'gx:compliantCredentials': [],
+        'gx:validatedCriteria': []
+      },
+      type: [
+        'VerifiableCredential',
+        'gx.labelcredential.w3c.2'
+      ]
+    });
+
+    component.prod = {
+      ...component.prod,
+      productSpecCharacteristic: [
+        {
+          id: 'urn:ngsi-ld:characteristic:vc-id',
+          name: 'Compliance:VC',
+          productSpecCharacteristicValue: [{ isDefault: true, value: vcToken }]
+        }
+      ]
+    } as any;
+
+    component.populateProductInfo();
+
+    expect(component.complianceVCId).toBe('urn:ngsi-ld:characteristic:vc-id');
+    expect(component.complianceVC).toBe(vcToken);
+    expect(component.complianceLevel).toBe('BL');
+  });
+
   it('hasUnsavedComplianceProfileChanges should return false when compliance profile matches persisted data', () => {
     component.prod = {
       ...component.prod,
@@ -941,7 +975,7 @@ describe('UpdateProductSpecComponent', () => {
   it('selectStep should select active step and update menu classes', () => {
     const selectSpy = spyOn(component, 'selectMenu');
     const unselectSpy = spyOn(component, 'unselectMenu');
-    spyOn(document, 'getElementById').and.returnValue({ className: 'text-gray-500 border-gray-400' } as any);
+    spyOn(document, 'getElementById').and.returnValue({ className: 'text-offerings-muted-text border-offerings-border-strong' } as any);
     component.selectStep('general-info', 'general-circle');
     expect(selectSpy).toHaveBeenCalled();
     expect(unselectSpy).toHaveBeenCalled();

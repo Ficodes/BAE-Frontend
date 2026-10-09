@@ -55,6 +55,18 @@ export class UsageSpecGeneralInfoComponent implements OnInit, OnDestroy {
     return control instanceof FormControl ? control : null;
   }
 
+  get showUniqueNameError(): boolean {
+    return !!this.nameControl
+      && this.formGroup.hasError('nonUniqueName')
+      && (this.nameControl.dirty || this.nameControl.touched);
+  }
+
+  get showNameError(): boolean {
+    return !!this.nameControl
+      && (this.nameControl.dirty || this.nameControl.touched)
+      && (this.nameControl.invalid || this.formGroup.hasError('nonUniqueName'));
+  }
+
   ngOnInit() {
     console.log('📝 Initializing form in', this.formType, 'mode');
     this.isEditMode = this.formType === 'update';

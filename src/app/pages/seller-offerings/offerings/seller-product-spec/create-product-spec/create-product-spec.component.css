@@ -1,13 +1,17 @@
-.floating-div {
-    position: relative; /* Position the div relative to its normal position */
-    top: -50px; /* Adjust as needed */
-    left: 50%; /* Adjust as needed */
-    transform: translateX(-50%); /* Center horizontally */
-    padding: 10px;
-    border-radius: 5px;
-    /* Additional styles for the floating div */
-  }
+:host {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
 
-  .disabled {
-    cursor: not-allowed; /* Change the cursor when the div is disabled */
-  }
+.dashed-pane {
+  border: 1px dashed rgb(var(--theme-offerings-dashed-border));
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashed-pane-error {
+  border-color: rgb(var(--theme-status-danger-border));
+}

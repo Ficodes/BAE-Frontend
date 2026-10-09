@@ -2,10 +2,9 @@ import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import moment from "moment";
 import { Observer } from "rxjs";
-
+import { applyRuntimeSearchFiltersConfig } from "src/app/data/availableFilters";
 import { applyRuntimeFeaturesConfig } from "src/app/data/featuresConfig";
 import { environment } from "src/environments/environment";
-import { applyRuntimeSearchFiltersConfig } from '../data/availableFilters';
 
 @Injectable({
   providedIn: 'root'

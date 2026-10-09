@@ -22,6 +22,73 @@ body.theme-bae {
   /* CARD/MODAL BG COLOR */
   --theme-tertiary-100: 27 45 39;
 
+  /* My offerings semantic tokens */
+  --theme-offerings-page-bg: 247 250 249;
+  --theme-offerings-surface-bg: 255 255 255;
+  --theme-offerings-subtle-surface-bg: 249 250 251;
+  --theme-offerings-muted-bg: 235 236 238;
+  --theme-offerings-neutral-bg: 242 244 247;
+  --theme-offerings-selected-bg: 236 253 245;
+  --theme-offerings-selected-border: 0 196 140;
+  --theme-offerings-icon-bg: 225 247 239;
+  --theme-offerings-table-header-bg: 232 247 239;
+  --theme-offerings-border: 235 236 238;
+  --theme-offerings-border-strong: 216 218 222;
+  --theme-offerings-border-muted: 228 228 228;
+  --theme-offerings-separator: 229 231 235;
+  --theme-offerings-dashed-border: 137 210 180;
+  --theme-offerings-price-border: 188 191 199;
+  --theme-offerings-text: 19 27 37;
+  --theme-offerings-strong-text: 17 24 39;
+  --theme-offerings-heading-text: 50 65 83;
+  --theme-offerings-body-text: 76 90 107;
+  --theme-offerings-description-text: 107 114 128;
+  --theme-offerings-feature-text: 75 85 99;
+  --theme-offerings-label-text: 156 163 175;
+  --theme-offerings-muted-text: 82 97 121;
+  --theme-offerings-title-text: 11 21 40;
+  --theme-offerings-link: 0 114 77;
+  --theme-offerings-link-hover: 1 82 56;
+  --theme-offerings-confirm-hover: 1 82 56;
+  --theme-offerings-active-chip-bg: 174 229 206;
+  --theme-offerings-disabled-text: 161 165 176;
+  --theme-offerings-disabled-strong-text: 133 139 153;
+  --theme-offerings-metric-success-bg: 240 253 244;
+  --theme-offerings-metric-accent-bg: 240 253 250;
+  --theme-offerings-on-dark-text: 255 255 255;
+  --theme-offerings-on-dark-body-text: 209 213 219;
+  --theme-offerings-dark-surface-bg: 31 41 55;
+  --theme-offerings-dark-hover-bg: 55 65 81;
+  --theme-offerings-backdrop: 11 21 40;
+  --theme-offerings-shadow-rgb: 0 114 77;
+  --theme-offerings-elevated-shadow-rgb: 11 18 32;
+  --theme-offerings-neutral-shadow-rgb: 0 0 0;
+  --theme-offerings-thumb-border: 255 255 255;
+
+  --theme-status-complete-bg: 51 153 136;
+  --theme-status-success-bg: 187 247 208;
+  --theme-status-success-text: 5 46 22;
+  --theme-status-success-border: 22 163 74;
+  --theme-status-success-bright: 34 197 94;
+  --theme-status-ready-bg: 220 252 231;
+  --theme-status-ready-text: 22 101 52;
+  --theme-status-ready-border: 22 163 74;
+  --theme-status-danger-bg: 254 226 226;
+  --theme-status-danger-text: 153 27 27;
+  --theme-status-danger-border: 220 38 38;
+  --theme-status-warning-bg: 254 243 199;
+  --theme-status-warning-text: 146 64 14;
+  --theme-status-warning-border: 253 162 155;
+  --theme-status-neutral-bg: 243 244 246;
+  --theme-status-neutral-text: 55 65 81;
+  --theme-status-neutral-border: 216 218 222;
+  --theme-status-error-soft-bg: 254 243 242;
+  --theme-status-error-soft-border: 253 162 155;
+  --theme-status-error-soft-text: 180 35 24;
+  --theme-status-critical-bg: 255 217 221;
+  --theme-status-critical-border: 147 0 2;
+  --theme-status-critical-text: 125 0 12;
+
   /* Header v2 tokens (scoped to avoid collisions with shared theme tokens) */
   --theme-header-v2-top-bg: #0f3f2e;
   --theme-header-v2-glass-bg: rgba(15, 63, 46, 0.55);

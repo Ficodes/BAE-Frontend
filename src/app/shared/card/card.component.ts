@@ -32,6 +32,7 @@ import {Subscription} from "rxjs";
 import {ThemeService} from "../../services/theme.service";
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { getShortOfferDescription, getVisibleOfferDescription } from './offer-card-text.util';
 
 @Component({
   selector: 'bae-off-card',
@@ -317,13 +318,11 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getShortDescription(): string {
-    const raw = this.productOff?.description ?? '';
-    if (!raw) return '';
-    const withoutTags = raw.replace(/<[^>]*>/g, ' ');
-    const textarea = document.createElement('textarea');
-    textarea.innerHTML = withoutTags;
-    const decoded = textarea.value;
-    return decoded.replace(/\s+/g, ' ').trim();
+    return getShortOfferDescription(this.productOff?.description);
+  }
+
+  getVisibleDescription(): string {
+    return getVisibleOfferDescription(this.productOff?.description);
   }
   
 
@@ -587,7 +586,7 @@ async deleteProduct(product: Product | undefined){
 
     if(this.productOff?.productOfferingTerm != undefined){
       const licenseTerm = this.productOff.productOfferingTerm.find(
-        element => element.name === 'License'
+        element => String(element?.name || '').toLowerCase() === 'license'
       );
 
       if (!licenseTerm) {

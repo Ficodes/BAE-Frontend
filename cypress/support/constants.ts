@@ -232,11 +232,15 @@ export const local_items = {
 export const checkHeaderPreLogin = () => {
     // Mocks
     cy.intercept( {method:'GET', url: '**/stats*'}, init_stat).as('stats')
-    //cy.intercept( {method: 'GET', url: 'http://proxy.docker:8004/catalog/productOffering?*'}, product_offering).as('productOffering')
     cy.intercept( {method: 'GET', url: '**/config*'}, init_config).as('config')
     //cy.intercept('GET', '**/catalog/category/urn:ngsi-ld:category:*', category_dft).as('category');
     cy.intercept({method: 'GET', url: '**/catalog/catalog*'}, default_catalog).as('catalog')
-    cy.intercept( {method: 'GET', url: '**/catalog/category*'}, category_dft).as('category')
+    cy.intercept( {method: 'GET', url: '**/catalog/category*'}, (req) => {
+        req.reply({
+            statusCode: 200,
+            body: req.url.includes('/catalog/category/') ? category_dft : [category_dft]
+        })
+    }).as('category')
     // Verify mocks are called 1 time
     cy.visit('/', {onBeforeLoad(win) {
         win.localStorage.setItem('color-theme', 'dark');

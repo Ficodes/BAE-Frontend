@@ -26,11 +26,15 @@ import {SharedModule} from "../../shared.module";
   ]
 })
 export class MarkdownTextareaComponent implements ControlValueAccessor {
+  private static nextEditorId = 0;
+
   @Input() placeholder: string = 'Write your description here...';
   @Input() rows: number = 8;
+  @Input() maxLength: number = 100000;
   value: string = '';
   showPreview = false;
   showEmoji = false;
+  editorId = `markdown-editor-${MarkdownTextareaComponent.nextEditorId++}`;
 
   @HostListener('document:click')
   onClick() {
@@ -97,7 +101,7 @@ export class MarkdownTextareaComponent implements ControlValueAccessor {
   }
 
   addMarkdownTag(tag: string): void {
-    const textarea = document.getElementById('editor') as HTMLTextAreaElement;
+    const textarea = document.getElementById(this.editorId) as HTMLTextAreaElement;
     if (!textarea) return;
 
     const selectionStart = textarea.selectionStart;
