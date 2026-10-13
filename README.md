@@ -189,4 +189,61 @@ When creating a new theme or adding new links, you must add these keys to the la
 ```
 Ensure that any new keys are added to the JSON files for all supported languages (e.g., , `fr-galaxy.json`). `es-galaxy.json`
 
+## Building the Logic Proxy image with your theme
 
+The BAE Frontend is not deployed on its own: the compiled application is served by the
+[Business Ecosystem Logic Proxy](https://github.com/FIWARE-TMForum/business-ecosystem-logic-proxy)
+from its `portal/bae-frontend` directory. Themes are compiled into the frontend bundle, so to ship
+a new theme you have to build the frontend and package it into a Logic Proxy Docker image.
+
+### 1. Build the frontend
+
+```bash
+npm install
+npm run build   # production configuration by default
+```
+
+The compiled application is generated in `dist/bae-frontend`.
+
+### 2. Copy the build into the Logic Proxy
+
+Clone the Logic Proxy repository and replace its `portal/bae-frontend` directory with your build:
+
+```bash
+git clone https://github.com/FIWARE-TMForum/business-ecosystem-logic-proxy.git
+rm -rf business-ecosystem-logic-proxy/portal/bae-frontend
+cp -r dist/bae-frontend business-ecosystem-logic-proxy/portal/bae-frontend
+```
+
+### 3. Build the Logic Proxy image
+
+From the root of the Logic Proxy repository:
+
+```bash
+cd business-ecosystem-logic-proxy
+docker build -f docker/Dockerfile -t <registry>/biz-ecosystem-logic-proxy:<tag> .
+docker push <registry>/biz-ecosystem-logic-proxy:<tag>   # optional
+```
+
+### 4. Select the theme at runtime
+
+The frontend reads the theme name from the Logic Proxy `/config` endpoint, which is set with the
+`BAE_LP_THEME` environment variable. Its value must match the `name` of a `ThemeConfig` registered in
+`AVAILABLE_THEMES` (case-insensitive); otherwise the default theme is applied.
+
+> **Note:** when `BAE_LP_THEME` is set and the container runs the static collection step
+> (`COLLECT=True`, the default), the Logic Proxy expects a `themes/<theme-name>` directory to exist
+> (it is used for the legacy portal theme) and exits if it is missing. Either mount a directory
+> (it can be empty) at that path or set `COLLECT=False`.
+
+Example `docker-compose` service:
+
+```yaml
+proxy:
+  image: <registry>/biz-ecosystem-logic-proxy:<tag>
+  volumes:
+    - ./proxy-themes/galaxy:/opt/business-ecosystem-logic-proxy/themes/galaxy  # can be empty
+  environment:
+    - BAE_LP_THEME=galaxy
+    # ... rest of the Logic Proxy configuration
+```
