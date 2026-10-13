@@ -104,4 +104,35 @@ describe('HeaderComponent', () => {
 
     expect(usageListSpy).toHaveBeenCalledOnceWith(true);
   });
+
+  it('workspace back should request product spec editor leave handling', () => {
+    const leaveSpy = spyOn(eventMessage, 'emitLeaveProductSpecEditorRequest').and.callThrough();
+    component.activeEditor = 'productSpec';
+
+    component.onWorkspaceBackClick();
+
+    expect(leaveSpy).toHaveBeenCalled();
+  });
+
+  it('workspace back should request service spec editor leave handling', () => {
+    const leaveSpy = spyOn(eventMessage, 'emitLeaveServiceSpecEditorRequest').and.callThrough();
+    const listSpy = spyOn(eventMessage, 'emitSellerServiceSpec').and.callThrough();
+    component.activeEditor = 'serviceSpec';
+
+    component.onWorkspaceBackClick();
+
+    expect(leaveSpy).toHaveBeenCalled();
+    expect(listSpy).not.toHaveBeenCalled();
+  });
+
+  it('workspace back should request resource spec editor leave handling', () => {
+    const leaveSpy = spyOn(eventMessage, 'emitLeaveResourceSpecEditorRequest').and.callThrough();
+    const listSpy = spyOn(eventMessage, 'emitSellerResourceSpec').and.callThrough();
+    component.activeEditor = 'resourceSpec';
+
+    component.onWorkspaceBackClick();
+
+    expect(leaveSpy).toHaveBeenCalled();
+    expect(listSpy).not.toHaveBeenCalled();
+  });
 });
