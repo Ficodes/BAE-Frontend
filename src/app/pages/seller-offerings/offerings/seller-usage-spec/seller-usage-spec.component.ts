@@ -132,6 +132,7 @@ export class SellerUsageSpecComponent implements OnInit, OnDestroy {
     this.selectedTab = tab;
     this.status = [...this.tabStatusMap[tab]];
     this.page = 0;
+    this.usageService.resetFilteredPaginationToken();
     this.getUsageSpecs(false);
   }
 

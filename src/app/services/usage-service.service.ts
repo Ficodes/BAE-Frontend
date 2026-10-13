@@ -15,6 +15,8 @@ export class UsageServiceService {
 
   public static BASE_URL: String = environment.BASE_URL;
   public static USAGE_SPEC_LIMIT: number = environment.USAGE_SPEC_LIMIT;
+  private readonly filteredPaginationHeader = 'X-Filtered-Pagination-Token';
+  private filteredPaginationToken: string | null = null;
 
   constructor(private http: HttpClient,private localStorage: LocalStorageService) { }
 
@@ -26,7 +28,8 @@ export class UsageServiceService {
   }
 
   getUsageSpecs(page:any, status:any[], partyId:any) {
-    let url = `${UsageServiceService.BASE_URL}/usage/usageSpecification?limit=${UsageServiceService.USAGE_SPEC_LIMIT}&offset=${page}&relatedParty.id=${partyId}`;
+    const limit = UsageServiceService.USAGE_SPEC_LIMIT;
+    let url = `${UsageServiceService.BASE_URL}/usage/usageSpecification?limit=${limit}&offset=${page}&relatedParty.id=${partyId}`;
 
     let lifeStatus = '';
     if(status.length > 0){
@@ -40,7 +43,21 @@ export class UsageServiceService {
       url = url + '&lifecycleStatus=' + lifeStatus;
     }
 
-    return lastValueFrom(this.http.get<any[]>(url));
+    let requestOptions: { observe: 'response', headers?: { [header: string]: string } } = { observe: 'response' };
+    if (this.filteredPaginationToken) {
+      requestOptions.headers = {
+        [this.filteredPaginationHeader]: this.filteredPaginationToken
+      };
+    }
+
+    return lastValueFrom(this.http.get<any[]>(url, requestOptions)).then(response => {
+      this.filteredPaginationToken = response.headers.get(this.filteredPaginationHeader);
+      return response.body ?? [];
+    });
+  }
+
+  resetFilteredPaginationToken(): void {
+    this.filteredPaginationToken = null;
   }
 
   async getUsageSpecsByStatus(status:any[], partyId:any) {

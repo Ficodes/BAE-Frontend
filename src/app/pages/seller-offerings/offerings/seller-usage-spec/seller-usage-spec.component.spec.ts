@@ -37,7 +37,7 @@ describe('SellerUsageSpecComponent', () => {
   }
 
   beforeEach(async () => {
-    usageService = jasmine.createSpyObj('UsageServiceService', ['getUsageSpecs', 'updateUsageSpec']);
+    usageService = jasmine.createSpyObj('UsageServiceService', ['getUsageSpecs', 'updateUsageSpec', 'resetFilteredPaginationToken']);
     paginationService = jasmine.createSpyObj('PaginationService', ['getItemsPaginated']);
     api = jasmine.createSpyObj('ApiServiceService', [
       'getOfferingPricesByUsageSpecId',
@@ -87,6 +87,18 @@ describe('SellerUsageSpecComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should reset the filtered pagination token when changing tabs', () => {
+    const getUsageSpecsSpy = spyOn(component, 'getUsageSpecs').and.resolveTo(undefined);
+
+    component.selectTab('Deleted');
+
+    expect(component.selectedTab).toBe('Deleted');
+    expect(component.status).toEqual(['Retired', 'Obsolete']);
+    expect(component.page).toBe(0);
+    expect(usageService.resetFilteredPaginationToken).toHaveBeenCalled();
+    expect(getUsageSpecsSpy).toHaveBeenCalledWith(false);
   });
 
   it('should move counters locally and refresh only the current tab after validation succeeds', () => {
