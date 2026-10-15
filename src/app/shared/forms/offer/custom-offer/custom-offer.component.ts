@@ -126,6 +126,7 @@ export class CustomOfferComponent implements OnInit {
 
     async createOffer() {
       this.loading=true;
+      this.showError=false;
       const plans = this.productOfferForm.value.pricePlans;
 
       console.log('---- party info value ----')
@@ -159,6 +160,7 @@ export class CustomOfferComponent implements OnInit {
           }
         } catch (error: any) {
           this.handleApiError(error);
+          return;
         }
       }
     }
@@ -171,7 +173,7 @@ export class CustomOfferComponent implements OnInit {
         href: plan.id
       }));
 
-      const license = this.offer.productOfferingTerm.find((t: { name: string; }) => t.name === 'License');
+      const license = this.offer.productOfferingTerm.find((t: { name: string; }) => String(t?.name || '').toLowerCase() === 'license');
 
       // Add the name of the organization/trading name to the offer name
       let offerName = this.offer.name;
@@ -244,6 +246,7 @@ export class CustomOfferComponent implements OnInit {
       console.log(component)
       let priceComp: ProductOfferingPrice = {
         name: component.name,
+        isBundle: false,
         description: component.description ?? component?.newValue.description,
         lifecycleStatus: component?.lifecycleStatus ?? component?.newValue?.lifecycleStatus ?? 'Active',
         priceType: component.priceType ?? component?.newValue?.priceType,
@@ -297,6 +300,7 @@ export class CustomOfferComponent implements OnInit {
     private async createPriceAlteration(component: any, currency: string): Promise<any> {
       const priceAlter: ProductOfferingPrice = {
         name: 'discount',
+        isBundle: false,
         priceType: 'discount',
         validFor: {
           startDateTime: moment().toISOString(),
@@ -383,7 +387,9 @@ export class CustomOfferComponent implements OnInit {
 
     private handleApiError(error: any): void {
       console.error('Error while creating offer price!', error);
-      this.errorMessage = error?.error?.error ? 'Error: ' + error.error.error : 'Error creating offer price!';
+      const message = error?.error?.error || error?.error?.message;
+      this.errorMessage = message ? 'Error: ' + message : 'Error creating offer price!';
+      this.loading = false;
       this.showError = true;
       setTimeout(() => (this.showError = false), 3000);
     }

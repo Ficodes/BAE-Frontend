@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
@@ -13,6 +13,9 @@ import {EventMessageService} from "src/app/services/event-message.service";
 import { initFlowbite } from 'flowbite';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
+import { formatApiErrorMessage } from 'src/app/shared/error-message/api-error-message';
+import { LifecycleStatus, ProviderStats, tabCountsFromProviderStats } from 'src/app/models/provider-stats.model';
 
 @Component({
   selector: 'seller-resource-spec',
@@ -34,7 +37,17 @@ export class SellerResourceSpecComponent implements OnInit, OnDestroy {
   loading_more: boolean = false;
   page_check:boolean = true;
   filter:any=undefined;
-  status:any[]=['Active','Launched'];
+  status:any[]=['Active'];
+  selectedTab: string = 'Draft';
+  tabStatusMap: { [k: string]: LifecycleStatus[] } = {
+    Draft: ['Active'],
+    Validated: ['Launched'],
+    Deleted: ['Retired', 'Obsolete']
+  };
+  statusCounts: { [k: string]: number } = { Draft: 0, Validated: 0, Deleted: 0 };
+  openMenuIdx: number | null = null;
+  deleteConfirmation: any | null = null;
+  deleteLoading: boolean = false;
   partyId:any;
   sort:any=undefined;
   private destroy$ = new Subject<void>();
@@ -46,7 +59,8 @@ export class SellerResourceSpecComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private localStorage: LocalStorageService,
     private eventMessage: EventMessageService,
-    private paginationService: PaginationService
+    private paginationService: PaginationService,
+    private translate: TranslateService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -54,30 +68,17 @@ export class SellerResourceSpecComponent implements OnInit, OnDestroy {
       if(ev.type === 'ChangedSession') {
         this.initResources();
       }
+      if(ev.type === 'ProviderStatsLoaded') {
+        this.applyProviderStats(ev.value as ProviderStats);
+      }
     })
-  }
-
-  private searchInputListener = (_e: Event) => {
-    console.log(`Input updated`)
-    if (this.searchField.value == '') {
-      this.filter = undefined;
-      this.getResSpecs(false);
-    }
   }
 
   ngOnInit() {
     this.initResources();
-    const input = document.querySelector('[type=search]')
-    if (input != undefined) {
-      input.addEventListener('input', this.searchInputListener);
-    }
   }
 
   ngOnDestroy(){
-    const input = document.querySelector('[type=search]')
-    if (input != undefined) {
-      input.removeEventListener('input', this.searchInputListener);
-    }
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -94,6 +95,18 @@ export class SellerResourceSpecComponent implements OnInit, OnDestroy {
     }
 
     this.getResSpecs(false);
+    this.loadStatusCounts();
+    let input = document.querySelector('[type=search]')
+    if(input!=undefined){
+      input.addEventListener('input', e => {
+        // Easy way to get the value of the element who trigger the current `e` event
+        console.log(`Input updated`)
+        if(this.searchField.value==''){
+          this.filter=undefined;
+          this.getResSpecs(false);
+        }
+      });
+    }
     initFlowbite();
   }
 
@@ -121,21 +134,18 @@ export class SellerResourceSpecComponent implements OnInit, OnDestroy {
       "sort": this.sort
     }
 
-    try {
-      const data = await this.paginationService.getItemsPaginated(this.page, this.RES_SPEC_LIMIT, next, this.resSpecs,this.nextResSpecs, options,
-        this.resSpecService.getResourceSpecByUser.bind(this.resSpecService));
+    this.paginationService.getItemsPaginated(this.page, this.RES_SPEC_LIMIT, next, this.resSpecs,this.nextResSpecs, options,
+      this.resSpecService.getResourceSpecByUser.bind(this.resSpecService)).then(data => {
       this.page_check=data.page_check;
       this.resSpecs=data.items;
       this.nextResSpecs=data.nextItems;
       this.page=data.page;
-    } finally {
       this.loading=false;
       this.loading_more=false;
-    }
+    })
   }
 
   async next(){
-    this.loading_more = true;
     await this.getResSpecs(true);
   }
 
@@ -157,6 +167,128 @@ export class SellerResourceSpecComponent implements OnInit, OnDestroy {
     this.getResSpecs(false);
   }
 
+  selectTab(tab: string) {
+    if (tab === this.selectedTab) return;
+    this.selectedTab = tab;
+    this.status = [...this.tabStatusMap[tab]];
+    this.page = 0;
+    this.getResSpecs(false);
+  }
+
+  loadStatusCounts() {
+    this.applyProviderStats((this.eventMessage as any).getLatestProviderStats?.() ?? null);
+  }
+
+  private applyProviderStats(stats: ProviderStats | null): void {
+    this.statusCounts = tabCountsFromProviderStats(stats, 'resourceSpecification', this.tabStatusMap);
+    this.cdr.detectChanges();
+  }
+
+  toggleMenu(idx: number, event: Event){
+    event.stopPropagation();
+    this.openMenuIdx = this.openMenuIdx === idx ? null : idx;
+  }
+
+  @HostListener('document:click')
+  onDocClick(){
+    if(this.openMenuIdx !== null){
+      this.openMenuIdx = null;
+      this.cdr.detectChanges();
+    }
+  }
+
+  rowStatusBadge(res: any): { text: string, bg: string, color: string } {
+    const hasChars = (res?.resourceSpecCharacteristic && res.resourceSpecCharacteristic.length > 0);
+    if(res?.lifecycleStatus === 'Launched'){
+      return { text: 'Validated', bg: 'rgb(var(--theme-status-success-bg))', color: 'rgb(var(--theme-status-success-text))' };
+    }
+    if(res?.lifecycleStatus === 'Retired' || res?.lifecycleStatus === 'Obsolete'){
+      return { text: 'Deleted', bg: 'rgb(var(--theme-status-danger-bg))', color: 'rgb(var(--theme-status-danger-text))' };
+    }
+    if(hasChars){
+      return { text: 'Ready to be validated', bg: 'rgb(var(--theme-status-ready-bg))', color: 'rgb(var(--theme-status-ready-text))' };
+    }
+    return { text: 'Not completed', bg: 'rgb(var(--theme-status-warning-bg))', color: 'rgb(var(--theme-status-warning-text))' };
+  }
+
+  validateRes(res: any){
+    if(!res?.id) return;
+    this.resSpecService.updateResSpec({ lifecycleStatus: 'Launched' }, res.id).subscribe({
+      next: () => {
+        this.openMenuIdx = null;
+          this.eventMessage.emitSpecCreated(this.translate.instant('CREATE_RES_SPEC._validate_success'));
+          this.eventMessage.emitProviderStatsTransition({
+            entity: 'resourceSpecification',
+            previousLifecycleStatus: res.lifecycleStatus as LifecycleStatus,
+            nextLifecycleStatus: 'Launched'
+          });
+          this.getResSpecs(false);
+          this.loadStatusCounts();
+        },
+      error: (error: any) => {
+        this.openMenuIdx = null;
+        this.eventMessage.emitSpecCreated(
+          formatApiErrorMessage(this.translate, 'CREATE_RES_SPEC._validate_error', error),
+          'error'
+        );
+      }
+    });
+  }
+
+  deleteRes(res: any){
+    if(!res?.id) return;
+    this.openMenuIdx = null;
+    this.deleteConfirmation = res;
+  }
+
+  cancelDeleteRes(): void {
+    if (this.deleteLoading) return;
+    this.deleteConfirmation = null;
+  }
+
+  confirmDeleteRes(): void {
+    if (!this.deleteConfirmation || this.deleteLoading) return;
+    const res = this.deleteConfirmation;
+    this.deleteLoading = true;
+    this.performDeleteRes(res);
+  }
+
+  get deleteResName(): string {
+    return this.deleteConfirmation?.name || '';
+  }
+
+  private clearDeleteConfirmation(): void {
+    this.deleteLoading = false;
+    this.deleteConfirmation = null;
+  }
+
+  private performDeleteRes(res: any){
+    const onSuccess = () => {
+        this.clearDeleteConfirmation();
+        this.eventMessage.emitSpecCreated(this.translate.instant('OFFERINGS._resource_spec_delete_success'));
+        this.eventMessage.emitProviderStatsTransition({
+          entity: 'resourceSpecification',
+          previousLifecycleStatus: res.lifecycleStatus as LifecycleStatus,
+          nextLifecycleStatus: lifecycleStatus as LifecycleStatus
+        });
+        this.getResSpecs(false);
+        this.loadStatusCounts();
+      };
+    const onError = (err: any) => {
+      this.clearDeleteConfirmation();
+      console.error('Resource spec delete failed', err);
+      this.eventMessage.emitSpecCreated(
+        formatApiErrorMessage(this.translate, 'OFFERINGS._resource_spec_delete_error', err),
+        'error'
+      );
+    };
+    const lifecycleStatus = res.lifecycleStatus === 'Active' ? 'Obsolete' : 'Retired';
+    this.resSpecService.updateResSpec({ lifecycleStatus }, res.id).subscribe({
+      next: onSuccess,
+      error: onError
+    });
+  }
+
   onSortChange(event: any) {
     if(event.target.value=='name'){
       this.sort='name'
@@ -171,6 +303,6 @@ export class SellerResourceSpecComponent implements OnInit, OnDestroy {
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
-    }   
+    }
   }
 }

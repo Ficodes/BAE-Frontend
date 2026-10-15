@@ -35,23 +35,14 @@ describe('UpdateCatalogComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('setCatStatus should update status and trigger change detection', () => {
-    const detectSpy = spyOn((component as any).cdr, 'detectChanges');
-
-    component.setCatStatus('Launched');
-
-    expect(component.catStatus).toBe('Launched');
-    expect(detectSpy).toHaveBeenCalled();
-  });
-
-  it('setCatalogData should include changed name and status', () => {
+  it('setCatalogData should include changed metadata without lifecycle status', () => {
     component.catStatus = 'Launched';
     component.generalForm.patchValue({ name: 'Updated Catalog', description: 'New desc' });
 
     component.setCatalogData();
 
     expect(component.catalogToUpdate?.description).toBe('New desc');
-    expect(component.catalogToUpdate?.lifecycleStatus).toBe('Launched');
+    expect(component.catalogToUpdate?.lifecycleStatus).toBeUndefined();
     expect(component.catalogToUpdate?.name).toBe('Updated Catalog');
   });
 

@@ -21,13 +21,13 @@ describe('/my-offerings',{
         }}
         let calls = 0
         const response = [[], [], [newCatalog] , []]
-        cy.intercept({method: 'GET', url: 'http://proxy.docker:8004/catalog/catalog?*'}, (res) => {
+        cy.intercept({method: 'GET', url: '**/catalog/catalog?*'}, (res) => {
             res.reply({
                 statusCode: 200,
                 body: response[calls++]
               });
         }).as('catalog')
-        cy.intercept({method: 'POST', url: 'http://proxy.docker:8004/catalog/catalog'}, {statusCode: 201, body: newCatalog}).as('catalogPOST')
+        cy.intercept({method: 'POST', url: '**/catalog/catalog'}, {statusCode: 201, body: newCatalog}).as('catalogPOST')
 
         cy.visit('/my-offerings')
         cy.wait('@catalog')
@@ -62,13 +62,13 @@ describe('/my-offerings',{
         }}
         let calls = 0
         const response = [[], [], [getCatalog] , []]
-        cy.intercept({method: 'GET', url: 'http://proxy.docker:8004/catalog/catalog?*'}, (res) => {
+        cy.intercept({method: 'GET', url: '**/catalog/catalog?*'}, (res) => {
             res.reply({
                 statusCode: 200,
                 body: response[calls++]
               });
         }).as('catalog')
-        cy.intercept({method: 'POST', url: 'http://proxy.docker:8004/catalog/catalog'}, {statusCode: 201, body: newCatalog}).as('catalogPOST')
+        cy.intercept({method: 'POST', url: '**/catalog/catalog'}, {statusCode: 201, body: newCatalog}).as('catalogPOST')
 
         cy.visit('/my-offerings')
         cy.wait('@catalog')

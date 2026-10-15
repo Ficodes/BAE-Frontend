@@ -301,6 +301,20 @@ describe('SearchComponent', () => {
     expect(getProductsSpy).toHaveBeenCalledWith(false);
   });
 
+  it('onUnifiedSearch should treat whitespace-only search as empty', async () => {
+    const event = { preventDefault: jasmine.createSpy('preventDefault') };
+    component.searchField.setValue('   ');
+    const updateSpy = spyOn(component, 'updateQueryParams').and.stub();
+    const getProductsSpy = spyOn(component, 'getProducts').and.resolveTo();
+
+    await component.onUnifiedSearch(event);
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(component.keywords).toBeUndefined();
+    expect(updateSpy).toHaveBeenCalledWith(undefined as any);
+    expect(getProductsSpy).toHaveBeenCalledWith(false);
+  });
+
   it('updateQueryParams should navigate with and without keywords', () => {
     component.updateQueryParams('ai');
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/search', { keywords: 'ai' }], { replaceUrl: true });

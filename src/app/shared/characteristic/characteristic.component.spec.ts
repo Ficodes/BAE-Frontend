@@ -71,6 +71,31 @@ describe('CharacteristicComponent', () => {
     });
   });
 
+  it('should refresh its default when a selected plan changes the effective range', () => {
+    component.characteristic = {
+      id: 'vcores',
+      name: 'vCores',
+      description: '',
+      productSpecCharacteristicValue: [
+        { valueFrom: 1, valueTo: 386, isDefault: true }
+      ]
+    } as any;
+    component.ngOnInit();
+
+    component.characteristic = {
+      id: 'vcores',
+      name: 'vCores',
+      description: '',
+      productSpecCharacteristicValue: [
+        { valueFrom: 4, valueTo: 386, isDefault: true }
+      ]
+    } as any;
+    component.ngOnChanges({ characteristic: {} as any });
+
+    expect(component.getSliderRange()).toEqual({ min: 4, max: 386 });
+    expect(component.control.value).toBe(4);
+  });
+
   it('template should render checkbox toggle for boolean characteristics', () => {
     component.characteristic = {
       id: 'bool-1',

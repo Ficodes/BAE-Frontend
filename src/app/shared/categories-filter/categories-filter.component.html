@@ -5,11 +5,11 @@
 @if (simpleMode) {
 <ul class="flex flex-col">
   @for (cat of allFilterItems; track cat.id) {
-  <li data-cy="searchSubcategoryItem" class="flex items-center gap-3 cursor-pointer rounded-lg py-3 pl-4 pr-2 hover:bg-[#F0F4FB] transition-colors"
+  <li data-cy="searchSubcategoryItem" class="flex items-center gap-3 cursor-pointer rounded-lg py-3 pl-4 pr-2 hover:bg-secondary-50/70 dark:hover:bg-secondary-300 transition-colors"
     (click)="onClick(cat)">
     <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2" [ngClass]="isCheckedCategory(cat)
-            ? 'bg-[#2D58A7] border-[#2D58A7] text-white'
-            : 'border-[#C0C7D1] bg-white'">
+            ? 'bg-primary-100 border-primary-100 text-offerings-on-dark'
+            : 'border-offerings-border-strong dark:border-secondary-200 bg-offerings-surface'">
       @if (isCheckedCategory(cat)) {
       <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3"
         stroke="currentColor">
@@ -17,7 +17,7 @@
       </svg>
       }
     </div>
-    <span class="text-[16px] text-[#4C5A6B]">{{ cat.name }}</span>
+    <span class="text-[16px] text-offerings-body dark:text-offerings-on-dark-body">{{ cat.name }}</span>
   </li>
   }
 </ul>
@@ -33,7 +33,7 @@
                   'break-all': hasLongWord(category?.name, 20),
                   'break-words': !hasLongWord(category?.name, 20)
                   }">
-        <fa-icon [icon]="iconForCategory(category?.name)" class="shrink-0 text-[#2D58A7]"></fa-icon>
+        <fa-icon [icon]="iconForCategory(category?.name)" class="shrink-0 text-primary-100"></fa-icon>
         <span>{{ category?.name }}</span>
       </span>
       <div class="justify-end inline-flex">
@@ -60,7 +60,7 @@
   @if (category.children) {
   @if (category.children.length != 0) {
   <div [id]="'accordion-body-'+idx" class="hidden" [attr.aria-labelledby]="'accordion-heading-'+idx">
-    <div class="p-2 border border-gray-200 dark:border-gray-700 dark:bg-secondary-500">
+    <div class="p-2 border border-offerings-border dark:border-secondary-200 dark:bg-secondary-500">
       <ul class="grid w-full gap-2">
         @for(child of category.children; track child.id) {
         <li>

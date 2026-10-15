@@ -1,0 +1,27 @@
+:host ::ng-deep .dome-heading-6,
+.dome-heading-6 {
+  font-family: "Blinker", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 100%;
+  color: rgb(var(--theme-offerings-heading-text));
+}
+
+:host-context(.dark) ::ng-deep .dome-heading-6,
+:host-context(.dark) .dome-heading-6 {
+  color: rgb(var(--theme-offerings-on-dark-text));
+}
+
+:host ::ng-deep .dome-body-small,
+.dome-body-small {
+  font-family: "Blinker", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  color: rgb(var(--theme-offerings-body-text));
+}
+
+:host-context(.dark) ::ng-deep .dome-body-small,
+:host-context(.dark) .dome-body-small {
+  color: rgb(var(--theme-offerings-on-dark-body-text));
+}

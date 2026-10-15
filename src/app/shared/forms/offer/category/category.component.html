@@ -1,6 +1,6 @@
 @if(loadingCategory){
   <div role="status" class="w-full h-fit flex justify-center align-middle">
-    <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400"
+    <svg aria-hidden="true" class="w-12 h-12 text-offerings-on-dark-body animate-spin dark:text-offerings-disabled-strong fill-secondary-400"
          viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766
       22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013
@@ -18,7 +18,7 @@
 } @else {
   @if(categories.length==0){
     <div class="flex justify-center w-full m-4">
-      <div class="flex w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-blue-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">
+      <div class="flex w-full items-center p-4 text-sm text-primary-100 rounded-lg bg-secondary-50 dark:bg-secondary-200 dark:text-primary-50" role="alert">
         <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
              fill="currentColor" viewBox="0 0 20 20">
           <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1
@@ -30,9 +30,9 @@
       </div>
     </div>
   } @else {
-    <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mt-4">
-      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-200">
-        <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-gray-300">
+    <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-offerings-surface mt-4">
+      <table class="w-full text-sm text-left text-offerings-muted-text dark:text-offerings-on-dark-body">
+        <thead class="text-xs text-offerings-body uppercase bg-offerings-neutral dark:bg-secondary-200 dark:text-offerings-on-dark-body">
         <tr>
           <th class="px-6 py-3"></th>
           <th class="px-6 py-3">{{ 'CREATE_OFFER._name' | translate }}</th>
@@ -50,11 +50,11 @@
         @for (category of categories; track category.id; let i = $index) {
           <tr
             [ngClass]="{
-              'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600': level === 0,
-              'bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500': level > 0,
-              'bg-blue-500 dark:bg-blue-900 transition-colors duration-300': isCategorySelected(category)
+              'bg-offerings-muted dark:bg-secondary-200 hover:bg-offerings-border-strong dark:hover:bg-secondary-300': level === 0,
+              'bg-offerings-neutral dark:bg-secondary-300 hover:bg-offerings-muted dark:hover:bg-offerings-page0': level > 0,
+              'bg-secondary-500 dark:bg-secondary-200 transition-colors duration-300': isCategorySelected(category)
             }"
-            class="border-b dark:border-gray-500 transition-all duration-200 cursor-pointer"
+            class="border-b dark:border-secondary-200 transition-all duration-200 cursor-pointer"
             (click)="manageCategory(category)">
 
           <!-- Botón Expandir -->
@@ -90,7 +90,7 @@
             <td class="px-6 py-4 text-center">
               <input
                 type="checkbox"
-                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer transition-all duration-200 scale-100 checked:scale-110 checked:ring-2"
+                class="w-4 h-4 text-primary-100 bg-offerings-neutral border-offerings-border-strong rounded focus:ring-2 focus:ring-primary-100 cursor-pointer transition-all duration-200 scale-100 checked:scale-110 checked:ring-2"
                 [checked]="isCategorySelected(category)"
                 (click)="manageCategory(category); $event.stopPropagation()"
               />
@@ -105,7 +105,7 @@
           }
         } @empty {
           <tr>
-            <td class="text-center dark:bg-gray-800" colspan="3">{{ 'CREATE_OFFER._no_subcats' | translate }}</td>
+            <td class="text-center dark:bg-secondary-300" colspan="3">{{ 'CREATE_OFFER._no_subcats' | translate }}</td>
           </tr>
         }
       </ng-template>

@@ -1,7 +1,6 @@
 import { ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { initFlowbite } from 'flowbite';
-import { jwtDecode } from "jwt-decode";
 import moment from 'moment';
 import { FileSystemDirectoryEntry, FileSystemFileEntry, NgxFileDropEntry } from 'ngx-file-drop';
 import { Subject } from 'rxjs';
@@ -16,6 +15,7 @@ import { PaginationService } from 'src/app/services/pagination.service';
 import { ProductSpecServiceService } from 'src/app/services/product-spec-service.service';
 import { ResourceSpecServiceService } from 'src/app/services/resource-spec-service.service';
 import { ServiceSpecServiceService } from 'src/app/services/service-spec-service.service';
+import { extractComplianceLevelFromVcToken } from 'src/app/shared/compliance-credential.utils';
 import { jsonValidator, noWhitespaceValidator } from 'src/app/validators/validators';
 import { environment } from 'src/environments/environment';
 import { v4 as uuidv4 } from 'uuid';
@@ -637,35 +637,7 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
   }
 
   private applyComplianceDataFromVcToken(vcToken: any) {
-    if (!vcToken || typeof vcToken !== 'string') {
-      this.complianceLevel = 'NL';
-      return;
-    }
-
-    const allowedLevels = ['NL', 'BL', 'P', 'PP'];
-
-    try {
-      const decoded: any = jwtDecode(vcToken);
-      let credential: any = null;
-
-      if ('verifiableCredential' in decoded) {
-        credential = decoded.verifiableCredential;
-      } else if ('vc' in decoded) {
-        credential = decoded.vc;
-      }
-
-      const subject = credential?.credentialSubject;
-      if (!subject) {
-        this.complianceLevel = 'NL';
-        return;
-      }
-
-      const level = subject['gx:labelLevel'];
-      this.complianceLevel = (typeof level === 'string' && allowedLevels.includes(level)) ? level : 'NL';
-    } catch (error) {
-      this.complianceLevel = 'NL';
-      console.log(error);
-    }
+    this.complianceLevel = extractComplianceLevelFromVcToken(vcToken);
   }
 
   openRequestValidationModal() {
@@ -1326,10 +1298,10 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       this.stepsElements.splice(index, 1);
       this.selectMenu(document.getElementById(step), 'text-primary-100 dark:text-primary-50')
-      this.unselectMenu(document.getElementById(step), 'text-gray-500')
+      this.unselectMenu(document.getElementById(step), 'text-offerings-muted-text')
       for (let i = 0; i < this.stepsElements.length; i++) {
         this.unselectMenu(document.getElementById(this.stepsElements[i]), 'text-primary-100 dark:text-primary-50')
-        this.selectMenu(document.getElementById(this.stepsElements[i]), 'text-gray-500')
+        this.selectMenu(document.getElementById(this.stepsElements[i]), 'text-offerings-muted-text')
       }
       this.stepsElements.push(step);
     }
@@ -1337,10 +1309,10 @@ export class UpdateProductSpecComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       this.stepsCircles.splice(circleIndex, 1);
       this.selectMenu(document.getElementById(stepCircle), 'border-primary-100 dark:border-primary-50')
-      this.unselectMenu(document.getElementById(stepCircle), 'border-gray-400');
+      this.unselectMenu(document.getElementById(stepCircle), 'border-offerings-border-strong');
       for (let i = 0; i < this.stepsCircles.length; i++) {
         this.unselectMenu(document.getElementById(this.stepsCircles[i]), 'border-primary-100 dark:border-primary-50')
-        this.selectMenu(document.getElementById(this.stepsCircles[i]), 'border-gray-400');
+        this.selectMenu(document.getElementById(this.stepsCircles[i]), 'border-offerings-border-strong');
       }
       this.stepsCircles.push(stepCircle);
     }
