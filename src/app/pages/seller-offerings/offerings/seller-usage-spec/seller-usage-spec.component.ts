@@ -45,6 +45,7 @@ export class SellerUsageSpecComponent implements OnInit, OnDestroy {
   deleteBlockingOffers: any[] = [];
   private destroy$ = new Subject<void>();
   private deleteEligibilityRequestId = 0;
+  private paginationRequestId = 0;
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -79,6 +80,8 @@ export class SellerUsageSpecComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
+    this.paginationRequestId++;
+    this.usageService.resetFilteredPaginationToken();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -102,17 +105,33 @@ export class SellerUsageSpecComponent implements OnInit, OnDestroy {
   }
 
   async getUsageSpecs(next:boolean){
+    if (next && (this.loading || this.loading_more || !this.page_check)) return;
+
     if(next==false){
+      this.paginationRequestId++;
+      this.usageService.resetFilteredPaginationToken();
+      this.page=0;
+      this.usageSpecs=[];
+      this.nextUsageSpecs=[];
+      this.page_check=false;
+      this.loading_more=false;
       this.loading=true;
+    } else {
+      this.loading_more=true;
     }
 
+    const requestId = this.paginationRequestId;
     let options = {
-      "filters": this.status,
-      "partyId": this.partyId
+      "filters": [...this.status],
+      "partyId": this.partyId,
+      "stopOnShortPage": this.selectedTab === 'Deleted'
     }
 
     return this.paginationService.getItemsPaginated(this.page, this.USAGE_SPEC_LIMIT, next, this.usageSpecs,this.nextUsageSpecs, options,
-      this.usageService.getUsageSpecs.bind(this.usageService)).then(data => {
+      (offset: number) => requestId === this.paginationRequestId
+        ? this.usageService.getUsageSpecs(offset, options.filters, options.partyId, options.stopOnShortPage)
+        : Promise.resolve([])).then(data => {
+      if (requestId !== this.paginationRequestId) return;
       this.page_check=data.page_check;
       this.usageSpecs=data.items;
       this.nextUsageSpecs=data.nextItems;
@@ -131,8 +150,6 @@ export class SellerUsageSpecComponent implements OnInit, OnDestroy {
     if (tab === this.selectedTab) return;
     this.selectedTab = tab;
     this.status = [...this.tabStatusMap[tab]];
-    this.page = 0;
-    this.usageService.resetFilteredPaginationToken();
     this.getUsageSpecs(false);
   }
 

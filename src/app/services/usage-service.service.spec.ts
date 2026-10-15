@@ -22,6 +22,68 @@ describe('UsageServiceService', () => {
     expect(service).toBeTruthy();
   });
 
+  it('should use each latest token and stop HTTP requests after a short deleted page', async () => {
+    const fullPage = Array.from({ length: UsageServiceService.USAGE_SPEC_LIMIT }, (_, id) => ({ id }));
+    const statuses = ['Retired', 'Obsolete'];
+
+    for (let index = 0; index < 3; index++) {
+      const promise = service.getUsageSpecs(index * UsageServiceService.USAGE_SPEC_LIMIT, statuses, 'party-1', true);
+      const req = httpMock.expectOne(request => request.url.includes(`offset=${index * UsageServiceService.USAGE_SPEC_LIMIT}&`));
+      expect(req.request.headers.get('X-Filtered-Pagination-Token')).toBe(index === 0 ? null : `token-${index}`);
+      req.flush(index < 2 ? fullPage : [{ id: 'last' }], {
+        headers: { 'X-Filtered-Pagination-Token': `token-${index + 1}`, 'X-Total-Count': '1000' }
+      });
+      await promise;
+    }
+
+    await expectAsync(service.getUsageSpecs(3 * UsageServiceService.USAGE_SPEC_LIMIT, statuses, 'party-1', true)).toBeResolvedTo([]);
+    httpMock.expectNone(request => request.url.includes(`offset=${3 * UsageServiceService.USAGE_SPEC_LIMIT}&`));
+    expect((service as any).filteredPaginationToken).toBeNull();
+  });
+
+  it('should clear the previous token when a full response has no token', async () => {
+    const fullPage = Array.from({ length: UsageServiceService.USAGE_SPEC_LIMIT }, (_, id) => ({ id }));
+    for (let index = 0; index < 3; index++) {
+      const promise = service.getUsageSpecs(index * UsageServiceService.USAGE_SPEC_LIMIT, ['Launched'], 'party-1');
+      const req = httpMock.expectOne(request => request.url.includes(`offset=${index * UsageServiceService.USAGE_SPEC_LIMIT}&`));
+      expect(req.request.headers.get('X-Filtered-Pagination-Token')).toBe(index === 1 ? 'token-1' : null);
+      req.flush(fullPage, index === 0 ? { headers: { 'X-Filtered-Pagination-Token': 'token-1' } } : {});
+      await promise;
+    }
+  });
+
+  it('should discard old query responses and start account and filter changes without a token', async () => {
+    const fullPage = Array.from({ length: UsageServiceService.USAGE_SPEC_LIMIT }, (_, id) => ({ id }));
+    const initial = service.getUsageSpecs(0, ['Retired', 'Obsolete'], 'party-1', true);
+    httpMock.expectOne(request => request.url.includes('offset=0&')).flush(fullPage, {
+      headers: { 'X-Filtered-Pagination-Token': 'old-token' }
+    });
+    await initial;
+    const oldPage = service.getUsageSpecs(6, ['Retired', 'Obsolete'], 'party-1', true);
+    const oldReq = httpMock.expectOne(request => request.url.includes('offset=6&'));
+
+    const newPage = service.getUsageSpecs(0, ['Retired', 'Obsolete'], 'party-2', true);
+    const newReq = httpMock.expectOne(request => request.url.includes('party-2'));
+    expect(newReq.request.headers.has('X-Filtered-Pagination-Token')).toBeFalse();
+    newReq.flush(fullPage, { headers: { 'X-Filtered-Pagination-Token': 'new-token' } });
+    await newPage;
+
+    oldReq.flush(fullPage, { headers: { 'X-Filtered-Pagination-Token': 'stale-token' } });
+    await expectAsync(oldPage).toBeResolvedTo([]);
+
+    const continuation = service.getUsageSpecs(6, ['Retired', 'Obsolete'], 'party-2', true);
+    const continuationReq = httpMock.expectOne(request => request.url.includes('party-2'));
+    expect(continuationReq.request.headers.get('X-Filtered-Pagination-Token')).toBe('new-token');
+    continuationReq.flush([]);
+    await continuation;
+
+    const changedFilter = service.getUsageSpecs(0, ['Launched'], 'party-2');
+    const filterReq = httpMock.expectOne(request => request.url.includes('lifecycleStatus=Launched'));
+    expect(filterReq.request.headers.has('X-Filtered-Pagination-Token')).toBeFalse();
+    filterReq.flush([]);
+    await changedFilter;
+  });
+
   it('should request usage specs with lifecycle status filters when provided', async () => {
     const promise = service.getUsageSpecs(0, ['Active', 'Launched'], 'party-1');
 

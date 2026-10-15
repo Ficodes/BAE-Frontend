@@ -90,15 +90,59 @@ describe('SellerUsageSpecComponent', () => {
   });
 
   it('should reset the filtered pagination token when changing tabs', () => {
-    const getUsageSpecsSpy = spyOn(component, 'getUsageSpecs').and.resolveTo(undefined);
-
     component.selectTab('Deleted');
 
     expect(component.selectedTab).toBe('Deleted');
     expect(component.status).toEqual(['Retired', 'Obsolete']);
     expect(component.page).toBe(0);
     expect(usageService.resetFilteredPaginationToken).toHaveBeenCalled();
-    expect(getUsageSpecsSpy).toHaveBeenCalledWith(false);
+    expect(paginationService.getItemsPaginated).toHaveBeenCalled();
+    expect(paginationService.getItemsPaginated.calls.mostRecent().args[5].stopOnShortPage).toBeTrue();
+  });
+
+  it('should enable short page exhaustion only for Deleted', async () => {
+    for (const tab of ['Draft', 'Validated', 'Deleted']) {
+      component.selectedTab = tab;
+      await component.getUsageSpecs(false);
+      expect(paginationService.getItemsPaginated.calls.mostRecent().args[5].stopOnShortPage).toBe(tab === 'Deleted');
+    }
+  });
+
+  it('should reset pagination when switching accounts and ignore the previous request', async () => {
+    let resolvePrevious!: (value: any) => void;
+    paginationService.getItemsPaginated.and.returnValue(new Promise(resolve => { resolvePrevious = resolve; }));
+    const previous = component.getUsageSpecs(false);
+    const previousHandler = paginationService.getItemsPaginated.calls.mostRecent().args[6];
+    component.nextUsageSpecs = [{ id: 'old-buffer' }];
+    component.page = 12;
+    paginationService.getItemsPaginated.and.resolveTo({ page_check: false, items: [{ id: 'new' }], nextItems: [], page: 6 });
+
+    eventMessage.emitChangedSession({} as any);
+    await flushPromises();
+
+    expect(usageService.resetFilteredPaginationToken).toHaveBeenCalledTimes(2);
+    expect(paginationService.getItemsPaginated.calls.mostRecent().args.slice(0, 5)).toEqual([0, component.USAGE_SPEC_LIMIT, false, [], []]);
+    await expectAsync(previousHandler(6)).toBeResolvedTo([]);
+    expect(usageService.getUsageSpecs).not.toHaveBeenCalled();
+
+    resolvePrevious({ page_check: true, items: [{ id: 'stale' }], nextItems: [{ id: 'stale-buffer' }], page: 18 });
+    await previous;
+    expect(component.usageSpecs).toEqual([{ id: 'new' }]);
+    expect(component.nextUsageSpecs).toEqual([]);
+    expect(component.page_check).toBeFalse();
+  });
+
+  it('should ignore repeated load more clicks while loading and after exhaustion', async () => {
+    component.page_check = true;
+    let resolvePage!: (value: any) => void;
+    paginationService.getItemsPaginated.and.returnValue(new Promise(resolve => { resolvePage = resolve; }));
+    const pending = component.next();
+    await component.next();
+    expect(paginationService.getItemsPaginated).toHaveBeenCalledTimes(1);
+    resolvePage({ page_check: false, items: [], nextItems: [], page: 12 });
+    await pending;
+    await component.next();
+    expect(paginationService.getItemsPaginated).toHaveBeenCalledTimes(1);
   });
 
   it('should move counters locally and refresh only the current tab after validation succeeds', () => {
