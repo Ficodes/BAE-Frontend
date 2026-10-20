@@ -229,11 +229,17 @@ describe('OfferComponent', () => {
   });
 
   it('should disable and ignore product specification changes when updating an offer', async () => {
-    spyOn(component, 'ngOnInit').and.resolveTo();
+    spyOn<any>(component, 'loadUsageSpecs').and.resolveTo();
+    spyOn(component, 'loadAvailableProdSpecs').and.resolveTo();
+    spyOn(component, 'loadGeneralInfoCategoryFilterOptions').and.resolveTo();
+    spyOn(component, 'loadCategories').and.resolveTo();
+    spyOn(component, 'loadOfferData').and.resolveTo();
     const api = (component as any).api;
     const getProductSpecSpy = spyOn(api, 'getProductSpecification');
     const existingPlan = { id: 'plan-1', href: 'plan-1', name: 'Standard plan', paymentOnline: true };
     component.formType = 'update';
+    component.partyId = 'party-1';
+    component.offer = { id: 'offer-1', productSpecification: { id: 'prod-spec-1' } };
     component.availableProdSpecs = [
       { id: 'prod-spec-1', name: 'Current specification' },
       { id: 'prod-spec-2', name: 'Other specification' }
@@ -245,8 +251,11 @@ describe('OfferComponent', () => {
       pricePlans: [existingPlan]
     });
     fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
 
     const select: HTMLSelectElement = fixture.nativeElement.querySelector('#prodSpecSelect');
+    expect(select).not.toBeNull();
     expect(select.disabled).toBeTrue();
     expect(fixture.nativeElement.querySelector('[data-cy="productSpecUpdateLocked"]')).not.toBeNull();
 
@@ -258,6 +267,7 @@ describe('OfferComponent', () => {
     expect(component.selectedProdSpecId).toBe('prod-spec-1');
     expect(component.productOfferForm.get('prodSpec')?.value).toEqual({ id: 'prod-spec-1' });
     expect(component.productOfferForm.get('pricePlans')?.value).toEqual([existingPlan]);
+    expect(component.pricePlans).toEqual([existingPlan]);
     expect(getProductSpecSpy).not.toHaveBeenCalled();
   });
 
