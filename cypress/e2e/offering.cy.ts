@@ -284,6 +284,10 @@ describe('/my-offerings',{
 const interceptors = (productSpec:any, productOfferingPOST:any, newCatalog:any, defaultCatalog: any, defaultCategory:any, offPricePOST:any) => {
     let offeringCreated = false
     let priceCreateCalls = 0
+    const catalogFixture = {
+        ...defaultCatalog,
+        category: [{ id: defaultCategory.id, href: defaultCategory.href, name: defaultCategory.name }]
+    }
 
     cy.intercept({method: 'GET', url: '**/catalog/catalog?*'}, (res)=>{
         res.reply({
@@ -303,24 +307,20 @@ const interceptors = (productSpec:any, productOfferingPOST:any, newCatalog:any, 
             body: [productSpec]
         })
     }).as('productSpec')
-    cy.intercept({method: 'GET', url: '**/catalog/productSpecification/urn:ngsi-ld:product-specification:*'}, {
-        statusCode: 200,
-        body: productSpec
+    cy.intercept({method: 'GET', pathname: '/catalog/productSpecification/*'}, (req) => {
+        expect(decodeURIComponent(new URL(req.url).pathname)).to.eq(`/catalog/productSpecification/${productSpec.id}`)
+        req.reply({statusCode: 200, body: productSpec})
     }).as('productSpecDetail')
 
 
-    cy.intercept({method: 'GET', url: '**/catalog/catalog/urn:ngsi-ld:catalog:32828e1d-4652-4f4c-b13e-327450ce83c6'}, (res)=>{
-        res.reply({
-            statusCode: 200,
-            body: defaultCatalog
-        })
+    cy.intercept({method: 'GET', pathname: `/catalog/catalog/${defaultCatalog.id}`}, {
+        statusCode: 200,
+        body: catalogFixture
     }).as('defaultCatalog')
 
-    cy.intercept({method: 'GET', url: '**/catalog/category/urn:ngsi-ld:category:26435cca-2707-4c89-8f0c-79464573c9e2'}, (res)=>{
-        res.reply({
-            statusCode: 200,
-            body: defaultCategory
-        })
+    cy.intercept({method: 'GET', pathname: '/catalog/category/*'}, (req) => {
+        expect(decodeURIComponent(new URL(req.url).pathname)).to.eq(`/catalog/category/${defaultCategory.id}`)
+        req.reply({statusCode: 200, body: defaultCategory})
     }).as('defaultCategory')
     cy.intercept({method: 'GET', url: '**/catalog/category?*'}, (res)=>{
         res.reply({
@@ -358,11 +358,14 @@ const interceptors = (productSpec:any, productOfferingPOST:any, newCatalog:any, 
 }
 
 const fillGeneralInfo = (productOffering: any, productSpec: any, catalog: any) => {
-    cy.wait('@productSpec')
-    cy.wait('@catalogs')
+    cy.wait('@productSpec').its('response.statusCode').should('eq', 200)
+    cy.wait('@catalogs').its('response.statusCode').should('eq', 200)
+    cy.wait('@defaultCatalog').its('response.statusCode').should('eq', 200)
+    cy.wait('@defaultCategory').its('response.statusCode').should('eq', 200)
     cy.getBySel('offerName').type(productOffering.name)
-    cy.get('#prodSpecSelect').select(productSpec.id)
-    cy.wait('@productSpecDetail')
+    cy.get('#prodSpecSelect').should('be.enabled').select(productSpec.id)
+    cy.wait('@productSpecDetail').its('response.statusCode').should('eq', 200)
+    cy.get('#prodSpecSelect').should('have.value', productSpec.id)
     cy.getBySel('offerCatalogSelect').select(catalog.id)
     cy.getBySel('offerOverview').type(productOffering.description)
     cy.getBySel('offerNext').click()
@@ -376,7 +379,7 @@ const assertCreatedOfferRow = (name: string) => {
 }
 
 const fillCategory = (category: any) => {
-    cy.get('#rootCategorySelect').find('option').should('contain.text', category.name)
+    cy.get('#rootCategorySelect').find(`option[value="${category.id}"]`).should('have.text', category.name)
     cy.get('#rootCategorySelect').select(category.id)
     cy.getBySel('offerNext').click()
 }
