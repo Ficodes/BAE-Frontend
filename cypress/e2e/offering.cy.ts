@@ -420,4 +420,7 @@ const addOnlinePaidPricePlan = (pricePlan:any, priceComponent:PriceComponent) =>
 
 const fillProcurementAndSubmit = () => {
     cy.getBySel('offerFinish').click()
+    cy.get('app-product-details').should('be.visible')
+    cy.getBySel('confirmPublish').should('be.visible').click()
+    cy.getBySel('confirmPublish').should('not.exist')
 }
