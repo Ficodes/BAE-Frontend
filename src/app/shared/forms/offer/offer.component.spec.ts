@@ -1724,8 +1724,9 @@ describe('OfferComponent', () => {
     expect(component.currentStep).toBe(0);
   });
 
-  it('should submit when all required wizard steps are complete', () => {
+  it('should preview a complete offer and submit only after confirmation', () => {
     const createSpy = spyOn(component, 'createOffer');
+    const publishRequestedSpy = spyOn(component.publishRequested, 'emit');
     component.generalInfoCategoryFilter = {
       name: 'businessDomain',
       label: 'Business domain',
@@ -1741,6 +1742,14 @@ describe('OfferComponent', () => {
 
     component.submitForm();
 
-    expect(createSpy).toHaveBeenCalled();
+    expect(publishRequestedSpy).toHaveBeenCalledOnceWith(jasmine.objectContaining({
+      name: 'Offer name',
+      productSpecification: { id: 'prod-spec-1' }
+    }));
+    expect(createSpy).not.toHaveBeenCalled();
+
+    component.confirmPublish();
+
+    expect(createSpy).toHaveBeenCalledTimes(1);
   });
 });
