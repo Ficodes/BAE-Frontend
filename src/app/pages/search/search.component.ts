@@ -793,7 +793,8 @@ export class SearchComponent implements OnInit, OnDestroy {
       await this.runInitialAiSearch();
     } else {
       // Use standard search if AI is disabled
-      this.keywords = this.searchField.value || undefined;
+      const keywords = this.searchField.value?.trim() || undefined;
+      this.keywords = keywords;
       this.updateQueryParams(this.keywords);
       this.aiAnswer = '';
       this.eventMessage.emitAiSearchCleared();

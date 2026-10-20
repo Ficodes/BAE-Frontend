@@ -283,10 +283,10 @@ describe('EdcContractDefinitionComponent', () => {
     expect(emitSpy).not.toHaveBeenCalled();
   });
 
-  it('ngOnDestroy should not emit when dirty fields are empty', () => {
+  it('ngOnDestroy should emit dspCompatible as dirty when enabling a new contract definition', () => {
     // Update mode with no pre-existing contractDefinition so originalValue starts as null.
-    // Enabling dspCompatible sets originalValue with empty strings; keeping policies empty
-    // means getDirtyFields returns []. Even though form was modified, no fields differ.
+    // Enabling dspCompatible creates a new contract definition, so the boolean change is dirty
+    // even when the policy fields are still empty.
     component.formType = 'update';
     component.data = { productOfferingTerm: [] };
     fixture.detectChanges();
@@ -301,7 +301,11 @@ describe('EdcContractDefinitionComponent', () => {
 
     const emitSpy = spyOn(component.formChange, 'emit');
     component.ngOnDestroy();
-    expect(emitSpy).not.toHaveBeenCalled();
+    expect(emitSpy).toHaveBeenCalledWith(jasmine.objectContaining({
+      subformType: 'contractDefinition',
+      isDirty: true,
+      dirtyFields: ['dspCompatible']
+    }));
   });
 
   it('ngOnDestroy should complete the destroy$ subject', () => {

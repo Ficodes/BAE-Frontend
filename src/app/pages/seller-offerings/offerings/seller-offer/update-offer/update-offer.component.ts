@@ -18,6 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { currencies } from 'currencies.json';
 import { lastValueFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 
 type ProductOffering_Update = components["schemas"]["ProductOffering_Update"];
 type BundledProductOffering = components["schemas"]["BundledProductOffering"];
@@ -31,6 +32,38 @@ type ProductOfferingPrice = components["schemas"]["ProductOfferingPrice"]
 })
 export class UpdateOfferComponent implements OnInit, OnDestroy {
   @Input() offer: any;
+
+  showPreviewModal: boolean = false;
+  previewProductOff: any = null;
+  previewTab: 'details' | 'card' = 'details';
+  confirmPublishMode: boolean = false;
+
+  @ViewChild('offerForm') offerForm: any;
+
+  onPreviewRequested(productOff: any): void {
+    this.previewProductOff = productOff;
+    this.previewTab = 'details';
+    this.confirmPublishMode = false;
+    this.showPreviewModal = true;
+  }
+
+  onPublishRequested(productOff: any): void {
+    this.previewProductOff = productOff;
+    this.previewTab = 'details';
+    this.confirmPublishMode = true;
+    this.showPreviewModal = true;
+  }
+
+  confirmPublish(): void {
+    this.showPreviewModal = false;
+    this.confirmPublishMode = false;
+    this.offerForm?.confirmPublish();
+  }
+
+  closePreviewModal(): void {
+    this.showPreviewModal = false;
+    this.confirmPublishMode = false;
+  }
 
   //PAGE SIZES:
   PROD_SPEC_LIMIT: number = environment.PROD_SPEC_LIMIT;
@@ -215,7 +248,8 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
     private attachmentService: AttachmentServiceService,
     private servSpecService: ServiceSpecServiceService,
     private resSpecService: ResourceSpecServiceService,
-    private paginationService: PaginationService
+    private paginationService: PaginationService,
+    private translate: TranslateService
   ) {
     this.eventMessage.messages$
     .pipe(takeUntil(this.destroy$))
@@ -318,7 +352,7 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
     }
 
     //LICENSE
-    if(this.offer.productOfferingTerm){
+    if(Array.isArray(this.offer.productOfferingTerm) && this.offer.productOfferingTerm.length > 0){
       this.freeLicenseSelected=false;
       this.licenseForm.controls['treatment'].setValue(this.offer.productOfferingTerm[0].name);
       this.licenseForm.controls['description'].setValue(this.offer.productOfferingTerm[0].description);
@@ -1095,9 +1129,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                       console.error('There was an error while creating offers price!', error);
                       if(error.error.error){
                         console.log(error)
-                        this.errorMessage='Error: '+error.error.error;
+                        this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                       } else {
-                        this.errorMessage='There was an error while creating offers price!';
+                        this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                       }
                       this.showError=true;
                       setTimeout(() => {
@@ -1118,9 +1152,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                     console.error('There was an error while creating offers price!', error);
                     if(error.error.error){
                       console.log(error)
-                      this.errorMessage='Error: '+error.error.error;
+                      this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                     } else {
-                      this.errorMessage='There was an error while creating offers price!';
+                      this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                     }
                     this.showError=true;
                     setTimeout(() => {
@@ -1155,9 +1189,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
               console.error('There was an error while creating offers price!', error);
               if(error.error.error){
                 console.log(error)
-                this.errorMessage='Error: '+error.error.error;
+                this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
               } else {
-                this.errorMessage='There was an error while creating offers price!';
+                this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
               }
               this.showError=true;
               setTimeout(() => {
@@ -1208,9 +1242,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
               console.error('There was an error while creating offers price!', error);
               if(error.error.error){
                 console.log(error)
-                this.errorMessage='Error: '+error.error.error;
+                this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
               } else {
-                this.errorMessage='There was an error while creating offers price!';
+                this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
               }
               this.showError=true;
               setTimeout(() => {
@@ -1289,9 +1323,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                             console.error('There was an error while creating offers price!', error);
                             if(error.error.error){
                               console.log(error)
-                              this.errorMessage='Error: '+error.error.error;
+                              this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                             } else {
-                              this.errorMessage='There was an error while creating offers price!';
+                              this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                             }
                             this.showError=true;
                             setTimeout(() => {
@@ -1323,9 +1357,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                             console.error('There was an error while creating offers price!', error);
                             if(error.error.error){
                               console.log(error)
-                              this.errorMessage='Error: '+error.error.error;
+                              this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                             } else {
-                              this.errorMessage='There was an error while creating offers price!';
+                              this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                             }
                             this.showError=true;
                             setTimeout(() => {
@@ -1347,9 +1381,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                         console.error('There was an error while creating offers price!', error);
                         if(error.error.error){
                           console.log(error)
-                          this.errorMessage='Error: '+error.error.error;
+                          this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                         } else {
-                          this.errorMessage='There was an error while creating offers price!';
+                          this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                         }
                         this.showError=true;
                         setTimeout(() => {
@@ -1411,9 +1445,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                           console.error('There was an error while creating offers price!', error);
                           if(error.error.error){
                             console.log(error)
-                            this.errorMessage='Error: '+error.error.error;
+                            this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                           } else {
-                            this.errorMessage='There was an error while creating offers price!';
+                            this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                           }
                           this.showError=true;
                           setTimeout(() => {
@@ -1434,9 +1468,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                         console.error('There was an error while creating offers price!', error);
                         if(error.error.error){
                           console.log(error)
-                          this.errorMessage='Error: '+error.error.error;
+                          this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                         } else {
-                          this.errorMessage='There was an error while creating offers price!';
+                          this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                         }
                         this.showError=true;
                         setTimeout(() => {
@@ -1473,9 +1507,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                   console.error('There was an error while creating offers price!', error);
                   if(error.error.error){
                     console.log(error)
-                    this.errorMessage='Error: '+error.error.error;
+                    this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                   } else {
-                    this.errorMessage='There was an error while creating offers price!';
+                    this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                   }
                   this.showError=true;
                   setTimeout(() => {
@@ -1506,9 +1540,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
                   console.error('There was an error while creating offers price!', error);
                   if(error.error.error){
                     console.log(error)
-                    this.errorMessage='Error: '+error.error.error;
+                    this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
                   } else {
-                    this.errorMessage='There was an error while creating offers price!';
+                    this.errorMessage=this.translate.instant('CREATE_OFFER._price_create_error');
                   }
                   this.showError=true;
                   setTimeout(() => {
@@ -1593,9 +1627,9 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
         console.error('There was an error while updating!', error);
         if(error.error.error){
           console.log(error)
-          this.errorMessage='Error: '+error.error.error;
+          this.errorMessage=this.translate.instant('ERRORS._error_prefix', { message: error.error.error });
         } else {
-          this.errorMessage='There was an error while updating the offer!';
+          this.errorMessage=this.translate.instant('UPDATE_OFFER._update_error');
         }
         this.showError=true;
         setTimeout(() => {
@@ -1611,10 +1645,10 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       this.stepsElements.splice(index, 1);
       this.selectMenu(document.getElementById(step),'text-primary-100 dark:text-primary-50')
-      this.unselectMenu(document.getElementById(step),'text-gray-500')
+      this.unselectMenu(document.getElementById(step),'text-offerings-muted-text')
       for(let i=0; i<this.stepsElements.length;i++){
         this.unselectMenu(document.getElementById(this.stepsElements[i]),'text-primary-100 dark:text-primary-50')
-        this.selectMenu(document.getElementById(this.stepsElements[i]),'text-gray-500')
+        this.selectMenu(document.getElementById(this.stepsElements[i]),'text-offerings-muted-text')
       }
       this.stepsElements.push(step);
     }
@@ -1622,10 +1656,10 @@ export class UpdateOfferComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       this.stepsCircles.splice(circleIndex, 1);
       this.selectMenu(document.getElementById(stepCircle),'border-primary-100 dark:border-primary-50')
-      this.unselectMenu(document.getElementById(stepCircle),'border-gray-400');
+      this.unselectMenu(document.getElementById(stepCircle),'border-offerings-border-strong');
       for(let i=0; i<this.stepsCircles.length;i++){
         this.unselectMenu(document.getElementById(this.stepsCircles[i]),'border-primary-100 dark:border-primary-50')
-        this.selectMenu(document.getElementById(this.stepsCircles[i]),'border-gray-400');
+        this.selectMenu(document.getElementById(this.stepsCircles[i]),'border-offerings-border-strong');
       }
       this.stepsCircles.push(stepCircle);
     }

@@ -232,11 +232,23 @@ export const local_items = {
 export const checkHeaderPreLogin = () => {
     // Mocks
     cy.intercept( {method:'GET', url: '**/stats*'}, init_stat).as('stats')
-    //cy.intercept( {method: 'GET', url: 'http://proxy.docker:8004/catalog/productOffering?*'}, product_offering).as('productOffering')
     cy.intercept( {method: 'GET', url: '**/config*'}, init_config).as('config')
+    cy.intercept({method: 'GET', pathname: '/catalog/productOffering'}, {
+      statusCode: 200,
+      body: [],
+    })
+    cy.intercept({method: 'GET', pathname: '/shoppingCart/item/'}, {
+      statusCode: 200,
+      body: [],
+    })
     //cy.intercept('GET', '**/catalog/category/urn:ngsi-ld:category:*', category_dft).as('category');
     cy.intercept({method: 'GET', url: '**/catalog/catalog*'}, default_catalog).as('catalog')
-    cy.intercept( {method: 'GET', url: '**/catalog/category*'}, category_dft).as('category')
+    cy.intercept( {method: 'GET', url: '**/catalog/category*'}, (req) => {
+        req.reply({
+            statusCode: 200,
+            body: req.url.includes('/catalog/category/') ? category_dft : [category_dft]
+        })
+    }).as('category')
     // Verify mocks are called 1 time
     cy.visit('/', {onBeforeLoad(win) {
         win.localStorage.setItem('color-theme', 'dark');
@@ -298,14 +310,12 @@ export const checkHeaderPostLogin = () => {
 
 export const loginAcc = () => {
     checkHeaderPreLogin()
-    local_items.expire = moment().unix() + 100
-    cy.window().then((window) => window.localStorage.setItem('login_items', JSON.stringify(local_items)))
 
     // Mocks
     cy.intercept(
         {
             method: 'GET',
-            url: '**/logintoken*'
+            pathname: '/logintoken'
         },
         (req) => {
             req.reply({
@@ -316,6 +326,7 @@ export const loginAcc = () => {
         ).as('login_token');
 
     cy.visit('/dashboard?token=test', {onBeforeLoad(win) {
+        win.localStorage.setItem('login_items', '{}');
         win.document.documentElement.classList.add('dark');
         }})
 
@@ -327,6 +338,14 @@ export const loginAcc = () => {
     cy.wait('@login_token', { timeout: 20000 }).then((interception) => {
       expect(interception.response?.statusCode).to.eq(200)
       expect(interception.response?.body).to.have.property('accessToken')
+    })
+    cy.location('pathname').should('eq', '/dashboard')
+    cy.location('search').should('eq', '')
+    cy.window().should((win) => {
+      const session = JSON.parse(win.localStorage.getItem('login_items') || '{}')
+      expect(session.id).to.eq(local_items.id)
+      expect(session.partyId).to.eq(local_items.partyId)
+      expect(session.token).to.eq(login_token().accessToken)
     })
 
     checkHeaderPostLogin()

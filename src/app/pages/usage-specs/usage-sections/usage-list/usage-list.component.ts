@@ -63,6 +63,7 @@ export class UsageListComponent  implements OnInit {
     }
     
     let options = {
+      "filters": [],
       "partyId": this.partyId
     }
     

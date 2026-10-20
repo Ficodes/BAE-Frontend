@@ -42,7 +42,7 @@ export class UpdateServiceSpecComponent implements OnInit, OnDestroy {
   //markdown variables:
   showPreview:boolean=false;
   showEmoji:boolean=false;
-  description:string='';  
+  description:string='';
 
   //CONTROL VARIABLES:
   showGeneral:boolean=true;
@@ -197,7 +197,7 @@ export class UpdateServiceSpecComponent implements OnInit, OnDestroy {
           value:this.stringValue as any
         })
       }
-      this.stringValue='';  
+      this.stringValue='';
     } else if (this.numberCharSelected){
       console.log('number')
       if(this.creatingChars.length==0){
@@ -230,7 +230,7 @@ export class UpdateServiceSpecComponent implements OnInit, OnDestroy {
           valueFrom:this.fromValue as any,
           valueTo:this.toValue as any,
           unitOfMeasure:this.rangeUnit})
-      } 
+      }
     }
     this.fromValue='';
     this.toValue='';
@@ -278,9 +278,9 @@ export class UpdateServiceSpecComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       console.log('eliminar')
       this.prodChars.splice(index, 1);
-    }   
+    }
     this.cdr.detectChanges();
-    console.log(this.prodChars)    
+    console.log(this.prodChars)
   }
 
   showFinish(){
@@ -379,10 +379,10 @@ export class UpdateServiceSpecComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       this.stepsElements.splice(index, 1);
       this.selectMenu(document.getElementById(step),'text-primary-100 dark:text-primary-50')
-      this.unselectMenu(document.getElementById(step),'text-gray-500') 
+      this.unselectMenu(document.getElementById(step),'text-offerings-muted-text')
       for(let i=0; i<this.stepsElements.length;i++){
         this.unselectMenu(document.getElementById(this.stepsElements[i]),'text-primary-100 dark:text-primary-50')
-        this.selectMenu(document.getElementById(this.stepsElements[i]),'text-gray-500') 
+        this.selectMenu(document.getElementById(this.stepsElements[i]),'text-offerings-muted-text')
       }
       this.stepsElements.push(step);
     }
@@ -390,10 +390,10 @@ export class UpdateServiceSpecComponent implements OnInit, OnDestroy {
     if (index !== -1) {
       this.stepsCircles.splice(circleIndex, 1);
       this.selectMenu(document.getElementById(stepCircle),'border-primary-100 dark:border-primary-50')
-      this.unselectMenu(document.getElementById(stepCircle),'border-gray-400');
+      this.unselectMenu(document.getElementById(stepCircle),'border-offerings-border-strong');
       for(let i=0; i<this.stepsCircles.length;i++){
         this.unselectMenu(document.getElementById(this.stepsCircles[i]),'border-primary-100 dark:border-primary-50')
-        this.selectMenu(document.getElementById(this.stepsCircles[i]),'border-gray-400');
+        this.selectMenu(document.getElementById(this.stepsCircles[i]),'border-offerings-border-strong');
       }
       this.stepsCircles.push(stepCircle);
     }
@@ -418,43 +418,43 @@ export class UpdateServiceSpecComponent implements OnInit, OnDestroy {
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n- First item\n- Second item'
-    });    
+    });
   }
 
   addOrderedList(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n1. First item\n2. Second item'
-    });    
+    });
   }
 
   addCode(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n`code`'
-    });    
+    });
   }
 
   addCodeBlock(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n```\ncode\n```'
-    }); 
+    });
   }
 
   addBlockquote(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + '\n> blockquote'
-    });    
+    });
   }
 
   addLink(){
     const currentText = this.generalForm.value.description;
     this.generalForm.patchValue({
       description: currentText + ' [title](https://www.example.com) '
-    });    
-  } 
+    });
+  }
 
   addTable(){
     const currentText = this.generalForm.value.description;
@@ -477,18 +477,18 @@ export class UpdateServiceSpecComponent implements OnInit, OnDestroy {
       this.description=this.generalForm.value.description;
     } else {
       this.description=''
-    }   
+    }
   }
-  
+
   hasLongWord(str: string | undefined, threshold = 20) {
     if(str){
       return str.split(/\s+/).some(word => word.length > threshold);
     } else {
       return false
-    }   
+    }
   }
 
-  goToStep(index: number) {    
+  goToStep(index: number) {
     this.currentStep = index;
     if(this.currentStep>this.highestStep){
       this.highestStep=this.currentStep
@@ -496,8 +496,8 @@ export class UpdateServiceSpecComponent implements OnInit, OnDestroy {
     this.refreshChars();
     //chars
     if(this.currentStep==1){
-      setTimeout(() => {        
-        initFlowbite();   
+      setTimeout(() => {
+        initFlowbite();
       }, 100);
     }
     //finish
@@ -517,7 +517,7 @@ export class UpdateServiceSpecComponent implements OnInit, OnDestroy {
 
   canNavigate(index: number) {
     return this.generalForm?.valid
-  }  
+  }
 
   handleStepClick(index: number): void {
     if (this.canNavigate(index)) {

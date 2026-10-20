@@ -86,7 +86,7 @@ export class TierPricingDrawerComponent implements OnInit {
 
     // Initialize party info and get usage specs
     this.initPartyInfo();
-    this.usageService.getAllUsageSpecs(this.partyId).then(data => {
+    this.usageService.getUsageSpecsByStatus(['Launched'], this.partyId).then(data => {
       this.usageSpecs = data;
     });
   }

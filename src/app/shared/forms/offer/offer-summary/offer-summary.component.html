@@ -1,54 +1,54 @@
 <div class="m-8">
     <div class="mb-4 grid grid-cols-2 gap-4">
         <div>
-            <label class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._name' | translate }}</label>
+            <label class="font-bold text-lg dark:text-offerings-on-dark">{{ 'CREATE_OFFER._name' | translate }}</label>
             <label [ngClass]="{
                 'break-all': hasLongWord(productOfferForm.get('generalInfo.name')?.value, 20),
                 'break-words': !hasLongWord(productOfferForm.get('generalInfo.name')?.value, 20)
-                }" class="mb-2 bg-gray-50 text-wrap break-words dark:bg-secondary-300 dark:border-secondary-200 dark:text-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                }" class="mb-2 bg-offerings-page text-wrap break-words dark:bg-secondary-300 dark:border-secondary-200 dark:text-offerings-on-dark border border-offerings-border-strong text-offerings-text text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-2.5">
                 {{ productOfferForm.get('generalInfo.name')?.value }}
             </label>
 
         </div>
        <div>
-            <label for="prod-version" class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._version' | translate }}</label>
+            <label for="prod-version" class="font-bold text-lg dark:text-offerings-on-dark">{{ 'CREATE_OFFER._version' | translate }}</label>
             <label [ngClass]="{
                 'break-all': hasLongWord(productOfferForm.get('generalInfo.version')?.value, 20),
                 'break-words': !hasLongWord(productOfferForm.get('generalInfo.version')?.value, 20)
-                }" class="mb-2 bg-gray-50 text-wrap break-words border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                }" class="mb-2 bg-offerings-page text-wrap break-words border border-offerings-border-strong text-offerings-text dark:bg-secondary-300 dark:border-secondary-200 dark:text-offerings-on-dark text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-2.5">
                 {{ productOfferForm.get('generalInfo.version')?.value }}
             </label>
         </div>
     </div>
 
   <div class="mb-4">
-        <label class="font-bold text-lg mr-4 dark:text-white">{{ 'CREATE_OFFER._status' | translate }}</label>
+        <label class="font-bold text-lg mr-4 dark:text-offerings-on-dark">{{ 'CREATE_OFFER._status' | translate }}</label>
         @if(productOfferForm.get('generalInfo')?.get('status')?.value == 'Active'){
-            <span class="bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{productOfferForm.get('generalInfo')?.get('status')?.value}}</span>
+            <span class="bg-secondary-50 dark:bg-secondary-300 text-primary-100 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-primary-100">{{productOfferForm.get('generalInfo')?.get('status')?.value}}</span>
         } @else if(productOfferForm.get('generalInfo')?.get('status')?.value == 'Launched') {
-            <span class="bg-blue-100 dark:bg-secondary-300 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500">{{productOfferForm.get('generalInfo')?.get('status')?.value}}</span>
+            <span class="bg-secondary-50 dark:bg-secondary-300 text-status-success-border text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-status-success-border">{{productOfferForm.get('generalInfo')?.get('status')?.value}}</span>
         } @else if(productOfferForm.get('generalInfo')?.get('status')?.value == 'Retired') {
-            <span class="bg-blue-100 dark:bg-secondary-300 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{productOfferForm.get('generalInfo')?.get('status')?.value}}</span>
+            <span class="bg-secondary-50 dark:bg-secondary-300 text-status-warning-text text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-status-warning-text">{{productOfferForm.get('generalInfo')?.get('status')?.value}}</span>
         } @else if(productOfferForm.get('generalInfo')?.get('status')?.value == 'Obsolete') {
-            <span class="bg-blue-100 dark:bg-secondary-300 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{productOfferForm.get('generalInfo.status')?.get('status')?.value}}</span>
+            <span class="bg-secondary-50 dark:bg-secondary-300 text-status-danger-border text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-status-danger-border">{{productOfferForm.get('generalInfo.status')?.get('status')?.value}}</span>
         }
     </div>
-   
+
    @if(productOfferForm.get('generalInfo.description')?.value !=''){
-        <label class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._description' | translate }}</label>
-        <div class="px-4 py-2 bg-white rounded-lg p-4 mb-4 dark:bg-secondary-300 dark:text-white border dark:border-secondary-200">
+        <label class="font-bold text-lg dark:text-offerings-on-dark">{{ 'CREATE_OFFER._description' | translate }}</label>
+        <div class="px-4 py-2 bg-offerings-surface rounded-lg p-4 mb-4 dark:bg-secondary-300 dark:text-offerings-on-dark border dark:border-secondary-200">
             <markdown [ngClass]="{
                 'break-all': hasLongWord(productOfferForm.get('generalInfo.description')?.value, 20),
                 'break-words': !hasLongWord(productOfferForm.get('generalInfo.description')?.value, 20)
-                }" class="bg-gray-50 dark:bg-secondary-300 dark:text-white text-gray-900 text-wrap break-words" [data]="productOfferForm.get('generalInfo.description')?.value"></markdown>
+                }" class="bg-offerings-page dark:bg-secondary-300 dark:text-offerings-on-dark text-offerings-text text-wrap break-words" [data]="productOfferForm.get('generalInfo.description')?.value"></markdown>
         </div>
     }
 <!--
     @if(productOfferForm.get('pricePlans')){
-        <label class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._bundle' | translate }}</label>
-        <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">
-            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
+        <label class="font-bold text-lg dark:text-offerings-on-dark">{{ 'CREATE_OFFER._bundle' | translate }}</label>
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-offerings-surface mb-4">
+            <table class="w-full text-sm text-left rtl:text-right text-offerings-muted-text dark:text-offerings-on-dark-body">
+                <thead class="text-xs text-offerings-body uppercase bg-offerings-neutral dark:bg-secondary-200 dark:text-offerings-on-dark">
                     <tr>
                         <th scope="col" class="px-6 py-3">
                             {{ 'CREATE_OFFER._name' | translate }}
@@ -60,19 +60,19 @@
                 </thead>
                 <tbody>
                     @for (bun of offersBundle; track bun) {
-                        <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                        <tr class="border-b hover:bg-offerings-muted dark:bg-secondary-300 dark:border-secondary-200 dark:hover:bg-secondary-200">
                             <td class="px-6 py-4 text-wrap break-all">
                                 {{bun.name}}
                             </td>
                             <td class="px-6 py-4">
                                 @if(bun.lifecycleStatus == 'Active'){
-                                    <span class="bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{bun.lifecycleStatus}}</span>
+                                    <span class="bg-secondary-50 dark:bg-secondary-300 text-primary-100 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-primary-100">{{bun.lifecycleStatus}}</span>
                                 } @else if(bun.lifecycleStatus == 'Launched') {
-                                    <span class="bg-blue-100 dark:bg-secondary-300 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500">{{bun.lifecycleStatus}}</span>
+                                    <span class="bg-secondary-50 dark:bg-secondary-300 text-status-success-border text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-status-success-border">{{bun.lifecycleStatus}}</span>
                                 } @else if(bun.lifecycleStatus == 'Retired') {
-                                    <span class="bg-blue-100 dark:bg-secondary-300 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{bun.lifecycleStatus}}</span>
+                                    <span class="bg-secondary-50 dark:bg-secondary-300 text-status-warning-text text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-status-warning-text">{{bun.lifecycleStatus}}</span>
                                 } @else if(bun.lifecycleStatus == 'Obsolete') {
-                                    <span class="bg-blue-100 dark:bg-secondary-300 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{bun.lifecycleStatus}}</span>
+                                    <span class="bg-secondary-50 dark:bg-secondary-300 text-status-danger-border text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-status-danger-border">{{bun.lifecycleStatus}}</span>
                                 }
                             </td>
                         </tr>
@@ -83,10 +83,10 @@
     }-->
 
     @if(productOfferForm.get('catalogue')?.value){
-        <label class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._catalog' | translate }}</label>
-        <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">
-        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
+        <label class="font-bold text-lg dark:text-offerings-on-dark">{{ 'CREATE_OFFER._catalog' | translate }}</label>
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-offerings-surface mb-4">
+        <table class="w-full text-sm text-left rtl:text-right text-offerings-muted-text dark:text-offerings-on-dark-body">
+            <thead class="text-xs text-offerings-body uppercase bg-offerings-neutral dark:bg-secondary-200 dark:text-offerings-on-dark">
                 <tr>
                     <th scope="col" class="px-6 py-3">
                         {{ 'OFFERINGS._name' | translate }}
@@ -100,7 +100,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                <tr class="border-b hover:bg-offerings-muted dark:bg-secondary-300 dark:border-secondary-200 dark:hover:bg-secondary-200">
                     <td [ngClass]="{
                         'break-all': hasLongWord(productOfferForm.get('catalogue')?.value.name, 20),
                         'break-words': !hasLongWord(productOfferForm.get('catalogue')?.value.name, 20)
@@ -109,13 +109,13 @@
                     </td>
                     <td class="px-6 py-4">
                         @if(productOfferForm.get('catalogue')?.value.lifecycleStatus == 'active'){
-                            <span class="bg-blue-100 dark:bg-secondary-300 text-blue-600 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-blue-400">{{productOfferForm.get('catalogue')?.value.lifecycleStatus}}</span>
+                            <span class="bg-secondary-50 dark:bg-secondary-300 text-primary-100 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-primary-100">{{productOfferForm.get('catalogue')?.value.lifecycleStatus}}</span>
                         } @else if(productOfferForm.get('catalogue')?.value.lifecycleStatus == 'Launched') {
-                            <span class="bg-blue-100 dark:bg-secondary-300 text-green-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-500">{{productOfferForm.get('catalogue')?.value.lifecycleStatus}}</span>
+                            <span class="bg-secondary-50 dark:bg-secondary-300 text-status-success-border text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-status-success-border">{{productOfferForm.get('catalogue')?.value.lifecycleStatus}}</span>
                         } @else if(productOfferForm.get('catalogue')?.value.lifecycleStatus == 'suspended') {
-                            <span class="bg-blue-100 dark:bg-secondary-300 text-yellow-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-500">{{productOfferForm.get('catalogue')?.value.lifecycleStatus}}</span>
+                            <span class="bg-secondary-50 dark:bg-secondary-300 text-status-warning-text text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-status-warning-text">{{productOfferForm.get('catalogue')?.value.lifecycleStatus}}</span>
                         } @else if(productOfferForm.get('catalogue')?.value.lifecycleStatus == 'terminated') {
-                            <span class="bg-blue-100 dark:bg-secondary-300 text-red-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-500">{{productOfferForm.get('catalogue')?.value.lifecycleStatus}}</span>
+                            <span class="bg-secondary-50 dark:bg-secondary-300 text-status-danger-border text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-status-danger-border">{{productOfferForm.get('catalogue')?.value.lifecycleStatus}}</span>
                         }
                     </td>
                     <td class="hidden md:table-cell px-6 py-4">
@@ -128,10 +128,10 @@
     }
 
 @if(productOfferForm.get('category')?.value){
-    <h2 class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._category' | translate }}</h2>
-    <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">
-        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
+    <h2 class="font-bold text-lg dark:text-offerings-on-dark">{{ 'CREATE_OFFER._category' | translate }}</h2>
+    <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-offerings-surface mb-4">
+        <table class="w-full text-sm text-left rtl:text-right text-offerings-muted-text dark:text-offerings-on-dark-body">
+            <thead class="text-xs text-offerings-body uppercase bg-offerings-neutral dark:bg-secondary-200 dark:text-offerings-on-dark">
                 <tr>
                     <th scope="col" class="px-6 py-3">
                         {{ 'CREATE_OFFER._name' | translate }}
@@ -143,7 +143,7 @@
             </thead>
             <tbody>
                 @for (cat of productOfferForm.get('category')?.value; track cat.id) {
-                    <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                    <tr class="border-b hover:bg-offerings-muted dark:bg-secondary-300 dark:border-secondary-200 dark:hover:bg-secondary-200">
                         <td [ngClass]="{
                             'break-all': hasLongWord(cat.name, 20),
                             'break-words': !hasLongWord(cat.name, 20)
@@ -161,10 +161,10 @@
 }
 
 @if(productOfferForm.get('pricePlans')?.value){
-    <h2 class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._price_plans' | translate }}</h2>
-    <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">
-        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
+    <h2 class="font-bold text-lg dark:text-offerings-on-dark">{{ 'CREATE_OFFER._price_plans' | translate }}</h2>
+    <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-offerings-surface mb-4">
+        <table class="w-full text-sm text-left rtl:text-right text-offerings-muted-text dark:text-offerings-on-dark-body">
+            <thead class="text-xs text-offerings-body uppercase bg-offerings-neutral dark:bg-secondary-200 dark:text-offerings-on-dark">
                 <tr>
                     <th scope="col" class="px-6 py-3">
                         {{ 'CREATE_OFFER._name' | translate }}
@@ -176,7 +176,7 @@
             </thead>
             <tbody>
                 @for (price of productOfferForm.get('pricePlans')?.value; track price.id) {
-                    <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                    <tr class="border-b hover:bg-offerings-muted dark:bg-secondary-300 dark:border-secondary-200 dark:hover:bg-secondary-200">
                         <td [ngClass]="{
                             'break-all': hasLongWord(price.name, 20),
                             'break-words': !hasLongWord(price.name, 20)
@@ -198,9 +198,9 @@
 <!--
 @if(createdSLAs.length>0){
     <h2 class="font-bold text-lg">{{ 'CREATE_OFFER._sla' | translate }}</h2>
-    <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white mb-4">
-        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">
+    <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-offerings-surface mb-4">
+        <table class="w-full text-sm text-left rtl:text-right text-offerings-muted-text dark:text-offerings-on-dark-body">
+            <thead class="text-xs text-offerings-body uppercase bg-offerings-neutral dark:bg-secondary-200 dark:text-offerings-on-dark">
                 <tr>
                     <th scope="col" class="px-6 py-3">
                         {{ 'CREATE_OFFER._name' | translate }}
@@ -218,7 +218,7 @@
             </thead>
             <tbody>
                 @for (sla of createdSLAs; track sla) {
-                    <tr class="border-b hover:bg-gray-200 dark:bg-secondary-300 dark:border-gray-700 dark:hover:bg-secondary-200">
+                    <tr class="border-b hover:bg-offerings-muted dark:bg-secondary-300 dark:border-secondary-200 dark:hover:bg-secondary-200">
                         <td class="px-6 py-4">
                             {{sla.type}}
                         </td>
@@ -239,22 +239,22 @@
 }
 -->
 @if(!isLicenseEmpty) {
-    <h2 class="font-bold text-lg dark:text-white">{{ 'CREATE_OFFER._license' | translate }}</h2>
+    <h2 class="font-bold text-lg dark:text-offerings-on-dark">{{ 'CREATE_OFFER._license' | translate }}</h2>
     <div>
-        <label for="treatment" class="font-bold text-base dark:text-white">{{ 'CREATE_OFFER._treatment' | translate }}</label>
+        <label for="treatment" class="font-bold text-base dark:text-offerings-on-dark">{{ 'CREATE_OFFER._treatment' | translate }}</label>
         <label [ngClass]="{
             'break-all': hasLongWord(productOfferForm.get('license')?.get('treatment')?.value, 20),
             'break-words': !hasLongWord(productOfferForm.get('license')?.get('treatment')?.value, 20)
-            }" class="mb-2 bg-gray-50 text-wrap break-words dark:bg-secondary-300 dark:border-secondary-200 dark:text-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            }" class="mb-2 bg-offerings-page text-wrap break-words dark:bg-secondary-300 dark:border-secondary-200 dark:text-offerings-on-dark border border-offerings-border-strong text-offerings-text text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-2.5">
             {{productOfferForm.get('license')?.get('treatment')?.value}}
         </label>
         @if(productOfferForm.get('license')?.get('description')?.value!==''){
-            <label class="font-bold text-base dark:text-white">{{ 'CREATE_OFFER._description' | translate }}</label>
-            <div class="px-4 py-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white rounded-lg p-4">
+            <label class="font-bold text-base dark:text-offerings-on-dark">{{ 'CREATE_OFFER._description' | translate }}</label>
+            <div class="px-4 py-2 bg-offerings-page dark:bg-secondary-300 border border-offerings-border-strong dark:border-secondary-200 dark:text-offerings-on-dark rounded-lg p-4">
                 <markdown [ngClass]="{
                     'break-all': hasLongWord(productOfferForm.get('license')?.get('description')?.value, 20),
                     'break-words': !hasLongWord(productOfferForm.get('license')?.get('description')?.value, 20)
-                    }" class="bg-gray-50 dark:bg-secondary-300 dark:text-white text-gray-900 text-wrap break-words" [data]="productOfferForm.get('license')?.get('description')?.value"></markdown>
+                    }" class="bg-offerings-page dark:bg-secondary-300 dark:text-offerings-on-dark text-offerings-text text-wrap break-words" [data]="productOfferForm.get('license')?.get('description')?.value"></markdown>
             </div>
         }
     </div>
