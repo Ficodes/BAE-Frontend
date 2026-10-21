@@ -8,8 +8,7 @@ export type FeatureFlagKey =
   | 'dspEnabled'
   | 'catalogManagementEnabled'
   | 'launchValidationEnabled'
-  | 'tenderDevButtonsOpenCloseEnabled'
-  | 'aiEnabled';
+  | 'tenderDevButtonsOpenCloseEnabled';
 
 export type RuntimeFeatureFlagKey = FeatureFlagKey | 'searchEnabled';
 
@@ -31,11 +30,6 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     key: 'purchaseEnabled',
     labelKey: 'ADMIN.FEATURES._purchases_label',
     descriptionKey: 'ADMIN.FEATURES._purchases_description'
-  },
-  {
-    key: 'aiEnabled',
-    labelKey: 'ADMIN.FEATURES._ai_search_label',
-    descriptionKey: 'ADMIN.FEATURES._ai_search_description'
   },
   {
     key: 'tenderingEnabled',
@@ -92,7 +86,6 @@ export function readFeaturesConfig(config: any): FeaturesConfig {
   result.catalogManagementEnabled = readBoolean(source, 'catalogManagementEnabled');
   result.launchValidationEnabled = readBoolean(source, 'launchValidationEnabled');
   result.tenderDevButtonsOpenCloseEnabled = readBoolean(source, 'tenderDevButtonsOpenCloseEnabled');
-  result.aiEnabled = readBoolean(source, 'aiEnabled');
 
   return result;
 }
@@ -109,5 +102,4 @@ export function applyRuntimeFeaturesConfig(config: any): void {
   environment.CATALOG_MANAGEMENT_ENABLED = features.catalogManagementEnabled ?? environment.CATALOG_MANAGEMENT_ENABLED;
   environment.LAUNCH_VALIDATION_ENABLED = features.launchValidationEnabled ?? false;
   environment.TENDER_DEV_BUTTONS_OPEN_CLOSE_ENABLED = features.tenderDevButtonsOpenCloseEnabled ?? false;
-  environment.AI_SEARCH_ENABLED = features.aiEnabled ?? false;
 }

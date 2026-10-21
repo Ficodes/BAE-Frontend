@@ -35,7 +35,6 @@ export const init_config = {
     'dspEnabled': false,
     'launchValidationEnabled': false,
     'tenderDevButtonsOpenCloseEnabled': false,
-    'aiEnabled': false,
     'domeAbout': 'https://dome-marketplace.eu/about/',
     'domeRegister': 'https://dome-marketplace.github.io/onboarding/',
     'domePublish': 'https://knowledgebase.dome-marketplace.org/shelves/company-onboarding-process',

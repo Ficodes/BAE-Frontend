@@ -15,7 +15,7 @@ export interface EventMessage {
   'SellerCatalog' | 'SellerCatalogCreate' | 'SellerCatalogUpdate' | 'CategoryAdded' | 'CategoryRemoved' | 'ChangedSession' | 'CloseCartCard'|
   'AdminCategories' | 'CreateCategory' | 'UpdateCategory' | 'ShowCartToast' | 'HideCartToast' | 'CloseContact' | 'OpenServiceDetails' | 'OpenResourceDetails' | 'OpenProductInvDetails' |
   'SavePricePlan' | 'UpdatePricePlan' | 'ToggleEditPrice' | 'ToggleNewPrice' |
-  'SubformChange' | 'CloseFeedback' | 'UpdateOffer' | 'CloseQuoteRequest' | 'UpdateUsageSpec' | 'UsageSpecList' | 'CreateUsageSpec' | 'AiSearchFacets' | 'AiSearchCleared' |
+  'SubformChange' | 'CloseFeedback' | 'UpdateOffer' | 'CloseQuoteRequest' | 'UpdateUsageSpec' | 'UsageSpecList' | 'CreateUsageSpec' |
   'FiltersCommitted' | 'SpecCreated' | 'LeaveOfferEditorRequest' | 'LeaveProductSpecEditorRequest' | 'LeaveServiceSpecEditorRequest' | 'LeaveResourceSpecEditorRequest' | 'UsageSpecChanged' | 'ProviderStatsLoaded' | 'ProviderStatsTransition';
   text?: string,
   toastType?: 'success' | 'error',
@@ -282,14 +282,6 @@ export class EventMessageService {
     this.latestProviderStats = applyProviderStatsTransition(this.latestProviderStats, transition);
     this.eventMessageSubject.next({type: 'ProviderStatsTransition', value: transition});
     this.eventMessageSubject.next({type: 'ProviderStatsLoaded', value: this.latestProviderStats});
-  }
-
-  emitAiSearchFacets(facets: Record<string, Record<string | number, number>>){
-    this.eventMessageSubject.next({type: 'AiSearchFacets', value: facets})
-  }
-
-  emitAiSearchCleared(){
-    this.eventMessageSubject.next({type: 'AiSearchCleared', value: true})
   }
 
   emitFiltersCommitted() {
