@@ -68,35 +68,16 @@
       @if (searchEnabled) {
       <form class="w-full sm:w-auto sm:min-w-[440px]" (ngSubmit)="onUnifiedSearch($event)">
         <div class="relative">
-          @if (aiSearchEnabled) {
-          <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-            <svg class="w-4 h-4 text-primary-50" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-              viewBox="0 0 24 24">
-              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
-            </svg>
-          </div>
-          }
           <input type="search" [formControl]="searchField" (keydown.enter)="onUnifiedSearch($event)"
-            [ngClass]="aiSearchEnabled ? 'ps-10 border-primary-50 dark:border-primary-100 focus:ring-primary-100 focus:border-primary-100 dark:focus:border-primary-100' : 'border-offerings-border dark:border-secondary-200 focus:ring-primary-50 focus:border-primary-50 dark:focus:border-primary-100'"
+            [ngClass]="'border-offerings-border dark:border-secondary-200 focus:ring-primary-50 focus:border-primary-50 dark:focus:border-primary-100'"
             class="block w-full rounded-[12px] border bg-offerings-surface dark:bg-secondary-300 py-3.5 pl-5 pr-14 text-[16px] text-offerings-text dark:text-offerings-on-dark placeholder:text-offerings-disabled dark:placeholder-offerings-disabled shadow-sm hover:shadow-md focus:shadow-none transition-shadow outline-none"
-            placeholder="{{ aiSearchEnabled ? ('DASHBOARD._ai_search_ph' | translate) : ('DASHBOARD._search_ph' | translate) }}">
+            placeholder="{{ 'DASHBOARD._search_ph' | translate }}">
           <button type="submit"
             class="absolute top-0 end-0 h-full px-4 flex items-center justify-center rounded-e-[12px] text-offerings-disabled hover:text-primary-100 dark:hover:text-primary-50 transition-colors">
-            @if (aiSearchLoading) {
-            <svg class="w-4 h-4 animate-spin" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-              viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-              </path>
-            </svg>
-            } @else {
             <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
               <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
             </svg>
-            }
             <span class="sr-only">{{ 'DASHBOARD._search' | translate }}</span>
           </button>
         </div>
@@ -298,88 +279,6 @@
         </div>
         } @else {
 
-        @if (aiSearchEnabled && aiAnswer) {
-        <div
-          class="w-full mb-4 p-4 bg-gradient-to-r from-secondary-50 to-offerings-page dark:from-secondary-300/40 dark:to-secondary-200/40 border border-secondary-50 dark:border-primary-100 rounded-lg shadow-sm">
-          <div class="flex items-start gap-3">
-            <div
-              class="flex-shrink-0 w-8 h-8 bg-secondary-50 dark:bg-secondary-200 rounded-full flex items-center justify-center">
-              <svg class="w-4 h-4 text-primary-100 dark:text-primary-50" aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
-              </svg>
-            </div>
-            <div class="flex-1 min-w-0">
-              <h4 class="text-sm font-semibold text-secondary-100 dark:text-secondary-50 mb-2">{{ 'DASHBOARD._ai_answer' |
-                translate }}</h4>
-              <div
-                class="ai-answer-content text-sm text-offerings-body dark:text-offerings-on-dark-body prose prose-sm dark:prose-invert max-w-none">
-                <markdown [data]="aiAnswer"></markdown>
-              </div>
-            </div>
-            <button type="button" (click)="aiAnswer = ''"
-              class="flex-shrink-0 text-offerings-disabled hover:text-offerings-body dark:hover:text-offerings-on-dark-body">
-              <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                viewBox="0 0 14 14">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        }
-
-        @if (aiSearchEnabled && aiSearchLoading) {
-        <div class="w-full mb-4 p-4 bg-offerings-page dark:bg-secondary-300 border border-offerings-border dark:border-secondary-200 rounded-lg">
-          <div class="flex items-center gap-3">
-            <svg class="w-5 h-5 text-primary-50 animate-spin" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-              fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-              </path>
-            </svg>
-            <span class="text-sm text-offerings-body dark:text-offerings-on-dark-body">{{ 'DASHBOARD._ai_thinking' | translate }}</span>
-          </div>
-        </div>
-        }
-
-        @if (aiSearchEnabled && aiTotalPages > 1) {
-        <nav class="flex justify-center pb-4" aria-label="Pagination">
-          <ul class="inline-flex -space-x-px text-sm">
-            <li>
-              <button (click)="changeAiPage(aiCurrentPage - 1)" [disabled]="aiCurrentPage === 1"
-                class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-offerings-muted-text dark:text-offerings-on-dark-body bg-offerings-surface dark:bg-secondary-200 border border-e-0 border-offerings-border-strong dark:border-secondary-200 rounded-s-lg hover:bg-offerings-neutral dark:hover:bg-secondary-300 hover:text-offerings-body dark:hover:text-offerings-on-dark disabled:opacity-50 disabled:cursor-not-allowed">
-                {{ 'DASHBOARD._prev' | translate }}
-              </button>
-            </li>
-            @for (p of [].constructor(aiTotalPages); track $index) {
-            @if ($index + 1 === aiCurrentPage || $index + 1 === 1 || $index + 1 === aiTotalPages || ($index + 1 >=
-            aiCurrentPage - 2 && $index + 1 <= aiCurrentPage + 2)) { <li>
-              <button (click)="changeAiPage($index + 1)"
-                [ngClass]="$index + 1 === aiCurrentPage ? 'text-primary-100 dark:text-primary-50 border-primary-100 bg-secondary-50 dark:bg-secondary-200' : 'text-offerings-muted-text dark:text-offerings-on-dark-body bg-offerings-surface dark:bg-secondary-200 border-offerings-border-strong dark:border-secondary-200 hover:bg-offerings-neutral dark:hover:bg-secondary-300 hover:text-offerings-body dark:hover:text-offerings-on-dark'"
-                class="flex items-center justify-center px-3 h-8 leading-tight border">
-                {{ $index + 1 }}
-              </button>
-              </li>
-              } @else if ($index + 1 === aiCurrentPage - 3 || $index + 1 === aiCurrentPage + 3) {
-              <li>
-                <span
-                  class="flex items-center justify-center px-3 h-8 leading-tight text-offerings-muted-text dark:text-offerings-on-dark-body bg-offerings-surface dark:bg-secondary-200 border border-offerings-border-strong dark:border-secondary-200">...</span>
-              </li>
-              }
-              }
-              <li>
-                <button (click)="changeAiPage(aiCurrentPage + 1)" [disabled]="aiCurrentPage === aiTotalPages"
-                  class="flex items-center justify-center px-3 h-8 leading-tight text-offerings-muted-text dark:text-offerings-on-dark-body bg-offerings-surface dark:bg-secondary-200 border border-offerings-border-strong dark:border-secondary-200 rounded-e-lg hover:bg-offerings-neutral dark:hover:bg-secondary-300 hover:text-offerings-body dark:hover:text-offerings-on-dark disabled:opacity-50 disabled:cursor-not-allowed">
-                  {{ 'DASHBOARD._next' | translate }}
-                </button>
-              </li>
-          </ul>
-        </nav>
-        }
-
         <div
           [ngClass]="viewMode === 'list' ? 'flex flex-col gap-4' : (activeCategoryName ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4')">
           @for (prod of visibleProducts; track prod.id; let index = $index) {
@@ -392,42 +291,6 @@
           }
         </div>
 
-        @if (aiSearchEnabled && aiTotalPages > 1) {
-        <nav class="flex justify-center pt-4 pb-12" aria-label="Pagination">
-          <ul class="inline-flex -space-x-px text-sm">
-            <li>
-              <button (click)="changeAiPage(aiCurrentPage - 1)" [disabled]="aiCurrentPage === 1"
-                class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-offerings-muted-text dark:text-offerings-on-dark-body bg-offerings-surface dark:bg-secondary-200 border border-e-0 border-offerings-border-strong dark:border-secondary-200 rounded-s-lg hover:bg-offerings-neutral dark:hover:bg-secondary-300 hover:text-offerings-body dark:hover:text-offerings-on-dark disabled:opacity-50 disabled:cursor-not-allowed">
-                {{ 'DASHBOARD._prev' | translate }}
-              </button>
-            </li>
-            @for (p of [].constructor(aiTotalPages); track $index) {
-            @if ($index + 1 === aiCurrentPage || $index + 1 === 1 || $index + 1 === aiTotalPages || ($index + 1 >=
-            aiCurrentPage - 2 && $index + 1 <= aiCurrentPage + 2)) { <li>
-              <button (click)="changeAiPage($index + 1)"
-                [ngClass]="$index + 1 === aiCurrentPage ? 'text-primary-100 dark:text-primary-50 border-primary-100 bg-secondary-50 dark:bg-secondary-200' : 'text-offerings-muted-text dark:text-offerings-on-dark-body bg-offerings-surface dark:bg-secondary-200 border-offerings-border-strong dark:border-secondary-200 hover:bg-offerings-neutral dark:hover:bg-secondary-300 hover:text-offerings-body dark:hover:text-offerings-on-dark'"
-                class="flex items-center justify-center px-3 h-8 leading-tight border">
-                {{ $index + 1 }}
-              </button>
-              </li>
-              } @else if ($index + 1 === aiCurrentPage - 3 || $index + 1 === aiCurrentPage + 3) {
-              <li>
-                <span
-                  class="flex items-center justify-center px-3 h-8 leading-tight text-offerings-muted-text dark:text-offerings-on-dark-body bg-offerings-surface dark:bg-secondary-200 border border-offerings-border-strong dark:border-secondary-200">...</span>
-              </li>
-              }
-              }
-              <li>
-                <button (click)="changeAiPage(aiCurrentPage + 1)" [disabled]="aiCurrentPage === aiTotalPages"
-                  class="flex items-center justify-center px-3 h-8 leading-tight text-offerings-muted-text dark:text-offerings-on-dark-body bg-offerings-surface dark:bg-secondary-200 border border-offerings-border-strong dark:border-secondary-200 rounded-e-lg hover:bg-offerings-neutral dark:hover:bg-secondary-300 hover:text-offerings-body dark:hover:text-offerings-on-dark disabled:opacity-50 disabled:cursor-not-allowed">
-                  {{ 'DASHBOARD._next' | translate }}
-                </button>
-              </li>
-          </ul>
-        </nav>
-        }
-
-        @if (!aiSearchEnabled) {
         @if (!loading_more) {
         @if (page_check) {
         <div class="flex pb-12 justify-center mt-6">
@@ -454,7 +317,6 @@
               fill="currentFill" />
           </svg>
         </div>
-        }
         }
 
         }

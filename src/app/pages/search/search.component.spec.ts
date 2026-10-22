@@ -12,7 +12,6 @@ import { EventMessageService } from '../../services/event-message.service';
 import { SearchStateService } from '../../services/search-state.service';
 import { LoginServiceService } from 'src/app/services/login-service.service';
 import { ThemeService } from 'src/app/services/theme.service';
-import { AiSearchService } from 'src/app/services/ai-search.service';
 import { PriceServiceService } from 'src/app/services/price-service.service';
 
 describe('SearchComponent', () => {
@@ -22,7 +21,6 @@ describe('SearchComponent', () => {
   let paginationSpy: jasmine.SpyObj<PaginationService>;
   let localStorageSpy: jasmine.SpyObj<LocalStorageService>;
   let eventMessageSpy: jasmine.SpyObj<EventMessageService>;
-  let aiSearchSpy: jasmine.SpyObj<AiSearchService>;
   let priceSpy: jasmine.SpyObj<PriceServiceService>;
   let stateMock: {
     products: any[];
@@ -54,13 +52,10 @@ describe('SearchComponent', () => {
     ]);
     eventMessageSpy = jasmine.createSpyObj<EventMessageService>('EventMessageService', [
       'emitAddedFilter',
-      'emitAiSearchCleared',
-      'emitAiSearchFacets',
       'emitFilterShown',
       'emitFiltersCommitted',
       'emitRemovedFilter',
     ]);
-    aiSearchSpy = jasmine.createSpyObj<AiSearchService>('AiSearchService', ['search', 'searchWithAnswer']);
     priceSpy = jasmine.createSpyObj<PriceServiceService>('PriceServiceService', ['isCustomOffering']);
     routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate'], {
       events: undefined,
@@ -91,11 +86,6 @@ describe('SearchComponent', () => {
       page_check: false,
     });
     apiSpy.getProductsDetails.and.callFake(async (items: any[]) => items as any);
-    aiSearchSpy.search.and.resolveTo({ items: [], total_count: 0, facets: {} } as any);
-    aiSearchSpy.searchWithAnswer.and.resolveTo({
-      searchResponse: { items: [], total_count: 0, facets: {} },
-      answer: '',
-    } as any);
     priceSpy.isCustomOffering.and.resolveTo(false);
     localStorageSpy.getObject.and.callFake((key: string) => {
       if (key === 'selected_categories') return [];
@@ -117,7 +107,6 @@ describe('SearchComponent', () => {
         { provide: EventMessageService, useValue: eventMessageSpy },
         { provide: SearchStateService, useValue: stateMock },
         { provide: LoginServiceService, useValue: {} },
-        { provide: AiSearchService, useValue: aiSearchSpy },
         { provide: PriceServiceService, useValue: priceSpy },
         { provide: ThemeService, useValue: { currentTheme$: new Subject<any>().asObservable() } },
         { provide: Router, useValue: routerSpy },
@@ -134,7 +123,6 @@ describe('SearchComponent', () => {
 
     fixture = TestBed.createComponent(SearchComponent);
     component = fixture.componentInstance;
-    component.aiSearchEnabled = false;
   });
 
   afterEach(() => {
@@ -147,7 +135,6 @@ describe('SearchComponent', () => {
   });
 
   it('constructor should refresh selections for AddedFilter and RemovedFilter events', async () => {
-    component.aiSearchEnabled = false;
     const getProductsSpy = spyOn(component, 'getProducts').and.resolveTo();
     const checkPanelSpy = spyOn(component, 'checkPanel').and.stub();
 
@@ -165,6 +152,26 @@ describe('SearchComponent', () => {
     messages$.next({ type: 'CloseFeedback' });
 
     expect(component.feedback).toBeFalse();
+  });
+
+  it('FiltersCommitted should reload normal search with configured filter IDs intact', async () => {
+    const filters = [{ id: 'procurement_type::Request Quote', name: 'Request Quote' }];
+    localStorageSpy.getObject.and.callFake((key: string) => key === 'selected_categories' ? filters : {});
+    component.keywords = 'cloud';
+
+    messages$.next({ type: 'FiltersCommitted' });
+    await flushPromises();
+
+    expect(paginationSpy.getItemsPaginated).toHaveBeenCalledWith(
+      0,
+      component.PRODUCT_LIMIT,
+      false,
+      [],
+      [],
+      { keywords: 'cloud', filters },
+      jasmine.any(Function),
+    );
+    expect(localStorageSpy.removeCategoryFilter).not.toHaveBeenCalled();
   });
 
   it('ngOnInit should restore state and skip loading when cached state exists', async () => {
@@ -188,7 +195,6 @@ describe('SearchComponent', () => {
   });
 
   it('ngOnInit should load products when there is no cached state', async () => {
-    component.aiSearchEnabled = false;
     stateMock.hasState.and.returnValue(false);
     routeParamGetSpy.and.callFake((key: string) => (key === 'keywords' ? 'cloud' : null));
     paginationSpy.getItemsPaginated.and.resolveTo({
@@ -312,6 +318,20 @@ describe('SearchComponent', () => {
     expect(event.preventDefault).toHaveBeenCalled();
     expect(component.keywords).toBeUndefined();
     expect(updateSpy).toHaveBeenCalledWith(undefined as any);
+    expect(getProductsSpy).toHaveBeenCalledWith(false);
+  });
+
+  it('onUnifiedSearch should submit trimmed keywords through normal search', async () => {
+    const event = { preventDefault: jasmine.createSpy('preventDefault') };
+    component.searchField.setValue('  cloud  ');
+    const updateSpy = spyOn(component, 'updateQueryParams').and.stub();
+    const getProductsSpy = spyOn(component, 'getProducts').and.resolveTo();
+
+    await component.onUnifiedSearch(event);
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(component.keywords).toBe('cloud');
+    expect(updateSpy).toHaveBeenCalledWith('cloud');
     expect(getProductsSpy).toHaveBeenCalledWith(false);
   });
 

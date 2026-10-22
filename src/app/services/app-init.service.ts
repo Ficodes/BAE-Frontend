@@ -16,7 +16,6 @@ export class AppInitService {
     return new Promise((resolve, reject) => {
         const obs: Observer<any> = {
             next: ((config) => {
-                const aiConfig = config.ai ?? {};
                 // Load dynamic environment data
                 environment.SIOP_INFO = config.siop;
                 environment.CHAT_API = config.chat;
@@ -47,9 +46,6 @@ export class AppInitService {
                 environment.googleTagManagerId = config.googleTagManagerId ?? '';
                 environment.providerThemeName = config.theme ?? 'default';
                 environment.LEAR_URL = config.learUrl ?? '';
-                environment.AI_SEARCH_API_KEY = aiConfig.aiApiKey ?? config.aiApiKey ?? '';
-                environment.AI_SEARCH_API_URL = aiConfig.aiApiUrl ?? config.aiApiUrl ?? '';
-                environment.AI_SEARCH_PROFILE = aiConfig.aiSearchProfile ?? config.aiSearchProfile ?? '';
                 environment.DSP_CONTRACT_DEFINITION_SCHEMA = config.dspContractDefinitionSchema || environment.DSP_CONTRACT_DEFINITION_SCHEMA
                 environment.DSP_SCHEMA = config.dspSchema || environment.DSP_SCHEMA
                 applyRuntimeFeaturesConfig(config);

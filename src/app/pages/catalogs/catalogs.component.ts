@@ -47,7 +47,7 @@ export class CatalogsComponent implements OnInit, OnDestroy {
   catalogsHeaderComponent: Type<unknown> | null = null;
 
   get sortLabel() { return this.sortOptions.find(o => o.value === this.sortOption)?.label ?? ''; }
-  get canSearchDirectory(): boolean { return this.searchEnabled && this.directorySource.mode === 'catalog'; }
+  get canSearchDirectory(): boolean { return this.searchEnabled; }
 
   constructor(
     private router: Router,

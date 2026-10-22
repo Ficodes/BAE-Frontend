@@ -76,7 +76,6 @@ describe('AppInitService runtime config', () => {
 
   function buildConfig(overrides: Record<string, unknown> = {}): Record<string, unknown> {
     return {
-      ai: {},
       siop: {},
       roles: {},
       ...overrides
