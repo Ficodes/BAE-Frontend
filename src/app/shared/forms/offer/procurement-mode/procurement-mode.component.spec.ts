@@ -33,6 +33,20 @@ describe('ProcurementModeComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should select the first procurement term ignoring case and unrelated terms', () => {
+    component.formType = 'update';
+    component.data = {
+      productOfferingTerm: [
+        { name: 'Other', description: 'Unrelated' },
+        { name: 'Procurement', description: 'automatic' },
+        { name: 'procurement', description: 'manual' },
+        { name: 'PROCUREMENT', description: 'payment-automatic' }
+      ]
+    };
+
+    expect(component.getInitialProcurementMode()).toBe('automatic');
+  });
+
   it('should keep manual when selecting a non-manual mode before payment info is loaded', fakeAsync(() => {
     component.form = new FormGroup({});
     component.formType = 'create';

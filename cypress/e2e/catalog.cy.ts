@@ -1,4 +1,4 @@
-import { category_launched, init_config, init_stat, local_items, login_token, loginAcc, product_offering } from "../support/constants"
+import { local_items, loginAcc } from "../support/constants"
 
 describe('/my-offerings',{
     viewportHeight: 800,
@@ -19,19 +19,8 @@ describe('/my-offerings',{
             role: 'Seller',
             '@referredType': ''
         }}
-        let calls = 0
-        const response = [[], [], [newCatalog] , []]
-        cy.intercept({method: 'GET', url: '**/catalog/catalog?*'}, (res) => {
-            res.reply({
-                statusCode: 200,
-                body: response[calls++]
-              });
-        }).as('catalog')
-        cy.intercept({method: 'POST', url: '**/catalog/catalog'}, {statusCode: 201, body: newCatalog}).as('catalogPOST')
-
-        cy.visit('/my-offerings')
-        cy.wait('@catalog')
-        cy.get('@catalog.all').its('length').should('be.gte', 1)
+        mockCatalogRequests(newCatalog)
+        visitCatalogs()
         cy.getBySel('newCatalog').click()
         cy.getBySel('catalogName').type(name)
         cy.getBySel('catalogDsc').type(description)
@@ -43,6 +32,10 @@ describe('/my-offerings',{
             expect(payload).to.have.property('description', description).and.be.a('string')
             expect(payload).to.have.property('lifecycleStatus', status).and.be.a('string')
         });
+        cy.getBySel('catalogRow').should('have.length', 1)
+        cy.getBySel('catalogRow').find('[data-cy="catalogName"]').invoke('text').should((text) => {
+            expect(text.trim()).to.eq(name)
+        })
     })
 
     it('should create a catalog correctly with 100 characters in name even when you set more than 100 characters', () => {
@@ -50,31 +43,16 @@ describe('/my-offerings',{
         const name = check + 'aaa'
         const description = 'catalog description test'
         const status = 'Active'
-        const newCatalog = { id: 'test', href: 'test',name: name, description: description, lifecycleStatus: status, relatedParty: {
-            id: local_items.partyId,
-            role: 'Seller',
-            '@referredType': ''
-        }}
         const getCatalog = { id: 'test', href: 'test',name: check, description: description, lifecycleStatus: status, relatedParty: {
             id: local_items.partyId,
             role: 'Seller',
             '@referredType': ''
         }}
-        let calls = 0
-        const response = [[], [], [getCatalog] , []]
-        cy.intercept({method: 'GET', url: '**/catalog/catalog?*'}, (res) => {
-            res.reply({
-                statusCode: 200,
-                body: response[calls++]
-              });
-        }).as('catalog')
-        cy.intercept({method: 'POST', url: '**/catalog/catalog'}, {statusCode: 201, body: newCatalog}).as('catalogPOST')
-
-        cy.visit('/my-offerings')
-        cy.wait('@catalog')
-        cy.get('@catalog.all').its('length').should('be.gte', 1)
+        mockCatalogRequests(getCatalog)
+        visitCatalogs()
         cy.getBySel('newCatalog').click()
         cy.getBySel('catalogName').type(name)
+        cy.getBySel('catalogName').should('have.value', check)
         cy.getBySel('catalogDsc').type(description)
         cy.getBySel('catalogNext').click()
         cy.getBySel('catalogFinish').click()
@@ -84,5 +62,28 @@ describe('/my-offerings',{
             expect(payload).to.have.property('description', description).and.be.a('string')
             expect(payload).to.have.property('lifecycleStatus', status).and.be.a('string')
         });
+        cy.getBySel('catalogRow').should('have.length', 1)
+        cy.getBySel('catalogRow').find('[data-cy="catalogName"]').invoke('text').should((text) => {
+            expect(text.trim()).to.eq(check)
+        })
     })
   })
+
+const mockCatalogRequests = (catalog: any) => {
+    let created = false
+    cy.intercept({method: 'GET', pathname: '/catalog/catalog'}, (req) => {
+        const offset = Number(new URL(req.url).searchParams.get('offset') || 0)
+        req.reply({statusCode: 200, body: created && offset === 0 ? [catalog] : []})
+    }).as('catalogList')
+    cy.intercept({method: 'POST', pathname: '/catalog/catalog'}, (req) => {
+        created = true
+        req.reply({statusCode: 201, body: catalog})
+    }).as('catalogPOST')
+}
+
+const visitCatalogs = () => {
+    cy.visit('/my-offerings')
+    cy.location('pathname').should('eq', '/my-offerings')
+    cy.getBySel('catalogSection').should('be.visible').click()
+    cy.wait('@catalogList').its('response.statusCode').should('eq', 200)
+}
