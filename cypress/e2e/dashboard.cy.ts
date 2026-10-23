@@ -1,5 +1,4 @@
-import { category_launched, init_config, init_stat, local_items, login_token, product_offering, checkHeaderPostLogin, checkHeaderPreLogin, loginAcc } from "../support/constants"
-import moment from 'moment';
+import { init_config, init_stat, checkHeaderPreLogin, loginAcc } from "../support/constants"
 
 describe('/dashboard',{
     viewportHeight: 800,
@@ -18,11 +17,11 @@ describe('/dashboard',{
         cy.getBySel('publishOff').should('exist')
         cy.getBySel('publishOff').should('have.attr', 'href', init_config.domeRegister)
         cy.getBySel('vServices').should('exist')
-        cy.getBySel('vServices').invoke('text').then((text) => {
+        cy.getBySel('vServices').invoke('text').should((text) => {
             expect(text.trim()).to.eq('1 verified services')
         })
         cy.getBySel('rPublishers').should('exist')
-        cy.getBySel('rPublishers').invoke('text').then((text) => {
+        cy.getBySel('rPublishers').invoke('text').should((text) => {
             expect(text.trim()).to.eq('1 registered providers')
         })
         cy.getBySel('nameServices').should('have.length', init_stat.services.length)
