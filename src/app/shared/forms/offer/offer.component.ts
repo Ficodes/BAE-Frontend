@@ -2170,6 +2170,21 @@ export class OfferComponent implements OnInit, OnDestroy {
     return String(term?.name || '').toLowerCase() === 'license';
   }
 
+  private isProcurementTerm(term: any): boolean {
+    return String(term?.name || '').toLowerCase() === 'procurement';
+  }
+
+  private removeDuplicateFormTerms(terms: any[]): any[] {
+    const seen = new Set<string>();
+    return terms.filter(term => {
+      if (!this.isLicenseTerm(term) && !this.isProcurementTerm(term)) return true;
+      const name = String(term.name).toLowerCase();
+      if (seen.has(name)) return false;
+      seen.add(name);
+      return true;
+    });
+  }
+
   private async uploadTermsFileAttachment(attachment: TermsFileAttachment): Promise<string> {
     if (!attachment.file) {
       throw new Error('Terms file is missing.');
@@ -2533,7 +2548,7 @@ export class OfferComponent implements OnInit, OnDestroy {
 
       //PROCUREMENT
       const procurementTerm = this.offer.productOfferingTerm.find(
-        (element: { name: string; }) => element.name === 'procurement'
+        (element: { name: string; }) => this.isProcurementTerm(element)
       );
       const plaSpecId = this.offer.pricingLogicAlgorithm?.[0]?.plaSpecId ?? '';
       this.productOfferForm.patchValue({
@@ -3443,7 +3458,7 @@ export class OfferComponent implements OnInit, OnDestroy {
 
     const procMode = this.productOfferForm.get('procurementMode')?.value?.mode;
     if (procMode) {
-      const existingProc = basePayload.productOfferingTerm.find((t: any) => t.name === 'procurement');
+      const existingProc = basePayload.productOfferingTerm.find((t: any) => this.isProcurementTerm(t));
       if (existingProc) existingProc.description = procMode;
       else basePayload.productOfferingTerm.push({ name: 'procurement', description: procMode });
     }
@@ -3548,7 +3563,7 @@ export class OfferComponent implements OnInit, OnDestroy {
 
         case 'procurement':
           // Actualizar modo de adquisición
-          const procurementTerm = basePayload.productOfferingTerm.find((term: any) => term.name === 'procurement');
+          const procurementTerm = basePayload.productOfferingTerm.find((term: any) => this.isProcurementTerm(term));
           if (procurementTerm) {
             procurementTerm.description = change.currentValue.id;
           } else {
@@ -3626,6 +3641,7 @@ export class OfferComponent implements OnInit, OnDestroy {
     try {
       const termsFileTerms = await this.buildTermsFileTerms();
       basePayload.productOfferingTerm = this.replaceTermsFileTerms(basePayload.productOfferingTerm, termsFileTerms);
+      basePayload.productOfferingTerm = this.removeDuplicateFormTerms(basePayload.productOfferingTerm);
     } catch (error: any) {
       this.handleTermsFileUploadError(error);
       return;

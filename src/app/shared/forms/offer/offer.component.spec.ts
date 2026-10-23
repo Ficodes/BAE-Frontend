@@ -1684,6 +1684,92 @@ describe('OfferComponent', () => {
     expect(component.availableRootCategories).toEqual([{ id: 'compute', name: 'Compute' }]);
   });
 
+  for (const editSource of ['unchanged', 'form', 'change events']) {
+    it(`should patch only the first license and procurement terms, ignoring case (${editSource})`, async () => {
+      const api = (component as any).api;
+      const updateSpy = spyOn(api, 'updateProductOffering').and.returnValue(of({ id: 'offer-1' }));
+      spyOn(component, 'goBack');
+      const firstLicense = { name: 'LiCeNsE', description: 'First license', duration: { amount: 12, units: 'month' } };
+      const firstProcurement = { name: 'Procurement', description: 'automatic' };
+      const unrelatedTerms = [
+        { name: 'Other', description: 'Keep first unrelated term', extra: true },
+        { name: 'Other', description: 'Keep second unrelated term' },
+        { name: 'LicenseAgreement', description: 'Keep similar name' }
+      ];
+      const originalTerms = [
+        unrelatedTerms[0],
+        firstLicense,
+        firstProcurement,
+        { name: 'license', description: 'Second license' },
+        unrelatedTerms[1],
+        { name: 'PROCUREMENT', description: 'manual' },
+        { name: 'LICENSE', description: 'Third license' },
+        { name: 'procurement', description: 'payment-automatic' },
+        unrelatedTerms[2]
+      ];
+      component.formType = 'update';
+      component.offer = { id: 'offer-1', productOfferingPrice: [], productOfferingTerm: originalTerms };
+
+      await component.loadOfferData();
+
+      expect(component.productOfferForm.get('license')?.value.description).toBe('First license');
+      expect(component.productOfferForm.get('procurementMode')?.value.mode).toBe('automatic');
+
+      const licenseDescription = editSource === 'unchanged' ? 'First license' : 'Updated license';
+      const procurementMode = editSource === 'unchanged' ? 'automatic' : 'manual';
+      if (editSource === 'form') {
+        component.productOfferForm.get('license')?.patchValue({ description: licenseDescription });
+        component.productOfferForm.get('procurementMode')?.patchValue({ mode: procurementMode });
+      } else if (editSource === 'change events') {
+        component.handleSubformChange({
+          subformType: 'license', isDirty: true, dirtyFields: ['description'],
+          originalValue: { description: firstLicense.description },
+          currentValue: { description: licenseDescription }
+        });
+        component.handleSubformChange({
+          subformType: 'procurement', isDirty: true, dirtyFields: ['id'],
+          originalValue: { id: firstProcurement.description },
+          currentValue: { id: procurementMode }
+        });
+      }
+
+      await component.updateOffer();
+
+      expect(updateSpy).toHaveBeenCalledTimes(1);
+      const terms = (updateSpy.calls.mostRecent().args[0] as any).productOfferingTerm;
+      expect(terms).toEqual([
+        unrelatedTerms[0],
+        { ...firstLicense, description: licenseDescription },
+        { ...firstProcurement, description: procurementMode },
+        unrelatedTerms[1],
+        unrelatedTerms[2]
+      ]);
+      expect(component.offer.productOfferingTerm).toBe(originalTerms);
+      expect(originalTerms.length).toBe(9);
+      expect(firstLicense.description).toBe('First license');
+      expect(firstProcurement.description).toBe('automatic');
+    });
+  }
+
+  it('should add one license and procurement term when neither exists', async () => {
+    const api = (component as any).api;
+    const updateSpy = spyOn(api, 'updateProductOffering').and.returnValue(of({ id: 'offer-1' }));
+    spyOn(component, 'goBack');
+    const unrelated = { name: 'Other', description: 'Keep me' };
+    component.offer = { id: 'offer-1', productOfferingPrice: [], productOfferingTerm: [unrelated] };
+    component.productOfferForm.get('license')?.patchValue({ description: 'New license' });
+    component.productOfferForm.get('procurementMode')?.patchValue({ mode: 'manual' });
+
+    await component.updateOffer();
+
+    const terms = (updateSpy.calls.mostRecent().args[0] as any).productOfferingTerm;
+    expect(terms).toEqual([
+      { name: 'License', description: 'New license' },
+      unrelated,
+      { name: 'procurement', description: 'manual' }
+    ]);
+  });
+
   it('should preserve existing terms files and upload new ones when updating an offer', async () => {
     const attachmentService = TestBed.inject(AttachmentServiceService);
     const uploadSpy = spyOn(attachmentService, 'uploadFile').and.returnValue(of({ content: 'https://files.example/new-terms.pdf' }));

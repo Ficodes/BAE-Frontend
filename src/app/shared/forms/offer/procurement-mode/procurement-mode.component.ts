@@ -154,7 +154,7 @@ export class ProcurementModeComponent implements ControlValueAccessor, AfterView
   getInitialProcurementMode(): string {
     if (this.formType === 'update' && this.data?.productOfferingTerm) {
       const procurementTerm = this.data.productOfferingTerm.find(
-        (term: any) => term.name === 'procurement'
+        (term: any) => String(term?.name || '').toLowerCase() === 'procurement'
       );
       return procurementTerm?.description || 'manual';
     }
