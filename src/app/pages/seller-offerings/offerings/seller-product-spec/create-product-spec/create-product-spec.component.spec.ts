@@ -9,6 +9,7 @@ import { of } from 'rxjs';
 import { ProductSpecServiceService } from 'src/app/services/product-spec-service.service';
 import { AttachmentServiceService } from 'src/app/services/attachment-service.service';
 import { EventMessageService } from 'src/app/services/event-message.service';
+import { MarkdownTextareaComponent } from 'src/app/shared/forms/markdown-textarea/markdown-textarea.component';
 
 describe('CreateProductSpecComponent', () => {
   let component: CreateProductSpecComponent;
@@ -20,7 +21,7 @@ describe('CreateProductSpecComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [CreateProductSpecComponent],
-      imports: [TranslateModule.forRoot(), FormsModule, ReactiveFormsModule, HttpClientTestingModule, RouterTestingModule],
+      imports: [TranslateModule.forRoot(), FormsModule, ReactiveFormsModule, HttpClientTestingModule, RouterTestingModule, MarkdownTextareaComponent],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
@@ -35,6 +36,81 @@ describe('CreateProductSpecComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  for (const viewport of [1920, 1280, 375]) {
+    for (const editMode of [false, true]) {
+      it(`should keep detail tables and their menus within ${viewport}px in ${editMode ? 'edit' : 'create'} mode`, () => {
+        // Resize Karma's browser frame so layout and media queries use the real
+        // viewport width, rather than only narrowing the table's parent.
+        const frame = window.frameElement as HTMLIFrameElement;
+        const originalWidth = frame.style.width;
+        try {
+          frame.style.width = `${viewport}px`;
+          expect(window.innerWidth).toBe(viewport);
+          component.isEditMode = editMode;
+          component.currentStep = 1;
+          const samples = [
+            { name: 'Normal name', description: 'A normal description with spaces.' },
+            { name: 'K'.repeat(100), description: 'Normal description' },
+            { name: 'Normal name', description: 'X'.repeat(200) },
+            // Also cover previously saved text beyond the current modal limit.
+            { name: 'Normal name', description: 'X'.repeat(205) },
+            { name: 'K'.repeat(100), description: 'X'.repeat(400) }
+          ];
+          let baselinePageWidth = 0;
+          for (const [index, sample] of samples.entries()) {
+            component.keyFeatures = [{ ...sample, icon: null }];
+            component.businessBenefits = [{ ...sample }];
+            component.useCases = [{ ...sample, icon: null }];
+            fixture.detectChanges();
+            if (index === 0) baselinePageWidth = document.documentElement.scrollWidth;
+
+            const tables = fixture.nativeElement.querySelectorAll('.details-table') as NodeListOf<HTMLTableElement>;
+            expect(tables.length).toBe(3);
+            expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(baselinePageWidth);
+            for (const table of Array.from(tables)) {
+              const bounds = table.getBoundingClientRect();
+              const container = table.parentElement!.getBoundingClientRect();
+              expect(bounds.right).toBeLessThanOrEqual(container.right + 1);
+              expect(bounds.right).toBeLessThanOrEqual(viewport);
+
+              const row = table.tBodies[0].rows[0];
+              const actions = row.cells[row.cells.length - 1];
+              const button = actions.querySelector('button')!;
+              const buttonBounds = button.getBoundingClientRect();
+              expect(buttonBounds.left).toBeGreaterThanOrEqual(0);
+              expect(buttonBounds.right).toBeLessThanOrEqual(viewport);
+
+              // Check actual text fragments, including breaks inside long words.
+              for (const cell of Array.from(row.cells).slice(-3, -1)) {
+                const range = document.createRange();
+                range.selectNodeContents(cell);
+                for (const fragment of Array.from(range.getClientRects())) {
+                  expect(fragment.right).toBeLessThanOrEqual(cell.getBoundingClientRect().right + 1);
+                }
+              }
+
+              button.click();
+              fixture.detectChanges();
+              const menu = actions.querySelector('div')!;
+              expect(menu.querySelectorAll('button').length).toBe(2);
+              menu.scrollIntoView({ block: 'center' });
+              const menuBounds = menu.getBoundingClientRect();
+              expect(menuBounds.left).toBeGreaterThanOrEqual(0);
+              expect(menuBounds.right).toBeLessThanOrEqual(viewport);
+              const firstAction = menu.querySelector('button')!;
+              const actionBounds = firstAction.getBoundingClientRect();
+              expect(document.elementFromPoint(actionBounds.left + 8, actionBounds.top + actionBounds.height / 2)?.closest('button')).toBe(firstAction);
+              button.click();
+              fixture.detectChanges();
+            }
+          }
+        } finally {
+          frame.style.width = originalWidth;
+        }
+      });
+    }
+  }
 
   it('getValuePreview should render object values as JSON text', () => {
     expect(component.getValuePreview({ issuer: 'did:example:issuer' })).toBe('{"issuer":"did:example:issuer"}');

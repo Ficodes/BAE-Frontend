@@ -15,3 +15,43 @@
 .dashed-pane-error {
   border-color: rgb(var(--theme-status-danger-border));
 }
+
+.details-table {
+  table-layout: fixed;
+}
+
+.details-table th,
+.details-table td {
+  overflow-wrap: anywhere;
+  vertical-align: top;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.details-icon-column {
+  width: 2.5rem;
+}
+
+.details-name-column {
+  width: 30%;
+}
+
+.details-actions-column {
+  width: 4.5rem;
+}
+
+@media (min-width: 640px) {
+  .details-table th,
+  .details-table td {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .details-icon-column {
+    width: 5rem;
+  }
+
+  .details-actions-column {
+    width: 6rem;
+  }
+}
