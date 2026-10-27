@@ -2373,6 +2373,7 @@
     "_image_invalid": "Choose a valid SVG, PNG, JPG or GIF image. The selected file could not be read as an image.",
     "_image_processing": "Checking and uploading image…",
     "_file_upload_error": "There was an error while uploading the file!",
+    "_compliance_document_type_error": "Choose a PDF, DOC or DOCX document.",
     "_file_size_error": "File size too large! Must be under 3MB.",
     "_upload_complete": "Upload complete",
     "_uploading": "Uploading…",

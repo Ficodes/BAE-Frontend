@@ -763,9 +763,9 @@
               <!-- Description + Request validation -->
               <div class="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6">
                 <p class="flex-1 text-base text-offerings-body">{{ 'CREATE_PROD_SPEC._compliance_panel_desc' | translate }}</p>
-                <button type="button" (click)="requestValidation()"
-                  [disabled]="!hasSelfAttestation()"
-                  [ngClass]="!hasSelfAttestation() ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50/10'"
+                <button data-cy="requestComplianceValidation" type="button" (click)="requestValidation()"
+                  [disabled]="!hasSelfAttestation() || uploadingCompliance"
+                  [ngClass]="!hasSelfAttestation() || uploadingCompliance ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50/10'"
                   class="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 border border-primary-100 rounded-lg text-sm font-semibold text-primary-100 transition-colors">
                   <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                     <path fill-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"/>
@@ -827,6 +827,10 @@
                 }
               </div>
 
+              @if(selfAttestationError){
+                <p data-cy="selfAttestationError" role="alert" class="text-xs text-status-danger-border">{{ selfAttestationError }}</p>
+              }
+
               <!-- Additional attachments -->
               <div class="flex flex-col gap-2">
                 <label class="text-sm font-semibold text-offerings-body tracking-[0.5px]">{{ 'CREATE_PROD_SPEC._additional_attachments' | translate }}</label>
@@ -840,9 +844,13 @@
                     <span class="text-base font-semibold text-primary-100">{{ 'CREATE_PROD_SPEC._choose_files' | translate }}</span>
                     <span class="text-base text-offerings-text">{{ 'CREATE_PROD_SPEC._or_drop_here' | translate }}</span>
                   </div>
-                  <p class="text-sm text-offerings-muted-text">{{ 'CREATE_PROD_SPEC._image_formats' | translate }}</p>
-                  <input id="compliance-additional-upload" type="file" class="hidden" multiple (change)="onComplianceFileSelected($event)"/>
+                  <p class="text-sm text-offerings-muted-text">{{ 'CREATE_PROD_SPEC._attachment_formats' | translate }}</p>
+                  <input id="compliance-additional-upload" type="file" class="hidden" accept=".pdf,.doc,.docx" multiple (change)="onComplianceFileSelected($event)"/>
                 </label>
+
+                @for(error of complianceFileErrors; track error){
+                  <p data-cy="complianceFileError" role="alert" class="text-xs text-status-danger-border"><span class="font-semibold">{{ error.name }}:</span> {{ error.message }}</p>
+                }
 
                 @if(complianceFiles.length > 0){
                   <div class="flex flex-col gap-2 mt-1">
@@ -903,8 +911,8 @@
           </button>
         } @else {
           <button data-cy="prodSpecFinish" type="button" (click)="createProduct()"
-            [disabled]="!allRequiredStepsComplete() || loading || uploadingAttachment"
-            [ngClass]="loading || !allRequiredStepsComplete() || uploadingAttachment ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
+            [disabled]="!allRequiredStepsComplete() || loading || uploadingAttachment || uploadingCompliance"
+            [ngClass]="loading || !allRequiredStepsComplete() || uploadingAttachment || uploadingCompliance ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
             class="h-10 px-5 bg-primary-100 text-offerings-on-dark rounded-lg text-sm font-semibold flex items-center justify-center gap-2">
             @if(loading){
               <svg class="w-4 h-4 animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
