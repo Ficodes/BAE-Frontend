@@ -99,6 +99,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   private productImageUpload: Subscription | null = null;
   attachments: any[] = [];
   uploadingAttachment: boolean = false;
+  attachmentFileErrors: { name: string; message: string }[] = [];
 
   howItWorks: string = '';
   keyFeatures: { name: string, description: string, icon: string | null }[] = [];
@@ -488,6 +489,24 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     return error?.error?.error
       ? this.translate.instant('ERRORS._error_prefix', { message: error.error.error })
       : this.translate.instant(fallbackKey);
+  }
+
+  private fileSizeError(file: File): string | null {
+    return file.size > environment.MAX_FILE_SIZE
+      ? this.translate.instant('CREATE_PROD_SPEC._file_size_error')
+      : null;
+  }
+
+  private uploadErrorMessage(error: any, fallbackKey: string): string {
+    const body = error?.error;
+    const reason = typeof body === 'string'
+      ? body
+      : [body?.error, body?.message, body?.detail].filter(value => typeof value === 'string').join(' ');
+    const requestSizeError = error?.status === 400
+      && /DATA_UPLOAD_MAX_MEMORY_SIZE|RequestDataTooBig|Request body exceeded|(?:request (?:body|entity)|payload) (?:is )?too large/i.test(reason);
+    return this.translate.instant(error?.status === 413 || requestSizeError
+      ? 'CREATE_PROD_SPEC._file_size_error'
+      : fallbackKey);
   }
 
   onTypeChange(event: any) {
@@ -1210,6 +1229,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
 
     // Cancel the previous selection and clear its reference before any async work.
     this.removeProductImage();
+    this.productImageError = this.fileSizeError(file);
+    if (this.productImageError) return;
     if (!ALLOWED_PRODUCT_IMAGE_TYPES.has(file.type)) {
       this.productImageError = this.translate.instant('CREATE_PROD_SPEC._image_invalid');
       return;
@@ -1246,9 +1267,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
         this.removeProductImage();
         this.productImageError = err instanceof InvalidProductImageError
           ? this.translate.instant('CREATE_PROD_SPEC._image_invalid')
-          : err?.status === 413
-            ? this.translate.instant('CREATE_PROD_SPEC._file_size_error')
-            : this.getErrorMessage(err, 'CREATE_PROD_SPEC._image_upload_error');
+          : this.uploadErrorMessage(err, 'CREATE_PROD_SPEC._image_upload_error');
         this.cdr.detectChanges();
       }
     });
@@ -1308,7 +1327,13 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     if(input.files && input.files.length > 0){
       const files = Array.from(input.files);
       input.value = '';
+      this.attachmentFileErrors = [];
       files.forEach(file => {
+        const sizeError = this.fileSizeError(file);
+        if (sizeError) {
+          this.attachmentFileErrors.push({ name: file.name, message: sizeError });
+          return;
+        }
         const placeholder: any = { name: file.name, size: file.size, _uploading: true };
         this.attachments.push(placeholder);
         this.uploadingAttachment = true;
@@ -1334,14 +1359,13 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
             },
             error: (err: any) => {
               this.uploadingAttachment = this.attachments.some(a => (a as any)._uploading && a !== placeholder);
-              console.error('Attachment upload failed', err);
-              this.errorMessage = err?.status === 413
-                ? this.translate.instant('CREATE_PROD_SPEC._file_size_error')
-                : this.getErrorMessage(err, 'CREATE_PROD_SPEC._file_upload_error');
-              this.showError = true;
-              setTimeout(() => { this.showError = false; }, 3000);
+              this.attachmentFileErrors.push({
+                name: file.name,
+                message: this.uploadErrorMessage(err, 'CREATE_PROD_SPEC._file_upload_error')
+              });
               const idx = this.attachments.indexOf(placeholder);
               if (idx !== -1) this.attachments.splice(idx, 1);
+              this.cdr.detectChanges();
             }
           });
         };
@@ -1474,12 +1498,6 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     return contentType && (!file.type || file.type.toLowerCase() === contentType) ? contentType : null;
   }
 
-  private complianceUploadError(error: any): string {
-    return error?.status === 413
-      ? this.translate.instant('CREATE_PROD_SPEC._file_size_error')
-      : this.getErrorMessage(error, 'CREATE_PROD_SPEC._file_upload_error');
-  }
-
   private uploadComplianceFile(file: File, contentType: string): Observable<string> {
     return new Observable<string>(observer => {
       const reader = new FileReader();
@@ -1522,7 +1540,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     const file = input.files?.[0];
     if (!file) return;
     input.value = '';
-    this.selfAttestationError = null;
+    this.selfAttestationError = this.fileSizeError(file);
+    if (this.selfAttestationError) return;
     const contentType = this.complianceDocumentType(file);
     if (!contentType) {
       this.selfAttestationError = this.translate.instant('CREATE_PROD_SPEC._compliance_document_type_error');
@@ -1542,7 +1561,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
       },
       error: error => {
         this.removeSelfAttestation();
-        this.selfAttestationError = this.complianceUploadError(error);
+        this.selfAttestationError = this.uploadErrorMessage(error, 'CREATE_PROD_SPEC._file_upload_error');
         this.cdr.detectChanges();
       }
     }));
@@ -1563,6 +1582,11 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     input.value = '';
     this.complianceFileErrors = [];
     files.forEach(file => {
+      const sizeError = this.fileSizeError(file);
+      if (sizeError) {
+        this.complianceFileErrors.push({ name: file.name, message: sizeError });
+        return;
+      }
       const contentType = this.complianceDocumentType(file);
       if (!contentType) {
         this.complianceFileErrors.push({
@@ -1587,7 +1611,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
         error: error => {
           const index = this.complianceFiles.indexOf(entry);
           if (index !== -1) this.complianceFiles.splice(index, 1);
-          this.complianceFileErrors.push({ name: file.name, message: this.complianceUploadError(error) });
+          this.complianceFileErrors.push({ name: file.name, message: this.uploadErrorMessage(error, 'CREATE_PROD_SPEC._file_upload_error') });
           this.cdr.detectChanges();
         }
       }));

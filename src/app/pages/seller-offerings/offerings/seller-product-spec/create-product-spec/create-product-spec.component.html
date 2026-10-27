@@ -120,6 +120,10 @@
                 <input id="prod-attach-upload" type="file" class="hidden" multiple accept=".pdf,.doc,.docx" (change)="onAttachmentSelected($event)"/>
               </label>
 
+              @for(error of attachmentFileErrors; track error){
+                <p data-cy="attachmentFileError" role="alert" class="mt-1 text-xs text-status-danger-border break-words"><span class="font-semibold">{{ error.name }}:</span> {{ error.message }}</p>
+              }
+
               @if(attachments.length > 0){
                 <div class="flex flex-col gap-2 mt-3">
                   @for(att of attachments; track att; let idx = $index){

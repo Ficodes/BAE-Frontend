@@ -2374,7 +2374,7 @@
     "_image_processing": "Checking and uploading image…",
     "_file_upload_error": "There was an error while uploading the file!",
     "_compliance_document_type_error": "Choose a PDF, DOC or DOCX document.",
-    "_file_size_error": "File size too large! Must be under 3MB.",
+    "_file_size_error": "File is too large. Maximum size is 3MB.",
     "_upload_complete": "Upload complete",
     "_uploading": "Uploading…",
     "_optional_step_hint": "This step is optional. You can continue without filling it.",
