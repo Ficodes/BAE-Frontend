@@ -2548,7 +2548,7 @@
     "_name": "Name",
     "_name_placeholder": "Insert specification name",
     "_description": "Description",
-    "_description_placeholder": "Insert a brief description of the product",
+    "_description_placeholder": "Insert a brief description of the resource",
     "_next": "Next",
     "_finish": "Finish",
     "_cancel": "Cancel",
