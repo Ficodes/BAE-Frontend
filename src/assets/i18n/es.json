@@ -3577,6 +3577,8 @@
     "_metrics": "Metrics",
     "_metrics_desc": "Define the metrics collected for this pay per use metric.",
     "_metrics_required": "At least one metric is required.",
+    "_metric_name_unique": "A metric with this name already exists.",
+    "_duplicate_metric_names": "Metric names must be unique within this pay per use metric. Remove duplicate rows on the Metrics step.",
     "_add_metric_desc": "Add a new metric to start collecting data",
     "_metric_name_placeholder": "Enter a metric name",
     "_metric_description_placeholder": "Describe this metric",

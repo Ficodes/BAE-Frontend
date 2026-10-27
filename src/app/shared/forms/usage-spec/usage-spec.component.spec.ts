@@ -4,9 +4,11 @@ import { TranslateModule } from '@ngx-translate/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { FormControl } from '@angular/forms';
+import { By } from '@angular/platform-browser';
 
 import { UsageSpecComponent } from './usage-spec.component';
 import { UsageServiceService } from 'src/app/services/usage-service.service';
+import { UsageSpecMetricsComponent } from './usage-spec-metrics/usage-spec-metrics.component';
 
 describe('UsageSpecComponent', () => {
   let component: UsageSpecComponent;
@@ -273,5 +275,144 @@ describe('UsageSpecComponent', () => {
     expect(component.validateCurrentStep()).toBeTrue();
     component.goToStep(2);
     expect(component.currentStep).toBe(2);
+  }));
+
+  for (const formType of ['create', 'update'] as const) {
+    it(`blocks progression and ${formType} requests for duplicate rows in the complete list`, fakeAsync(() => {
+      component.formType = formType;
+      component.usageSpec = { id: 'outer', specCharacteristic: [] };
+      name.setValue('Outer metric');
+      tick(500);
+      expectChecks('Outer metric', formType === 'update' ? 2 : 1).forEach(req => req.flush([]));
+      component.usageSpecForm.get('metrics')?.setValue([
+        { id: 'first', name: 'Requests per minute' },
+        { id: 'second', name: ' REQUESTS PER MINUTE ' }
+      ]);
+      component.currentStep = 1;
+      component.highestStep = 1;
+      fixture.detectChanges();
+
+      expect(component.usageSpecForm.get('metrics')?.hasError('duplicateMetricNames')).toBeTrue();
+      expect(component.validateCurrentStep()).toBeFalse();
+      expect(component.canNavigate(2)).toBeFalse();
+      expect(fixture.nativeElement.querySelector('[data-cy="duplicateMetricNamesError"]').textContent).toContain('USAGE_SPECS._duplicate_metric_names');
+      expect(fixture.nativeElement.querySelector('[data-cy="usageSpecNext"]').disabled).toBeTrue();
+      if (formType === 'update') expect(fixture.nativeElement.querySelector('[data-cy="btnCreateUsageSpec"]').disabled).toBeTrue();
+      component.goToStep(2);
+      expect(component.currentStep).toBe(1);
+      component.submitForm();
+      component.createUsageSpec();
+      component.updateUsageSpec();
+      httpMock.expectNone(() => true);
+    }));
+
+    it(`allows ${formType} after a duplicate row is removed and submits only the remaining row`, fakeAsync(() => {
+      component.formType = formType;
+      component.usageSpec = { id: 'outer', lifecycleStatus: 'Active', specCharacteristic: [] };
+      name.setValue('Outer metric');
+      tick(500);
+      expectChecks('Outer metric', formType === 'update' ? 2 : 1).forEach(req => req.flush([]));
+      component.usageSpecForm.get('metrics')?.setValue([
+        { id: 'first', name: 'Requests', description: 'Keep this', valueType: 'number', custom: 'preserved' },
+        { id: 'second', name: 'requests', description: 'Remove this', valueType: 'number' }
+      ]);
+      component.currentStep = 1;
+      component.highestStep = 1;
+      fixture.detectChanges();
+      const child = fixture.debugElement.query(By.directive(UsageSpecMetricsComponent)).componentInstance as UsageSpecMetricsComponent;
+      child.deleteMetric(child.metrics[1]);
+      fixture.detectChanges();
+      expect(component.usageSpecForm.valid).toBeTrue();
+      expect(fixture.nativeElement.querySelector('[data-cy="duplicateMetricNamesError"]')).toBeNull();
+      component.goToStep(2);
+      component.submitForm();
+      const req = httpMock.expectOne(request => request.method === (formType === 'create' ? 'POST' : 'PATCH'));
+      expect(req.request.body.specCharacteristic).toEqual([
+        { name: 'Requests', description: 'Keep this', valueType: 'number', custom: 'preserved' }
+      ]);
+      req.flush({ id: 'outer' });
+      tick();
+    }));
+  }
+
+  it('validates duplicate rows loaded for editing without mutating the original specification', fakeAsync(() => {
+    component.formType = 'update';
+    const original = [
+      { id: 'server-1', name: 'Requests', valueType: 'number' },
+      { id: 'server-2', name: 'Requests', valueType: 'number' }
+    ];
+    component.usageSpec = { id: 'outer', name: 'Outer metric', specCharacteristic: original };
+    component.loadUsageSpecData();
+    tick(500);
+    expectChecks('Outer metric', 2).forEach(req => req.flush([]));
+    expect(component.usageSpecForm.get('metrics')?.hasError('duplicateMetricNames')).toBeTrue();
+    expect(component.usageSpec.specCharacteristic).toBe(original);
+    expect(original.map(metric => metric.id)).toEqual(['server-1', 'server-2']);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[data-cy="duplicateMetricNamesError"]')).not.toBeNull();
+    component.currentStep = 1;
+    fixture.detectChanges();
+    const child = fixture.debugElement.query(By.directive(UsageSpecMetricsComponent)).componentInstance as UsageSpecMetricsComponent;
+    child.deleteMetric(child.metrics[1]);
+    expect(component.usageSpecForm.valid).toBeTrue();
+    expect(original.length).toBe(2);
+  }));
+
+  it('updates the current list after adding and deleting rows, even if an older change event arrives', fakeAsync(() => {
+    component.formType = 'update';
+    component.usageSpec = { id: 'outer', lifecycleStatus: 'Active', specCharacteristic: [] };
+    name.setValue('Outer metric');
+    tick(500);
+    expectChecks('Outer metric', 2).forEach(req => req.flush([]));
+    component.usageSpecForm.get('metrics')?.setValue([{ id: 'existing', name: 'Requests', valueType: 'number' }]);
+    component.currentStep = 1;
+    fixture.detectChanges();
+    const child = fixture.debugElement.query(By.directive(UsageSpecMetricsComponent)).componentInstance as UsageSpecMetricsComponent;
+    child.metricsForm.patchValue({ name: 'Temporary' });
+    child.saveMetric();
+    const staleRows = [...child.metrics];
+    child.deleteMetric(child.metrics[1]);
+    component.handleSubformChange({
+      subformType: 'metrics', isDirty: true, dirtyFields: ['creatingMetrics'], originalValue: [], currentValue: staleRows
+    });
+    component.submitForm();
+    const req = httpMock.expectOne(request => request.method === 'PATCH');
+    expect(req.request.body.specCharacteristic).toEqual([{ name: 'Requests', valueType: 'number' }]);
+    req.flush({});
+    tick();
+  }));
+
+  it('checks inner names locally without requesting names from the backend', fakeAsync(() => {
+    name.setValue('Outer metric');
+    tick(500);
+    expectChecks('Outer metric').forEach(req => req.flush([]));
+    component.currentStep = 1;
+    fixture.detectChanges();
+    const child = fixture.debugElement.query(By.directive(UsageSpecMetricsComponent)).componentInstance as UsageSpecMetricsComponent;
+    child.metricsForm.patchValue({ name: 'Requests' });
+    child.saveMetric();
+    child.metricsForm.patchValue({ name: ' requests ' });
+    child.saveMetric();
+    expect(child.metrics.length).toBe(1);
+    tick(1000);
+    httpMock.expectNone(() => true);
+  }));
+
+  it('preserves the exact name and metadata of an existing metric referenced by usage prices', fakeAsync(() => {
+    component.formType = 'update';
+    component.usageSpec = {
+      id: 'outer', name: 'Outer metric', lifecycleStatus: 'Launched',
+      specCharacteristic: [{ name: ' Requests ', description: 'Original', valueType: 'number', custom: 'preserved' }]
+    };
+    component.loadUsageSpecData();
+    tick(500);
+    expectChecks('Outer metric', 2).forEach(req => req.flush([]));
+    component.submitForm();
+    const req = httpMock.expectOne(request => request.method === 'PATCH');
+    expect(req.request.body.specCharacteristic).toEqual([
+      { name: ' Requests ', description: 'Original', valueType: 'number', custom: 'preserved' }
+    ]);
+    req.flush({});
+    tick();
   }));
 });

@@ -61,6 +61,9 @@
           } @else if (currentStep === 2) {
             <usage-spec-summary [usageSpecForm]="usageSpecForm"></usage-spec-summary>
           }
+          @if(usageSpecForm.get('metrics')?.hasError('duplicateMetricNames')){
+            <p data-cy="duplicateMetricNamesError" role="alert" class="mt-4 text-sm text-status-danger-border">{{ 'USAGE_SPECS._duplicate_metric_names' | translate }}</p>
+          }
         </div>
 
         <!-- Navigation Buttons -->

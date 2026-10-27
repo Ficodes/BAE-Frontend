@@ -74,7 +74,12 @@
       <label for="metric-name" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'USAGE_SPECS._name' | translate }} <span class="text-red-500">*</span></label>
       <input data-cy="metricName" formControlName="name" type="text" id="metric-name" maxLength="100"
         placeholder="{{ 'USAGE_SPECS._metric_name_placeholder' | translate }}"
-        class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3"/>
+        [class.border-status-danger-border]="metricsForm.hasError('nonUniqueName')"
+        [class.border-gray-300]="!metricsForm.hasError('nonUniqueName')"
+        class="bg-white border text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3"/>
+      @if(metricsForm.hasError('nonUniqueName')){
+        <p data-cy="metricNameError" role="alert" class="mt-1 text-xs text-status-danger-border">{{ 'USAGE_SPECS._metric_name_unique' | translate }}</p>
+      }
     </div>
     <div>
       <label for="metric-description" class="block text-sm font-semibold text-gray-900 mb-2">{{ 'USAGE_SPECS._description' | translate }}</label>

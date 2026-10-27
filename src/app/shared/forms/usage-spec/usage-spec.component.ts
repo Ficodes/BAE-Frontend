@@ -22,10 +22,12 @@ import { takeUntil } from 'rxjs/operators';
 import { noWhitespaceValidator } from 'src/app/validators/validators';
 import { LifecycleStatus } from 'src/app/models/provider-stats.model';
 
-function atLeastOneMetricValidator(control: AbstractControl): ValidationErrors | null {
-  return Array.isArray(control.value) && control.value.length > 0
-    ? null
-    : { metricsRequired: true };
+function metricsValidator(control: AbstractControl): ValidationErrors | null {
+  if (!Array.isArray(control.value) || control.value.length === 0) {
+    return { metricsRequired: true };
+  }
+  const names = control.value.map(metric => String(metric?.name ?? '').trim().toLowerCase());
+  return new Set(names).size !== names.length ? { duplicateMetricNames: true } : null;
 }
 
 @Component({
@@ -80,7 +82,7 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
           asyncValidators: [control => this.validateUsageSpecName(control)]
         })
       }),
-      metrics: new FormControl([], [atLeastOneMetricValidator])
+      metrics: new FormControl([], [metricsValidator])
     });
 
     // Subscribe to form validation changes
@@ -127,7 +129,8 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
   goToStep(index: number) {
     if (index > this.currentStep) {
       const currentStepValid = this.validateCurrentStep();
-      if (!currentStepValid || !this.usageSpecForm.get('generalInfo')?.valid) {
+      if (!currentStepValid || !this.usageSpecForm.get('generalInfo')?.valid
+        || (index >= 2 && !this.usageSpecForm.get('metrics')?.valid)) {
         return;
       }
     }
@@ -217,7 +220,7 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
 
   loadUsageSpecData(){
     if(this.usageSpec){
-      const metrics = this.usageSpec.specCharacteristic = this.usageSpec.specCharacteristic.map((item: any) => ({
+      const metrics = (this.usageSpec.specCharacteristic || []).map((item: any) => ({
         ...item,
         id: uuidv4()
       }));
@@ -236,7 +239,7 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
 
     const formValue = this.usageSpecForm.value;
     const generalInfo = formValue.generalInfo;
-    const metrics = formValue.metrics.map(({ id, ...rest }: any) => rest);
+    const metrics = this.metricsForPayload();
 
     const usageSpec: any = {
       name: generalInfo.name.trim(),
@@ -291,32 +294,8 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
       name: this.usageSpecForm.get('generalInfo.name')?.value.trim(),
       description: this.usageSpecForm.get('generalInfo.description')?.value,
       lifecycleStatus: this.usageSpec.lifecycleStatus || 'Active',
-      specCharacteristic: this.usageSpec.specCharacteristic
+      specCharacteristic: this.metricsForPayload()
     };
-
-    // Procesar cada cambio emitido por los subformularios
-    for (const [subformType, change] of Object.entries(this.formChanges)) {
-      console.log(`📝 Processing changes for ${subformType}:`, change);
-
-      switch (subformType) {
-        case 'generalInfo':
-          // Actualizar información general
-          // Read general info directly above so the submitted name is the one
-          // just validated, even if a debounced subform event is still pending.
-          break;
-        case 'metrics':
-          // Actualizar metricas
-          const metrics = change.currentValue.map((metric: any) => ({
-            name: metric.name,
-            description: metric.description,
-            valueType: 'number'
-          }));
-          basePayload.specCharacteristic = metrics
-          console.log('------ here')
-          console.log(metrics)
-          break;
-      }
-    }
     console.log('📝 Final update payload:', basePayload);
 
     try {
@@ -332,6 +311,11 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
+
+  private metricsForPayload(): any[] {
+    // Preserve existing names: usage prices reference their exact stored value.
+    return this.usageSpecForm.get('metrics')!.value.map(({ id, ...metric }: any) => metric);
+  }
 
   goBack() {
     this.eventMessage.emitUsageSpecList(true);
