@@ -57,14 +57,14 @@ export class UsageSpecGeneralInfoComponent implements OnInit, OnDestroy {
 
   get showUniqueNameError(): boolean {
     return !!this.nameControl
-      && this.formGroup.hasError('nonUniqueName')
+      && this.nameControl.hasError('nonUniqueName')
       && (this.nameControl.dirty || this.nameControl.touched);
   }
 
   get showNameError(): boolean {
     return !!this.nameControl
       && (this.nameControl.dirty || this.nameControl.touched)
-      && (this.nameControl.invalid || this.formGroup.hasError('nonUniqueName'));
+      && this.nameControl.invalid;
   }
 
   ngOnInit() {

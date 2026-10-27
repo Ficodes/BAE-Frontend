@@ -10,7 +10,11 @@
         [class.border-status-danger-border]="showNameError"
         [class.border-gray-300]="!showNameError"
         class="bg-white border text-gray-900 text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3"/>
-      @if(showUniqueNameError){
+      @if(nameControl.pending){
+        <p role="status" class="mt-1 text-xs text-gray-500">{{ 'USAGE_SPECS._checking_name' | translate }}</p>
+      } @else if(nameControl.hasError('nameCheckFailed')){
+        <p role="alert" class="mt-1 text-xs text-status-danger-border">{{ 'USAGE_SPECS._name_check_error' | translate }}</p>
+      } @else if(showUniqueNameError){
         <p class="mt-1 text-xs text-status-danger-border"><span class="font-medium">{{ 'USAGE_SPECS._unique' | translate }}</span></p>
       }
     </div>

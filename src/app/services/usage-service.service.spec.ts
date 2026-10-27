@@ -22,6 +22,22 @@ describe('UsageServiceService', () => {
     expect(service).toBeTruthy();
   });
 
+  it('should check the name and provider with separate live-state queries and encode special characters', () => {
+    let taken: boolean | undefined;
+    service.isUsageSpecNameTaken(' API calls & storage + ', 'urn:party:provider').subscribe(result => taken = result);
+
+    for (const status of ['Active', 'Launched']) {
+      const req = httpMock.expectOne(request => request.params.get('lifecycleStatus') === status);
+      expect(req.request.params.get('name')).toBe('API calls & storage +');
+      expect(req.request.params.get('relatedParty.id')).toBe('urn:party:provider');
+      expect(req.request.params.get('limit')).toBe('1');
+      expect(req.request.urlWithParams).toContain('name=API%20calls%20%26%20storage%20%2B');
+      req.flush([]);
+    }
+
+    expect(taken).toBeFalse();
+  });
+
   it('should use each latest token and stop HTTP requests after a short deleted page', async () => {
     const fullPage = Array.from({ length: UsageServiceService.USAGE_SPEC_LIMIT }, (_, id) => ({ id }));
     const statuses = ['Retired', 'Obsolete'];

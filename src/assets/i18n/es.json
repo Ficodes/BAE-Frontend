@@ -3580,6 +3580,8 @@
     "_summary": "Summary",
     "_summary_desc": "Review the details before saving.",
     "_unique": "Name must be unique for this provider.",
+    "_checking_name": "Checking name availability…",
+    "_name_check_error": "Unable to check name availability. Please try again.",
     "_validate_success": "Pay per use metric successfully validated",
     "_validate_error": "There was an error while validating the pay per use metric!",
     "_cancel": "Cancel"
