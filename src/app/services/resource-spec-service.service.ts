@@ -18,9 +18,15 @@ export class ResourceSpecServiceService {
   public static API_RESOURCE_SPEC: String = environment.RESOURCE_SPEC;
   public static RES_SPEC_LIMIT: number = environment.RES_SPEC_LIMIT;
 
+  private readonly filteredPaginationHeader = 'X-Filtered-Pagination-Token';
+  private filteredPaginationToken: string | null = null;
+  private filteredPaginationQuery: string | null = null;
+  private filteredPaginationGeneration = 0;
+  private filteredPaginationExhausted = false;
+
   constructor(private http: HttpClient,private localStorage: LocalStorageService) { }
 
-  getResourceSpecByUser(page:any,status:any[],partyId:any,sort?:any) {
+  getResourceSpecByUser(page:any,status:any[],partyId:any,sort?:any, stopOnShortPage = false) {
     let url = `${ResourceSpecServiceService.BASE_URL}${ResourceSpecServiceService.RESOURCE}${ResourceSpecServiceService.API_RESOURCE_SPEC}?limit=${ResourceSpecServiceService.RES_SPEC_LIMIT}&offset=${page}&relatedParty.id=${partyId}`;    
 
     if(sort!=undefined){
@@ -38,7 +44,40 @@ export class ResourceSpecServiceService {
       url=url+'&lifecycleStatus='+lifeStatus;
     }
 
-    return lastValueFrom(this.http.get<any>(url));
+    // Only the seller Deleted tab opts into filtered cursor pagination.
+    if (!stopOnShortPage) {
+      return lastValueFrom(this.http.get<any>(url));
+    }
+
+    const query = JSON.stringify([String(partyId), status, sort]);
+    if (Number(page) === 0 || query !== this.filteredPaginationQuery) {
+      this.resetFilteredPaginationToken();
+      this.filteredPaginationQuery = query;
+    }
+    if (this.filteredPaginationExhausted) return Promise.resolve([]);
+
+    const generation = this.filteredPaginationGeneration;
+    const headers = this.filteredPaginationToken
+      ? { [this.filteredPaginationHeader]: this.filteredPaginationToken }
+      : undefined;
+
+    return lastValueFrom(this.http.get<any[]>(url, { observe: 'response', headers })).then(response => {
+      if (generation !== this.filteredPaginationGeneration) return [];
+
+      const items = response.body ?? [];
+      this.filteredPaginationExhausted = items.length < ResourceSpecServiceService.RES_SPEC_LIMIT;
+      this.filteredPaginationToken = this.filteredPaginationExhausted
+        ? null
+        : response.headers.get(this.filteredPaginationHeader);
+      return items;
+    });
+  }
+
+  resetFilteredPaginationToken(): void {
+    this.filteredPaginationToken = null;
+    this.filteredPaginationQuery = null;
+    this.filteredPaginationExhausted = false;
+    this.filteredPaginationGeneration++;
   }
 
   getResSpecById(id:any){

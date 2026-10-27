@@ -18,9 +18,15 @@ export class ProductSpecServiceService {
   public static API_PRODUCT_SPEC: String = environment.PRODUCT_SPEC;
   public static PROD_SPEC_LIMIT: number = environment.PROD_SPEC_LIMIT;
 
+  private readonly filteredPaginationHeader = 'X-Filtered-Pagination-Token';
+  private filteredPaginationToken: string | null = null;
+  private filteredPaginationQuery: string | null = null;
+  private filteredPaginationGeneration = 0;
+  private filteredPaginationExhausted = false;
+
   constructor(private http: HttpClient,private localStorage: LocalStorageService) { }
 
-  getProdSpecByUser(page:any,status:any[],partyId:any,sort?:any,isBundle?:any) {
+  getProdSpecByUser(page:any,status:any[],partyId:any,sort?:any,isBundle?:any, stopOnShortPage = false) {
     let url = `${ProductSpecServiceService.BASE_URL}${ProductSpecServiceService.API_PRODUCT_CATALOG}${ProductSpecServiceService.API_PRODUCT_SPEC}?limit=${ProductSpecServiceService.PROD_SPEC_LIMIT}&offset=${page}&relatedParty.id=${partyId}`;    
 
     if(sort!=undefined){
@@ -42,7 +48,40 @@ export class ProductSpecServiceService {
       url=url+'&lifecycleStatus='+lifeStatus;
     }
 
-    return lastValueFrom(this.http.get<any>(url));
+    // Only the seller Deleted tab opts into filtered cursor pagination.
+    if (!stopOnShortPage) {
+      return lastValueFrom(this.http.get<any>(url));
+    }
+
+    const query = JSON.stringify([String(partyId), status, sort, isBundle]);
+    if (Number(page) === 0 || query !== this.filteredPaginationQuery) {
+      this.resetFilteredPaginationToken();
+      this.filteredPaginationQuery = query;
+    }
+    if (this.filteredPaginationExhausted) return Promise.resolve([]);
+
+    const generation = this.filteredPaginationGeneration;
+    const headers = this.filteredPaginationToken
+      ? { [this.filteredPaginationHeader]: this.filteredPaginationToken }
+      : undefined;
+
+    return lastValueFrom(this.http.get<any[]>(url, { observe: 'response', headers })).then(response => {
+      if (generation !== this.filteredPaginationGeneration) return [];
+
+      const items = response.body ?? [];
+      this.filteredPaginationExhausted = items.length < ProductSpecServiceService.PROD_SPEC_LIMIT;
+      this.filteredPaginationToken = this.filteredPaginationExhausted
+        ? null
+        : response.headers.get(this.filteredPaginationHeader);
+      return items;
+    });
+  }
+
+  resetFilteredPaginationToken(): void {
+    this.filteredPaginationToken = null;
+    this.filteredPaginationQuery = null;
+    this.filteredPaginationExhausted = false;
+    this.filteredPaginationGeneration++;
   }
 
   getResSpecById(id:any){
