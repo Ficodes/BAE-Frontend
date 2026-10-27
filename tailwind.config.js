@@ -67,6 +67,33 @@ module.exports = {
           'metric-success': 'rgb(var(--theme-offerings-metric-success-bg) / <alpha-value>)',
           'metric-accent': 'rgb(var(--theme-offerings-metric-accent-bg) / <alpha-value>)'
         },
+        quotes: {
+          warning: {
+            bg: 'rgb(var(--theme-quotes-warning-bg) / <alpha-value>)',
+            border: 'rgb(var(--theme-quotes-warning-border) / <alpha-value>)',
+            text: 'rgb(var(--theme-quotes-warning-text) / <alpha-value>)',
+          },
+          info: {
+            bg: 'rgb(var(--theme-quotes-info-bg) / <alpha-value>)',
+            border: 'rgb(var(--theme-quotes-info-border) / <alpha-value>)',
+            text: 'rgb(var(--theme-quotes-info-text) / <alpha-value>)',
+          },
+          success: {
+            bg: 'rgb(var(--theme-quotes-success-bg) / <alpha-value>)',
+            border: 'rgb(var(--theme-quotes-success-border) / <alpha-value>)',
+            text: 'rgb(var(--theme-quotes-success-text) / <alpha-value>)',
+          },
+          danger: {
+            bg: 'rgb(var(--theme-quotes-danger-bg) / <alpha-value>)',
+            border: 'rgb(var(--theme-quotes-danger-border) / <alpha-value>)',
+            text: 'rgb(var(--theme-quotes-danger-text) / <alpha-value>)',
+          },
+          neutral: {
+            bg: 'rgb(var(--theme-quotes-neutral-bg) / <alpha-value>)',
+            border: 'rgb(var(--theme-quotes-neutral-border) / <alpha-value>)',
+            text: 'rgb(var(--theme-quotes-neutral-text) / <alpha-value>)',
+          },
+        },
         status: {
           success: {
             bg: 'rgb(var(--theme-status-success-bg) / <alpha-value>)',

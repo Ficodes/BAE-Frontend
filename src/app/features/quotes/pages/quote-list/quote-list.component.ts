@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -15,185 +16,199 @@ import { QuoteDetailsModalComponent } from 'src/app/shared/quote-details-modal/q
 import { ChatModalComponent } from 'src/app/shared/chat-modal/chat-modal.component';
 import { AttachmentModalComponent } from 'src/app/shared/attachment-modal/attachment-modal.component';
 import { LoginInfo } from 'src/app/models/interfaces';
-import { QUOTE_STATUSES, TAILORED_STATUSES_LABELS_CUSTOMER, TAILORED_STATUSES_LABELS_PROVIDER } from 'src/app/models/quote.constants';
+import { QUOTE_STATUSES } from 'src/app/models/quote.constants';
 import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-quote-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConfirmDialogComponent, QuoteDetailsModalComponent, ChatModalComponent, AttachmentModalComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, ConfirmDialogComponent, QuoteDetailsModalComponent, ChatModalComponent, AttachmentModalComponent],
   template: `
-    <div class="w-full mx-auto px-6 py-8">
-      <div class="flex justify-between items-center mb-6">
-        <div class="flex items-center gap-3">
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Tailored offerings Dashboard</h1>
-          <a
-            href="https://knowledgebase.dome-marketplace.eu/books/tailored-offering-guide"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Click here for the guide of the Tailored process"
-            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-          >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-            </svg>
-          </a>
-        </div>
-        <div class="flex space-x-3">
-          <button
-            (click)="refreshQuotes()"
-            [disabled]="loading"
-            class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50"
-          >
-            {{ loading ? 'Loading...' : 'Refresh' }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Role Tabs -->
-      <div class="mb-6">
-        <div class="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
-          <button
-            (click)="selectRole('customer')"
-            [class]="getRoleTabClass('customer')"
-            class="flex-1 px-8 py-4 text-2xl font-medium rounded-md transition-colors"
-          >
-            <svg class="w-6 h-6 inline mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            As Customer
-          </button>
-          <button
-            (click)="selectRole('seller')"
-            [class]="getRoleTabClass('seller')"
-            class="flex-1 px-8 py-4 text-2xl font-medium rounded-md transition-colors"
-          >
-            <svg class="w-6 h-6 inline mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-            As Provider
-          </button>
-        </div>
-      </div>
-
-      <!-- Status Filter -->
-      <div class="mb-6">
-        <div class="flex items-center space-x-4">
-          <svg class="w-5 h-5 text-gray-500 dark:text-gray-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-          </svg>
-          <span class="text-sm font-medium text-gray-700 dark:text-gray-100">Filter by status</span>
-          <select
-            [(ngModel)]="statusFilter"
-            (ngModelChange)="filterQuotesByStatus()"
-            class="form-select rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          >
-            <option value="">All Statuses</option>
-            <option *ngFor="let opt of filterStatusOptions" [value]="opt.value">{{ opt.label }}</option>
-          </select>
-        </div>
-      </div>
-      
-      <!-- Loading State -->
-      <div *ngIf="loading" class="flex justify-center items-center py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-      
-      <!-- Error State -->
-      <div *ngIf="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-            </svg>
+    <div class="min-h-screen bg-offerings-page font-body dark:bg-tertiary-50">
+      <div class="mx-auto max-w-[1440px] px-6 py-8 sm:px-10 lg:px-20 xl:px-[160px]">
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex min-w-0 items-center gap-3">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-offerings-icon-bg text-offerings-link dark:bg-secondary-100 dark:text-primary-50">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414A1 1 0 0 1 19 9.414V19a2 2 0 0 1-2 2Z" />
+              </svg>
+            </div>
+            <h1 class="min-w-0 text-[28px] font-bold leading-tight text-offerings-title dark:text-offerings-on-dark">{{ 'QUOTE_DASHBOARD._title' | translate }}</h1>
+            <a
+              href="https://knowledgebase.dome-marketplace.eu/books/tailored-offering-guide"
+              target="_blank"
+              rel="noopener noreferrer"
+              [title]="'QUOTE_DASHBOARD._guide' | translate"
+              [attr.aria-label]="'QUOTE_DASHBOARD._guide' | translate"
+              class="shrink-0 rounded-lg p-1 text-offerings-muted-text transition-colors hover:bg-offerings-table-header hover:text-offerings-link focus:outline-none focus:ring-2 focus:ring-offerings-active-chip dark:text-offerings-on-dark-body dark:hover:bg-secondary-100 dark:hover:text-primary-50"
+            >
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+              </svg>
+            </a>
           </div>
-          <div class="ml-3">
-            <h3 class="text-sm font-medium text-red-800">Error loading quotes</h3>
-            <p class="mt-1 text-sm text-red-700">{{ error }}</p>
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              (click)="refreshQuotes()"
+              [disabled]="loading"
+              class="inline-flex h-10 items-center rounded-lg border border-offerings-border bg-offerings-surface px-4 text-sm font-semibold text-offerings-heading transition-colors hover:border-offerings-link hover:text-offerings-link focus:outline-none focus:ring-2 focus:ring-offerings-active-chip disabled:cursor-not-allowed disabled:opacity-50 dark:border-secondary-400 dark:bg-tertiary-100 dark:text-offerings-on-dark-body dark:hover:border-primary-50 dark:hover:text-primary-50"
+            >
+              {{ (loading ? 'QUOTE_DASHBOARD._loading' : 'QUOTE_DASHBOARD._refresh') | translate }}
+            </button>
           </div>
         </div>
-      </div>
-      
-      <!-- Quotes List -->
-      <div *ngIf="!loading && !error" class="bg-white dark:bg-gray-700 shadow-md rounded-lg overflow-hidden">
-        <div *ngIf="filteredQuotes.length === 0" class="text-center py-12">
-          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <h3 class="mt-2 text-sm font-medium text-gray-900">No quotes found</h3>
-          <p class="mt-1 text-sm text-gray-500">No orders found</p>
-        </div>
-        
-        <!-- Quotes Header -->
-        <div *ngIf="filteredQuotes.length > 0" class="bg-gray-50 dark:bg-gray-800 px-6 py-3">
-          <div class="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-            <div class="col-span-2">REQUEST DATE</div>
-            <div class="col-span-3">{{ selectedRole === 'customer' ? 'PROVIDER' : 'CUSTOMER' }}</div>
-            <div class="col-span-4">PRODUCT</div>
-            <div class="col-span-1">STATUS</div>
-            <div class="col-span-2">ACTIONS</div>
+
+        <!-- Role Tabs -->
+        <div class="mb-6">
+          <div class="inline-flex max-w-full flex-wrap rounded-2xl border border-offerings-border bg-offerings-surface p-1 shadow-sm dark:border-secondary-400 dark:bg-tertiary-100" role="group" [attr.aria-label]="'QUOTE_DASHBOARD._role' | translate">
+            <button
+              (click)="selectRole('customer')"
+              [class]="getRoleTabClass('customer')"
+              [attr.aria-pressed]="selectedRole === 'customer'"
+            >
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              {{ 'QUOTE_DASHBOARD._as_customer' | translate }}
+            </button>
+            <button
+              (click)="selectRole('seller')"
+              [class]="getRoleTabClass('seller')"
+              [attr.aria-pressed]="selectedRole === 'seller'"
+            >
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              {{ 'QUOTE_DASHBOARD._as_provider' | translate }}
+            </button>
           </div>
         </div>
-        
-        <!-- Quote Rows -->
-        <div *ngFor="let quote of filteredQuotes" class="quote-row">
-          <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 border-b border-gray-100 dark:border-gray-600 transition-colors"
-               [class.bg-gray-50]="isQuoteFinalized(quote)"
-               [class.dark:bg-gray-800]="isQuoteFinalized(quote)"
-               [class.hover:bg-gray-50]="!isQuoteFinalized(quote)"
-               [class.dark:hover:bg-gray-800]="!isQuoteFinalized(quote)"
-               [attr.data-quote-id]="quote.id">
 
-            <!-- Data Richiesta (Creation Date) -->
-            <div class="col-span-2 text-sm text-gray-600 dark:text-gray-400">
-              {{ quote.quoteDate | date:'dd-MM-yyyy' }}
+        <!-- Status Filter -->
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-offerings-border bg-offerings-surface p-3 shadow-sm dark:border-secondary-400 dark:bg-tertiary-100">
+          <div class="flex items-center gap-3">
+            <svg class="h-5 w-5 text-offerings-muted-text dark:text-offerings-on-dark-body" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            <label for="quote-status-filter" class="text-sm font-medium text-offerings-muted-text dark:text-offerings-on-dark-body">{{ 'QUOTE_DASHBOARD._status' | translate }}</label>
+          </div>
+          <div class="w-full sm:w-auto sm:max-w-full">
+            <select
+              id="quote-status-filter"
+              [(ngModel)]="statusFilter"
+              (ngModelChange)="filterQuotesByStatus()"
+              [ngClass]="statusFilter ? 'border-offerings-link bg-offerings-table-header text-offerings-link dark:border-primary-50 dark:bg-secondary-100 dark:text-primary-50' : 'border-offerings-border bg-offerings-surface text-offerings-heading dark:border-secondary-400 dark:bg-tertiary-100 dark:text-offerings-on-dark-body'"
+              class="h-10 w-full min-w-0 max-w-full truncate rounded-lg border py-0 pl-4 pr-10 text-[15px] font-semibold transition-colors hover:border-offerings-link focus:border-offerings-link focus:outline-none focus:ring-2 focus:ring-offerings-active-chip sm:min-w-[240px] dark:hover:border-primary-50"
+            >
+              <option value="">{{ 'QUOTE_DASHBOARD._all_statuses' | translate }}</option>
+              <option *ngFor="let opt of filterStatusOptions" [value]="opt.value">{{ opt.label | translate }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="loading" class="flex items-center justify-center py-8" role="status">
+          <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-offerings-link dark:border-primary-50" aria-hidden="true"></div>
+          <span class="sr-only">{{ 'QUOTE_DASHBOARD._loading_quotes' | translate }}</span>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="error" class="relative mb-4 rounded-xl border border-quotes-danger-border bg-quotes-danger-bg px-4 py-3 text-quotes-danger-text" role="alert">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-quotes-danger-text" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
             </div>
-
-            <!-- Customer/Provider Name -->
-            <div class="col-span-3 text-sm font-medium text-gray-900 dark:text-white">
-              {{ getOtherPartyName(quote) }}
+            <div class="ml-3">
+              <h3 class="text-sm font-semibold">{{ 'QUOTE_DASHBOARD._load_error_title' | translate }}</h3>
+              <p class="mt-1 text-sm">{{ error | translate }}</p>
             </div>
+          </div>
+        </div>
 
-            <!-- Product Name -->
-            <div class="col-span-4 text-sm text-gray-700 dark:text-gray-300">
-              {{ getProductName(quote) }}
-            </div>
+        <!-- Quotes List -->
+        <div *ngIf="!loading && !error" class="overflow-hidden rounded-2xl border border-offerings-border bg-offerings-surface shadow-sm dark:border-secondary-400 dark:bg-tertiary-100">
+          <div *ngIf="filteredQuotes.length === 0" class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-offerings-disabled" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 class="mt-2 text-sm font-semibold text-offerings-title dark:text-offerings-on-dark">{{ 'QUOTE_DASHBOARD._empty_title' | translate }}</h3>
+            <p class="mt-1 text-sm text-offerings-muted-text dark:text-offerings-on-dark-body">{{ 'QUOTE_DASHBOARD._empty_description' | translate }}</p>
+          </div>
 
-            <!-- Status -->
-            <div class="col-span-1">
-              <span class="status-badge px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                    [ngClass]="getStateClass(getPrimaryState(quote))">
-                {{ getStatusLabel(quote) }}
-              </span>
-            </div>
+          <div *ngIf="filteredQuotes.length > 0" class="overflow-x-auto" role="region" [attr.aria-label]="'QUOTE_DASHBOARD._quotes' | translate" tabindex="0">
+            <div class="min-w-[900px]">
+              <!-- Quotes Header -->
+              <div class="border-b border-offerings-border bg-offerings-table-header px-6 py-3 dark:border-secondary-400 dark:bg-secondary-100">
+                <div class="grid grid-cols-12 gap-4 text-xs font-semibold uppercase tracking-wider text-offerings-muted-text dark:text-offerings-on-dark-body">
+                  <div class="col-span-2">{{ 'QUOTE_DASHBOARD._request_date' | translate }}</div>
+                  <div class="col-span-3">{{ (selectedRole === 'customer' ? 'QUOTE_DASHBOARD._provider' : 'QUOTE_DASHBOARD._customer') | translate }}</div>
+                  <div class="col-span-3">{{ 'QUOTE_DASHBOARD._product' | translate }}</div>
+                  <div class="col-span-2">{{ 'QUOTE_DASHBOARD._status' | translate }}</div>
+                  <div class="col-span-2">{{ 'QUOTE_DASHBOARD._actions' | translate }}</div>
+                </div>
+              </div>
 
-            <!-- Actions (Chat + Details only) -->
-            <div class="col-span-2 flex items-center gap-2">
-              <!-- Chat -->
-              <button
-                [disabled]="isActionDisabled(quote, 'chat')"
-                (click)="openChat(quote)"
-                [class]="getIconButtonClass(quote, 'chat', 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200')"
-                title="Chat"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8L3 21l1.8-4A7.96 7.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </button>
+              <!-- Quote Rows -->
+              <div *ngFor="let quote of filteredQuotes" class="quote-row">
+                <div class="grid grid-cols-12 items-center gap-4 border-b border-offerings-border px-6 py-4 transition-colors dark:border-secondary-400"
+                     [ngClass]="isQuoteFinalized(quote) ? 'bg-offerings-page dark:bg-secondary-100' : 'bg-offerings-surface hover:bg-offerings-table-header dark:bg-tertiary-100 dark:hover:bg-secondary-100'"
+                     [attr.data-quote-id]="quote.id">
 
-              <!-- View Details -->
-              <button
-                [disabled]="isActionDisabled(quote, 'viewDetails')"
-                (click)="viewDetails(quote)"
-                class="px-3 py-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 border border-blue-200 dark:border-blue-700 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex items-center gap-1"
-                [class.opacity-50]="isActionDisabled(quote, 'viewDetails')"
-                [class.cursor-not-allowed]="isActionDisabled(quote, 'viewDetails')"
-              >
-                Details
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
+                  <!-- Data Richiesta (Creation Date) -->
+                  <div class="col-span-2 text-sm text-offerings-muted-text dark:text-offerings-on-dark-body">
+                    {{ quote.quoteDate | date:'dd-MM-yyyy' }}
+                  </div>
+
+                  <!-- Customer/Provider Name -->
+                  <div class="col-span-3 min-w-0 break-words text-sm font-semibold text-offerings-title dark:text-offerings-on-dark">
+                    {{ getOtherPartyName(quote) }}
+                  </div>
+
+                  <!-- Product Name -->
+                  <div class="col-span-3 min-w-0 break-words text-sm text-offerings-heading dark:text-offerings-on-dark-body">
+                    {{ getProductName(quote) }}
+                  </div>
+
+                  <!-- Status -->
+                  <div class="col-span-2 min-w-0">
+                    <span class="status-badge max-w-full truncate"
+                          [title]="getStatusLabel(quote) | translate"
+                          [ngClass]="getStateClass(getPrimaryState(quote))">
+                      {{ getStatusLabel(quote) | translate }}
+                    </span>
+                  </div>
+
+                  <!-- Actions (Chat + Details only) -->
+                  <div class="col-span-2 flex flex-wrap items-center gap-2">
+                    <!-- Chat -->
+                    <button
+                      [disabled]="isActionDisabled(quote, 'chat')"
+                      (click)="openChat(quote)"
+                      class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-offerings-muted-text transition-colors hover:bg-offerings-table-header hover:text-offerings-link focus:outline-none focus:ring-2 focus:ring-offerings-active-chip disabled:cursor-not-allowed disabled:opacity-50 dark:text-offerings-on-dark-body dark:hover:bg-secondary-100 dark:hover:text-primary-50"
+                      [title]="'QUOTE_DASHBOARD._chat' | translate"
+                      [attr.aria-label]="'QUOTE_DASHBOARD._chat' | translate"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8L3 21l1.8-4A7.96 7.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    </button>
+
+                    <!-- View Details -->
+                    <button
+                      [disabled]="isActionDisabled(quote, 'viewDetails')"
+                      (click)="viewDetails(quote)"
+                      class="inline-flex items-center gap-1 rounded-lg border border-offerings-active-chip px-3 py-1.5 text-sm font-semibold text-offerings-link transition-colors hover:bg-offerings-table-header focus:outline-none focus:ring-2 focus:ring-offerings-active-chip disabled:cursor-not-allowed disabled:opacity-50 dark:border-secondary-400 dark:text-primary-50 dark:hover:bg-secondary-100"
+                    >
+                      {{ 'QUOTE_DASHBOARD._details' | translate }}
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -203,10 +218,10 @@ import { environment } from 'src/environments/environment';
     <!-- Delete Confirmation Dialog -->
     <app-confirm-dialog
       [isOpen]="showDeleteConfirm"
-      title="Delete Quote"
+      [title]="'QUOTE_DASHBOARD._delete_title' | translate"
       [message]="deleteConfirmMessage"
-      confirmText="Delete"
-      confirmButtonClass="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+      [confirmText]="'QUOTE_DASHBOARD._delete' | translate"
+      confirmButtonClass="px-4 py-2 text-sm font-medium text-quotes-danger-text bg-quotes-danger-bg border border-quotes-danger-border rounded-md hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-quotes-danger-border"
       (confirm)="deleteQuote()"
       (cancel)="showDeleteConfirm = false"
     ></app-confirm-dialog>
@@ -214,10 +229,10 @@ import { environment } from 'src/environments/environment';
     <!-- Accept Confirmation Dialog -->
     <app-confirm-dialog
       [isOpen]="showAcceptConfirm"
-      title="Accept Quote"
+      [title]="'QUOTE_DASHBOARD._accept_title' | translate"
       [message]="acceptConfirmMessage"
-      confirmText="Accept"
-      confirmButtonClass="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+      [confirmText]="'QUOTE_DASHBOARD._accept' | translate"
+      confirmButtonClass="px-4 py-2 text-sm font-medium text-quotes-success-text bg-quotes-success-bg border border-quotes-success-border rounded-md hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-quotes-success-border"
       (confirm)="acceptConfirmCallback && acceptConfirmCallback()"
       (cancel)="showAcceptConfirm = false"
     ></app-confirm-dialog>
@@ -225,46 +240,46 @@ import { environment } from 'src/environments/environment';
     <!-- Cancel Confirmation Dialog -->
     <app-confirm-dialog
       [isOpen]="showCancelConfirm"
-      title="Cancel Quote"
+      [title]="'QUOTE_DASHBOARD._cancel_title' | translate"
       [message]="cancelConfirmMessage"
-      confirmText="Cancel Quote"
-      confirmButtonClass="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+      [confirmText]="'QUOTE_DASHBOARD._cancel_quote' | translate"
+      confirmButtonClass="px-4 py-2 text-sm font-medium text-quotes-danger-text bg-quotes-danger-bg border border-quotes-danger-border rounded-md hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-quotes-danger-border"
       (confirm)="cancelConfirmCallback && cancelConfirmCallback()"
       (cancel)="showCancelConfirm = false"
     ></app-confirm-dialog>
 
     <!-- State Update Modal -->
-    <div *ngIf="showStateUpdate" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div *ngIf="showStateUpdate" class="fixed inset-0 bg-offerings-overlay bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-offerings-surface">
         <div class="mt-3">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Update Quote State</h3>
+          <h3 class="text-lg font-medium text-offerings-title mb-4">{{ 'QUOTE_DASHBOARD._update_state' | translate }}</h3>
           <div class="space-y-3">
             <div *ngFor="let state of availableStates" class="flex items-center">
-              <input 
-                [id]="'state-' + state" 
-                [(ngModel)]="selectedState" 
-                [value]="state" 
-                type="radio" 
-                class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+              <input
+                [id]="'state-' + state"
+                [(ngModel)]="selectedState"
+                [value]="state"
+                type="radio"
+                class="focus:ring-offerings-active-chip h-4 w-4 text-offerings-link border-offerings-border-strong"
               >
-              <label [for]="'state-' + state" class="ml-3 block text-sm font-medium text-gray-700">
-                {{ getStateDisplay(state) }}
+              <label [for]="'state-' + state" class="ml-3 block text-sm font-medium text-offerings-heading">
+                {{ getStateDisplay(state) | translate }}
               </label>
             </div>
           </div>
           <div class="mt-6 flex justify-end space-x-3">
             <button
               (click)="showStateUpdate = false"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              class="px-4 py-2 text-sm font-medium text-offerings-heading bg-offerings-surface border border-offerings-border-strong rounded-md hover:bg-offerings-page focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offerings-active-chip"
             >
-              Cancel
+              {{ 'QUOTE_DASHBOARD._cancel' | translate }}
             </button>
             <button
               (click)="confirmStateUpdate()"
               [disabled]="!selectedState"
-              class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              class="px-4 py-2 text-sm font-medium text-offerings-on-dark bg-offerings-link border border-transparent rounded-md hover:bg-offerings-link-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offerings-active-chip disabled:opacity-50"
             >
-              Update
+              {{ 'QUOTE_DASHBOARD._update' | translate }}
             </button>
           </div>
         </div>
@@ -297,43 +312,43 @@ import { environment } from 'src/environments/environment';
     ></app-attachment-modal>
 
     <!-- Date Picker Modal -->
-    <div *ngIf="showDatePickerModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div *ngIf="showDatePickerModal" class="fixed inset-0 bg-offerings-overlay bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-offerings-surface">
         <div class="mt-3">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">
-            {{ datePickerType === 'requested' ? 'Add Requested Completion Date' : 'Add Expected Completion Date' }}
+          <h3 class="text-lg font-medium text-offerings-title mb-4">
+            {{ (datePickerType === 'requested' ? 'QUOTE_DASHBOARD._requested_date_title' : 'QUOTE_DASHBOARD._expected_date_title') | translate }}
           </h3>
-          <p class="text-sm text-gray-600 mb-4">
-            {{ datePickerType === 'requested' ? 'Select when you need this quote to be completed:' : 'Select when you expect to complete this quote:' }}
+          <p class="text-sm text-offerings-muted-text mb-4">
+            {{ (datePickerType === 'requested' ? 'QUOTE_DASHBOARD._requested_date_description' : 'QUOTE_DASHBOARD._expected_date_description') | translate }}
           </p>
-          
+
           <div class="mb-6">
-            <label for="completion-date" class="block text-sm font-medium text-gray-700 mb-2">
-              Completion Date
+            <label for="completion-date" class="block text-sm font-medium text-offerings-heading mb-2">
+              {{ 'QUOTE_DASHBOARD._completion_date' | translate }}
             </label>
-            <input 
+            <input
               id="completion-date"
-              type="date" 
+              type="date"
               [(ngModel)]="selectedDate"
               [min]="getTomorrowDate()"
-              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+              class="w-full border border-offerings-border-strong rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-offerings-active-chip focus:border-offerings-link"
             />
-            <p class="text-xs text-gray-500 mt-1">Date must be in the future</p>
+            <p class="text-xs text-offerings-muted-text mt-1">{{ 'QUOTE_DASHBOARD._future_date' | translate }}</p>
           </div>
 
           <div class="flex justify-end space-x-3">
             <button
               (click)="closeDatePickerModal()"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              class="px-4 py-2 text-sm font-medium text-offerings-heading bg-offerings-surface border border-offerings-border-strong rounded-md hover:bg-offerings-page focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offerings-active-chip"
             >
-              Cancel
+              {{ 'QUOTE_DASHBOARD._cancel' | translate }}
             </button>
             <button
               (click)="confirmDateUpdate()"
               [disabled]="!selectedDate || !isDateValid()"
-              class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              class="px-4 py-2 text-sm font-medium text-offerings-on-dark bg-offerings-link border border-transparent rounded-md hover:bg-offerings-link-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offerings-active-chip disabled:opacity-50"
             >
-              Save Date
+              {{ 'QUOTE_DASHBOARD._save_date' | translate }}
             </button>
           </div>
         </div>
@@ -342,39 +357,32 @@ import { environment } from 'src/environments/environment';
   `,
   styles: [`
     .status-badge {
-      @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+      @apply inline-block rounded-full border px-2.5 py-0.5 text-xs font-semibold leading-5;
     }
-    
+
     .status-pending {
-      @apply bg-yellow-100 text-yellow-800;
+      @apply border-quotes-warning-border bg-quotes-warning-bg text-quotes-warning-text;
     }
-    
+
     .status-inProgress {
-      @apply bg-blue-100 text-blue-800;
+      @apply border-quotes-info-border bg-quotes-info-bg text-quotes-info-text;
     }
-    
-    .status-approved {
-      @apply bg-green-100 text-green-800;
+
+    .status-approved, .status-accepted {
+      @apply border-quotes-success-border bg-quotes-success-bg text-quotes-success-text;
     }
-    
+
     .status-rejected {
-      @apply bg-red-100 text-red-800;
+      @apply border-quotes-danger-border bg-quotes-danger-bg text-quotes-danger-text;
     }
-    
-    .status-cancelled {
-      @apply bg-gray-100 text-gray-800;
-    }
-    
-    .status-accepted {
-      @apply bg-emerald-100 text-emerald-800;
-    }
-    
-    .status-unknown {
-      @apply bg-gray-100 text-gray-600;
+
+    .status-cancelled, .status-unknown {
+      @apply border-quotes-neutral-border bg-quotes-neutral-bg text-quotes-neutral-text;
     }
   `]
 })
 export class QuoteListComponent implements OnInit {
+  private translate = inject(TranslateService);
   private router = inject(Router);
   private quoteService = inject(QuoteService);
   private localStorage = inject(LocalStorageService);
@@ -400,7 +408,7 @@ export class QuoteListComponent implements OnInit {
 
   // Data enrichment maps
   organizationNames: Map<string, string> = new Map();
-  productNames: Map<string, string> = new Map();
+  productNames: Map<string, string | null> = new Map();
 
   // State update modal
   showStateUpdate = false;
@@ -456,13 +464,13 @@ export class QuoteListComponent implements OnInit {
     if (this.currentUserId) {
       this.loadQuotes();
     } else {
-      this.error = 'User not authenticated';
+      this.error = 'QUOTE_DASHBOARD._unauthenticated';
     }
   }
 
   loadQuotes() {
     if (!this.currentUserId) {
-      this.error = 'User not authenticated';
+      this.error = 'QUOTE_DASHBOARD._unauthenticated';
       return;
     }
 
@@ -482,7 +490,7 @@ export class QuoteListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Failed to load quotes:', error);
-        this.error = 'Failed to load quotes. Please try again.';
+        this.error = 'QUOTE_DASHBOARD._load_error';
         this.loading = false;
       }
     });
@@ -545,11 +553,11 @@ export class QuoteListComponent implements OnInit {
         return this.productService.getProductById(id).then(
           (product: any) => {
             console.log('Product fetched:', id, product?.name);
-            return { id, name: product?.name || 'Product Name Unavailable' };
+            return { id, name: product?.name || null };
           },
           (error) => {
             console.error('Product fetch error:', id, error);
-            return { id, name: 'Product Name Unavailable' }; // Fallback to placeholder on error
+            return { id, name: null }; // Fallback to placeholder on error
           }
         );
       });
@@ -575,9 +583,10 @@ export class QuoteListComponent implements OnInit {
   }
 
   getRoleTabClass(role: 'customer' | 'seller'): string {
+    const base = 'inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offerings-active-chip';
     return this.selectedRole === role
-      ? 'bg-white dark:bg-gray-600 text-blue-400 shadow-sm'
-      : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-200';
+      ? `${base} bg-offerings-table-header text-offerings-link dark:bg-secondary-100 dark:text-primary-50`
+      : `${base} text-offerings-muted-text hover:bg-offerings-page hover:text-offerings-link dark:text-offerings-on-dark-body dark:hover:bg-secondary-100 dark:hover:text-primary-50`;
   }
 
   filterQuotesByStatus() {
@@ -599,17 +608,14 @@ export class QuoteListComponent implements OnInit {
   }
 
   get filterStatusOptions(): { value: string; label: string }[] {
-    const labels = this.selectedRole === 'customer'
-      ? TAILORED_STATUSES_LABELS_CUSTOMER
-      : TAILORED_STATUSES_LABELS_PROVIDER;
     return [
-      { value: QUOTE_STATUSES.PENDING,     label: labels.PENDING },
-      { value: QUOTE_STATUSES.IN_PROGRESS, label: labels.IN_PROGRESS },
-      { value: QUOTE_STATUSES.APPROVED,    label: labels.APPROVED },
-      { value: QUOTE_STATUSES.ACCEPTED,    label: labels.ACCEPTED },
-      { value: QUOTE_STATUSES.CANCELLED,   label: labels.CANCELLED },
-      { value: QUOTE_STATUSES.REJECTED,    label: labels.REJECTED },
-    ];
+      QUOTE_STATUSES.PENDING,
+      QUOTE_STATUSES.IN_PROGRESS,
+      QUOTE_STATUSES.APPROVED,
+      QUOTE_STATUSES.ACCEPTED,
+      QUOTE_STATUSES.CANCELLED,
+      QUOTE_STATUSES.REJECTED,
+    ].map(state => ({ value: state, label: this.getStatusTranslationKey(state) }));
   }
 
   createQuote() {
@@ -641,7 +647,7 @@ export class QuoteListComponent implements OnInit {
 
     const shortId = this.extractShortId(updatedQuote.id);
     const state = this.getPrimaryState(updatedQuote);
-    this.notificationService.showSuccess(`Quote ${shortId} has been updated to ${state}.`);
+    this.notificationService.showSuccess(this.translate.instant('QUOTE_DASHBOARD._updated', { id: shortId, status: this.translate.instant(this.getStateDisplay(state as QuoteStateType)) }));
   }
 
   closeChatModal() {
@@ -675,14 +681,14 @@ export class QuoteListComponent implements OnInit {
             this.quotes[approvedIndex] = approvedQuote;
             this.filterQuotesByStatus();
           }
-          
+
           const shortId = this.extractShortId(updatedQuote.id);
           console.log('Quote status automatically updated to approved after PDF upload');
-          this.notificationService.showSuccess(`Quote ${shortId} has been approved after PDF upload.`);
+          this.notificationService.showSuccess(this.translate.instant('QUOTE_DASHBOARD._approved_after_upload', { id: shortId }));
         },
         error: (error) => {
           console.error('Error updating quote status to approved:', error);
-          this.notificationService.showError(`Error updating quote status: ${error.message || 'Unknown error'}`);
+          this.notificationService.showError(this.translate.instant('QUOTE_DASHBOARD._status_update_error', { reason: error.message || this.translate.instant('QUOTE_DASHBOARD._unknown_error') }));
         }
       });
     }
@@ -710,11 +716,11 @@ export class QuoteListComponent implements OnInit {
             this.filterQuotesByStatus();
           }
           this.showStateUpdate = false;
-          this.notificationService.showSuccess('Quote state updated successfully');
+          this.notificationService.showSuccess(this.translate.instant('QUOTE_DASHBOARD._state_updated'));
         },
         error: (error) => {
           console.error('Failed to update quote state:', error);
-          this.notificationService.showError('Failed to update quote state');
+          this.notificationService.showError(this.translate.instant('QUOTE_DASHBOARD._state_update_error'));
         }
       });
     }
@@ -722,7 +728,7 @@ export class QuoteListComponent implements OnInit {
 
   confirmDelete(quote: Quote) {
     this.quoteToDelete = quote;
-    this.deleteConfirmMessage = `Are you sure you want to delete Quote ${this.extractShortId(quote.id)}? This action cannot be undone.`;
+    this.deleteConfirmMessage = this.translate.instant('QUOTE_DASHBOARD._delete_confirmation', { id: this.extractShortId(quote.id) });
     this.showDeleteConfirm = true;
   }
 
@@ -733,11 +739,11 @@ export class QuoteListComponent implements OnInit {
           this.quotes = this.quotes.filter(q => q.id !== this.quoteToDelete!.id);
           this.filterQuotesByStatus();
           this.showDeleteConfirm = false;
-          this.notificationService.showSuccess('Quote deleted successfully');
+          this.notificationService.showSuccess(this.translate.instant('QUOTE_DASHBOARD._deleted'));
         },
         error: (error) => {
           console.error('Failed to delete quote:', error);
-          this.notificationService.showError('Failed to delete quote');
+          this.notificationService.showError(this.translate.instant('QUOTE_DASHBOARD._delete_error'));
         }
       });
     }
@@ -752,10 +758,10 @@ export class QuoteListComponent implements OnInit {
 
   downloadAttachment(quote: Quote) {
     this.quoteService.downloadAttachment(quote).subscribe({
-      next: () => this.notificationService.showSuccess('Download started'),
+      next: () => this.notificationService.showSuccess(this.translate.instant('QUOTE_DASHBOARD._download_started')),
       error: (error: any) => {
         console.error('Error downloading attachment:', error);
-        this.notificationService.showError(error.message || 'Error downloading attachment');
+        this.notificationService.showError(error.message || this.translate.instant('QUOTE_DASHBOARD._download_error'));
       }
     });
   }
@@ -768,7 +774,7 @@ export class QuoteListComponent implements OnInit {
 
   acceptQuote(quote: Quote) {
     const shortId = this.extractShortId(quote.id);
-    this.acceptConfirmMessage = 'Are you sure you want to accept this request?';
+    this.acceptConfirmMessage = this.translate.instant('QUOTE_DASHBOARD._accept_request_confirmation');
     this.acceptConfirmCallback = () => {
       console.log('Accepting quote request:', quote.id);
 
@@ -780,11 +786,11 @@ export class QuoteListComponent implements OnInit {
             this.filterQuotesByStatus();
           }
           console.log('Quote request successfully accepted');
-          this.notificationService.showSuccess(`Quote request ${shortId} has been accepted and is now in progress.`);
+          this.notificationService.showSuccess(this.translate.instant('QUOTE_DASHBOARD._request_accepted', { id: shortId }));
         },
         error: (error) => {
           console.error('Error accepting quote request:', error);
-          this.notificationService.showError(`Error accepting quote request: ${error.message || 'Unknown error'}`);
+          this.notificationService.showError(this.translate.instant('QUOTE_DASHBOARD._accept_request_error', { reason: error.message || this.translate.instant('QUOTE_DASHBOARD._unknown_error') }));
         }
       });
       this.showAcceptConfirm = false;
@@ -794,7 +800,7 @@ export class QuoteListComponent implements OnInit {
 
   acceptQuoteCustomer(quote: Quote) {
     const shortId = this.extractShortId(quote.id);
-    this.acceptConfirmMessage = 'Are you sure you want to accept the quotation?';
+    this.acceptConfirmMessage = this.translate.instant('QUOTE_DASHBOARD._accept_proposal_confirmation');
     this.acceptConfirmCallback = () => {
       console.log('Customer accepting quotation:', quote.id);
 
@@ -806,11 +812,11 @@ export class QuoteListComponent implements OnInit {
             this.filterQuotesByStatus();
           }
           console.log('Quotation successfully accepted by customer');
-          this.notificationService.showSuccess(`Quotation ${shortId} has been accepted successfully.`);
+          this.notificationService.showSuccess(this.translate.instant('QUOTE_DASHBOARD._proposal_accepted', { id: shortId }));
         },
         error: (error) => {
           console.error('Error accepting quotation:', error);
-          this.notificationService.showError(`Error accepting quotation: ${error.message || 'Unknown error'}`);
+          this.notificationService.showError(this.translate.instant('QUOTE_DASHBOARD._accept_proposal_error', { reason: error.message || this.translate.instant('QUOTE_DASHBOARD._unknown_error') }));
         }
       });
       this.showAcceptConfirm = false;
@@ -861,13 +867,13 @@ export class QuoteListComponent implements OnInit {
 
     const shortId = this.extractShortId(this.selectedDateQuote.id);
     const dateType = this.datePickerType;
-    
+
     // Format date as DD-MM-YYYY as required by the API
     const dateObj = new Date(this.selectedDate);
     const formattedDate = `${dateObj.getDate().toString().padStart(2, '0')}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getFullYear()}`;
-    
+
     console.log(`Setting ${dateType} completion date for quote:`, this.selectedDateQuote.id, 'Date:', formattedDate);
-    
+
     this.quoteService.updateQuoteDate(this.selectedDateQuote.id!, formattedDate, dateType).subscribe({
       next: (updatedQuote) => {
         const index = this.quotes.findIndex(q => q.id === updatedQuote.id);
@@ -876,19 +882,19 @@ export class QuoteListComponent implements OnInit {
           this.filterQuotesByStatus();
         }
         console.log(`${dateType} completion date successfully updated`);
-        this.notificationService.showSuccess(`${dateType === 'requested' ? 'Requested' : 'Expected'} completion date for quote ${shortId} has been set successfully.`);
+        this.notificationService.showSuccess(this.translate.instant(dateType === 'requested' ? 'QUOTE_DASHBOARD._requested_date_saved' : 'QUOTE_DASHBOARD._expected_date_saved', { id: shortId }));
         this.closeDatePickerModal();
       },
       error: (error) => {
         console.error(`Error setting ${dateType} completion date:`, error);
-        this.notificationService.showError(`Error setting ${dateType} completion date: ${error.message || 'Unknown error'}`);
+        this.notificationService.showError(this.translate.instant(dateType === 'requested' ? 'QUOTE_DASHBOARD._requested_date_error' : 'QUOTE_DASHBOARD._expected_date_error', { reason: error.message || this.translate.instant('QUOTE_DASHBOARD._unknown_error') }));
       }
     });
   }
 
   cancelQuote(quote: Quote) {
     const shortId = this.extractShortId(quote.id);
-    this.cancelConfirmMessage = `Are you sure you want to cancel quote ${shortId}? This action cannot be undone and will disable all other quote actions.`;
+    this.cancelConfirmMessage = this.translate.instant('QUOTE_DASHBOARD._cancel_confirmation', { id: shortId });
     this.cancelConfirmCallback = () => {
       console.log('Cancelling quote:', quote.id);
 
@@ -900,11 +906,11 @@ export class QuoteListComponent implements OnInit {
             this.filterQuotesByStatus();
           }
           console.log('Quote successfully cancelled');
-          this.notificationService.showSuccess(`Quote ${shortId} has been cancelled successfully.`);
+          this.notificationService.showSuccess(this.translate.instant('QUOTE_DASHBOARD._cancelled', { id: shortId }));
         },
         error: (error) => {
           console.error('Error cancelling quote:', error);
-          this.notificationService.showError(`Error cancelling quote: ${error.message || 'Unknown error'}`);
+          this.notificationService.showError(this.translate.instant('QUOTE_DASHBOARD._cancel_error', { reason: error.message || this.translate.instant('QUOTE_DASHBOARD._unknown_error') }));
         }
       });
       this.showCancelConfirm = false;
@@ -921,7 +927,7 @@ export class QuoteListComponent implements OnInit {
 
   // Utility methods (migrated from QuoteRow.js)
   extractShortId(id: string | undefined): string {
-    if (!id) return 'N/A';
+    if (!id) return this.translate.instant('QUOTE_DASHBOARD._not_available');
     // Extract last 8 characters or return full ID if shorter
     return id.length > 8 ? id.slice(-8) : id;
   }
@@ -933,7 +939,7 @@ export class QuoteListComponent implements OnInit {
    */
   getOtherPartyName(quote: Quote): string {
     if (!quote.relatedParty || quote.relatedParty.length === 0) {
-      return 'Unknown';
+      return this.translate.instant('QUOTE_DASHBOARD._unknown');
     }
 
     // Determine which role to look for based on current view
@@ -948,7 +954,7 @@ export class QuoteListComponent implements OnInit {
     );
 
     if (!party?.id) {
-      return 'Unknown';
+      return this.translate.instant('QUOTE_DASHBOARD._unknown');
     }
 
     // Look up the name from the enriched data map
@@ -958,7 +964,7 @@ export class QuoteListComponent implements OnInit {
     }
 
     // Fallback: show loading indicator or shortened ID
-    return 'Loading...';
+    return this.translate.instant('QUOTE_DASHBOARD._loading');
   }
 
   /**
@@ -966,7 +972,7 @@ export class QuoteListComponent implements OnInit {
    */
   getProductName(quote: Quote): string {
     if (!quote.quoteItem || quote.quoteItem.length === 0) {
-      return 'Unknown Product';
+      return this.translate.instant('QUOTE_DASHBOARD._unknown_product');
     }
 
     const firstItem = quote.quoteItem[0];
@@ -980,11 +986,11 @@ export class QuoteListComponent implements OnInit {
     // Look up the name from the enriched data map
     if (productId) {
       const enrichedName = this.productNames.get(productId);
-      if (enrichedName) {
-        return enrichedName;
+      if (this.productNames.has(productId)) {
+        return enrichedName || this.translate.instant('QUOTE_DASHBOARD._product_unavailable');
       }
       // Still loading
-      return 'Loading...';
+      return this.translate.instant('QUOTE_DASHBOARD._loading');
     }
 
     // Fallback to product name
@@ -992,7 +998,7 @@ export class QuoteListComponent implements OnInit {
       return firstItem.product.name;
     }
 
-    return 'Unknown Product';
+    return this.translate.instant('QUOTE_DASHBOARD._unknown_product');
   }
 
   getPrimaryState(quote: Quote): string {
@@ -1013,34 +1019,19 @@ export class QuoteListComponent implements OnInit {
    * Get user-friendly status label for a quote based on role
    */
   getStatusLabel(quote: Quote): string {
-    const state = this.getPrimaryState(quote);
+    return this.getStatusTranslationKey(this.getPrimaryState(quote));
+  }
 
-    // Use appropriate label based on user role
-    const labels = this.selectedRole === 'customer'
-      ? TAILORED_STATUSES_LABELS_CUSTOMER
-      : TAILORED_STATUSES_LABELS_PROVIDER;
-
-    // Map status to label
-    switch (state) {
-      case QUOTE_STATUSES.PENDING:
-        return labels.PENDING;
-      case QUOTE_STATUSES.IN_PROGRESS:
-        return labels.IN_PROGRESS;
-      case QUOTE_STATUSES.APPROVED:
-        return labels.APPROVED;
-      case QUOTE_STATUSES.ACCEPTED:
-        return labels.ACCEPTED;
-      case QUOTE_STATUSES.CANCELLED:
-        return labels.CANCELLED;
-      case QUOTE_STATUSES.REJECTED:
-        return labels.REJECTED;
-      default:
-        return state;
+  private getStatusTranslationKey(state: string): string {
+    if (!this.availableStates.includes(state as QuoteStateType)) {
+      return 'QUOTE_DASHBOARD._unknown';
     }
+    const role = this.selectedRole === 'customer' ? 'customer' : 'provider';
+    return `QUOTE_DASHBOARD.statuses.${role}.${state}`;
   }
 
   hasAttachment(quote: Quote): boolean {
-    return Array.isArray(quote.quoteItem) && 
+    return Array.isArray(quote.quoteItem) &&
            quote.quoteItem.some(qi => qi.attachment && qi.attachment.length > 0);
   }
 
@@ -1092,50 +1083,41 @@ export class QuoteListComponent implements OnInit {
 
   getButtonClass(quote: Quote, actionType: string): string {
     const baseClass = 'px-2 py-1 text-xs font-medium transition-colors rounded border';
-    
+
     if (this.isActionDisabled(quote, actionType)) {
-      return `${baseClass} text-gray-400 cursor-not-allowed border-gray-200`;
+      return `${baseClass} text-offerings-disabled cursor-not-allowed border-offerings-border`;
     }
 
     switch (actionType) {
       case 'viewDetails':
-        return `${baseClass} text-blue-600 hover:text-blue-800 border-blue-200 hover:bg-blue-50`;
+        return `${baseClass} text-offerings-link hover:text-offerings-link-hover border-offerings-active-chip hover:bg-offerings-table-header`;
       default:
-        return `${baseClass} text-indigo-600 hover:text-indigo-800 border-indigo-200 hover:bg-indigo-50`;
+        return `${baseClass} text-offerings-link hover:text-offerings-link-hover border-offerings-active-chip hover:bg-offerings-table-header`;
     }
   }
 
   getIconButtonClass(quote: Quote, actionType: string, normalColor: string): string {
-    const baseClass = 'p-1.5 text-xs cursor-pointer rounded hover:bg-gray-100 transition-colors';
-    
+    const baseClass = 'p-1.5 text-xs cursor-pointer rounded hover:bg-offerings-page transition-colors';
+
     if (this.isActionDisabled(quote, actionType)) {
-      return `${baseClass} text-gray-400 cursor-not-allowed hover:bg-transparent`;
+      return `${baseClass} text-offerings-disabled cursor-not-allowed hover:bg-transparent`;
     }
-    
+
     return `${baseClass} ${normalColor}`;
   }
 
   getActionTitle(quote: Quote, actionType: string): string {
     if (this.isActionDisabled(quote, actionType)) {
       const status = this.isQuoteCancelled(quote) ? 'cancelled' : 'accepted';
-      return `Action disabled - quote is ${status}`;
+      return this.translate.instant('QUOTE_DASHBOARD._action_disabled', { status: this.translate.instant(this.getStateDisplay(status)) });
     }
     return '';
   }
 
   getStateDisplay(state: QuoteStateType | undefined): string {
-    if (!state) return 'Unknown';
-
-    const stateMap: Record<QuoteStateType, string> = {
-      [QUOTE_STATUSES.PENDING]: 'Pending',
-      [QUOTE_STATUSES.IN_PROGRESS]: 'In Progress',
-      [QUOTE_STATUSES.APPROVED]: 'Approved',
-      [QUOTE_STATUSES.REJECTED]: 'Rejected',
-      [QUOTE_STATUSES.CANCELLED]: 'Cancelled',
-      [QUOTE_STATUSES.ACCEPTED]: 'Accepted'
-    };
-
-    return stateMap[state] || state;
+    return state && this.availableStates.includes(state)
+      ? `QUOTE_DASHBOARD.states.${state}`
+      : 'QUOTE_DASHBOARD._unknown';
   }
 
   getStateClass(state: string): string {

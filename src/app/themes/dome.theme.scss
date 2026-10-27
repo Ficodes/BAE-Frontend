@@ -89,6 +89,23 @@ body.theme-dome {
   --theme-status-critical-border: 147 0 2;
   --theme-status-critical-text: 125 0 12;
 
+  /* Quote dashboard status colors */
+  --theme-quotes-warning-bg: 255 248 230;
+  --theme-quotes-warning-border: 242 210 138;
+  --theme-quotes-warning-text: 122 77 0;
+  --theme-quotes-info-bg: var(--theme-offerings-table-header-bg);
+  --theme-quotes-info-border: var(--theme-offerings-active-chip-bg);
+  --theme-quotes-info-text: var(--theme-offerings-link);
+  --theme-quotes-success-bg: 234 248 241;
+  --theme-quotes-success-border: 168 221 200;
+  --theme-quotes-success-text: 0 107 74;
+  --theme-quotes-danger-bg: 255 241 241;
+  --theme-quotes-danger-border: 244 199 199;
+  --theme-quotes-danger-text: 180 35 24;
+  --theme-quotes-neutral-bg: 242 244 248;
+  --theme-quotes-neutral-border: 203 211 223;
+  --theme-quotes-neutral-text: var(--theme-offerings-heading-text);
+
   /* Header v2 tokens (scoped to avoid collisions with shared theme tokens) */
   --theme-header-v2-top-bg: #070f24;
   --theme-header-v2-glass-bg: rgba(7, 18, 40, 0.55);
@@ -104,4 +121,24 @@ body.theme-dome .kf-watermark {
   background-color: rgb(var(--theme-secondary-50) / 0.7);
   -webkit-mask: url('/assets/logos/DOME_Icon.svg') no-repeat center / contain;
   mask: url('/assets/logos/DOME_Icon.svg') no-repeat center / contain;
+}
+
+/* Quote status colors follow the selected color scheme. */
+.dark body.theme-dome,
+body.theme-dome.dark {
+  --theme-quotes-warning-bg: 69 26 3;
+  --theme-quotes-warning-border: 146 64 14;
+  --theme-quotes-warning-text: 253 230 138;
+  --theme-quotes-info-bg: var(--theme-secondary-200);
+  --theme-quotes-info-border: var(--theme-secondary-400);
+  --theme-quotes-info-text: var(--theme-primary-50);
+  --theme-quotes-success-bg: 2 44 34;
+  --theme-quotes-success-border: 6 95 70;
+  --theme-quotes-success-text: 167 243 208;
+  --theme-quotes-danger-bg: 69 10 10;
+  --theme-quotes-danger-border: 153 27 27;
+  --theme-quotes-danger-text: 254 202 202;
+  --theme-quotes-neutral-bg: var(--theme-offerings-dark-surface-bg);
+  --theme-quotes-neutral-border: var(--theme-secondary-400);
+  --theme-quotes-neutral-text: var(--theme-offerings-on-dark-body-text);
 }
