@@ -2370,6 +2370,8 @@
     "_validate_error": "There was an error while validating the product!",
     "_save_error": "There was an error while saving the product!",
     "_image_upload_error": "There was an error while uploading the image!",
+    "_image_invalid": "Choose a valid SVG, PNG, JPG or GIF image. The selected file could not be read as an image.",
+    "_image_processing": "Checking and uploading image…",
     "_file_upload_error": "There was an error while uploading the file!",
     "_file_size_error": "File size too large! Must be under 3MB.",
     "_upload_complete": "Upload complete",

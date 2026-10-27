@@ -11,7 +11,7 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 import moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 import { jsonValidator, noWhitespaceValidator } from 'src/app/validators/validators';
-import { Subject } from 'rxjs';
+import { map, Observable, Subject, Subscription, switchMap } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { POPULAR_ICON_CATEGORIES, findIconByName, IconCategory } from 'src/app/config/popular-icons';
 import { TranslateService } from '@ngx-translate/core';
@@ -41,6 +41,8 @@ const ALLOWED_PRODUCT_IMAGE_TYPES = new Set([
   'image/jpeg',
   'image/gif'
 ]);
+
+class InvalidProductImageError extends Error {}
 
 @Component({
   selector: 'create-product-spec',
@@ -77,6 +79,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   productImageRef: any | null = null;
   uploadingImage: boolean = false;
   productImageTouched: boolean = false;
+  productImageError: string | null = null;
+  private productImageUpload: Subscription | null = null;
   attachments: any[] = [];
   uploadingAttachment: boolean = false;
 
@@ -1181,66 +1185,102 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
 
   onProductImageSelected(event: Event){
     const input = event.target as HTMLInputElement;
-    if(input.files && input.files.length > 0){
-      const file = input.files[0];
-      this.productImageTouched = true;
-      if(!ALLOWED_PRODUCT_IMAGE_TYPES.has(file.type)){
-        input.value = '';
-        this.errorMessage = 'File must have a valid image format!';
-        this.showError = true;
-        setTimeout(() => { this.showError = false; }, 3000);
-        return;
-      }
-      this.productImage = { name: file.name, size: file.size };
-      this.uploadingImage = true;
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        const dataUrl: string = e?.target?.result || '';
+    const file = input.files?.[0];
+    if (!file) return;
+    input.value = '';
+
+    // Cancel the previous selection and clear its reference before any async work.
+    this.removeProductImage();
+    if (!ALLOWED_PRODUCT_IMAGE_TYPES.has(file.type)) {
+      this.productImageError = this.translate.instant('CREATE_PROD_SPEC._image_invalid');
+      return;
+    }
+
+    this.productImage = { name: file.name, size: file.size };
+    this.uploadingImage = true;
+    this.productImageUpload = this.readProductImage(file).pipe(
+      switchMap(dataUrl => {
         this.productImageUrl = dataUrl;
         this.cdr.detectChanges();
-        const base64 = (dataUrl.split(',')[1]) || '';
         const fileBody = {
-          content: { name: uuidv4() + '_' + file.name, data: base64 },
+          content: { name: uuidv4() + '_' + file.name, data: dataUrl.split(',')[1] },
           contentType: file.type,
           isPublic: true
         };
-        this.attachmentService.uploadFile(fileBody).subscribe({
-          next: (data: any) => {
-            this.uploadingImage = false;
-            console.log('[image upload] response:', data);
-            const serverUrl = data?.content;
-            const usableUrl = (typeof serverUrl === 'string' && serverUrl.length > 0)
-              ? this.absoluteAssetUrl(serverUrl)
-              : dataUrl;
-            this.productImageRef = {
-              name: 'Profile Picture',
-              url: usableUrl,
-              attachmentType: file.type
-            };
-            this.productImageUrl = dataUrl;
-            this.cdr.detectChanges();
-          },
-          error: (err: any) => {
-            this.uploadingImage = false;
-            console.error('Image upload failed', err);
-            this.errorMessage = err?.status === 413
-              ? this.translate.instant('CREATE_PROD_SPEC._file_size_error')
-              : this.getErrorMessage(err, 'CREATE_PROD_SPEC._image_upload_error');
-            this.showError = true;
-            setTimeout(() => { this.showError = false; }, 3000);
-            this.removeProductImage();
+        return this.attachmentService.uploadFile(fileBody).pipe(map(data => ({ data, dataUrl })));
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: ({ data, dataUrl }) => {
+        const serverUrl = data?.content;
+        this.productImageRef = {
+          name: 'Profile Picture',
+          url: typeof serverUrl === 'string' && serverUrl.length > 0
+            ? this.absoluteAssetUrl(serverUrl)
+            : dataUrl,
+          attachmentType: file.type
+        };
+        this.uploadingImage = false;
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => {
+        this.removeProductImage();
+        this.productImageError = err instanceof InvalidProductImageError
+          ? this.translate.instant('CREATE_PROD_SPEC._image_invalid')
+          : err?.status === 413
+            ? this.translate.instant('CREATE_PROD_SPEC._file_size_error')
+            : this.getErrorMessage(err, 'CREATE_PROD_SPEC._image_upload_error');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private readProductImage(file: File): Observable<string> {
+    return new Observable(observer => {
+      const reader = new FileReader();
+      const image = new Image();
+      const reject = () => observer.error(new InvalidProductImageError());
+      reader.onerror = reject;
+      reader.onabort = reject;
+      reader.onload = () => {
+        const dataUrl = reader.result;
+        if (typeof dataUrl !== 'string') {
+          reject();
+          return;
+        }
+        image.src = dataUrl;
+        image.decode().then(() => {
+          if (observer.closed) return;
+          if (image.naturalWidth <= 0 || image.naturalHeight <= 0) {
+            reject();
+            return;
           }
-        });
+          observer.next(dataUrl);
+          observer.complete();
+        }, reject);
       };
-      reader.readAsDataURL(file);
-      input.value = '';
-    }
+      try {
+        reader.readAsDataURL(file);
+      } catch {
+        reject();
+      }
+
+      return () => {
+        reader.onload = reader.onerror = reader.onabort = null;
+        if (reader.readyState === FileReader.LOADING) reader.abort();
+        image.removeAttribute('src');
+      };
+    });
   }
 
   removeProductImage(){
+    this.productImageUpload?.unsubscribe();
+    this.productImageUpload = null;
+    this.uploadingImage = false;
     this.productImage = null;
     this.productImageUrl = null;
     this.productImageRef = null;
+    this.productImageError = null;
     this.productImageTouched = true;
   }
 

@@ -68,9 +68,6 @@
                   <p class="text-xs text-offerings-muted-text mt-1">{{ 'CREATE_PROD_SPEC._image_formats' | translate }}</p>
                   <input id="prod-image-upload" data-cy="uploadImage" type="file" class="hidden" accept="image/svg+xml,image/png,image/jpeg,image/gif" (change)="onProductImageSelected($event)"/>
                 </label>
-                @if(showProductImageRequiredError()){
-                  <p class="mt-1 text-xs text-status-danger-border">{{ 'CREATE_PROD_SPEC._mandatory' | translate }}</p>
-                }
               } @else {
                 <div class="relative aspect-video w-full max-w-md bg-secondary-50 rounded-2xl overflow-hidden flex items-center justify-center mb-3">
                   @if(productImageUrl){
@@ -101,7 +98,11 @@
                   </div>
                 </div>
               }
-              @if(productImage && showProductImageRequiredError()){
+              @if(productImageError){
+                <p data-cy="productImageError" role="alert" class="mt-1 text-xs text-status-danger-border">{{ productImageError }}</p>
+              } @else if(uploadingImage){
+                <p role="status" class="mt-1 text-xs text-offerings-muted-text">{{ 'CREATE_PROD_SPEC._image_processing' | translate }}</p>
+              } @else if(showProductImageRequiredError()){
                 <p class="mt-1 text-xs text-status-danger-border">{{ 'CREATE_PROD_SPEC._mandatory' | translate }}</p>
               }
             </div>

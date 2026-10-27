@@ -308,8 +308,7 @@ describe('CreateProductSpecComponent', () => {
     expect(component.productImage).toBeNull();
     expect(component.productImageRef).toBeNull();
     expect(component.productImageTouched).toBeTrue();
-    expect(component.errorMessage).toBe('File must have a valid image format!');
-    expect(component.showError).toBeTrue();
+    expect(component.productImageError).toBe('CREATE_PROD_SPEC._image_invalid');
     expect(input.value).toBe('');
   });
 
