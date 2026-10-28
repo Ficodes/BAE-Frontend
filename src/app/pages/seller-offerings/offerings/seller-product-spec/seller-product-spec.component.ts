@@ -52,6 +52,7 @@ export class SellerProductSpecComponent implements OnInit, OnDestroy {
   sort: any = undefined;
   isBundle: any = undefined;
   private destroy$ = new Subject<void>();
+  private paginationRequestId = 0;
 
   constructor(
     private router: Router,
@@ -80,6 +81,8 @@ export class SellerProductSpecComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.paginationRequestId++;
+    this.prodSpecService.resetFilteredPaginationToken();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -124,26 +127,42 @@ export class SellerProductSpecComponent implements OnInit, OnDestroy {
   }
 
   async getProdSpecs(next: boolean) {
-    if (next == false) {
+    if (next && (this.loading || this.loading_more || !this.page_check)) return;
+
+    if (!next) {
+      this.paginationRequestId++;
+      this.prodSpecService.resetFilteredPaginationToken();
+      this.page = 0;
+      this.prodSpecs = [];
+      this.nextProdSpecs = [];
+      this.page_check = false;
+      this.loading_more = false;
       this.loading = true;
+    } else {
+      this.loading_more = true;
     }
 
-    let options = {
-      "filters": this.status,
-      "partyId": this.partyId,
-      "sort": this.sort,
-      "isBundle": this.isBundle
-    }
+    const requestId = this.paginationRequestId;
+    const options = {
+      filters: [...this.status],
+      partyId: this.partyId,
+      sort: this.sort,
+      isBundle: this.isBundle,
+      stopOnShortPage: this.selectedTab === 'Deleted'
+    };
 
-    this.paginationService.getItemsPaginated(this.page, this.PROD_SPEC_LIMIT, next, this.prodSpecs, this.nextProdSpecs, options,
-      this.prodSpecService.getProdSpecByUser.bind(this.prodSpecService)).then(data => {
-        this.page_check = data.page_check;
-        this.prodSpecs = data.items;
-        this.nextProdSpecs = data.nextItems;
-        this.page = data.page;
-        this.loading = false;
-        this.loading_more = false;
-      })
+    return this.paginationService.getItemsPaginated(this.page, this.PROD_SPEC_LIMIT, next, this.prodSpecs, this.nextProdSpecs, options,
+      (offset: number) => requestId === this.paginationRequestId
+        ? this.prodSpecService.getProdSpecByUser(offset, options.filters, options.partyId, options.sort, options.isBundle, options.stopOnShortPage)
+        : Promise.resolve([])).then(data => {
+      if (requestId !== this.paginationRequestId) return;
+      this.page_check = data.page_check;
+      this.prodSpecs = data.items;
+      this.nextProdSpecs = data.nextItems;
+      this.page = data.page;
+      this.loading = false;
+      this.loading_more = false;
+    });
   }
 
   async next() {

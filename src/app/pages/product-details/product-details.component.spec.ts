@@ -34,6 +34,7 @@ describe('ProductDetailsComponent', () => {
   beforeEach(async () => {
     apiSpy = jasmine.createSpyObj<ApiServiceService>('ApiServiceService', [
       'getProductById',
+      'getProductOfferByOwner',
       'getProductSpecification',
       'getProductPrice',
       'getProductPrices',
@@ -63,6 +64,7 @@ describe('ProductDetailsComponent', () => {
 
     localStorageSpy.getObject.and.returnValue({} as any);
     apiSpy.getComplianceLevel.and.returnValue('NL');
+    apiSpy.getProductOfferByOwner.and.resolveTo([]);
     cartSpy.addItemShoppingCart.and.resolveTo();
     cartSpy.removeItemShoppingCart.and.resolveTo();
     cartSpy.getShoppingCart.and.resolveTo([]);
@@ -354,6 +356,9 @@ describe('ProductDetailsComponent', () => {
 
     expect(accountSpy.getOrgInfo).toHaveBeenCalledWith('urn:ngsi-ld:organization:provider-1');
     expect(component.orgInfo).toEqual({ id: 'org-1', tradingName: 'Org One' } as any);
+    expect(apiSpy.getProductOfferByOwner).toHaveBeenCalledOnceWith(
+      0, ['Launched'], 'urn:ngsi-ld:organization:provider-1', undefined, false,
+    );
   });
 
   it('goToOrgDetails should navigate to organization details page', () => {

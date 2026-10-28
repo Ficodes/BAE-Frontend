@@ -2,7 +2,7 @@ import { Component, Input, Output, OnInit, OnDestroy, EventEmitter, forwardRef, 
 import {DatePipe, NgClass, NgIf, NgTemplateOutlet} from "@angular/common";
 import {TranslateModule} from "@ngx-translate/core";
 import {FormBuilder, FormControl, FormGroup, NG_VALUE_ACCESSOR, ReactiveFormsModule, Validators} from "@angular/forms";
-import { noWhitespaceValidator } from 'src/app/validators/validators';
+import { noWhitespaceValidator, uniqueNameValidatorFactory } from 'src/app/validators/validators';
 import {EventMessageService} from "src/app/services/event-message.service";
 import { FormChangeState } from 'src/app/models/interfaces';
 import { v4 as uuidv4 } from 'uuid';
@@ -42,7 +42,7 @@ export class UsageSpecMetricsComponent {
   metricsForm = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.maxLength(100), noWhitespaceValidator]),
     description: new FormControl('')
-  });
+  }, { validators: [uniqueNameValidatorFactory(() => this.metrics.map(metric => metric.name))] });
 
   constructor(
     private eventMessage: EventMessageService,
@@ -59,14 +59,14 @@ export class UsageSpecMetricsComponent {
 
   deleteMetric(metric:any){
     const index = this.metrics.findIndex(m => m.id === metric.id);
-    if (index !== -1) {
-      this.metrics.splice(index, 1);
-    }
+    if (index === -1) return;
+    this.metrics = this.metrics.filter((_, metricIndex) => metricIndex !== index);
+    this.metricsForm.updateValueAndValidity();
     this.onChange([...this.metrics]);
     const currentValue = [...this.metrics];
     const dirtyFields = this.getDirtyFields(currentValue);
     const changeState: FormChangeState = {
-      subformType: 'category',
+      subformType: 'metrics',
       isDirty: true,
       dirtyFields,
       originalValue: this.originalValue,
@@ -77,12 +77,17 @@ export class UsageSpecMetricsComponent {
   }
 
   saveMetric(){
-    this.metrics.push({
+    this.metricsForm.updateValueAndValidity();
+    if (!this.metricsForm.valid) {
+      this.metricsForm.markAllAsTouched();
+      return;
+    }
+    this.metrics = [...this.metrics, {
       id: uuidv4(),
-      name: this.metricsForm.value.name,
+      name: this.metricsForm.value.name!.trim(),
       description: this.metricsForm.value.description,
       valueType: 'number'
-    })
+    }];
     this.onChange([...this.metrics]);
     this.cdr.detectChanges();
     this.showCreateMetric=false;
@@ -118,7 +123,7 @@ export class UsageSpecMetricsComponent {
       
       if (dirtyFields.length > 0) {
         const changeState: FormChangeState = {
-          subformType: 'category',
+          subformType: 'metrics',
           isDirty: true,
           dirtyFields,
           originalValue: this.originalValue,
@@ -148,7 +153,8 @@ export class UsageSpecMetricsComponent {
 
   writeValue(metrics: any[]): void {
     console.log('📝 Writing value to form:', metrics);
-    this.metrics = metrics || [];
+    this.metrics = [...(metrics || [])];
+    this.metricsForm.updateValueAndValidity();
     // Store original value only in edit mode
     if (this.isEditMode && metrics) {
       this.originalValue = JSON.parse(JSON.stringify(metrics));

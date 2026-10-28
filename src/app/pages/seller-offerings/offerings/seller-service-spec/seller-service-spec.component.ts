@@ -51,6 +51,7 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
   partyId:any;
   sort:any=undefined;
   private destroy$ = new Subject<void>();
+  private paginationRequestId = 0;
 
   constructor(
     private router: Router,
@@ -79,6 +80,8 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(){
+    this.paginationRequestId++;
+    this.servSpecService.resetFilteredPaginationToken();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -121,26 +124,42 @@ export class SellerServiceSpecComponent implements OnInit, OnDestroy {
     this.eventMessage.emitSellerUpdateServiceSpec(serv);
   }
 
-  async getServSpecs(next:boolean){
-    if(next==false){
-      this.loading=true;
+  async getServSpecs(next: boolean) {
+    if (next && (this.loading || this.loading_more || !this.page_check)) return;
+
+    if (!next) {
+      this.paginationRequestId++;
+      this.servSpecService.resetFilteredPaginationToken();
+      this.page = 0;
+      this.servSpecs = [];
+      this.nextServSpecs = [];
+      this.page_check = false;
+      this.loading_more = false;
+      this.loading = true;
+    } else {
+      this.loading_more = true;
     }
 
-    let options = {
-      "filters": this.status,
-      "partyId": this.partyId,
-      "sort": this.sort
-    }
+    const requestId = this.paginationRequestId;
+    const options = {
+      filters: [...this.status],
+      partyId: this.partyId,
+      sort: this.sort,
+      stopOnShortPage: this.selectedTab === 'Deleted'
+    };
 
-    this.paginationService.getItemsPaginated(this.page, this.SERV_SPEC_LIMIT, next, this.servSpecs,this.nextServSpecs, options,
-      this.servSpecService.getServiceSpecByUser.bind(this.servSpecService)).then(data => {
-      this.page_check=data.page_check;
-      this.servSpecs=data.items;
-      this.nextServSpecs=data.nextItems;
-      this.page=data.page;
-      this.loading=false;
-      this.loading_more=false;
-    })
+    return this.paginationService.getItemsPaginated(this.page, this.SERV_SPEC_LIMIT, next, this.servSpecs, this.nextServSpecs, options,
+      (offset: number) => requestId === this.paginationRequestId
+        ? this.servSpecService.getServiceSpecByUser(offset, options.filters, options.partyId, options.sort, options.stopOnShortPage)
+        : Promise.resolve([])).then(data => {
+      if (requestId !== this.paginationRequestId) return;
+      this.page_check = data.page_check;
+      this.servSpecs = data.items;
+      this.nextServSpecs = data.nextItems;
+      this.page = data.page;
+      this.loading = false;
+      this.loading_more = false;
+    });
   }
 
   async next(){

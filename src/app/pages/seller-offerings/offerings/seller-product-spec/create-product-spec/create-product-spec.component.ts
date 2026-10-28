@@ -11,7 +11,7 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 import moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 import { jsonValidator, noWhitespaceValidator } from 'src/app/validators/validators';
-import { Subject } from 'rxjs';
+import { finalize, map, Observable, Subject, Subscription, switchMap } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { POPULAR_ICON_CATEGORIES, findIconByName, IconCategory } from 'src/app/config/popular-icons';
 import { TranslateService } from '@ngx-translate/core';
@@ -23,6 +23,22 @@ type CharacteristicValueSpecification = components["schemas"]["CharacteristicVal
 type ProductSpecificationCharacteristic = components["schemas"]["ProductSpecificationCharacteristic"];
 
 type ProductSpecStepKey = 'general' | 'details' | 'config' | 'dataspace' | 'service' | 'resource' | 'faqs' | 'compliance';
+
+type ComplianceFileEntry = {
+  name: string;
+  size?: number;
+  url?: string;
+  _uploading?: boolean;
+  id?: string;
+  charName?: string;
+  originalChar?: any;
+};
+
+const COMPLIANCE_DOCUMENT_TYPES = new Map([
+  ['pdf', 'application/pdf'],
+  ['doc', 'application/msword'],
+  ['docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+]);
 
 const DSP_CHARS: string[] = [
   'endpointUrl',
@@ -41,6 +57,8 @@ const ALLOWED_PRODUCT_IMAGE_TYPES = new Set([
   'image/jpeg',
   'image/gif'
 ]);
+
+class InvalidProductImageError extends Error {}
 
 @Component({
   selector: 'create-product-spec',
@@ -77,8 +95,11 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   productImageRef: any | null = null;
   uploadingImage: boolean = false;
   productImageTouched: boolean = false;
+  productImageError: string | null = null;
+  private productImageUpload: Subscription | null = null;
   attachments: any[] = [];
   uploadingAttachment: boolean = false;
+  attachmentFileErrors: { name: string; message: string }[] = [];
 
   howItWorks: string = '';
   keyFeatures: { name: string, description: string, icon: string | null }[] = [];
@@ -380,7 +401,8 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   canSaveDraftProductSpec(): boolean {
-    return !this.loading && !this.uploadingImage && !this.uploadingAttachment && this.allRequiredStepsComplete();
+    return !this.loading && !this.uploadingImage && !this.uploadingAttachment
+      && !this.uploadingCompliance && this.allRequiredStepsComplete();
   }
 
   confirmLeave(): void {
@@ -412,6 +434,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   private persistSpec(launch: boolean){
+    if (this.uploadingCompliance) return;
     this.loading = true;
     if(this.isEditMode && this.createdProdId){
       const body = this.buildProductUpdatePatch(launch);
@@ -466,6 +489,24 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     return error?.error?.error
       ? this.translate.instant('ERRORS._error_prefix', { message: error.error.error })
       : this.translate.instant(fallbackKey);
+  }
+
+  private fileSizeError(file: File): string | null {
+    return file.size > environment.MAX_FILE_SIZE
+      ? this.translate.instant('CREATE_PROD_SPEC._file_size_error')
+      : null;
+  }
+
+  private uploadErrorMessage(error: any, fallbackKey: string): string {
+    const body = error?.error;
+    const reason = typeof body === 'string'
+      ? body
+      : [body?.error, body?.message, body?.detail].filter(value => typeof value === 'string').join(' ');
+    const requestSizeError = error?.status === 400
+      && /DATA_UPLOAD_MAX_MEMORY_SIZE|RequestDataTooBig|Request body exceeded|(?:request (?:body|entity)|payload) (?:is )?too large/i.test(reason);
+    return this.translate.instant(error?.status === 413 || requestSizeError
+      ? 'CREATE_PROD_SPEC._file_size_error'
+      : fallbackKey);
   }
 
   onTypeChange(event: any) {
@@ -1072,6 +1113,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   createProduct(){
+    if (this.uploadingCompliance) return;
     this.productImageTouched = true;
     if (!this.allRequiredStepsComplete()) {
       const firstInvalidRequiredStep = this.steps.findIndex((_: any, i: number) => !this.isOptionalStep(i) && !this.completedStep(i));
@@ -1181,66 +1223,102 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
 
   onProductImageSelected(event: Event){
     const input = event.target as HTMLInputElement;
-    if(input.files && input.files.length > 0){
-      const file = input.files[0];
-      this.productImageTouched = true;
-      if(!ALLOWED_PRODUCT_IMAGE_TYPES.has(file.type)){
-        input.value = '';
-        this.errorMessage = 'File must have a valid image format!';
-        this.showError = true;
-        setTimeout(() => { this.showError = false; }, 3000);
-        return;
-      }
-      this.productImage = { name: file.name, size: file.size };
-      this.uploadingImage = true;
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        const dataUrl: string = e?.target?.result || '';
+    const file = input.files?.[0];
+    if (!file) return;
+    input.value = '';
+
+    // Cancel the previous selection and clear its reference before any async work.
+    this.removeProductImage();
+    this.productImageError = this.fileSizeError(file);
+    if (this.productImageError) return;
+    if (!ALLOWED_PRODUCT_IMAGE_TYPES.has(file.type)) {
+      this.productImageError = this.translate.instant('CREATE_PROD_SPEC._image_invalid');
+      return;
+    }
+
+    this.productImage = { name: file.name, size: file.size };
+    this.uploadingImage = true;
+    this.productImageUpload = this.readProductImage(file).pipe(
+      switchMap(dataUrl => {
         this.productImageUrl = dataUrl;
         this.cdr.detectChanges();
-        const base64 = (dataUrl.split(',')[1]) || '';
         const fileBody = {
-          content: { name: uuidv4() + '_' + file.name, data: base64 },
+          content: { name: uuidv4() + '_' + file.name, data: dataUrl.split(',')[1] },
           contentType: file.type,
           isPublic: true
         };
-        this.attachmentService.uploadFile(fileBody).subscribe({
-          next: (data: any) => {
-            this.uploadingImage = false;
-            console.log('[image upload] response:', data);
-            const serverUrl = data?.content;
-            const usableUrl = (typeof serverUrl === 'string' && serverUrl.length > 0)
-              ? this.absoluteAssetUrl(serverUrl)
-              : dataUrl;
-            this.productImageRef = {
-              name: 'Profile Picture',
-              url: usableUrl,
-              attachmentType: file.type
-            };
-            this.productImageUrl = dataUrl;
-            this.cdr.detectChanges();
-          },
-          error: (err: any) => {
-            this.uploadingImage = false;
-            console.error('Image upload failed', err);
-            this.errorMessage = err?.status === 413
-              ? this.translate.instant('CREATE_PROD_SPEC._file_size_error')
-              : this.getErrorMessage(err, 'CREATE_PROD_SPEC._image_upload_error');
-            this.showError = true;
-            setTimeout(() => { this.showError = false; }, 3000);
-            this.removeProductImage();
+        return this.attachmentService.uploadFile(fileBody).pipe(map(data => ({ data, dataUrl })));
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: ({ data, dataUrl }) => {
+        const serverUrl = data?.content;
+        this.productImageRef = {
+          name: 'Profile Picture',
+          url: typeof serverUrl === 'string' && serverUrl.length > 0
+            ? this.absoluteAssetUrl(serverUrl)
+            : dataUrl,
+          attachmentType: file.type
+        };
+        this.uploadingImage = false;
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => {
+        this.removeProductImage();
+        this.productImageError = err instanceof InvalidProductImageError
+          ? this.translate.instant('CREATE_PROD_SPEC._image_invalid')
+          : this.uploadErrorMessage(err, 'CREATE_PROD_SPEC._image_upload_error');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private readProductImage(file: File): Observable<string> {
+    return new Observable(observer => {
+      const reader = new FileReader();
+      const image = new Image();
+      const reject = () => observer.error(new InvalidProductImageError());
+      reader.onerror = reject;
+      reader.onabort = reject;
+      reader.onload = () => {
+        const dataUrl = reader.result;
+        if (typeof dataUrl !== 'string') {
+          reject();
+          return;
+        }
+        image.src = dataUrl;
+        image.decode().then(() => {
+          if (observer.closed) return;
+          if (image.naturalWidth <= 0 || image.naturalHeight <= 0) {
+            reject();
+            return;
           }
-        });
+          observer.next(dataUrl);
+          observer.complete();
+        }, reject);
       };
-      reader.readAsDataURL(file);
-      input.value = '';
-    }
+      try {
+        reader.readAsDataURL(file);
+      } catch {
+        reject();
+      }
+
+      return () => {
+        reader.onload = reader.onerror = reader.onabort = null;
+        if (reader.readyState === FileReader.LOADING) reader.abort();
+        image.removeAttribute('src');
+      };
+    });
   }
 
   removeProductImage(){
+    this.productImageUpload?.unsubscribe();
+    this.productImageUpload = null;
+    this.uploadingImage = false;
     this.productImage = null;
     this.productImageUrl = null;
     this.productImageRef = null;
+    this.productImageError = null;
     this.productImageTouched = true;
   }
 
@@ -1249,7 +1327,13 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     if(input.files && input.files.length > 0){
       const files = Array.from(input.files);
       input.value = '';
+      this.attachmentFileErrors = [];
       files.forEach(file => {
+        const sizeError = this.fileSizeError(file);
+        if (sizeError) {
+          this.attachmentFileErrors.push({ name: file.name, message: sizeError });
+          return;
+        }
         const placeholder: any = { name: file.name, size: file.size, _uploading: true };
         this.attachments.push(placeholder);
         this.uploadingAttachment = true;
@@ -1275,14 +1359,13 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
             },
             error: (err: any) => {
               this.uploadingAttachment = this.attachments.some(a => (a as any)._uploading && a !== placeholder);
-              console.error('Attachment upload failed', err);
-              this.errorMessage = err?.status === 413
-                ? this.translate.instant('CREATE_PROD_SPEC._file_size_error')
-                : this.getErrorMessage(err, 'CREATE_PROD_SPEC._file_upload_error');
-              this.showError = true;
-              setTimeout(() => { this.showError = false; }, 3000);
+              this.attachmentFileErrors.push({
+                name: file.name,
+                message: this.uploadErrorMessage(err, 'CREATE_PROD_SPEC._file_upload_error')
+              });
               const idx = this.attachments.indexOf(placeholder);
               if (idx !== -1) this.attachments.splice(idx, 1);
+              this.cdr.detectChanges();
             }
           });
         };
@@ -1295,8 +1378,12 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     this.attachments.splice(idx, 1);
   }
 
-  selfAttestationFile: { name: string, size?: number, url?: string, _uploading?: boolean, id?: string } | null = null;
-  complianceFiles: { name: string, size?: number, url?: string, _uploading?: boolean, id?: string, charName?: string, originalChar?: any }[] = [];
+  selfAttestationFile: ComplianceFileEntry | null = null;
+  complianceFiles: ComplianceFileEntry[] = [];
+  selfAttestationError: string | null = null;
+  complianceFileErrors: { name: string; message: string }[] = [];
+  private selfAttestationUpload: Subscription | null = null;
+  private complianceUploads = new Map<ComplianceFileEntry, Subscription>();
   private selfAttId: string | null = null;
   private selfAttOriginalChar: any = null;
   private complianceVCChar: any = null;
@@ -1381,6 +1468,10 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     return !!this.selfAttestationFile?.url;
   }
 
+  get uploadingCompliance(): boolean {
+    return !!this.selfAttestationFile?._uploading || this.complianceFiles.some(file => file._uploading);
+  }
+
   downloadSelfAttestationTemplate(){
     const link = document.createElement('a');
     link.href = 'assets/documents/self-attestation-template.docx';
@@ -1391,6 +1482,7 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   requestValidation(){
+    if (!this.hasSelfAttestation() || this.uploadingCompliance) return;
     this.showRequestValidationModal = true;
   }
 
@@ -1398,67 +1490,138 @@ export class CreateProductSpecComponent implements OnInit, OnDestroy, DoCheck {
     this.showRequestValidationModal = false;
   }
 
-  private uploadComplianceFile(file: File, onDone: (url: string) => void, onError: () => void){
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      const dataUrl: string = e?.target?.result || '';
-      const base64 = (dataUrl.split(',')[1]) || '';
-      const fileBody = { content: { name: uuidv4() + '_' + file.name, data: base64 }, contentType: file.type, isPublic: true };
-      this.attachmentService.uploadFile(fileBody).subscribe({
-        next: (data: any) => {
-          const serverUrl = data?.content;
-          onDone((typeof serverUrl === 'string' && serverUrl.length > 0) ? serverUrl : dataUrl);
-          this.cdr.detectChanges();
-        },
-        error: (err: any) => {
-          console.error('Compliance upload failed', err);
-          this.errorMessage = err?.status === 413
-            ? this.translate.instant('CREATE_PROD_SPEC._file_size_error')
-            : this.getErrorMessage(err, 'CREATE_PROD_SPEC._file_upload_error');
-          this.showError = true;
-          setTimeout(() => { this.showError = false; }, 3000);
-          onError();
-          this.cdr.detectChanges();
+  private complianceDocumentType(file: File): string | null {
+    const extension = file.name.split('.').pop()?.toLowerCase() || '';
+    const contentType = COMPLIANCE_DOCUMENT_TYPES.get(extension);
+    // Some browsers provide no MIME type. Use the allowed extension in that
+    // case, but reject any supplied MIME type that conflicts with it.
+    return contentType && (!file.type || file.type.toLowerCase() === contentType) ? contentType : null;
+  }
+
+  private uploadComplianceFile(file: File, contentType: string): Observable<string> {
+    return new Observable<string>(observer => {
+      const reader = new FileReader();
+      const reject = () => observer.error(reader.error || new Error('Could not read the document'));
+      reader.onerror = reader.onabort = reject;
+      reader.onload = () => {
+        if (typeof reader.result !== 'string') {
+          reject();
+          return;
         }
-      });
-    };
-    reader.readAsDataURL(file);
+        observer.next(reader.result);
+        observer.complete();
+      };
+      try {
+        reader.readAsDataURL(file);
+      } catch (error) {
+        observer.error(error);
+      }
+      return () => {
+        reader.onload = reader.onerror = reader.onabort = null;
+        if (reader.readyState === FileReader.LOADING) reader.abort();
+      };
+    }).pipe(
+      switchMap(dataUrl => {
+        const fileBody = {
+          content: { name: uuidv4() + '_' + file.name, data: dataUrl.split(',')[1] },
+          contentType,
+          isPublic: true
+        };
+        return this.attachmentService.uploadFile(fileBody).pipe(
+          map(data => typeof data?.content === 'string' && data.content.length > 0 ? data.content : dataUrl)
+        );
+      }),
+      takeUntil(this.destroy$)
+    );
   }
 
   onSelfAttestationSelected(event: Event){
     const input = event.target as HTMLInputElement;
-    if(input.files && input.files.length > 0){
-      const file = input.files[0];
-      const entry = { name: file.name, size: file.size, _uploading: true } as any;
-      this.selfAttestationFile = entry;
-      this.selfAttId = null;
-      input.value = '';
-      this.uploadComplianceFile(file,
-        (url) => { entry.url = url; entry._uploading = false; },
-        () => { this.selfAttestationFile = null; });
+    const file = input.files?.[0];
+    if (!file) return;
+    input.value = '';
+    this.selfAttestationError = this.fileSizeError(file);
+    if (this.selfAttestationError) return;
+    const contentType = this.complianceDocumentType(file);
+    if (!contentType) {
+      this.selfAttestationError = this.translate.instant('CREATE_PROD_SPEC._compliance_document_type_error');
+      return;
     }
+
+    this.removeSelfAttestation();
+    const entry: ComplianceFileEntry = { name: file.name, size: file.size, _uploading: true };
+    this.selfAttestationFile = entry;
+    const upload = new Subscription();
+    this.selfAttestationUpload = upload;
+    upload.add(this.uploadComplianceFile(file, contentType).subscribe({
+      next: url => {
+        entry.url = url;
+        entry._uploading = false;
+        this.cdr.detectChanges();
+      },
+      error: error => {
+        this.removeSelfAttestation();
+        this.selfAttestationError = this.uploadErrorMessage(error, 'CREATE_PROD_SPEC._file_upload_error');
+        this.cdr.detectChanges();
+      }
+    }));
   }
 
   removeSelfAttestation(){
+    this.selfAttestationUpload?.unsubscribe();
+    this.selfAttestationUpload = null;
     this.selfAttestationFile = null;
     this.selfAttId = null;
+    this.selfAttestationError = null;
   }
 
   onComplianceFileSelected(event: Event){
     const input = event.target as HTMLInputElement;
-    if(input.files && input.files.length > 0){
-      Array.from(input.files).forEach(file => {
-        const entry = { name: file.name, size: file.size, _uploading: true } as any;
-        this.complianceFiles.push(entry);
-        this.uploadComplianceFile(file,
-          (url) => { entry.url = url; entry._uploading = false; },
-          () => { const i = this.complianceFiles.indexOf(entry); if(i > -1) this.complianceFiles.splice(i, 1); });
-      });
-      input.value = '';
-    }
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
+    input.value = '';
+    this.complianceFileErrors = [];
+    files.forEach(file => {
+      const sizeError = this.fileSizeError(file);
+      if (sizeError) {
+        this.complianceFileErrors.push({ name: file.name, message: sizeError });
+        return;
+      }
+      const contentType = this.complianceDocumentType(file);
+      if (!contentType) {
+        this.complianceFileErrors.push({
+          name: file.name,
+          message: this.translate.instant('CREATE_PROD_SPEC._compliance_document_type_error')
+        });
+        return;
+      }
+
+      const entry: ComplianceFileEntry = { name: file.name, size: file.size, _uploading: true };
+      this.complianceFiles.push(entry);
+      const upload = new Subscription();
+      this.complianceUploads.set(entry, upload);
+      upload.add(this.uploadComplianceFile(file, contentType).pipe(
+        finalize(() => this.complianceUploads.delete(entry))
+      ).subscribe({
+        next: url => {
+          entry.url = url;
+          entry._uploading = false;
+          this.cdr.detectChanges();
+        },
+        error: error => {
+          const index = this.complianceFiles.indexOf(entry);
+          if (index !== -1) this.complianceFiles.splice(index, 1);
+          this.complianceFileErrors.push({ name: file.name, message: this.uploadErrorMessage(error, 'CREATE_PROD_SPEC._file_upload_error') });
+          this.cdr.detectChanges();
+        }
+      }));
+    });
   }
 
   removeComplianceFile(idx: number){
+    const entry = this.complianceFiles[idx];
+    this.complianceUploads.get(entry)?.unsubscribe();
+    this.complianceUploads.delete(entry);
     this.complianceFiles.splice(idx, 1);
   }
 

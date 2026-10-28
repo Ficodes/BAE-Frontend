@@ -1,6 +1,6 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import {catchError, lastValueFrom, map, of} from 'rxjs';
+import {forkJoin, lastValueFrom, map, Observable} from 'rxjs';
 import { Category, LoginInfo } from '../models/interfaces';
 import { environment } from 'src/environments/environment';
 import {components} from "../models/product-catalog";
@@ -102,11 +102,21 @@ export class UsageServiceService {
     return usageSpecs;
   }
 
-  getAllUsageSpecs(partyId:any) {
+  isUsageSpecNameTaken(name: string, partyId: string, currentSpecId?: string): Observable<boolean> {
+    const url = `${UsageServiceService.BASE_URL}/usage/usageSpecification`;
+    // Separate states avoid the API's incomplete pages for multi-state filters.
+    const requests = ['Active', 'Launched'].map(lifecycleStatus => {
+      const params = new HttpParams()
+        .set('name', name.trim())
+        .set('relatedParty.id', partyId)
+        .set('lifecycleStatus', lifecycleStatus)
+        .set('limit', currentSpecId ? 2 : 1);
+      return this.http.get<{ id?: string }[]>(url, { params });
+    });
 
-    let url = `${UsageServiceService.BASE_URL}/usage/usageSpecification?relatedParty.id=${partyId}`;
-
-    return lastValueFrom(this.http.get<any[]>(url));
+    return forkJoin(requests).pipe(
+      map(pages => pages.some(items => items.some(item => !currentSpecId || item.id !== currentSpecId)))
+    );
   }
 
 

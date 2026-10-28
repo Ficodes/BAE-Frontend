@@ -3,7 +3,7 @@ import {AbstractControl, FormBuilder, FormControl, FormGroup, ReactiveFormsModul
 import {TranslateModule} from "@ngx-translate/core";
 import {NgClass, NgIf} from "@angular/common";
 import {ApiServiceService} from "../../../services/product-service.service";
-import { lastValueFrom } from 'rxjs';
+import { catchError, lastValueFrom, map, Observable, of, switchMap, timer } from 'rxjs';
 import {components} from "src/app/models/product-catalog";
 import {EventMessageService} from "src/app/services/event-message.service";
 import {FormChangeState, PricePlanChangeState} from "../../../models/interfaces";
@@ -19,13 +19,15 @@ import { v4 as uuidv4 } from 'uuid';
 import { environment } from 'src/environments/environment';
 import {Subject} from "rxjs";
 import { takeUntil } from 'rxjs/operators';
-import { uniqueNameValidatorFactory } from 'src/app/validators/validators';
+import { noWhitespaceValidator } from 'src/app/validators/validators';
 import { LifecycleStatus } from 'src/app/models/provider-stats.model';
 
-function atLeastOneMetricValidator(control: AbstractControl): ValidationErrors | null {
-  return Array.isArray(control.value) && control.value.length > 0
-    ? null
-    : { metricsRequired: true };
+function metricsValidator(control: AbstractControl): ValidationErrors | null {
+  if (!Array.isArray(control.value) || control.value.length === 0) {
+    return { metricsRequired: true };
+  }
+  const names = control.value.map(metric => String(metric?.name ?? '').trim().toLowerCase());
+  return new Set(names).size !== names.length ? { duplicateMetricNames: true } : null;
 }
 
 @Component({
@@ -65,9 +67,6 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
   private formChanges: { [key: string]: FormChangeState } = {};
   private formSubscription: Subscription | null = null;
   private destroy$ = new Subject<void>();
-  private providerUsageSpecs: any[] = [];
-  private existingUsageSpecNames: string[] = [];
-  private loadedUsageSpecNamesPartyId: any = null;
   hasChanges: boolean = false;
 
   constructor(private api: ApiServiceService,
@@ -77,8 +76,13 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
               private usageSpecService: UsageServiceService) {
 
     this.usageSpecForm = this.fb.group({
-      generalInfo: this.fb.group({}, { validators: [uniqueNameValidatorFactory(() => this.existingUsageSpecNames)] }),
-      metrics: new FormControl([], [atLeastOneMetricValidator])
+      generalInfo: this.fb.group({
+        name: new FormControl('', {
+          validators: [Validators.required, Validators.maxLength(100), noWhitespaceValidator],
+          asyncValidators: [control => this.validateUsageSpecName(control)]
+        })
+      }),
+      metrics: new FormControl([], [metricsValidator])
     });
 
     // Subscribe to form validation changes
@@ -117,19 +121,16 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['partyId'] && this.partyId) {
-      this.loadExistingUsageSpecNames();
-    }
-
-    if (changes['usageSpec'] && this.providerUsageSpecs.length > 0) {
-      this.applyExistingUsageSpecNames();
+    if (changes['partyId'] || changes['usageSpec'] || changes['formType']) {
+      this.usageSpecForm.get('generalInfo.name')?.updateValueAndValidity();
     }
   }
 
   goToStep(index: number) {
     if (index > this.currentStep) {
       const currentStepValid = this.validateCurrentStep();
-      if (!currentStepValid) {
+      if (!currentStepValid || !this.usageSpecForm.get('generalInfo')?.valid
+        || (index >= 2 && !this.usageSpecForm.get('metrics')?.valid)) {
         return;
       }
     }
@@ -174,7 +175,7 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
   
 
   submitForm() {
-    if (this.usageSpecForm.invalid) {
+    if (!this.usageSpecForm.valid) {
       this.usageSpecForm.markAllAsTouched();
       return;
     }
@@ -193,10 +194,6 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   async ngOnInit(): Promise<void> {
-    if (this.partyId) {
-      await this.loadExistingUsageSpecNames();
-    }
-
     if (this.formType === 'update' && this.usageSpec) {
       this.loadingData=true;
       await this.loadUsageSpecData();
@@ -204,37 +201,26 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  private async loadExistingUsageSpecNames(): Promise<void> {
-    if (this.loadedUsageSpecNamesPartyId === this.partyId) {
-      return;
-    }
+  private validateUsageSpecName(control: AbstractControl): Observable<ValidationErrors | null> {
+    if (!this.partyId) return of({ nameCheckFailed: true });
 
-    this.loadedUsageSpecNamesPartyId = this.partyId;
+    const name = control.value.trim();
+    const partyId = this.partyId;
+    const currentSpecId = this.formType === 'update' ? this.usageSpec?.id : undefined;
 
-    try {
-      this.providerUsageSpecs = await this.usageSpecService.getAllUsageSpecs(this.partyId);
-      this.applyExistingUsageSpecNames();
-    } catch (error) {
-      console.error('There was an error while loading usage specs for name validation!', error);
-      this.loadedUsageSpecNamesPartyId = null;
-      this.providerUsageSpecs = [];
-      this.existingUsageSpecNames = [];
-      this.usageSpecForm.get('generalInfo')?.updateValueAndValidity();
-    }
-  }
-
-  private applyExistingUsageSpecNames(): void {
-    const currentUsageSpecId = this.usageSpec?.id;
-    this.existingUsageSpecNames = this.providerUsageSpecs
-      .filter((usageSpec: any) => usageSpec?.id !== currentUsageSpecId)
-      .map((usageSpec: any) => usageSpec?.name)
-      .filter((name: any) => !!name);
-    this.usageSpecForm.get('generalInfo')?.updateValueAndValidity();
+    // Angular marks the control PENDING immediately and unsubscribes on each edit,
+    // cancelling both the debounce and any requests for the previous name.
+    return timer(500).pipe(
+      switchMap(() => this.usageSpecService.isUsageSpecNameTaken(name, partyId, currentSpecId)),
+      map(taken => taken ? { nonUniqueName: true } : null),
+      catchError(() => of({ nameCheckFailed: true })),
+      takeUntil(this.destroy$)
+    );
   }
 
   loadUsageSpecData(){
     if(this.usageSpec){
-      const metrics = this.usageSpec.specCharacteristic = this.usageSpec.specCharacteristic.map((item: any) => ({
+      const metrics = (this.usageSpec.specCharacteristic || []).map((item: any) => ({
         ...item,
         id: uuidv4()
       }));
@@ -249,14 +235,14 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   async createUsageSpec(){
-    if (this.formType !== 'create') return;
+    if (this.formType !== 'create' || !this.usageSpecForm.valid) return;
 
     const formValue = this.usageSpecForm.value;
     const generalInfo = formValue.generalInfo;
-    const metrics = formValue.metrics.map(({ id, ...rest }: any) => rest);
+    const metrics = this.metricsForPayload();
 
     const usageSpec: any = {
-      name: generalInfo.name,
+      name: generalInfo.name.trim(),
       description: generalInfo.description || '',
       lifecycleStatus: 'Active',
       specCharacteristic: metrics,
@@ -299,40 +285,17 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   async updateUsageSpec(){
+    if (!this.usageSpecForm.valid) return;
     console.log('🔄 Starting offer update process...');
     console.log('📝 Current form changes:', this.formChanges);
 
     // Preparar el payload base con los datos que no han cambiado
     const basePayload: any = {
-      name: this.usageSpec.name,
-      description: this.usageSpec.description,
+      name: this.usageSpecForm.get('generalInfo.name')?.value.trim(),
+      description: this.usageSpecForm.get('generalInfo.description')?.value,
       lifecycleStatus: this.usageSpec.lifecycleStatus || 'Active',
-      specCharacteristic: this.usageSpec.specCharacteristic
+      specCharacteristic: this.metricsForPayload()
     };
-
-    // Procesar cada cambio emitido por los subformularios
-    for (const [subformType, change] of Object.entries(this.formChanges)) {
-      console.log(`📝 Processing changes for ${subformType}:`, change);
-
-      switch (subformType) {
-        case 'generalInfo':
-          // Actualizar información general
-          basePayload.name = change.currentValue.name;
-          basePayload.description = change.currentValue.description;
-          break;
-        case 'metrics':
-          // Actualizar metricas
-          const metrics = change.currentValue.map((metric: any) => ({
-            name: metric.name,
-            description: metric.description,
-            valueType: 'number'
-          }));
-          basePayload.specCharacteristic = metrics
-          console.log('------ here')
-          console.log(metrics)
-          break;
-      }
-    }
     console.log('📝 Final update payload:', basePayload);
 
     try {
@@ -348,6 +311,11 @@ export class UsageSpecComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
+
+  private metricsForPayload(): any[] {
+    // Preserve existing names: usage prices reference their exact stored value.
+    return this.usageSpecForm.get('metrics')!.value.map(({ id, ...metric }: any) => metric);
+  }
 
   goBack() {
     this.eventMessage.emitUsageSpecList(true);
