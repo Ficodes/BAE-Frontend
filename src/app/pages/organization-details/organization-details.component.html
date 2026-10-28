@@ -16,6 +16,16 @@
               <span class="text-[14px] font-semibold leading-[16px] tracking-[0.5px]">{{ servicesCount }}</span>
               <span class="text-[14px] font-normal leading-[24px]">{{ 'ORGANIZATION._services' | translate }}</span>
             </span>
+            @if (sovereigntyScore) {
+              <span class="hidden lg:block h-[16px] w-px bg-offerings-border-strong dark:bg-secondary-200"></span>
+              <span class="hidden lg:flex items-center gap-[4px] text-secondary-100 dark:text-offerings-on-dark-body" data-cy="summarySovereignty">
+                <span class="text-[14px] font-semibold leading-[16px] tracking-[0.5px]">{{ 'ORGANIZATION._sovereignty_score' | translate }}</span>
+                <span class="rounded-[6px] bg-[#DDE6F6] px-[6px] py-[4px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-secondary-100 dark:bg-secondary-200 dark:text-offerings-on-dark">{{ sovereigntyScore }}</span>
+                @if (sovereigntySeal) {
+                  <span class="rounded-[6px] bg-[#DDE6F6] px-[6px] py-[4px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-secondary-100 dark:bg-secondary-200 dark:text-offerings-on-dark">{{ 'ORGANIZATION._overall_seal_value' | translate: { seal: sovereigntySeal } }}</span>
+                }
+              </span>
+            }
           </div>
         </div>
       </div>
@@ -57,15 +67,26 @@
           }
         </div>
         <div class="flex flex-col gap-[16px] md:flex-row md:items-center md:justify-between md:gap-[24px]">
-          <div class="flex items-center gap-[16px] md:gap-[24px]">
-            @if (country) {
-              <span class="text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-secondary-100 dark:text-offerings-on-dark-body">{{ country }}</span>
-              <span class="h-[16px] w-px bg-offerings-border-strong dark:bg-secondary-200"></span>
+          <div class="flex flex-col gap-[12px]">
+            <div class="flex items-center gap-[16px] md:gap-[24px]">
+              @if (country) {
+                <span class="text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-secondary-100 dark:text-offerings-on-dark-body">{{ country }}</span>
+                <span class="h-[16px] w-px bg-offerings-border-strong dark:bg-secondary-200"></span>
+              }
+              <span class="flex items-center gap-[4px] text-secondary-100 dark:text-offerings-on-dark-body">
+                <span class="text-[14px] font-semibold leading-[16px] tracking-[0.5px]">{{ servicesCount }}</span>
+                <span class="text-[14px] font-normal leading-[24px]">{{ 'ORGANIZATION._services' | translate }}</span>
+              </span>
+            </div>
+            @if (sovereigntyScore) {
+              <div class="flex flex-wrap items-center gap-[4px] text-secondary-100 dark:text-offerings-on-dark-body" data-cy="providerSovereignty">
+                <span class="text-[14px] font-semibold leading-[16px] tracking-[0.5px]">{{ 'ORGANIZATION._sovereignty_score' | translate }}</span>
+                <span data-cy="providerSovereigntyScore" class="rounded-[6px] bg-[#DDE6F6] px-[6px] py-[4px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-secondary-100 dark:bg-secondary-200 dark:text-offerings-on-dark">{{ sovereigntyScore }}</span>
+                @if (sovereigntySeal) {
+                  <span data-cy="providerSovereigntySeal" class="rounded-[6px] bg-[#DDE6F6] px-[6px] py-[4px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-secondary-100 dark:bg-secondary-200 dark:text-offerings-on-dark">{{ 'ORGANIZATION._overall_seal_value' | translate: { seal: sovereigntySeal } }}</span>
+                }
+              </div>
             }
-            <span class="flex items-center gap-[4px] text-secondary-100 dark:text-offerings-on-dark-body">
-              <span class="text-[14px] font-semibold leading-[16px] tracking-[0.5px]">{{ servicesCount }}</span>
-              <span class="text-[14px] font-normal leading-[24px]">{{ 'ORGANIZATION._services' | translate }}</span>
-            </span>
           </div>
           <button (click)="browseServices()" class="flex h-[48px] w-full items-center justify-center rounded-[8px] bg-primary-100 px-[24px] text-[18px] font-semibold leading-[22px] text-offerings-on-dark hover:bg-primary-50 md:w-auto">{{ 'ORGANIZATION._browse_services' | translate }}</button>
         </div>
