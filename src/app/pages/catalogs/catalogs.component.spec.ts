@@ -162,13 +162,13 @@ describe('CatalogsComponent', () => {
     expect((component as any).paginationToken).toBeNull();
   });
 
-  it('should render the search bar for catalog-backed directories', async () => {
+  it('should hide the search bar for catalog-backed directories', async () => {
     fixture.detectChanges();
     await flushPromises();
     fixture.detectChanges();
 
     expect(component.canSearchDirectory).toBeTrue();
-    expect(fixture.nativeElement.querySelector('input[type="search"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('input[type="search"]')).toBeNull();
   });
 
   it('should hide search and ignore keywords for organization-backed provider directories', async () => {

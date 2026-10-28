@@ -20,6 +20,7 @@
 
     <div class="flex flex-wrap items-center justify-between gap-4 pb-4">
       <h2 class="text-[20px] leading-[24px] sm:text-[30px] font-bold sm:leading-[36px] text-secondary-100 dark:text-offerings-on-dark">{{ 'CATALOGS._all_providers' | translate }}</h2>
+      <!-- Search is temporarily hidden when showing catalogs.
       @if (canSearchDirectory) {
         <form (ngSubmit)="filterProviders()" class="w-full sm:w-auto">
           <div class="flex h-[56px] w-full sm:w-[443px] max-w-full items-center gap-[16px] rounded-[16px] border border-offerings-border bg-offerings-surface px-[16px]">
@@ -30,6 +31,7 @@
           </div>
         </form>
       }
+      -->
     </div>
 
     <div class="flex flex-wrap items-center justify-between gap-4 pt-[24px] sm:pt-[40px] pb-[24px]">
