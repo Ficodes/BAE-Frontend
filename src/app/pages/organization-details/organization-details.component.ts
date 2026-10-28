@@ -68,6 +68,8 @@ export class OrganizationDetailsComponent implements OnInit, AfterViewInit, OnDe
   phone:string='';
   address:string='';
   servicesCount:number=0;
+  sovereigntyScore:string='';
+  sovereigntySeal:string='';
   protected readonly faEarthAmericas = faEarthAmericas;
   protected readonly iconForCategory = iconForCategory;
 
@@ -158,6 +160,8 @@ export class OrganizationDetailsComponent implements OnInit, AfterViewInit, OnDe
     this.phone = '';
     this.address = '';
     this.servicesCount = 0;
+    this.sovereigntyScore = '';
+    this.sovereigntySeal = '';
     this.allServices = [];
     this.nextServices = [];
     this.services = [];
@@ -246,6 +250,10 @@ export class OrganizationDetailsComponent implements OnInit, AfterViewInit, OnDe
         }
         if(chars[i].name=='description'){
           this.description=chars[i].value
+        }
+        if(chars[i].name=='sovereigntyAssessment' && chars[i].value?.score && chars[i].value.public !== false){
+          this.sovereigntyScore=chars[i].value.score
+          this.sovereigntySeal=chars[i].value.seal ?? ''
         }
       }
       if (!this.logo) {

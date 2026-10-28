@@ -1,0 +1,145 @@
+<div class="flex flex-col gap-8 font-[Blinker]" data-cy="sovereigntyAssessment">
+  <div class="flex flex-col items-start justify-center gap-2">
+    <h2 class="text-[30px] font-bold leading-[36px] text-[#1A3360]">{{ 'PROFILE._sovereignty_assessment' | translate }}</h2>
+    <p class="text-[20px] leading-8 text-[#1A3360]">{{ 'PROFILE._sovereignty_desc' | translate }}</p>
+  </div>
+
+  <div class="flex flex-col gap-11 rounded-2xl bg-white p-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <h3 class="text-[24px] font-bold leading-[29px] text-[#1A3360]">{{ 'PROFILE._assessment_score' | translate }}</h3>
+      <div class="flex items-center gap-2 pt-1">
+        <button type="button" role="switch" id="sovereigntyPublicToggle" data-cy="sovereigntyPublicToggle" [attr.aria-checked]="showOnPublicProfile" [disabled]="!hasAssessment || isReadOnly || saving" (click)="togglePublicProfile()" class="relative h-[18px] w-8 shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7] focus-visible:ring-offset-2 disabled:cursor-not-allowed">
+          <span aria-hidden="true" [ngClass]="showOnPublicProfile ? 'bg-[#8EACE1]' : 'bg-[#D8DADE]'" class="absolute left-0 top-[3px] h-3 w-8 rounded-[7px] transition-colors"></span>
+          <span aria-hidden="true" [ngClass]="showOnPublicProfile ? 'translate-x-[14px] border-[#2D58A7] bg-[#2D58A7]' : 'translate-x-0 border-[#EBECEE] bg-white'" class="absolute left-0 top-0 h-[18px] w-[18px] rounded-full border shadow-[0_0_3px_rgba(0,0,0,0.07),0_2px_2px_rgba(0,0,0,0.04)] transition-transform"></span>
+        </button>
+        <label for="sovereigntyPublicToggle" [ngClass]="hasAssessment && !isReadOnly ? 'cursor-pointer text-[#1A3360]' : 'cursor-not-allowed text-[rgba(79,79,79,0.5)]'" class="text-[16px] leading-6">{{ 'PROFILE._show_assessment_public' | translate }}</label>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-6">
+      <div class="flex flex-col overflow-hidden rounded-2xl border border-[#8EACE1] bg-white xl:flex-row" data-cy="sovereigntyScoreCard">
+        <div class="flex min-w-0 flex-1 flex-col justify-center gap-4 p-6 xl:min-w-max xl:pl-10">
+          <h4 class="text-[18px] font-semibold leading-[22px] text-[#1A3360]">{{ 'PROFILE._breakdown_by_objective' | translate }}</h4>
+          <dl class="flex flex-col gap-1">
+            @for(objective of objectives; track objective.code){
+              <div class="flex items-center gap-4 text-[16px] leading-6 text-[#1A3360] sm:gap-6" data-cy="sovereigntyObjective">
+                <dt class="min-w-0 flex-1 sm:max-w-[300px] xl:min-w-max xl:whitespace-nowrap">{{ objective.code }} {{ objective.label | translate }}</dt>
+                <dd class="w-16 shrink-0 font-semibold tracking-[0.5px] sm:w-[85px]">{{ objective.score ?? '-' }}</dd>
+              </div>
+            }
+          </dl>
+        </div>
+        <div class="relative isolate flex flex-col items-center justify-center gap-8 overflow-hidden bg-[#EBF0F7] px-6 py-10 xl:max-w-[470px] xl:flex-1 xl:py-6">
+          <svg class="pointer-events-none absolute -right-[42px] -top-[23px] h-[218px] w-[218px] rotate-[15deg] text-[#EBF0F7] mix-blend-multiply" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M12.516 2.17a.75.75 0 0 0-1.032 0 11.209 11.209 0 0 1-7.877 3.08.75.75 0 0 0-.722.515A12.74 12.74 0 0 0 2.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 0 0 .374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 0 0-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08Zm3.094 8.016a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clip-rule="evenodd"/>
+          </svg>
+          <div class="relative flex flex-col items-center gap-1 text-center text-[#1A3360]">
+            <p class="text-[24px] font-bold leading-[29px]">{{ 'PROFILE._sovereignty_score' | translate }}</p>
+            <p data-cy="sovereigntyScore" [ngClass]="sovereigntyScore != null ? 'text-[#269C43]' : ''" class="text-[40px] font-bold leading-[48px]">{{ sovereigntyScore ?? '-' }}</p>
+          </div>
+          <div class="relative flex flex-col items-center gap-1 text-center text-[#1A3360]">
+            <p class="text-[24px] font-bold leading-[29px]">{{ 'PROFILE._overall_seal' | translate }}</p>
+            <p data-cy="sovereigntySeal" [ngClass]="overallSeal != null ? 'text-[#269C43]' : ''" class="text-[40px] font-bold leading-[48px]">{{ overallSeal ?? '-' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-col gap-1 text-[#1A3360]">
+          <h4 class="text-[18px] font-bold leading-[22px]">{{ 'PROFILE._upload_assessment_title' | translate }}</h4>
+          <p class="text-[16px] leading-6">{{ 'PROFILE._upload_assessment_desc' | translate }}</p>
+        </div>
+        <button type="button" (click)="openImportModal()" [disabled]="isReadOnly" data-cy="sovereigntyUpload" class="inline-flex h-[46px] w-full shrink-0 items-center justify-center gap-2 rounded-lg bg-[#2D58A7] px-6 py-3 text-[18px] font-semibold leading-[22px] text-white enabled:hover:bg-[#234481] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-[#D8DADE] disabled:text-[#858B99] sm:w-[260px]">
+          {{ 'PROFILE._upload_assessment' | translate }}
+        </button>
+      </div>
+    </div>
+
+    <section class="flex flex-col gap-4 rounded-xl bg-[#DDE6F6] px-6 py-4 md:flex-row md:items-center md:gap-8" data-cy="sovereigntyRetake">
+      <div class="flex min-w-0 flex-1 flex-col gap-3 text-[#1A3360]">
+        <h4 class="text-[24px] font-bold leading-[29px]">{{ 'PROFILE._retake_assessment_title' | translate }}</h4>
+        <div class="flex flex-col gap-3 text-[16px] leading-6">
+          <p>{{ 'PROFILE._retake_assessment_desc_1' | translate }} <strong class="font-bold">{{ 'PROFILE._upload_assessment' | translate }}</strong> {{ 'PROFILE._retake_assessment_desc_2' | translate }}</p>
+          <p>{{ 'PROFILE._retake_assessment_note' | translate }}</p>
+        </div>
+      </div>
+      <a [attr.href]="frameworkUrl || null" target="_blank" rel="noopener noreferrer" data-cy="sovereigntyFrameworkLink" [attr.aria-disabled]="!frameworkUrl" [ngClass]="frameworkUrl ? 'cursor-pointer hover:bg-[#EBF0F7]' : 'pointer-events-none opacity-50'" class="inline-flex h-10 shrink-0 items-center justify-center gap-2 self-start rounded-lg px-4 py-2 text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#2D58A7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7] md:self-auto">
+        {{ 'PROFILE._go_to_eu_framework' | translate }}
+        <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" d="M15.75 2.25H21a.75.75 0 0 1 .75.75v5.25a.75.75 0 0 1-1.5 0V4.81L8.03 17.03a.75.75 0 0 1-1.06-1.06L19.19 3.75h-3.44a.75.75 0 0 1 0-1.5Zm-10.5 4.5a1.5 1.5 0 0 0-1.5 1.5v10.5a1.5 1.5 0 0 0 1.5 1.5h10.5a1.5 1.5 0 0 0 1.5-1.5V10.5a.75.75 0 0 1 1.5 0v8.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V8.25a3 3 0 0 1 3-3h8.25a.75.75 0 0 1 0 1.5H5.25Z" clip-rule="evenodd"/>
+        </svg>
+      </a>
+    </section>
+  </div>
+</div>
+
+@if(showImportModal){
+  <div class="fixed inset-0 z-[60] flex items-center justify-center bg-[#1E2538]/40 p-4 font-[Blinker] backdrop-blur-[2px]" (mousedown)="$event.target === $event.currentTarget && closeImportModal()" (dragover)="$event.preventDefault()" (drop)="$event.preventDefault()" data-cy="sovereigntyImportModal">
+    <div role="dialog" aria-modal="true" aria-labelledby="sovereigntyImportTitle" class="relative flex max-h-full w-full max-w-[800px] flex-col overflow-hidden rounded-2xl bg-white shadow-[0_4px_24px_rgba(0,0,0,0.15)] md:h-[632px]">
+      <button type="button" (click)="closeImportModal()" data-cy="sovereigntyImportClose" [attr.aria-label]="'BILLING._close_modal' | translate" class="absolute right-6 top-6 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#4C5A6B] hover:bg-[#EBF0F7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7]">
+        <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M1 1l14 14M15 1L1 15"/>
+        </svg>
+      </button>
+
+      <div class="flex min-h-0 flex-1 flex-col items-center gap-4 overflow-y-auto px-5 pb-6 pt-8 sm:px-8">
+        <div class="flex w-full flex-col items-center gap-4 pb-6">
+          <div class="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full bg-[#DDE6F6] p-3">
+            <svg class="h-12 w-12 text-[#1A3360]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path fill-rule="evenodd" d="M10.5 3.75a6 6 0 0 0-5.98 6.496A5.25 5.25 0 0 0 6.75 20.25H18a4.5 4.5 0 0 0 2.206-8.423 3.75 3.75 0 0 0-4.133-4.303A6.001 6.001 0 0 0 10.5 3.75Zm2.03 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v4.94a.75.75 0 0 0 1.5 0v-4.94l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <h2 id="sovereigntyImportTitle" class="w-full text-center text-[30px] font-bold leading-9 text-[#1A3360]">{{ 'PROFILE._import_assessment_title' | translate }}</h2>
+          <p class="w-full text-center text-[20px] leading-8 text-[#4C5A6B] md:whitespace-pre-line">{{ 'PROFILE._import_assessment_desc' | translate }}</p>
+        </div>
+
+        <p class="w-full text-center text-[18px] font-semibold leading-[22px] text-[#1A3360]">{{ 'PROFILE._assessment_report' | translate }}</p>
+
+        <ngx-file-drop class="block w-full" accept=".txt,text/plain" [multiple]="false" [dropZoneClassName]="'flex min-h-[192px] w-full flex-col items-center justify-center rounded-lg border border-dashed border-[#2D58A7] p-6 transition-colors ' + (reportDragOver ? '!bg-[#EBF0F7]' : 'bg-white')" contentClassName="flex w-full flex-col items-center gap-2 text-center" (onFileDrop)="reportDropped($event)" (onFileOver)="reportDragOver = true" (onFileLeave)="reportDragOver = false" data-cy="sovereigntyImportDropzone">
+          <ng-template ngx-file-drop-content-tmp let-openFileSelector="openFileSelector">
+            <svg class="h-10 w-10 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+              <defs>
+                <linearGradient id="sovereigntyReportFileGradient" x1="0.8" y1="0" x2="0.2" y2="1">
+                  <stop offset="0.0683" stop-color="#3D71CC"/>
+                  <stop offset="1" stop-color="#2F5BAC"/>
+                </linearGradient>
+              </defs>
+              <path d="M7 0H24L36 12V37a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V3a3 3 0 0 1 3-3Z" fill="url(#sovereigntyReportFileGradient)"/>
+              <path d="M24 0L36 12H27a3 3 0 0 1-3-3Z" fill="#668ED6"/>
+              <svg x="11" y="18" width="18" height="18" viewBox="0 -960 960 960">
+                <path d="M440-240v-368L296-464l-56-56 240-240 240 240-56 56-144-144v368h-80Z" fill="#FFFFFF"/>
+              </svg>
+            </svg>
+            <div class="flex max-w-full flex-col items-center gap-1 pt-3">
+              @if(reportFile){
+                <p data-cy="sovereigntyImportFileName" class="max-w-full truncate text-[16px] font-semibold leading-6 tracking-[0.5px] text-[#2D58A7]">{{ reportFile.name }}</p>
+                <p class="flex items-center gap-2 text-[16px] leading-6 text-[#1E2538]">
+                  <button type="button" (click)="openFileSelector()" class="rounded-sm underline underline-offset-2 hover:text-[#2D58A7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7]">{{ 'PROFILE._replace' | translate }}</button>
+                  <span aria-hidden="true">·</span>
+                  <button type="button" (click)="removeReportFile()" data-cy="sovereigntyImportRemove" class="rounded-sm underline underline-offset-2 hover:text-[#2D58A7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7]">{{ 'PROFILE._remove_file' | translate }}</button>
+                </p>
+              } @else {
+                <p class="text-[16px] font-semibold leading-6 tracking-[0.5px] text-[#2D58A7]">{{ 'PROFILE._upload_assessment_report' | translate }}</p>
+                <p class="text-[16px] leading-6 text-[#1E2538]">{{ 'PROFILE._drag_drop_txt' | translate }} <button type="button" (click)="openFileSelector()" data-cy="sovereigntyImportBrowse" class="rounded-sm underline underline-offset-2 hover:text-[#2D58A7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7]">{{ 'PROFILE._browse_files' | translate }}</button></p>
+              }
+            </div>
+            @if(reportError){
+              <p role="alert" data-cy="sovereigntyImportError" class="text-[14px] leading-6 text-red-600">{{ reportError | translate }}</p>
+            } @else {
+              <p class="text-[14px] leading-6 text-[#717482]">{{ 'PROFILE._accepted_format_txt' | translate }}</p>
+            }
+          </ng-template>
+        </ngx-file-drop>
+      </div>
+
+      <div class="flex shrink-0 justify-end gap-4 bg-white px-5 pb-6 pt-4 sm:px-8">
+        <button type="button" (click)="closeImportModal()" data-cy="sovereigntyImportCancel" class="inline-flex h-[46px] items-center justify-center rounded-lg px-6 py-3 text-[18px] font-semibold leading-[22px] text-[#2D58A7] hover:bg-[#EBF0F7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7]">
+          {{ 'PROFILE._cancel_import' | translate }}
+        </button>
+        <button type="button" (click)="importResults()" [disabled]="!pendingAssessment || saving" data-cy="sovereigntyImportSubmit" class="inline-flex h-[46px] items-center justify-center rounded-lg bg-[#2D58A7] px-6 py-3 text-[18px] font-semibold leading-[22px] text-white enabled:hover:bg-[#234481] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-[#D8DADE] disabled:text-[#858B99]">
+          {{ 'PROFILE._import_results' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
