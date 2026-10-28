@@ -81,8 +81,8 @@ export class UserInfoComponent implements OnInit, OnDestroy {
         this.partyId = aux.partyId;
       } else {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as)
-        this.partyId = loggedOrg.partyId
-        this.accountService.getOrgInfo(this.partyId).then(data=> {
+        this.partyId = aux.partyId
+        this.accountService.getOrgInfo(loggedOrg.partyId).then(data=> {
         })
       }
       this.token=aux.token;

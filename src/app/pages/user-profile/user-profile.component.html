@@ -1,65 +1,98 @@
-
-<div class="container mx-auto pt-2 pb-8">
-    <h1 class="hidden lg:block mb-8 mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-4xl lg:text-5xl dark:text-white w-full"><span class="underline underline-offset-3 decoration-8 decoration-primary-100 dark:decoration-primary-100">{{ 'PROFILE._profile' | translate }}</span></h1>
-    <div class="flex flex-cols mr-2 ml-2 lg:hidden">
-        <h1 class="mb-8 mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 lg:text-4xl lg:text-5xl dark:text-white w-full"><span class="underline underline-offset-3 decoration-8 decoration-primary-100 dark:decoration-primary-100">{{ 'PROFILE._profile' | translate }}</span></h1>
-        <div class="flex align-middle content-center items-center">
-          <button id="dropdown-nav" data-dropdown-toggle="dropdown-nav-content"
-          class="text-black dark:text-white h-fit w-fit justify-between shadow bg-white dark:bg-secondary-200 hover:bg-gray-100 dark:hover:bg-secondary-300 focus:ring-4 focus:outline-none focus:ring-primary-100 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center shadow-lg"
+<div class="min-h-screen bg-[#EBF0F7] font-[Blinker]">
+  <div class="mx-auto w-full max-w-[1440px] px-4 pt-6 pb-20 md:px-8">
+    <div class="mb-8 flex items-center justify-between gap-4 lg:mb-12">
+      <h1 class="text-[36px] font-bold leading-[44px] text-[#1A3360] md:text-[48px] md:leading-[58px]">{{ 'PROFILE._settings' | translate }}</h1>
+      <div class="flex items-center lg:hidden">
+        <button id="dropdown-nav" data-dropdown-toggle="dropdown-nav-content"
+          class="inline-flex h-10 items-center gap-2 rounded-lg border-2 border-[#2D58A7] bg-white px-4 text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#2D58A7] hover:bg-[#EBF0F7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7]"
           type="button">
-          <svg class="w-4 h-4 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
+          <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M3 6.75A.75.75 0 0 1 3.75 6h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 6.75ZM3 12a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 12Zm0 5.25a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd"/>
           </svg>
           Profile
         </button>
-        </div>
-
+      </div>
     </div>
-    <!-- Dropdown menu -->
-    <div id="dropdown-nav-content" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-        <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdown-nav">
+    <div id="dropdown-nav-content" class="z-10 hidden w-56 overflow-hidden rounded-xl border border-[#D8DADE] bg-white shadow-lg">
+      <ul class="py-1 text-[16px] leading-6 text-[#2D58A7]" aria-labelledby="dropdown-nav">
+        @if(!loggedAsUser){
+          <li>
+            <a (click)="getOrgProfile()" class="block cursor-pointer px-4 py-2 hover:bg-[#EBF0F7]" [class.font-bold]="show_org_profile">{{ 'PROFILE._company_settings' | translate }}</a>
+          </li>
+        }
         <li>
-            <a (click)="getProfile()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'PROFILE._general' | translate }}</a>
+          <a (click)="getProfile()" class="block cursor-pointer px-4 py-2 hover:bg-[#EBF0F7]" [class.font-bold]="show_profile">{{ 'PROFILE._profile_settings' | translate }}</a>
         </li>
         <li>
-            <a (click)="getBilling()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'PROFILE._bill' | translate }}</a>
+          <a (click)="getBilling()" class="block cursor-pointer px-4 py-2 hover:bg-[#EBF0F7]" [class.font-bold]="show_billing">{{ 'PROFILE._billing' | translate }}</a>
         </li>
+        <li>
+          <a (click)="getRevenue()" class="block cursor-pointer px-4 py-2 hover:bg-[#EBF0F7]" [class.font-bold]="show_revenue">{{ 'PROFILE._revenue' | translate }}</a>
+        </li>
+        <li>
+          <a (click)="getPayment()" class="block cursor-pointer px-4 py-2 hover:bg-[#EBF0F7]">{{ 'PROFILE._payment_dashboard' | translate }}</a>
+        </li>
+        @if(isProvider){
+          <li>
+            <a (click)="getSovereignty()" class="block cursor-pointer px-4 py-2 hover:bg-[#EBF0F7]" [class.font-bold]="show_sovereignty">{{ 'PROFILE._sovereignty_assessment' | translate }}</a>
+          </li>
+        }
         <!--li>
             <a (click)="goToOrders()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'PROFILE._orders' | translate }}</a>
         </li-->
-        </ul>
+      </ul>
     </div>
 
-     <div class="w-full grid lg:grid-cols-20/80">
-        <div class="hidden lg:block">
-        <div class="w-48 h-fit text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-            @if(loggedAsUser){
-                <button (click)="getProfile()" id="general-button" aria-current="true" class="block w-full px-4 py-2 text-white bg-primary-100 border-b border-gray-200 rounded-t-lg cursor-pointer dark:border-gray-600 hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-                    {{ 'PROFILE._general' | translate }}
-                </button>
-            } @else {
-                <button (click)="getOrgProfile()" id="general-button" aria-current="true" class="block w-full px-4 py-2 text-white bg-primary-100 border-b border-gray-200 rounded-t-lg cursor-pointer dark:border-gray-600 hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-                    {{ 'PROFILE._general' | translate }}
-                </button>
-            }
-            <button (click)="getBilling()" id="bill-button" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-                {{ 'PROFILE._bill' | translate }}
-            </button>
-
-            <button (click)="getRevenue()" id="revenue-button" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-                {{ 'PROFILE._revenue' | translate }}
-            </button>
-
-            <button (click)="getPayment()" id="payment-button" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-                {{ 'PROFILE._payment_dashboard' | translate }}
-            </button>
-
-            <button (click)="getLear()" id="lear-button" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-              {{ 'PROFILE._lear_link' | translate }}
-            </button>
-        </div>
-        </div>
-        <div>
+    <div class="flex w-full flex-col items-start gap-6 lg:flex-row">
+      <nav class="hidden w-[324px] shrink-0 flex-col overflow-hidden rounded-2xl lg:flex" data-cy="profileSettingsNav">
+        @if(!loggedAsUser){
+          <button (click)="getOrgProfile()" id="company-settings-button" data-cy="profileNavCompany" type="button" [class.nav-active]="show_org_profile" [attr.aria-current]="show_org_profile ? 'page' : null" class="settings-nav-item flex h-16 w-full items-center gap-3 border-b border-[#8EACE1] px-6 py-[5px] text-left text-[18px] leading-[28px] text-[#2D58A7] transition-colors enabled:hover:bg-[#B6CAEC]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2D58A7]">
+            <svg class="h-6 w-6 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path fill-rule="evenodd" d="M4.5 2.25a.75.75 0 0 0 0 1.5v16.5h-.75a.75.75 0 0 0 0 1.5h16.5a.75.75 0 0 0 0-1.5h-.75V3.75a.75.75 0 0 0 0-1.5h-15ZM9 6a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H9Zm-.75 3.75A.75.75 0 0 1 9 9h1.5a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75ZM9 12a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H9Zm3.75-5.25A.75.75 0 0 1 13.5 6H15a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM13.5 9a.75.75 0 0 0 0 1.5H15A.75.75 0 0 0 15 9h-1.5Zm-.75 3.75a.75.75 0 0 1 .75-.75H15a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM9 19.5v-2.25a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-.75.75h-4.5A.75.75 0 0 1 9 19.5Z" clip-rule="evenodd"/>
+            </svg>
+            <span class="min-w-0 flex-1 truncate">{{ 'PROFILE._company_settings' | translate }}</span>
+          </button>
+        }
+        <button (click)="getProfile()" id="profile-settings-button" data-cy="profileNavProfile" type="button" [class.nav-active]="show_profile" [attr.aria-current]="show_profile ? 'page' : null" class="settings-nav-item flex h-16 w-full items-center gap-3 border-b border-[#8EACE1] px-6 py-[5px] text-left text-[18px] leading-[28px] text-[#2D58A7] transition-colors enabled:hover:bg-[#B6CAEC]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2D58A7]">
+          <svg class="h-6 w-6 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd"/>
+          </svg>
+          <span class="min-w-0 flex-1 truncate">{{ 'PROFILE._profile_settings' | translate }}</span>
+        </button>
+        <button (click)="getBilling()" id="billing-button" data-cy="profileNavBilling" type="button" [class.nav-active]="show_billing" [attr.aria-current]="show_billing ? 'page' : null" class="settings-nav-item flex h-16 w-full items-center gap-3 border-b border-[#8EACE1] px-6 py-[5px] text-left text-[18px] leading-[28px] text-[#2D58A7] transition-colors enabled:hover:bg-[#B6CAEC]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2D58A7]">
+          <svg class="h-6 w-6 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2.273 5.625A4.483 4.483 0 0 1 5.25 4.5h13.5c1.141 0 2.183.425 2.977 1.125A3 3 0 0 0 18.75 3H5.25a3 3 0 0 0-2.977 2.625ZM2.273 8.625A4.483 4.483 0 0 1 5.25 7.5h13.5c1.141 0 2.183.425 2.977 1.125A3 3 0 0 0 18.75 6H5.25a3 3 0 0 0-2.977 2.625ZM5.25 9a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h13.5a3 3 0 0 0 3-3v-6a3 3 0 0 0-3-3H15a.75.75 0 0 0-.75.75 2.25 2.25 0 0 1-4.5 0A.75.75 0 0 0 9 9H5.25Z"/>
+          </svg>
+          <span class="min-w-0 flex-1 truncate">{{ 'PROFILE._billing' | translate }}</span>
+        </button>
+        <button (click)="getRevenue()" id="revenue-sharing-button" data-cy="profileNavRevenue" type="button" [class.nav-active]="show_revenue" [attr.aria-current]="show_revenue ? 'page' : null" class="settings-nav-item flex h-16 w-full items-center gap-3 border-b border-[#8EACE1] px-6 py-[5px] text-left text-[18px] leading-[28px] text-[#2D58A7] transition-colors enabled:hover:bg-[#B6CAEC]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2D58A7]">
+          <svg class="h-6 w-6 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M2.25 13.5a8.25 8.25 0 0 1 8.25-8.25.75.75 0 0 1 .75.75v6.75H18a.75.75 0 0 1 .75.75 8.25 8.25 0 0 1-16.5 0Z" clip-rule="evenodd"/>
+            <path fill-rule="evenodd" d="M12.75 3a.75.75 0 0 1 .75-.75 8.25 8.25 0 0 1 8.25 8.25.75.75 0 0 1-.75.75h-7.5a.75.75 0 0 1-.75-.75V3Z" clip-rule="evenodd"/>
+          </svg>
+          <span class="min-w-0 flex-1 truncate">{{ 'PROFILE._revenue' | translate }}</span>
+        </button>
+        <button (click)="getPayment()" id="payment-dashboard-button" data-cy="profileNavPayment" type="button" class="settings-nav-item flex h-16 w-full items-center gap-3 border-b border-[#8EACE1] px-6 py-[5px] text-left text-[18px] leading-[28px] text-[#2D58A7] transition-colors enabled:hover:bg-[#B6CAEC]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2D58A7]">
+          <svg class="h-6 w-6 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4.5 3.75a3 3 0 0 0-3 3v.75h21v-.75a3 3 0 0 0-3-3h-15Z"/>
+            <path fill-rule="evenodd" d="M22.5 9.75h-21v7.5a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3v-7.5Zm-18 3.75a.75.75 0 0 1 .75-.75h6a.75.75 0 0 1 0 1.5h-6a.75.75 0 0 1-.75-.75Zm.75 2.25a.75.75 0 0 0 0 1.5h3a.75.75 0 0 0 0-1.5h-3Z" clip-rule="evenodd"/>
+          </svg>
+          <span class="min-w-0 flex-1 truncate">{{ 'PROFILE._payment_dashboard' | translate }}</span>
+          <svg class="h-5 w-5 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.25 5.5a.75.75 0 0 0-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 1 1.5 0v4A2.25 2.25 0 0 1 12.75 17h-8.5A2.25 2.25 0 0 1 2 14.75v-8.5A2.25 2.25 0 0 1 4.25 4h5a.75.75 0 0 1 0 1.5h-5Z" clip-rule="evenodd"/>
+            <path fill-rule="evenodd" d="M6.194 12.753a.75.75 0 0 0 1.06.053L16.5 4.44v2.81a.75.75 0 0 0 1.5 0v-4.5a.75.75 0 0 0-.75-.75h-4.5a.75.75 0 0 0 0 1.5h2.553l-9.056 8.194a.75.75 0 0 0-.053 1.06Z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+        @if(isProvider){
+          <button (click)="getSovereignty()" id="sovereignty-button" data-cy="profileNavSovereignty" type="button" [class.nav-active]="show_sovereignty" [attr.aria-current]="show_sovereignty ? 'page' : null" class="settings-nav-item flex h-16 w-full items-center gap-3 border-b border-[#8EACE1] px-6 py-[5px] text-left text-[18px] leading-[28px] text-[#2D58A7] transition-colors enabled:hover:bg-[#B6CAEC]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2D58A7]">
+            <svg class="h-6 w-6 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v.756a49.106 49.106 0 0 1 9.152 1 .75.75 0 0 1-.152 1.485h-1.918l2.474 10.124a.75.75 0 0 1-.375.84A6.723 6.723 0 0 1 18.75 18a6.723 6.723 0 0 1-3.181-.795.75.75 0 0 1-.375-.84l2.474-10.124H12.75v13.28c1.293.076 2.534.343 3.697.776a.75.75 0 0 1-.262 1.453h-8.37a.75.75 0 0 1-.262-1.453c1.162-.433 2.404-.7 3.697-.775V6.24H6.332l2.474 10.124a.75.75 0 0 1-.375.84A6.723 6.723 0 0 1 5.25 18a6.723 6.723 0 0 1-3.181-.795.75.75 0 0 1-.375-.84L4.168 6.241H2.25a.75.75 0 0 1-.152-1.485 49.105 49.105 0 0 1 9.152-1V3a.75.75 0 0 1 .75-.75Zm4.878 13.543 1.872-7.662 1.872 7.662h-3.744Zm-9.756 0L5.25 8.131l-1.872 7.662h3.744Z" clip-rule="evenodd"/>
+            </svg>
+            <span class="min-w-0 flex-1 truncate">{{ 'PROFILE._sovereignty_assessment' | translate }}</span>
+          </button>
+        }
+      </nav>
+      <div class="w-full min-w-0 flex-1">
         @if(show_profile){
             <user-info></user-info>
         }
@@ -75,6 +108,10 @@
         @if(show_revenue){
             <provider-revenue-sharing></provider-revenue-sharing>
         }
-        </div>
+        @if(show_sovereignty && isProvider){
+            <sovereignty-info></sovereignty-info>
+        }
+      </div>
     </div>
+  </div>
 </div>
