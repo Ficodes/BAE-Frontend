@@ -29,7 +29,9 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   show_orders: boolean = false;
   show_billing: boolean = false;
   show_revenue: boolean = false;
+  show_sovereignty: boolean = false;
   loggedAsUser: boolean = true;
+  isProvider: boolean = false;
   profile:any;
   partyId:any='';
   token:string='';
@@ -73,6 +75,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
       if(aux.logged_as==aux.id){
         this.partyId = aux.partyId;
         this.loggedAsUser=true;
+        this.isProvider=false;
         this.show_profile=true;
         this.show_org_profile=false;
         this.getProfile();
@@ -80,6 +83,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
         let loggedOrg = aux.organizations.find((element: { id: any; }) => element.id == aux.logged_as);
         this.partyId = loggedOrg.partyId;
         this.loggedAsUser=false;
+        this.isProvider = (loggedOrg?.roles || []).some((role: any) => String(role.name).toLowerCase() === environment.SELLER_ROLE.toLowerCase());
         this.show_profile=false;
         this.show_org_profile=true;
         this.getOrgProfile();
@@ -96,6 +100,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     this.show_orders=false;
     this.show_org_profile=false;
     this.show_revenue=false;
+    this.show_sovereignty=false;
     this.selectGeneral();
   }
 
@@ -105,6 +110,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     this.show_orders=false;
     this.show_org_profile=true;
     this.show_revenue=false;
+    this.show_sovereignty=false;
     this.selectGeneral();
     setTimeout(() => {
       initFlowbite();
@@ -118,6 +124,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     this.show_orders=false;
     this.show_org_profile=false;
     this.show_revenue=false;
+    this.show_sovereignty=false;
     this.cdr.detectChanges();
     initFlowbite();
   }
@@ -129,8 +136,19 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     this.show_orders=false;
     this.show_org_profile=false;
     this.show_revenue=true;
+    this.show_sovereignty=false;
     this.cdr.detectChanges();
     initFlowbite();
+  }
+
+  getSovereignty(){
+    this.show_billing=false;
+    this.show_profile=false;
+    this.show_orders=false;
+    this.show_org_profile=false;
+    this.show_revenue=false;
+    this.show_sovereignty=true;
+    this.cdr.detectChanges();
   }
 
   getPayment() {
@@ -154,6 +172,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     this.show_orders=true;
     this.show_org_profile=false;
     this.show_revenue=false;
+    this.show_sovereignty=false;
     this.cdr.detectChanges();
   }
 

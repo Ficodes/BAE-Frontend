@@ -46,6 +46,7 @@ export class AppInitService {
                 environment.googleTagManagerId = config.googleTagManagerId ?? '';
                 environment.providerThemeName = config.theme ?? 'default';
                 environment.LEAR_URL = config.learUrl ?? '';
+                environment.SOVEREIGNTY_FRAMEWORK_URL = config.sovereigntyFrameworkUrl || environment.SOVEREIGNTY_FRAMEWORK_URL;
                 environment.DSP_CONTRACT_DEFINITION_SCHEMA = config.dspContractDefinitionSchema || environment.DSP_CONTRACT_DEFINITION_SCHEMA
                 environment.DSP_SCHEMA = config.dspSchema || environment.DSP_SCHEMA
                 applyRuntimeFeaturesConfig(config);

@@ -36,6 +36,15 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
   email:string='';
   selectedDate:any;
   isReadOnly:boolean=false;
+  isProvider:boolean=false;
+  savedCountry:string='';
+  vatNumber:string='';
+  addressMediumId:string|null=null;
+  addressForm = new FormGroup({
+    city: new FormControl('', Validators.maxLength(250)),
+    postCode: new FormControl('', Validators.maxLength(250)),
+    street: new FormControl('', Validators.maxLength(1000)),
+  });
   profileForm = new FormGroup({
     name: new FormControl('', [Validators.required]),
     website: new FormControl(''),
@@ -65,6 +74,8 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
   phonePrefix: any = phoneNumbers[0];
   prefixCheck: boolean = false;
   showEditMedium: boolean = false;
+  showNewContact: boolean = false;
+  newContactType: string = '';
   selectedMedium:any;
   selectedMediumType:any;
   toastVisibility: boolean = false;
@@ -115,6 +126,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
   ];
 
   @ViewChild('imgURL') imgURL!: ElementRef;
+  @ViewChild('contactCategory') contactCategory?: ElementRef;
 
   public files: NgxFileDropEntry[] = [];
   private destroy$ = new Subject<void>();
@@ -155,6 +167,23 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  get learUrl(): string {
+    return environment.LEAR_URL;
+  }
+
+  get countryLocked(): boolean {
+    return this.isReadOnly || (this.isProvider && !!this.savedCountry);
+  }
+
+  get countryName(): string {
+    const code = this.profileForm.value.country ?? '';
+    return this.euCountries.find(item => item.code == code)?.name ?? code;
+  }
+
+  get becomeProviderUrl(): string {
+    return environment.DOME_REGISTER_LINK || '/providers';
+  }
+
   initPartyInfo(){
     let aux = this.localStorage.getObject('login_items') as LoginInfo;
     if(JSON.stringify(aux) != '{}' && (((aux.expire - moment().unix())-4) > 0)) {
@@ -167,6 +196,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
           const orgRoles = loggedOrg.roles.map((role: any) => role.name);
           const hasOrgAdminRole = orgRoles.some((role: any) => role === environment.ORG_ADMIN_ROLE);
           this.isReadOnly = !hasOrgAdminRole;
+          this.isProvider = orgRoles.some((role: any) => String(role).toLowerCase() === environment.SELLER_ROLE.toLowerCase());
         }
       } else {
         this.partyId = aux.partyId;
@@ -194,6 +224,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
   }
 
   updateProfile(){
+    this.syncAddressMedium();
     let mediums = [];
     let chars = [];
     if(this.imgPreview!=''){
@@ -234,6 +265,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
         }
       })
     }
+    chars.push(...(this.profile?.partyCharacteristic ?? []).filter((c: any) => c.name === 'sovereigntyAssessment'));
     for(let i=0; i<this.contactmediums.length; i++){
       if(this.contactmediums[i].mediumType == 'Email'){
         mediums.push({
@@ -301,6 +333,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
 
   loadProfileData(profile:any){
     this.profileForm.controls['name'].setValue(profile.tradingName);
+    this.vatNumber = (profile.externalReference?.[0]?.name ?? '').replace(/^did:elsi:/, '');
     if(profile.contactMedium){
       for(let i=0; i<this.profile.contactMedium.length; i++){
         if(profile.contactMedium[i].mediumType == 'Email'){
@@ -336,10 +369,12 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
               contactType: profile.contactMedium[i].characteristic.contactType,
               phoneNumber: profile.contactMedium[i].characteristic.phoneNumber
             }
-          })          
+          })
         }
       }
     }
+    this.loadAddressForm();
+    this.savedCountry='';
     if(profile.partyCharacteristic){
       for(let i=0;i<profile.partyCharacteristic.length;i++){
         if(profile.partyCharacteristic[i].name == 'logo'){
@@ -352,6 +387,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
           this.profileForm.controls['website'].setValue(profile.partyCharacteristic[i].value);
         } else if(profile.partyCharacteristic[i].name=='country') {
           this.profileForm.controls['country'].setValue(profile.partyCharacteristic[i].value);
+          this.savedCountry=profile.partyCharacteristic[i].value ?? '';
         } else if(profile.partyCharacteristic[i].name=='contractManagement') {
           const contractManagement = profile.partyCharacteristic[i].value ?? {};
           this.profileForm.controls['contractManagementAddress'].setValue(contractManagement.address ?? '');
@@ -359,6 +395,51 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
           this.profileForm.controls['contractManagementScopes'].setValue(this.formatContractManagementScopes(contractManagement.scope));
         }
       }
+    }
+  }
+
+  loadAddressForm(){
+    const medium = this.contactmediums.find(item => item.mediumType == 'PostalAddress');
+    this.addressMediumId = medium ? medium.id : null;
+    this.addressForm.reset({
+      city: medium?.characteristic?.city ?? '',
+      postCode: medium?.characteristic?.postCode ?? '',
+      street: medium?.characteristic?.street1 ?? ''
+    });
+  }
+
+  syncAddressMedium(){
+    if (this.addressForm.pristine) {
+      return;
+    }
+    const city = this.addressForm.value.city?.trim() ?? '';
+    const postCode = this.addressForm.value.postCode?.trim() ?? '';
+    const street1 = this.addressForm.value.street?.trim() ?? '';
+    const countryCode = this.profileForm.value.country ?? '';
+    const country = this.euCountries.find(item => item.code == countryCode)?.name ?? countryCode;
+    const index = this.contactmediums.findIndex(item => item.id === this.addressMediumId);
+    if (index !== -1) {
+      const current = this.contactmediums[index];
+      this.contactmediums[index] = {
+        ...current,
+        characteristic: { ...current.characteristic, city, postCode, street1, country }
+      };
+    } else if (city !== '' || postCode !== '' || street1 !== '') {
+      const id = uuidv4();
+      this.contactmediums.push({
+        id,
+        mediumType: 'PostalAddress',
+        preferred: false,
+        characteristic: {
+          contactType: 'PostalAddress',
+          city,
+          country,
+          postCode,
+          stateOrProvince: '',
+          street1
+        }
+      });
+      this.addressMediumId = id;
     }
   }
 
@@ -385,6 +466,10 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
     }
 
     return '';
+  }
+
+  get contactCards(): any[] {
+    return this.contactmediums.filter(medium => medium.mediumType !== 'PostalAddress');
   }
 
   getMediumContactType(medium: any, fallback: string = ''): string {
@@ -478,12 +563,45 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
       }
     }
     this.mediumForm.reset();
+    this.closeNewContact();
+    if (!this.addressMediumId && this.addressForm.pristine) {
+      this.loadAddressForm();
+    }
+  }
+
+  openNewContact(){
+    if (!this.showNewContact) {
+      this.resetContactType();
+      this.showNewContact = true;
+    }
+    setTimeout(() => this.contactCategory?.nativeElement.focus());
+  }
+
+  closeNewContact(){
+    this.showNewContact = false;
+    this.resetContactType();
+  }
+
+  selectContactType(event: any){
+    const contactTitle = this.mediumForm.value.contactTitle ?? '';
+    this.onTypeChange(event);
+    this.newContactType = event.target.value;
+    this.mediumForm.controls['contactTitle'].setValue(contactTitle);
+  }
+
+  private resetContactType(){
+    this.newContactType = '';
+    this.prefixCheck = false;
+    this.onTypeChange({ target: { value: 'email' } });
   }
 
   removeMedium(medium:any){
     const index = this.contactmediums.findIndex(item => item.id === medium.id);
     if (index !== -1) {
       this.contactmediums.splice(index, 1);
+    }
+    if (medium.id === this.addressMediumId) {
+      this.loadAddressForm();
     }
   }
 
@@ -578,6 +696,9 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
         }
         this.mediumForm.reset();
         this.showEditMedium=false;
+        if (this.selectedMedium.id === this.addressMediumId) {
+          this.loadAddressForm();
+        }
       }
   }
 
@@ -723,7 +844,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
               const base64String: string = e.target.result.split(',')[1];
               let fileBody = {
                 content: {
-                  name: 'orglogo'+file.name,
+                  name: 'orglogo'+this.sanitizeFilename(file.name),
                   data: base64String
                 },
                 contentType: file.type,
@@ -794,6 +915,10 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
 
   isValidFilename(filename: string): boolean {
     return this.filenameRegex.test(filename);
+  }
+
+  sanitizeFilename(filename: string): string {
+    return filename.normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9_.-]+/g, '_');
   }
  
   public fileOver(event: any){

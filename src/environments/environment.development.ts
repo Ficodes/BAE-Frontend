@@ -102,6 +102,7 @@ export const environment = {
   ORG_ADMIN_ROLE: 'orgAdmin',
   CERTIFIER_ROLE: 'certifier',
   LEAR_URL: '',
+  SOVEREIGNTY_FRAMEWORK_URL: 'https://commission.europa.eu/document/09579818-64a6-4dd5-9577-446ab6219113_en',
   LAUNCH_VALIDATION_ENABLED: false,
   TENDER_DEV_BUTTONS_OPEN_CLOSE_ENABLED: true,
   DSP_ENABLED: true,

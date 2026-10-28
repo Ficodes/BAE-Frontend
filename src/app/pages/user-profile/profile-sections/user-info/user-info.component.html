@@ -1,68 +1,96 @@
 @if (loading) {
-    <div role="status" class="w-3/4 md:w-4/5 h-full flex justify-center align-middle">
-      <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <div role="status" class="flex w-full justify-center py-16">
+      <svg aria-hidden="true" class="h-12 w-12 animate-spin text-[#D8DADE] fill-[#2D58A7]" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
           <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
       </svg>
       <span class="sr-only">Loading...</span>
     </div>
   } @else {
-    <div class="bg-secondary-50 dark:bg-secondary-100 border border-secondary-50 dark:border-gray-800 p-8 rounded-lg">
-        <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'PROFILE._account' | translate }}</h2>
-        <hr class="h-px mr-4 ml-4 bg-primary-100 dark:bg-white border-0">
-        <div class="m-4 grid grid-cols-2 gap-4">
-            <div>
-                <span class="font-bold dark:text-white">{{ 'PROFILE._user_id' | translate }}</span>
-                <input type="text" id="username"
-                class="mb-2 bg-gray-300 border border-gray-400 text-primary-100 dark:bg-secondary-200 dark:border-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 cursor-not-allowed" value="{{profile.externalReference[0].name}}" disabled readonly>
-                <span class="font-bold dark:text-white">{{ 'PROFILE._email' | translate }}</span>
-                <input type="text" id="email" class="mb-2 bg-gray-300 border border-gray-400 text-primary-100 dark:bg-secondary-200 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 cursor-not-allowed" value="{{email}}" disabled readonly>
+    <div class="flex flex-col gap-6 font-[Blinker] lg:gap-10">
+      <div class="flex flex-col items-start justify-center gap-2">
+        <h2 class="text-[30px] font-bold leading-[36px] text-[#1A3360]">{{ 'PROFILE._profile_settings' | translate }}</h2>
+      </div>
+
+      <div class="flex flex-col gap-11 rounded-xl bg-white p-6">
+        <section class="flex flex-col gap-4" data-cy="profileAccount">
+          <h3 class="text-[20px] font-bold leading-6 text-[#1A3360]">{{ 'PROFILE._account' | translate }}</h3>
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label for="username" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._user_id' | translate }}</label>
+              <input type="text" id="username"
+              class="block h-10 w-full cursor-not-allowed rounded-md border border-[#D8DADE] bg-[#F4F5F6] px-3 py-2 text-[16px] leading-6 text-[#858B99] focus:border-[#D8DADE] focus:outline-none focus:ring-0" value="{{profile.externalReference[0].name}}" disabled readonly>
             </div>
-            <div>
-                <span class="font-bold dark:text-white">{{ 'PROFILE._token' | translate }}</span>
-                <input type="text" id="token" class="mb-2 bg-gray-300 border border-gray-400  text-primary-100 dark:bg-secondary-200 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 cursor-not-allowed" value="{{token}}" disabled readonly>
+            <div class="flex flex-col gap-2">
+              <label for="email" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._email' | translate }}</label>
+              <input type="text" id="email"
+              class="block h-10 w-full cursor-not-allowed rounded-md border border-[#D8DADE] bg-[#F4F5F6] px-3 py-2 text-[16px] leading-6 text-[#858B99] focus:border-[#D8DADE] focus:outline-none focus:ring-0" value="{{email}}" disabled readonly>
             </div>
-        </div>
-        <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'PROFILE._profile' | translate }}</h2>
-        <hr class="h-px mr-4 ml-4 bg-primary-100 dark:bg-white border-0">
-        <form class="m-4 grid grid-cols-2 gap-4" [formGroup]="userProfileForm">
-            <div>
-                <label for="user-name" class="font-bold dark:text-white">{{ 'PROFILE._name' | translate }}</label>
-                <input formControlName="name" type="text" id="user-name"
-                class="mb-2 bg-gray-50 text-gray-900 dark:bg-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                [ngClass]="(userProfileForm.get('name')?.invalid == true && userProfileForm.value.name!='') || (userProfileForm.get('name')?.touched && userProfileForm.value.name=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'" />
-                @if(userProfileForm.get('name')?.invalid && userProfileForm.get('name')?.errors?.['required'] && (userProfileForm.get('name')?.touched && userProfileForm.value.name=='')){
-                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">This field is mandatory.</span></p>
-                } 
-                <label for="treatment" class="font-bold dark:text-white">{{ 'PROFILE._treatment' | translate }}</label>
+            <div class="flex flex-col gap-2 md:col-span-2">
+              <label for="token" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._token' | translate }}</label>
+              <input type="text" id="token"
+              class="block h-10 w-full cursor-not-allowed rounded-md border border-[#D8DADE] bg-[#F4F5F6] px-3 py-2 text-[16px] leading-6 text-[#858B99] focus:border-[#D8DADE] focus:outline-none focus:ring-0" value="{{token}}" disabled readonly>
+            </div>
+          </div>
+        </section>
+
+        <section class="flex flex-col gap-4" data-cy="profilePersonal">
+          <h3 class="text-[20px] font-bold leading-6 text-[#1A3360]">{{ 'PROFILE._personal_information' | translate }}</h3>
+          <form class="grid grid-cols-1 gap-4 md:grid-cols-3" [formGroup]="userProfileForm">
+            <div class="flex flex-col gap-2">
+              <label for="user-name" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._name' | translate }}</label>
+              <input formControlName="name" type="text" id="user-name"
+              class="block h-10 w-full rounded-md border bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] placeholder:text-[#858B99] focus:outline-none focus:ring-1"
+              [ngClass]="(userProfileForm.get('name')?.invalid == true && userProfileForm.value.name!='') || (userProfileForm.get('name')?.touched && userProfileForm.value.name=='') ? 'border-red-600 focus:border-red-600 focus:ring-red-600' : 'border-[#BCBFC7] focus:border-[#2D58A7] focus:ring-[#2D58A7]'" />
+              @if(userProfileForm.get('name')?.invalid && userProfileForm.get('name')?.errors?.['required'] && (userProfileForm.get('name')?.touched && userProfileForm.value.name=='')){
+                <p class="text-[12px] leading-[14px] text-red-600">This field is mandatory.</p>
+              }
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="lastname" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._lastname' | translate }}</label>
+              <input type="text" formControlName="lastname" id="lastname"
+              class="block h-10 w-full rounded-md border bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] placeholder:text-[#858B99] focus:outline-none focus:ring-1"
+              [ngClass]="(userProfileForm.get('lastname')?.invalid == true && userProfileForm.value.lastname!='') || (userProfileForm.get('lastname')?.touched && userProfileForm.value.lastname=='') ? 'border-red-600 focus:border-red-600 focus:ring-red-600' : 'border-[#BCBFC7] focus:border-[#2D58A7] focus:ring-[#2D58A7]'" />
+              @if(userProfileForm.get('lastname')?.invalid && userProfileForm.get('lastname')?.errors?.['required'] && (userProfileForm.get('lastname')?.touched && userProfileForm.value.lastname=='')){
+                <p class="text-[12px] leading-[14px] text-red-600">This field is mandatory.</p>
+              }
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="treatment" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._treatment' | translate }}</label>
+              <div class="relative">
                 <select id="treatment" formControlName="treatment"
-                class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                class="block h-10 w-full appearance-none rounded-md border border-[#BCBFC7] bg-white !bg-none py-2 pl-3 pr-10 text-[16px] leading-6 text-[#202D3E] focus:border-[#2D58A7] focus:outline-none focus:ring-1 focus:ring-[#2D58A7]">
                     <option value="">I'd rather not say</option>
                     <option value="Miss">Miss</option>
                     <option value="Mrs">Mrs</option>
                     <option value="Mr">Mr</option>
                     <option value="Ms">Ms</option>
                 </select>
-                <label for="gender" class="font-bold dark:text-white">{{ 'PROFILE._gender' | translate }}</label>
+                <svg class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#202D3E]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="gender" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._gender' | translate }}</label>
+              <div class="relative">
                 <select id="gender" formControlName="gender"
-                class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                class="block h-10 w-full appearance-none rounded-md border border-[#BCBFC7] bg-white !bg-none py-2 pl-3 pr-10 text-[16px] leading-6 text-[#202D3E] focus:border-[#2D58A7] focus:outline-none focus:ring-1 focus:ring-[#2D58A7]">
                     <option value="">I'd rather not say</option>
                     <option value="Female">Female</option>
                     <option value="Male">Male</option>
                     <option value="Other">Other</option>
                 </select>
+                <svg class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#202D3E]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
+                </svg>
+              </div>
             </div>
-            <div>
-                <label for="lastname" class="font-bold dark:text-white">{{ 'PROFILE._lastname' | translate }}</label>
-                <input type="text" formControlName="lastname" id="lastname"
-                class="mb-2 bg-gray-50 text-gray-900 dark:bg-secondary-300 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                [ngClass]="(userProfileForm.get('lastname')?.invalid == true && userProfileForm.value.lastname!='') || (userProfileForm.get('lastname')?.touched && userProfileForm.value.lastname=='') ? 'border-red-600' : 'border-gray-300 dark:border-secondary-200'" />
-                @if(userProfileForm.get('lastname')?.invalid && userProfileForm.get('lastname')?.errors?.['required'] && (userProfileForm.get('lastname')?.touched && userProfileForm.value.lastname=='')){
-                    <p class="text-sm text-red-600 dark:text-red-500"><span class="font-medium">This field is mandatory.</span></p>
-                } 
-                <label for="marital-status" class="font-bold dark:text-white">{{ 'PROFILE._marital_status' | translate }}</label>
+            <div class="flex flex-col gap-2">
+              <label for="marital-status" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._marital_status' | translate }}</label>
+              <div class="relative">
                 <select id="marital-status" formControlName="maritalstatus"
-                class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                class="block h-10 w-full appearance-none rounded-md border border-[#BCBFC7] bg-white !bg-none py-2 pl-3 pr-10 text-[16px] leading-6 text-[#202D3E] focus:border-[#2D58A7] focus:outline-none focus:ring-1 focus:ring-[#2D58A7]">
                     <option value="">I'd rather not say</option>
                     <option value="Divorced">Divorced</option>
                     <option value="Married">Married</option>
@@ -70,39 +98,56 @@
                     <option value="Single">Single</option>
                     <option value="Widowed">Widowed</option>
                 </select>
-                <label for="nacionality" class="font-bold dark:text-white">{{ 'PROFILE._nacionality' | translate }}</label>
-                <input type="text" formControlName="nacionality" id="nacionality"
-                class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                <svg class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#202D3E]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
+                </svg>
+              </div>
             </div>
-        </form>
-        <h2 class="md:text-3xl lg:text-4xl font-bold text-primary-100 ml-4 dark:text-white m-4">{{ 'PROFILE._birthdate' | translate }}</h2>
-        <hr class="h-px mr-4 ml-4 bg-primary-100 dark:bg-white border-0">
-        <form class="m-4 grid grid-cols-2 gap-4" [formGroup]="userProfileForm">
-            <div>
-                <label for="birthdate" class="font-bold dark:text-white">{{ 'PROFILE._date' | translate }}</label>
-                <input datepicker type="date" placeholder="Select date"  formControlName="birthdate" id="birthdate"
-                class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+            <div class="flex flex-col gap-2">
+              <label for="nacionality" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._nacionality' | translate }}</label>
+              <input type="text" formControlName="nacionality" id="nacionality"
+              class="block h-10 w-full rounded-md border border-[#BCBFC7] bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] placeholder:text-[#858B99] focus:border-[#2D58A7] focus:outline-none focus:ring-1 focus:ring-[#2D58A7]" />
+            </div>
+          </form>
+        </section>
 
-                <label for="city" class="font-bold dark:text-white">{{ 'PROFILE._city' | translate }}</label>
-                <input type="text" formControlName="city" id="city"
-                class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+        <section class="flex flex-col gap-4" data-cy="profileBirth">
+          <h3 class="text-[20px] font-bold leading-6 text-[#1A3360]">{{ 'PROFILE._birthdate' | translate }}</h3>
+          <form class="grid grid-cols-1 gap-4 md:grid-cols-3" [formGroup]="userProfileForm">
+            <div class="flex flex-col gap-2">
+              <label for="birthdate" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._date' | translate }}</label>
+              <input datepicker type="date" placeholder="Select date"  formControlName="birthdate" id="birthdate"
+              class="block h-10 w-full rounded-md border border-[#BCBFC7] bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] placeholder:text-[#858B99] focus:border-[#2D58A7] focus:outline-none focus:ring-1 focus:ring-[#2D58A7]" />
             </div>
-            <div class="align-items-bottom align-bottom">
-                <label for="country" class="font-bold dark:text-white">{{ 'PROFILE._country' | translate }}</label>
+            <div class="flex flex-col gap-2">
+              <label for="city" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._city' | translate }}</label>
+              <input type="text" formControlName="city" id="city"
+              class="block h-10 w-full rounded-md border border-[#BCBFC7] bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] placeholder:text-[#858B99] focus:border-[#2D58A7] focus:outline-none focus:ring-1 focus:ring-[#2D58A7]" />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="country" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._country' | translate }}</label>
+              <div class="relative">
                 <select id="country" formControlName="country"
-                class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 dark:bg-secondary-300 dark:border-secondary-200 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                class="block h-10 w-full appearance-none rounded-md border border-[#BCBFC7] bg-white !bg-none py-2 pl-3 pr-10 text-[16px] leading-6 text-[#202D3E] focus:border-[#2D58A7] focus:outline-none focus:ring-1 focus:ring-[#2D58A7]">
                     <option value="">Select country</option>
                     @for(country of countries; track country.code){
                         <option value="{{country.code}}">{{country.name}}</option>
                     }
                 </select>
+                <svg class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#202D3E]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
+                </svg>
+              </div>
             </div>
-        </form>
-        <div class="flex w-full justify-end">
-            <button type="button" [disabled]="!userProfileForm.valid" [ngClass]="!userProfileForm.valid ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"  (click)="updateProfile()"class="m-2 flex w-fit justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-900">
-                {{ 'PROFILE._update' | translate }}
-            </button>
-        </div>
+          </form>
+        </section>
+      </div>
+
+      <div class="flex w-full justify-end lg:pt-4">
+        <button data-cy="profileUpdate" type="button" [disabled]="!userProfileForm.valid" [ngClass]="!userProfileForm.valid ? 'cursor-not-allowed bg-[#D8DADE] text-[#858B99]' : 'cursor-pointer bg-[#2D58A7] text-white hover:bg-[#234481]'" (click)="updateProfile()" class="inline-flex h-11 w-full items-center justify-center rounded-lg px-6 text-[18px] font-semibold leading-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7] focus-visible:ring-offset-2 sm:w-[260px]">
+          {{ 'PROFILE._save_changes' | translate }}
+        </button>
+      </div>
     </div>
 }
 @if(showError){
