@@ -47,6 +47,7 @@ export class AppInitService {
                 environment.googleTagManagerId = config.googleTagManagerId ?? '';
                 environment.providerThemeName = config.theme ?? 'default';
                 environment.LEAR_URL = config.learUrl ?? '';
+                environment.SOVEREIGNTY_FRAMEWORK_URL = config.sovereigntyFrameworkUrl || environment.SOVEREIGNTY_FRAMEWORK_URL;
                 environment.AI_SEARCH_API_KEY = aiConfig.aiApiKey ?? config.aiApiKey ?? '';
                 environment.AI_SEARCH_API_URL = aiConfig.aiApiUrl ?? config.aiApiUrl ?? '';
                 environment.AI_SEARCH_PROFILE = aiConfig.aiSearchProfile ?? config.aiSearchProfile ?? '';

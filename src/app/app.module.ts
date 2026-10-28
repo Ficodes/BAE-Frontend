@@ -73,6 +73,7 @@ import { BillingInfoComponent } from './pages/user-profile/profile-sections/bill
 import { OrderInfoComponent } from './pages/user-profile/profile-sections/order-info/order-info.component';
 import { OrgInfoComponent } from './pages/user-profile/profile-sections/org-info/org-info.component';
 import { UserInfoComponent } from './pages/user-profile/profile-sections/user-info/user-info.component';
+import { SovereigntyInfoComponent } from './pages/user-profile/profile-sections/sovereignty-info/sovereignty-info.component';
 import { UserProfileComponent } from "./pages/user-profile/user-profile.component";
 import { AppInitService } from './services/app-init.service';
 import { GoogleTagManagerService } from './services/google-tag-manager.service';
@@ -133,6 +134,7 @@ import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.c
     SellerOfferingsComponent,
     InventoryProductsComponent,
     UserInfoComponent,
+    SovereigntyInfoComponent,
     BillingInfoComponent,
     OrderInfoComponent,
     SellerCatalogsComponent,
