@@ -27,31 +27,135 @@
     </div>
 
     <div class="flex-1 min-w-0 flex flex-col">
-      <div class="bg-offerings-surface rounded-2xl border border-offerings-border shadow-sm p-6 w-full flex-1 flex flex-col">
+      <fieldset [disabled]="loading" class="bg-offerings-surface rounded-2xl border border-offerings-border shadow-sm p-6 w-full min-w-0 flex-1 flex flex-col">
         @if (currentStep === 0) {
           <h2 class="text-2xl font-bold text-offerings-text mb-1">{{ 'CREATE_RES_SPEC._general_info' | translate }}</h2>
           <p class="text-sm text-offerings-muted-text mb-6">{{ 'CREATE_RES_SPEC._general_info_desc' | translate }}</p>
 
           <form [formGroup]="generalForm" class="flex flex-col gap-5">
             <div>
-              <label for="prod-name" class="block text-sm font-semibold text-offerings-text mb-2">{{ 'CREATE_RES_SPEC._name' | translate }} <span class="text-status-danger-border">*</span></label>
-              <input data-cy="resSpecName" formControlName="name" type="text" id="prod-name" maxLength="100"
+              <label for="res-name" class="block text-sm font-semibold text-offerings-text mb-2">{{ 'CREATE_RES_SPEC._name' | translate }} <span class="text-status-danger-border">*</span></label>
+              <input data-cy="resSpecName" formControlName="name" required aria-required="true" type="text" id="res-name" maxLength="100"
                 placeholder="{{ 'CREATE_RES_SPEC._name_placeholder' | translate }}"
                 [ngClass]="generalForm.get('name')?.invalid == true && generalForm.value.name!='' ? 'border-status-danger-border' : 'border-offerings-border-strong'"
                 class="bg-offerings-surface border text-offerings-text text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3"/>
             </div>
 
             <div>
-              <label for="prod-description" class="block text-sm font-semibold text-offerings-text mb-2">{{ 'CREATE_RES_SPEC._description' | translate }}</label>
-              <textarea data-cy="resSpecDescription" formControlName="description" id="prod-description" rows="6" maxLength="300"
+              <label for="res-description" class="block text-sm font-semibold text-offerings-text mb-2">{{ 'CREATE_RES_SPEC._description' | translate }}</label>
+              <textarea data-cy="resSpecDescription" formControlName="description" id="res-description" rows="6" maxLength="300"
                 placeholder="{{ 'CREATE_RES_SPEC._description_placeholder' | translate }}"
                 class="bg-offerings-surface border border-offerings-border-strong text-offerings-text text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3 resize-none"></textarea>
               <p class="text-xs text-offerings-muted-text mt-1">{{ generalForm.value.description?.length || 0 }}/300</p>
             </div>
+            @if (assetTypesLoading) {
+              <p role="status" class="text-sm text-offerings-muted-text">{{ 'CREATE_RES_SPEC._resource_types_loading' | translate }}</p>
+            }
+            @if (assetTypesError) {
+              <div role="alert" class="text-sm text-offerings-muted-text">
+                {{ 'CREATE_RES_SPEC._resource_types_error' | translate }}
+                <button type="button" (click)="loadAssetTypes()" class="text-primary-100 hover:underline">{{ 'CREATE_RES_SPEC._resource_types_retry' | translate }}</button>
+              </div>
+            }
+            @if (assetTypes.length > 0) {
+              <div>
+                <label for="res-type" class="block text-sm font-semibold text-offerings-text mb-2">{{ 'CREATE_RES_SPEC._resource_type' | translate }}</label>
+                <select id="res-type" data-cy="resSpecType" formControlName="resourceType" (change)="onResourceTypeChange()"
+                  class="bg-offerings-surface border border-offerings-border-strong text-offerings-text text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3">
+                  <option value="">{{ 'CREATE_RES_SPEC._resource_type_none' | translate }}</option>
+                  @for (type of assetTypes; track type.id) {
+                    <option [value]="type.id" [disabled]="!type.categoryId">{{ type.name }}{{ !type.categoryId ? ('CREATE_RES_SPEC._resource_type_unavailable' | translate) : '' }}</option>
+                  }
+                </select>
+              </div>
+            }
           </form>
         }
 
-        @if (currentStep === 1) {
+        @if (selectedAssetType && currentStep === 1) {
+          <h2 class="text-2xl font-bold text-offerings-text mb-1">{{ 'CREATE_RES_SPEC._step_resource_details' | translate }}</h2>
+          <p class="text-sm text-offerings-muted-text mb-2">{{ selectedAssetType.name }}</p>
+          <p class="text-sm text-offerings-muted-text mb-6"><span class="text-status-danger-border" aria-hidden="true">*</span> {{ 'CREATE_RES_SPEC._required_fields' | translate }}</p>
+          @if (selectedAssetType.requiresFile) {
+            <div class="mb-5">
+              <label for="asset-file" class="block text-sm font-semibold text-offerings-text mb-2">{{ 'CREATE_RES_SPEC._asset_file' | translate }} <span class="text-status-danger-border">*</span></label>
+              <input id="asset-file" data-cy="resSpecFile" type="file" [required]="!pendingAssetFile && !detailsForm.controls.fileId.value"
+                aria-required="true" [attr.accept]="selectedAssetType.mediaTypes.length ? selectedAssetType.mediaTypes.join(',') : null" aria-describedby="asset-file-hint"
+                (change)="onAssetFileSelected($event)"
+                class="bg-offerings-surface border border-offerings-border-strong text-offerings-text text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3"/>
+              <p id="asset-file-hint" class="text-sm text-offerings-muted-text mt-2">{{ 'CREATE_RES_SPEC._asset_file_pending' | translate }}</p>
+              @if (selectedAssetType.mediaTypes.length > 0) {
+                <p class="text-sm text-offerings-muted-text mt-2">{{ 'CREATE_RES_SPEC._asset_accepted_types' | translate }} {{ selectedAssetType.mediaTypes.join(', ') }}</p>
+              }
+              @if (assetFileName) {
+                <p class="text-sm text-offerings-body mt-2">{{ assetFileName }}</p>
+              }
+              @if (detailsForm.controls.fileId.value) {
+                <p class="text-sm text-offerings-body mt-2 break-all">{{ 'CREATE_RES_SPEC._asset_current_file' | translate }} {{ detailsForm.controls.fileId.value }}</p>
+              }
+              @if (assetUploadError) {
+                <p role="alert" class="text-sm text-status-danger-border mt-2">{{ assetUploadError }}</p>
+              }
+            </div>
+          }
+          <div class="flex flex-col gap-5 mt-5">
+            @for (field of metadataFields; track field.key) {
+              <div>
+                @if (field.definition.type === 'checkbox') {
+                  <label [for]="'asset-field-' + field.key" class="flex items-center gap-3 text-sm font-semibold text-offerings-text">
+                    <input [id]="'asset-field-' + field.key" type="checkbox" [formControl]="metadataForm.controls[field.key]"
+                      [attr.aria-required]="!!field.definition.mandatory"
+                      [attr.aria-invalid]="metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid"
+                      [class.border-status-danger-border]="metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid"
+                      class="w-4 h-4 rounded border-offerings-border-strong text-primary-100 focus:ring-primary-100"/>
+                    {{ field.definition.label || field.key }}
+                    @if (field.definition.mandatory) { <span class="text-status-danger-border">*</span> }
+                  </label>
+                } @else {
+                  <label [for]="'asset-field-' + field.key" class="block text-sm font-semibold text-offerings-text mb-2">
+                    {{ field.definition.label || field.key }}
+                    @if (field.definition.mandatory) { <span class="text-status-danger-border">*</span> }
+                  </label>
+                  @switch (field.definition.type) {
+                    @case ('textarea') {
+                      <textarea [required]="!!field.definition.mandatory" [id]="'asset-field-' + field.key" [formControl]="metadataForm.controls[field.key]"
+                      [attr.aria-required]="!!field.definition.mandatory"
+                      [attr.aria-invalid]="metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid"
+                      [class.border-status-danger-border]="metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid"
+                        [placeholder]="field.definition.placeholder || ''" rows="4" class="bg-offerings-surface border border-offerings-border-strong text-offerings-text text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3"></textarea>
+                    }
+                    @case ('select') {
+                      <select [required]="!!field.definition.mandatory" [id]="'asset-field-' + field.key" [formControl]="metadataForm.controls[field.key]"
+                      [attr.aria-required]="!!field.definition.mandatory"
+                      [attr.aria-invalid]="metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid"
+                      [class.border-status-danger-border]="metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid" class="bg-offerings-surface border border-offerings-border-strong text-offerings-text text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3">
+                        <option value="">{{ 'CREATE_RES_SPEC._asset_select_placeholder' | translate }}</option>
+                        @for (option of field.definition.options || []; track option.value) {
+                          <option [value]="option.value">{{ option.text }}</option>
+                        }
+                      </select>
+                    }
+                    @default {
+                      <input [required]="!!field.definition.mandatory" [id]="'asset-field-' + field.key" type="text" [formControl]="metadataForm.controls[field.key]"
+                      [attr.aria-required]="!!field.definition.mandatory"
+                      [attr.aria-invalid]="metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid"
+                      [class.border-status-danger-border]="metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid"
+                        [placeholder]="field.definition.placeholder || ''" class="bg-offerings-surface border border-offerings-border-strong text-offerings-text text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3"/>
+                    }
+                  }
+                }
+                @if (metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid) {
+                  <p class="text-sm text-status-danger-border mt-2">{{ 'CREATE_RES_SPEC._asset_field_invalid' | translate }}</p>
+                }
+              </div>
+            }
+          </div>
+          @if (!resourceDetailsValid && !uploadingAsset) {
+            <p class="text-sm text-offerings-muted-text mt-5">{{ 'CREATE_RES_SPEC._asset_details_required' | translate }}</p>
+          }
+        }
+
+        @if (currentStep === configurationStep) {
           <div class="flex justify-between items-start gap-4 mb-2">
             <div>
               <h2 class="text-2xl font-bold text-offerings-text mb-1">{{ 'CREATE_RES_SPEC._config_options' | translate }}</h2>
@@ -139,29 +243,32 @@
             </div>
           }
         }
-      </div>
+      </fieldset>
 
       <div class="flex justify-between items-center mt-6">
         @if (currentStep > 0) {
-          <button type="button" (click)="goToStep(currentStep - 1)" class="text-sm font-semibold text-primary-100 hover:underline px-2 py-2">
+          <button type="button" (click)="goToStep(currentStep - 1)" [disabled]="loading" class="text-sm font-semibold text-primary-100 hover:underline px-2 py-2">
             {{ 'CREATE_RES_SPEC._back' | translate }}
           </button>
         } @else {
-          <button type="button" (click)="onBackClick()" class="text-sm font-semibold text-primary-100 hover:underline px-2 py-2">
+          <button type="button" (click)="onBackClick()" [disabled]="loading" class="text-sm font-semibold text-primary-100 hover:underline px-2 py-2">
             {{ 'CREATE_RES_SPEC._cancel' | translate }}
           </button>
         }
+        @if (uploadingAsset) {
+          <p role="status" class="text-sm text-offerings-muted-text">{{ 'CREATE_RES_SPEC._asset_uploading' | translate }}</p>
+        }
         @if (currentStep < steps.length - 1) {
           <button data-cy="resSpecNext" type="button" (click)="goToStep(currentStep + 1)"
-            [disabled]="!validateCurrentStep()"
-            [ngClass]="!validateCurrentStep() ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
+            [disabled]="loading || !validateCurrentStep()"
+            [ngClass]="loading || !validateCurrentStep() ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
             class="h-10 px-5 bg-primary-100 text-offerings-on-dark rounded-lg text-sm font-semibold">
             {{ 'CREATE_RES_SPEC._save_continue' | translate }}
           </button>
         } @else {
           <button data-cy="resSpecFinish" type="button" (click)="createResource()"
-            [disabled]="!generalForm.valid || loading"
-            [ngClass]="loading || !generalForm.valid ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
+            [disabled]="!canSaveDraftResourceSpec()"
+            [ngClass]="!canSaveDraftResourceSpec() ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50'"
             class="h-10 px-5 bg-primary-100 text-offerings-on-dark rounded-lg text-sm font-semibold flex items-center justify-center gap-2">
             @if(loading){
               <svg class="w-4 h-4 animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -219,7 +326,6 @@
   </div>
 }
 
-<!-- Add configuration option modal -->
 @if(showCreateChar){
   <div (click)="showCreateChar=false; refreshChars(); charsForm.reset(); charIsOptional=false; editingCharIdx=null;" class="fixed inset-0 z-50 flex items-center justify-center px-4" style="background-color: rgb(var(--theme-offerings-backdrop) / 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
     <div (click)="$event.stopPropagation()" class="bg-offerings-surface rounded-2xl shadow-xl w-full max-w-[720px] max-h-[90vh] overflow-y-auto">
@@ -236,7 +342,7 @@
 
         <form class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4" [formGroup]="charsForm">
           <div>
-            <label for="char-name" class="block text-sm font-semibold text-offerings-text mb-2">{{ 'CREATE_RES_SPEC._name' | translate }} <span class="text-status-danger-border">*</span></label>
+            <label for="char-name" class="block text-sm font-semibold text-offerings-text mb-2">{{ 'CREATE_RES_SPEC._name' | translate }}</label>
             <input data-cy="resSpecCharName" formControlName="name" type="text" id="char-name" maxLength="100"
               placeholder="{{ 'CREATE_RES_SPEC._char_name_placeholder' | translate }}"
               class="bg-offerings-surface border border-offerings-border-strong text-offerings-text text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-2.5"/>
@@ -274,7 +380,7 @@
         </div>
 
         <div class="mb-6">
-          <label class="block text-sm font-semibold text-offerings-text mb-2">{{ 'CREATE_RES_SPEC._values' | translate }} <span class="text-status-danger-border">*</span></label>
+          <label class="block text-sm font-semibold text-offerings-text mb-2">{{ 'CREATE_RES_SPEC._values' | translate }}</label>
 
           @if(creatingChars.length > 0 && !booleanCharSelected){
             <div class="flex flex-wrap gap-2 mb-3">

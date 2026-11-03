@@ -82,7 +82,7 @@ export class ServiceSpecServiceService {
   }
 
   getAssetTypes() {
-    return this.http.get<AssetType[]>(`${ServiceSpecServiceService.BASE_URL}${environment.CHARGING}/api/assetManagement/assetTypes`);
+    return this.http.get<AssetType[]>(`${ServiceSpecServiceService.BASE_URL}${environment.CHARGING}/api/assetManagement/assetTypes`, { params: { type: 'service' } });
   }
 
   getAssetType(id: string) {

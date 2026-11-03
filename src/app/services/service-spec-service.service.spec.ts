@@ -15,10 +15,10 @@ describe('ServiceSpecServiceService', () => {
 
   afterEach(() => TestBed.inject(HttpTestingController).verify());
 
-  it('requests installed asset types from charging', () => {
+  it('requests only service plugins from charging', () => {
     service.getAssetTypes().subscribe(types => expect(types).toEqual([]));
     const request = TestBed.inject(HttpTestingController).expectOne(
-      `${environment.BASE_URL}${environment.CHARGING}/api/assetManagement/assetTypes`);
+      `${environment.BASE_URL}${environment.CHARGING}/api/assetManagement/assetTypes?type=service`);
     expect(request.request.method).toBe('GET');
     request.flush([]);
   });
