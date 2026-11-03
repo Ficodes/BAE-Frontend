@@ -61,9 +61,7 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   detailsForm = new FormGroup({
-    source: new FormControl<'URL' | 'FILE'>('URL', { nonNullable: true }),
-    url: new FormControl('', { nonNullable: true, validators: [Validators.required, noWhitespaceValidator] }),
-    mediaType: new FormControl('', { nonNullable: true, validators: [Validators.required, noWhitespaceValidator] })
+    fileId: new FormControl('', { nonNullable: true, validators: [Validators.required, noWhitespaceValidator] })
   });
   metadataForm = new FormRecord<FormControl<string | boolean | null>>({});
   metadataFields: { key: string; definition: AssetTypeFormField }[] = [];
@@ -77,10 +75,7 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy, DoCheck {
   get serviceDetailsValid(): boolean {
     return !this.selectedAssetType || (
       !!this.selectedAssetType.categoryId &&
-      this.detailsForm.controls.source.valid && this.detailsForm.controls.mediaType.valid &&
-      (this.detailsForm.controls.source.value === 'FILE'
-        ? !!this.pendingAssetFile || this.detailsForm.controls.url.valid
-        : this.detailsForm.controls.url.valid) &&
+      (!this.selectedAssetType.requiresFile || !!this.pendingAssetFile || this.detailsForm.controls.fileId.valid) &&
       this.metadataForm.valid && !this.uploadingAsset
     );
   }
@@ -201,7 +196,7 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy, DoCheck {
         // Existing associations use the public category identifier, never the plugin id.
         const characteristic = this.serv?.specCharacteristic?.find(
           (c: any) => c.name?.toLowerCase() === 'service type');
-        const categoryId = characteristic?.characteristicValueSpecification?.[0]?.value?.id;
+        const categoryId = characteristic?.characteristicValueSpecification?.[0]?.value;
         const assetType = types.find(type => !!type.categoryId && type.categoryId === categoryId);
         if (!this.serviceTypeChanged && assetType) {
           this.generalForm.controls.serviceType.setValue(assetType.id);
@@ -241,34 +236,23 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy, DoCheck {
     this.metadataForm = new FormRecord<FormControl<string | boolean | null>>({});
     this.metadataFields = [];
     const type = this.selectedAssetType;
-    this.detailsForm.reset({ source: type?.formats.includes('URL') ? 'URL' : 'FILE', url: '', mediaType: '' });
+    this.detailsForm.reset({ fileId: '' });
     if (!type) return;
 
     const fields = type.form || {};
     const order = [...(type.formOrder || []), ...Object.keys(fields)];
     this.metadataFields = [...new Set(order)].filter(key => !!fields[key])
       .map(key => ({ key, definition: fields[key] }));
-    const names = ['Service Type', 'URL', 'Media Type', ...this.metadataFields.map(field => field.key)];
+    const names = ['Service Type', 'File', ...this.metadataFields.map(field => field.key)];
     const existingValue = (name: string): unknown => restore
       ? this.serv?.specCharacteristic?.find((c: any) => c.name?.toLowerCase() === name.toLowerCase())
         ?.characteristicValueSpecification?.[0]?.value
       : undefined;
 
-    this.detailsForm.controls.source.setValidators(
-      control => type.formats.includes(control.value) ? null : { source: true });
-    this.detailsForm.controls.source.updateValueAndValidity();
-    const mediaTypes = type.mediaTypes;
-    this.detailsForm.controls.mediaType.setValidators([
-      Validators.required, noWhitespaceValidator,
-      control => mediaTypes.length && !mediaTypes.includes(control.value) ? { mediaType: true } : null
-    ]);
-    const url = existingValue('URL');
-    const mediaType = existingValue('Media Type');
-    this.detailsForm.patchValue({
-      url: typeof url === 'string' ? url : '',
-      mediaType: typeof mediaType === 'string' ? mediaType : (mediaTypes.length === 1 ? mediaTypes[0] : '')
-    });
-    // Existing uploaded files are represented only by their URL.
+    const fileId = existingValue('File');
+    if (type.requiresFile && typeof fileId === 'string') {
+      this.detailsForm.controls.fileId.setValue(fileId);
+    }
     for (const { key, definition } of this.metadataFields) {
       const saved = existingValue(key);
       const value = saved !== undefined ? saved
@@ -292,15 +276,6 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy, DoCheck {
     this.prodChars = this.prodChars.filter(c => !this.managedCharacteristicNames.has(c.name?.toLowerCase() || ''));
   }
 
-  onAssetSourceChange(): void {
-    if (this.loading) return;
-    this.cancelAssetUpload();
-    this.pendingAssetFile = null;
-    this.assetFileName = '';
-    this.assetUploadError = '';
-    this.detailsForm.controls.url.setValue('');
-  }
-
   private cancelAssetUpload(): void {
     this.assetUpload?.unsubscribe();
     this.assetUpload = undefined;
@@ -312,9 +287,9 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy, DoCheck {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
-    if (!file || !this.selectedAssetType || this.detailsForm.controls.source.value !== 'FILE') return;
+    if (!file || !this.selectedAssetType?.requiresFile) return;
     this.cancelAssetUpload();
-    this.detailsForm.controls.url.setValue('');
+    this.detailsForm.controls.fileId.setValue('');
     this.pendingAssetFile = null;
     this.assetFileName = file.name;
     this.assetUploadError = '';
@@ -323,45 +298,26 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy, DoCheck {
       return;
     }
     const acceptedTypes = this.selectedAssetType.mediaTypes;
-    const mediaType = file.type || this.detailsForm.controls.mediaType.value;
-    if (acceptedTypes.length && mediaType && !acceptedTypes.includes(mediaType)) {
+    const mediaType = file.type || 'application/octet-stream';
+    if (acceptedTypes.length > 0 && !acceptedTypes.includes(mediaType)) {
       this.assetUploadError = this.translate.instant('CREATE_SERV_SPEC._asset_media_type_error');
       return;
     }
-    if (mediaType) this.detailsForm.controls.mediaType.setValue(mediaType);
     this.pendingAssetFile = file;
   }
 
   private uploadPendingAsset(file: File): Observable<string> {
     this.uploadingAsset = true;
-    const mediaType = this.detailsForm.controls.mediaType.value;
-    const readFile = new Observable<string>(subscriber => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        subscriber.next(String(reader.result).split(',')[1] || '');
-        subscriber.complete();
-      };
-      reader.onerror = () => subscriber.error(reader.error);
-      reader.onabort = () => subscriber.complete();
-      reader.readAsDataURL(file);
-      return () => {
-        reader.onload = reader.onerror = reader.onabort = null;
-        if (reader.readyState === FileReader.LOADING) reader.abort();
-      };
-    });
-    return readFile.pipe(
-      switchMap(data => this.attachmentService.uploadFile({
-        content: { name: uuidv4() + '_' + file.name, data },
-        contentType: mediaType,
-        isPublic: true
-      })),
+    return this.attachmentService.uploadManagedFile(file, {
+      contentType: file.type || 'application/octet-stream',
+      isPublic: false
+    }).pipe(
       map(data => {
-        // Never submit a local data URL when the upload response lacks a URL.
-        if (typeof data?.content !== 'string' || !data.content.trim()) {
+        // Only the Resource ID establishes the managed-file relationship.
+        if (typeof data?.id !== 'string' || !data.id.trim()) {
           throw new Error(this.translate.instant('CREATE_SERV_SPEC._asset_upload_error'));
         }
-        return /^https?:\/\//i.test(data.content) ? data.content
-          : environment.BASE_URL.replace(/\/+$/, '') + '/' + data.content.replace(/^\/+/, '');
+        return data.id;
       })
     );
   }
@@ -744,9 +700,8 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy, DoCheck {
         cleanChars.push({ name, characteristicValueSpecification: [{ value }] });
       };
       if (type?.categoryId) {
-        addCharacteristic('Service Type', { id: type.categoryId });
-        addCharacteristic('URL', this.detailsForm.controls.url.value);
-        addCharacteristic('Media Type', this.detailsForm.controls.mediaType.value);
+        addCharacteristic('Service Type', type.categoryId);
+        if (type.requiresFile) addCharacteristic('File', this.detailsForm.controls.fileId.value);
         for (const { key } of this.metadataFields) {
           const value = this.metadataForm.controls[key].value;
           if (value !== null && value !== '') addCharacteristic(key, value);
@@ -781,12 +736,12 @@ export class CreateServiceSpecComponent implements OnInit, OnDestroy, DoCheck {
     }
     this.loading = true;
     this.assetUploadError = '';
-    const prepareUrl = this.pendingAssetFile
+    const prepareFile = this.selectedAssetType?.requiresFile && this.pendingAssetFile
       ? this.uploadPendingAsset(this.pendingAssetFile)
-      : of(this.detailsForm.controls.url.value);
-    this.assetUpload = prepareUrl.pipe(
-      switchMap(url => {
-        this.detailsForm.controls.url.setValue(url);
+      : of(this.detailsForm.controls.fileId.value);
+    this.assetUpload = prepareFile.pipe(
+      switchMap(fileId => {
+        this.detailsForm.controls.fileId.setValue(fileId);
         this.pendingAssetFile = null;
         this.uploadingAsset = false;
         this.buildServiceToCreate();

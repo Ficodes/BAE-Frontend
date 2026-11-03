@@ -5,7 +5,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { of, throwError, Subject } from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
-import { AttachmentServiceService } from 'src/app/services/attachment-service.service';
+import { AttachmentServiceService, ManagedFileUpload } from 'src/app/services/attachment-service.service';
 import { environment } from 'src/environments/environment';
 import { AssetType } from 'src/app/models/asset-type.model';
 import { EventMessageService } from 'src/app/services/event-message.service';
@@ -40,119 +40,29 @@ describe('CreateServiceSpecComponent', () => {
   const assetType: AssetType = {
     id: 'example_plugin', href: '/charging/api/assetManagement/assetTypes/example_plugin',
     name: 'Example Plugin', author: 'Provider', version: '1.0',
-    categoryId: 'service-category-id', mediaTypes: [], formats: ['URL'], overrides: []
+    categoryId: 'service-category-id', mediaTypes: [], requiresFile: false, overrides: []
   };
 
-  it('loads types on opening and renders the optional selector', () => {
-    const request = spyOn(serviceSpecService, 'getAssetTypes').and.returnValue(of([assetType]));
-    fixture.detectChanges();
-    expect(request).toHaveBeenCalledTimes(1);
-    expect(fixture.nativeElement.querySelector('#serv-type').textContent).toContain('Example Plugin');
-    expect(component.steps.length).toBe(2);
-  });
-
-  it('keeps the original flow when no plugins are installed', () => {
-    spyOn(serviceSpecService, 'getAssetTypes').and.returnValue(of([]));
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('#serv-type')).toBeNull();
-    expect(component.steps.length).toBe(2);
-  });
-
-  it('inserts the details step after selection and removes it when cleared', () => {
-    spyOn(serviceSpecService, 'getAssetTypes').and.returnValue(of([assetType]));
-    fixture.detectChanges();
-    component.generalForm.controls.name.setValue('Service');
-    const select: HTMLSelectElement = fixture.nativeElement.querySelector('#serv-type');
-    select.value = assetType.id;
-    select.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
-    expect(component.steps.length).toBe(3);
-    component.goToStep(1);
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('h2').textContent).toContain('_step_service_details');
-    component.detailsForm.patchValue({ url: 'https://service.example', mediaType: 'application/json' });
-    component.goToStep(2);
-    expect(component.currentStep).toBe(component.configurationStep);
-    component.goToStep(0);
-    fixture.detectChanges();
-    const updatedSelect: HTMLSelectElement = fixture.nativeElement.querySelector('#serv-type');
-    updatedSelect.value = '';
-    updatedSelect.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
-    expect(component.steps.length).toBe(2);
-    expect(component.highestStep).toBe(0);
-  });
-
-  it('disables unsynchronized plugins', () => {
-    spyOn(serviceSpecService, 'getAssetTypes').and.returnValue(of([{ ...assetType, categoryId: null }]));
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('#serv-type option[value="example_plugin"]').disabled).toBeTrue();
-  });
-
-  it('shows a recoverable load error and allows the generic flow', () => {
-    const request = spyOn(serviceSpecService, 'getAssetTypes').and.returnValue(throwError(() => ({ status: 401 })));
-    fixture.detectChanges();
-    expect(component.assetTypesError).toBeTrue();
-    expect(component.assetTypesLoading).toBeFalse();
-    expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeTruthy();
-    request.and.returnValue(of([assetType]));
-    component.loadAssetTypes();
-    expect(component.assetTypesError).toBeFalse();
-    expect(component.assetTypes).toEqual([assetType]);
-  });
-
-  it('serializes the public category id once and removes the association when cleared', () => {
-    component.assetTypes = [assetType];
-    component.generalForm.patchValue({ name: 'Service', serviceType: assetType.id });
-    component.onServiceTypeChange();
-    component.prodChars = [
-      { name: 'sErViCe TyPe', characteristicValueSpecification: [{ value: { id: 'old' } as any }] },
-      { name: 'Other', characteristicValueSpecification: [{ value: 'keep' as any }] }
-    ];
-    component.buildServiceToCreate();
-    expect(component.serviceToCreate?.specCharacteristic).toEqual([
-      jasmine.objectContaining({ name: 'Other' }),
-      { name: 'Service Type', characteristicValueSpecification: [{ value: { id: assetType.categoryId } as any }] },
-      { name: 'URL', characteristicValueSpecification: [{ value: '' as any }] },
-      { name: 'Media Type', characteristicValueSpecification: [{ value: '' as any }] }
-    ]);
-    component.generalForm.controls.serviceType.setValue('');
-    component.onServiceTypeChange();
-    component.buildServiceToCreate();
-    expect(component.serviceToCreate?.specCharacteristic).toEqual([]);
-  });
-
-  it('restores an existing association using categoryId and preserves it on load failure', () => {
-    component.serv = {
-      id: 'spec-id', name: 'Existing',
-      specCharacteristic: [{ name: 'SERVICE TYPE', characteristicValueSpecification: [{ value: { id: assetType.categoryId } }] }]
-    };
-    const request = spyOn(serviceSpecService, 'getAssetTypes').and.returnValue(of([assetType]));
-    component.ngOnInit();
-    expect(component.generalForm.controls.serviceType.value).toBe(assetType.id);
-    expect(component.steps.length).toBe(3);
-    request.and.returnValue(throwError(() => new Error('Unavailable')));
-    component.loadAssetTypes();
-    component.buildServiceToCreate();
-    expect(component.serviceToCreate?.specCharacteristic?.[0].name).toBe('Service Type');
-  });
-
+  // Mirrors the backend's examples/plugins/logging-service/package.json.
   const loggingType: AssetType = {
-    ...assetType, formats: ['URL', 'FILE'], mediaTypes: ['application/json', 'text/plain'],
+    ...assetType, requiresFile: true, mediaTypes: ['application/json', 'text/plain', 'application/octet-stream'],
     formOrder: ['display_name', 'region', 'enabled', 'notes', 'reference', 'notifications'],
     form: {
-      reference: { type: 'text', placeholder: 'External reference' },
-      notifications: { type: 'checkbox', default: true },
-      display_name: { type: 'text', label: 'Display name', mandatory: true, default: 'Demo service' },
-      enabled: { type: 'checkbox', mandatory: true, default: false },
-      notes: { type: 'textarea', default: 'Line one\nLine two' },
-      region: { type: 'select', mandatory: true, default: 'eu', options: [
+      display_name: { type: 'text', label: 'Display name', placeholder: 'Enter a test service name', mandatory: true, default: 'Demo service' },
+      notes: { type: 'textarea', label: 'Notes', placeholder: 'Describe the test service', default: 'First line of notes\nSecond line of notes' },
+      region: { type: 'select', label: 'Region', mandatory: true, default: 'eu', options: [
         { text: 'Europe', value: 'eu' }, { text: 'United States', value: 'us' }, { text: 'Asia Pacific', value: 'apac' }
-      ] }
+      ] },
+      enabled: { type: 'checkbox', label: 'Enable test flag', mandatory: true, default: false },
+      reference: { type: 'text', label: 'Optional reference', placeholder: 'Leave empty to test an omitted optional field' },
+      notifications: { type: 'checkbox', label: 'Test notifications flag', default: true }
     }
   };
+  const uploaded: ManagedFileUpload = {
+    id: '507f1f77bcf86cd799439011', href: '/assets/resource', content: 'https://files.example/file.json', contentType: 'application/json'
+  };
 
-  function selectLoggingType(type = loggingType): void {
+  function selectPlugin(type = loggingType): void {
     spyOn(serviceSpecService, 'getAssetTypes').and.returnValue(of([type]));
     fixture.detectChanges();
     component.generalForm.patchValue({ name: 'Logging', serviceType: type.id });
@@ -161,184 +71,184 @@ describe('CreateServiceSpecComponent', () => {
     fixture.detectChanges();
   }
 
-  function chooseFile(file = new File(['{}'], 'service.json', { type: 'application/json' })): void {
-    const input = { files: [file], value: 'service.json' };
+  function chooseFile(file = new File(['{}'], 'service.json', { type: 'application/json' })): File {
+    const input = { files: [file], value: file.name };
     component.onAssetFileSelected({ target: input } as unknown as Event);
     expect(input.value).toBe('');
+    return file;
   }
 
-  function mockFileRead(): void {
-    spyOn(FileReader.prototype, 'readAsDataURL').and.callFake(function(this: FileReader) {
-      Object.defineProperty(this, 'result', { value: 'data:application/json;base64,e30=' });
-      this.onload?.call(this, new ProgressEvent('load') as ProgressEvent<FileReader>);
-    });
+  function payloadValues(): Record<string, any> {
+    return Object.fromEntries((component.serviceToCreate?.specCharacteristic || [])
+      .map((c: any) => [c.name, c.characteristicValueSpecification[0].value]));
   }
 
-  it('renders ordered plugin inputs, initializes typed defaults and leaves placeholders empty', () => {
-    selectLoggingType();
-    const inputs = [...fixture.nativeElement.querySelectorAll('[id^="asset-field-"]')] as HTMLInputElement[];
-    expect(inputs.map(input => input.id.replace('asset-field-', ''))).toEqual(loggingType.formOrder!);
-    expect(inputs.map(input => input.tagName)).toEqual(['INPUT', 'SELECT', 'INPUT', 'TEXTAREA', 'INPUT', 'INPUT']);
-    expect(component.metadataForm.value).toEqual({
-      display_name: 'Demo service', region: 'eu', enabled: false,
-      notes: 'Line one\nLine two', reference: '', notifications: true
-    });
-    expect(fixture.nativeElement.querySelector('#asset-field-reference').placeholder).toBe('External reference');
-    expect(fixture.nativeElement.querySelector('#asset-field-enabled').checked).toBeFalse();
-    expect(fixture.nativeElement.querySelector('#asset-media-type').tagName).toBe('SELECT');
-    expect(fixture.nativeElement.querySelector('#asset-source')).toBeTruthy();
+  it('loads installed types on opening and keeps the selector optional', () => {
+    const request = spyOn(serviceSpecService, 'getAssetTypes').and.returnValue(of([assetType]));
+    fixture.detectChanges();
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(fixture.nativeElement.querySelector('#serv-type').textContent).toContain('Example Plugin');
+    expect(component.steps.length).toBe(2);
   });
 
-  it('blocks next, direct navigation, finish and draft saves until all required details are valid', () => {
-    selectLoggingType();
+  it('keeps ordinary services usable without plugin characteristics or uploads', () => {
+    spyOn(serviceSpecService, 'getAssetTypes').and.returnValue(of([]));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#serv-type')).toBeNull();
+    expect(component.steps.length).toBe(2);
+    component.generalForm.controls.name.setValue('Ordinary');
+    component.prodChars = [{ name: 'Unrelated', characteristicValueSpecification: [{ value: 'keep' as any }] }];
+    const upload = spyOn(TestBed.inject(AttachmentServiceService), 'uploadManagedFile');
+    const post = spyOn(serviceSpecService, 'postServSpec').and.returnValue(of({ id: 'ordinary' }));
+    component.createService();
+    expect(upload).not.toHaveBeenCalled();
+    expect(post).toHaveBeenCalled();
+    expect(payloadValues()).toEqual({ Unrelated: 'keep' });
+  });
+
+  it('disables types whose category has not been synchronized', () => {
+    spyOn(serviceSpecService, 'getAssetTypes').and.returnValue(of([{ ...assetType, categoryId: null }]));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#serv-type option[value="example_plugin"]').disabled).toBeTrue();
+  });
+
+  it('offers retry after a failed plugin request', () => {
+    const request = spyOn(serviceSpecService, 'getAssetTypes').and.returnValue(throwError(() => ({ status: 401 })));
+    fixture.detectChanges();
+    expect(component.assetTypesError).toBeTrue();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeTruthy();
+    request.and.returnValue(of([assetType]));
+    component.loadAssetTypes();
+    expect(component.assetTypesError).toBeFalse();
+  });
+
+  for (const requiresFile of [true, false]) {
+    it('renders the logging form with requiresFile=' + requiresFile, () => {
+      selectPlugin({ ...loggingType, requiresFile });
+      const root: HTMLElement = fixture.nativeElement;
+      expect(!!root.querySelector('#asset-file')).toBe(requiresFile);
+      expect(root.querySelector('#asset-source')).toBeNull();
+      expect(root.querySelector('#asset-url')).toBeNull();
+      expect(root.querySelector('#asset-media-type')).toBeNull();
+      const fields = Array.from(root.querySelectorAll('[id^="asset-field-"]'));
+      expect(fields.map(input => input.id.replace('asset-field-', ''))).toEqual(loggingType.formOrder!);
+      expect(fields.map(input => input.tagName)).toEqual(['INPUT', 'SELECT', 'INPUT', 'TEXTAREA', 'INPUT', 'INPUT']);
+      expect((root.querySelector('#asset-field-reference') as HTMLInputElement).placeholder).toBe(loggingType.form!['reference'].placeholder!);
+      expect((root.querySelector('#asset-field-enabled') as HTMLInputElement).checked).toBeFalse();
+      expect(component.metadataForm.controls['notes'].value).toBe('First line of notes\nSecond line of notes');
+      expect(component.serviceDetailsValid).toBe(!requiresFile);
+    });
+  }
+
+  it('uses mediaTypes as file hints and imposes no restriction when the list is empty', () => {
+    selectPlugin({ ...loggingType, mediaTypes: [], formOrder: [] });
+    expect(fixture.nativeElement.querySelector('#asset-file').hasAttribute('accept')).toBeFalse();
+    expect(component.metadataFields.map(field => field.key)).toEqual(Object.keys(loggingType.form!));
+    chooseFile(new File(['image'], 'image.png', { type: 'image/png' }));
+    expect(component.pendingAssetFile).toBeTruthy();
+  });
+
+  it('restricts the file input to the plugin mediaTypes and rejects files outside that list', () => {
+    selectPlugin({ ...loggingType, mediaTypes: ['application/json', 'text/plain'] });
+    const input = fixture.nativeElement.querySelector('#asset-file') as HTMLInputElement;
+    expect(input.getAttribute('accept')).toBe('application/json,text/plain');
+    const upload = spyOn(TestBed.inject(AttachmentServiceService), 'uploadManagedFile');
     const post = spyOn(serviceSpecService, 'postServSpec');
+
+    for (const [name, type, allowed] of [
+      ['data.json', 'application/json', true],
+      ['notes.txt', 'text/plain', true],
+      ['image.png', 'image/png', false],
+      ['binary.bin', 'application/octet-stream', false],
+      ['unknown', '', false]
+    ] as const) {
+      const file = new File(['data'], name, { type });
+      Object.defineProperty(input, 'files', { value: [file], configurable: true });
+      input.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+      expect(component.pendingAssetFile).toBe(allowed ? file : null);
+      expect(component.serviceDetailsValid).toBe(allowed);
+      expect((fixture.nativeElement.querySelector('[data-cy="servSpecNext"]') as HTMLButtonElement).disabled).toBe(!allowed);
+      if (!allowed) {
+        expect(component.assetUploadError).toBeTruthy();
+        component.createService();
+        expect(post).not.toHaveBeenCalled();
+      }
+    }
+    expect(upload).not.toHaveBeenCalled();
+  });
+
+  it('marks mandatory fields and disables Continue, direct navigation, Save and draft saves when missing', () => {
+    selectPlugin();
+    const root: HTMLElement = fixture.nativeElement;
+    const required = root.querySelector('#asset-field-display_name') as HTMLInputElement;
+    expect(required.required).toBeTrue();
+    expect(root.querySelector('label[for="asset-field-display_name"]')?.textContent).toContain('*');
+    expect(root.querySelector('#asset-field-enabled')?.getAttribute('aria-required')).toBe('true');
+    expect(root.querySelector('#asset-file')?.getAttribute('accept')).toBe(loggingType.mediaTypes.join(','));
+    expect((root.querySelector('[data-cy="servSpecNext"]') as HTMLButtonElement).disabled).toBeTrue();
     component.goToStep(2);
     expect(component.currentStep).toBe(1);
+    const post = spyOn(serviceSpecService, 'postServSpec');
     component.createService();
     expect(post).not.toHaveBeenCalled();
+    chooseFile();
+    fixture.detectChanges();
+    expect((root.querySelector('[data-cy="servSpecNext"]') as HTMLButtonElement).disabled).toBeFalse();
+    required.value = '';
+    required.dispatchEvent(new Event('input'));
+    required.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+    expect(required.getAttribute('aria-invalid')).toBe('true');
+    expect((root.querySelector('[data-cy="servSpecNext"]') as HTMLButtonElement).disabled).toBeTrue();
     expect(component.canSaveDraftServiceSpec()).toBeFalse();
-    component.detailsForm.patchValue({ url: 'https://logging.example', mediaType: 'application/json' });
-    expect(component.serviceDetailsValid).toBeTrue();
-    component.metadataForm.controls['display_name'].setValue(' ');
-    expect(component.serviceDetailsValid).toBeFalse();
-    component.metadataForm.controls['display_name'].setValue('Logging');
-    component.metadataForm.controls['region'].setValue('invalid');
-    expect(component.serviceDetailsValid).toBeFalse();
-    component.metadataForm.controls['region'].setValue('us');
-    component.detailsForm.controls.mediaType.setValue('image/png');
-    expect(component.serviceDetailsValid).toBeFalse();
-    component.detailsForm.controls.mediaType.setValue('application/json');
-    expect(component.serviceDetailsValid).toBeTrue();
-    component.goToStep(2);
-    expect(component.currentStep).toBe(2);
-  });
-
-  it('marks required inputs and disables Continue whenever a mandatory value is missing', () => {
-    selectLoggingType();
-    const root: HTMLElement = fixture.nativeElement;
-    const input = (id: string) => root.querySelector('#' + id) as HTMLInputElement;
-    const next = () => root.querySelector('[data-cy="servSpecNext"]') as HTMLButtonElement;
-    expect(input('asset-url').required).toBeTrue();
-    expect(input('asset-media-type').required).toBeTrue();
-    expect(input('asset-field-display_name').required).toBeTrue();
-    expect(input('asset-field-region').required).toBeTrue();
-    expect(input('asset-field-reference').required).toBeFalse();
-    expect(input('asset-field-enabled').getAttribute('aria-required')).toBe('true');
-    expect(input('asset-field-enabled').required).toBeFalse();
-    expect(root.querySelector('label[for="asset-field-display_name"]')?.textContent).toContain('*');
-    expect(root.querySelector('label[for="asset-field-enabled"]')?.textContent).toContain('*');
-    expect(next().disabled).toBeTrue();
-
-    input('asset-url').value = 'https://logging.example';
-    input('asset-url').dispatchEvent(new Event('input'));
-    const media = input('asset-media-type');
-    media.value = 'application/json';
-    media.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
-    expect(next().disabled).toBeFalse(); // Required false checkbox is supplied.
-
-    input('asset-field-display_name').value = '';
-    input('asset-field-display_name').dispatchEvent(new Event('input'));
-    input('asset-field-display_name').dispatchEvent(new Event('blur'));
-    fixture.detectChanges();
-    expect(next().disabled).toBeTrue();
-    expect(input('asset-field-display_name').getAttribute('aria-invalid')).toBe('true');
-
     component.metadataForm.controls['display_name'].setValue('Name');
     component.goToStep(2);
     component.metadataForm.controls['region'].setValue('');
     fixture.detectChanges();
     expect((root.querySelector('[data-cy="servSpecFinish"]') as HTMLButtonElement).disabled).toBeTrue();
-    expect(component.canSaveDraftServiceSpec()).toBeFalse();
   });
 
-  it('resets details and configuration when the service type changes from General info', () => {
-    selectLoggingType();
-    const nextType: AssetType = {
-      ...assetType, id: 'another-plugin', categoryId: 'another-category', mediaTypes: [],
-      form: { required_value: { type: 'text', mandatory: true }, initial: { type: 'text', default: 'New default' } }
-    };
-    component.assetTypes.push(nextType);
-    component.detailsForm.patchValue({ url: 'https://old.example', mediaType: 'application/json' });
-    component.metadataForm.patchValue({ display_name: 'Old name', reference: 'Old reference' });
-    component.prodChars = [{ name: 'Old config' }];
-    component.goToStep(0);
-    component.generalForm.controls.description.setValue('Description');
-    component.charsForm.patchValue({ name: 'Unfinished option', description: 'Old description' });
-    component.charIsOptional = true;
-    component.editingCharIdx = 0;
-    component.assetFileName = 'old.json';
-    component.assetUploadError = 'Old error';
-    fixture.detectChanges();
-    const select = fixture.nativeElement.querySelector('#serv-type') as HTMLSelectElement;
-    select.value = nextType.id;
-    select.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
-
-    expect(component.currentStep).toBe(0);
-    expect(component.highestStep).toBe(0);
-    expect(component.detailsForm.value).toEqual({ source: 'URL', url: '', mediaType: '' });
-    expect(component.detailsForm.pristine).toBeTrue();
-    expect(component.detailsForm.untouched).toBeTrue();
-    expect(component.metadataForm.value).toEqual({ required_value: '', initial: 'New default' });
-    expect(component.metadataForm.pristine).toBeTrue();
-    expect(component.metadataForm.untouched).toBeTrue();
-    expect(component.assetFileName).toBe('');
-    expect(component.assetUploadError).toBe('');
-    expect(component.prodChars).toEqual([]);
-    expect(component.charsForm.value).toEqual({ name: null, description: null });
-    expect(component.editingCharIdx).toBeNull();
-    expect(component.charIsOptional).toBeFalse();
-    expect(component.generalForm.value.name).toBe('Logging');
-    expect(component.generalForm.value.description).toBe('Description');
-    component.goToStep(1);
-    fixture.detectChanges();
-    expect((fixture.nativeElement.querySelector('[data-cy="servSpecNext"]') as HTMLButtonElement).disabled).toBeTrue();
-
-    component.goToStep(0);
-    fixture.detectChanges();
-    const originalSelect = fixture.nativeElement.querySelector('#serv-type') as HTMLSelectElement;
-    originalSelect.value = loggingType.id;
-    originalSelect.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
-    expect(component.metadataForm.controls['display_name'].value).toBe('Demo service');
-    expect(component.metadataForm.controls['reference'].value).toBe('');
-    expect(component.detailsForm.controls.url.value).toBe('');
-  });
-
-  it('submits false booleans, multiline defaults and one value per field, omitting blank optional strings', () => {
-    selectLoggingType();
-    component.detailsForm.patchValue({ url: 'https://logging.example', mediaType: 'application/json' });
+  it('submits category and File string IDs, false and mandatory defaults explicitly with one primitive value per field', () => {
+    selectPlugin();
+    component.detailsForm.controls.fileId.setValue(uploaded.id);
     component.prodChars.push({ name: 'Unrelated', characteristicValueSpecification: [{ value: 'keep' as any }] });
     const post = spyOn(serviceSpecService, 'postServSpec').and.returnValue(of({ id: 'saved' }));
     component.createService();
-    const characteristics = post.calls.mostRecent().args[0].specCharacteristic;
-    expect(characteristics.every((c: any) => c.characteristicValueSpecification.length === 1)).toBeTrue();
-    const values = Object.fromEntries(characteristics.map((c: any) => [c.name, c.characteristicValueSpecification[0].value]));
-    expect(values).toEqual({
-      Unrelated: 'keep', 'Service Type': { id: loggingType.categoryId },
-      URL: 'https://logging.example', 'Media Type': 'application/json',
-      display_name: 'Demo service', region: 'eu', enabled: false,
-      notes: 'Line one\nLine two', notifications: true
+    expect(post).toHaveBeenCalled();
+    expect(payloadValues()).toEqual({
+      'Service Type': loggingType.categoryId, File: uploaded.id,
+      Unrelated: 'keep', display_name: 'Demo service', region: 'eu', enabled: false,
+      notes: 'First line of notes\nSecond line of notes', notifications: true
     });
+    expect(component.serviceToCreate?.specCharacteristic?.every(c => c.characteristicValueSpecification?.length === 1)).toBeTrue();
+    expect(payloadValues()['URL']).toBeUndefined();
+    expect(payloadValues()['Media Type']).toBeUndefined();
   });
 
-  it('uses a media type text input for unrestricted plugins and supports missing formOrder', () => {
-    selectLoggingType({ ...loggingType, mediaTypes: [], formats: ['URL'], formOrder: [] });
-    expect(fixture.nativeElement.querySelector('#asset-media-type').tagName).toBe('INPUT');
-    expect(fixture.nativeElement.querySelector('#asset-source')).toBeNull();
-    expect(component.metadataFields.map(field => field.key)).toEqual(Object.keys(loggingType.form!));
-    component.detailsForm.patchValue({ url: 'https://logging.example', mediaType: 'custom/type' });
-    expect(component.serviceDetailsValid).toBeTrue();
+  it('submits unchecked optional checkboxes as false and omits empty optional text', () => {
+    selectPlugin({ ...assetType, form: {
+      url: { type: 'text', mandatory: true, default: 'https://service.example' },
+      optional: { type: 'checkbox' }, reference: { type: 'text', placeholder: 'Hint' }
+    } });
+    spyOn(serviceSpecService, 'postServSpec').and.returnValue(of({ id: 'saved' }));
+    component.createService();
+    expect(component.metadataForm.controls['optional'].value).toBeFalse();
+    expect(payloadValues()).toEqual({ 'Service Type': assetType.categoryId, url: 'https://service.example', optional: false });
+    expect(component.showSuccessModal).toBeTrue();
   });
 
-  it('restores case-insensitive saved values including false and blank strings instead of defaults', () => {
+  it('rejects a select value outside the configured options', () => {
+    selectPlugin({ ...loggingType, requiresFile: false });
+    component.metadataForm.controls['region'].setValue('invalid');
+    expect(component.serviceDetailsValid).toBeFalse();
+  });
+
+  it('restores existing string IDs and primitive values without substituting defaults for false or empty strings', () => {
     component.serv = {
-      id: 'spec-id', name: 'Existing',
-      specCharacteristic: [
-        { name: 'service TYPE', characteristicValueSpecification: [{ value: { id: loggingType.categoryId } }] },
-        { name: 'url', characteristicValueSpecification: [{ value: 'https://existing.example' }] },
-        { name: 'media TYPE', characteristicValueSpecification: [{ value: 'application/json' }] },
+      id: 'existing', name: 'Existing', specCharacteristic: [
+        { name: 'service TYPE', characteristicValueSpecification: [{ value: loggingType.categoryId }] },
+        { name: 'FILE', characteristicValueSpecification: [{ value: uploaded.id }] },
         { name: 'DISPLAY_NAME', characteristicValueSpecification: [{ value: '' }] },
         { name: 'NOTIFICATIONS', characteristicValueSpecification: [{ value: false }] },
         { name: 'REGION', characteristicValueSpecification: [{ value: 'apac' }] },
@@ -347,197 +257,169 @@ describe('CreateServiceSpecComponent', () => {
     };
     spyOn(serviceSpecService, 'getAssetTypes').and.returnValue(of([loggingType]));
     fixture.detectChanges();
+    expect(component.generalForm.controls.serviceType.value).toBe(loggingType.id);
+    expect(component.detailsForm.controls.fileId.value).toBe(uploaded.id);
     expect(component.metadataForm.controls['display_name'].value).toBe('');
     expect(component.metadataForm.controls['notifications'].value).toBeFalse();
     expect(component.metadataForm.controls['region'].value).toBe('apac');
-    expect(component.detailsForm.controls.url.value).toBe('https://existing.example');
     expect(component.prodChars.map(c => c.name)).toEqual(['Unrelated']);
     component.metadataForm.controls['display_name'].setValue('Updated');
     const patch = spyOn(serviceSpecService, 'updateServSpec').and.returnValue(of({}));
+    const upload = spyOn(TestBed.inject(AttachmentServiceService), 'uploadManagedFile');
     component.createService();
-    const characteristics = patch.calls.mostRecent().args[0].specCharacteristic;
-    const names = characteristics.map((c: any) => c.name.toLowerCase());
+    expect(upload).not.toHaveBeenCalled();
+    expect(patch).toHaveBeenCalledWith(jasmine.objectContaining({
+      specCharacteristic: jasmine.arrayContaining([
+        { name: 'File', characteristicValueSpecification: [{ value: uploaded.id }] },
+        { name: 'Service Type', characteristicValueSpecification: [{ value: loggingType.categoryId }] }
+      ])
+    }), 'existing');
+    const names = component.serviceToCreate!.specCharacteristic!.map(c => c.name!.toLowerCase());
     expect(new Set(names).size).toBe(names.length);
-    expect(names).toContain('unrelated');
   });
 
-  it('keeps the selected file local, then uploads and submits the returned URL on Save', () => {
-    selectLoggingType({ ...loggingType, formats: ['FILE'], mediaTypes: ['application/json'] });
-    expect(fixture.nativeElement.querySelector('#asset-file')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('#asset-url')).toBeNull();
-    mockFileRead();
-    const response = new Subject<any>();
-    const upload = spyOn(TestBed.inject(AttachmentServiceService), 'uploadFile').and.returnValue(response);
+  it('resets file selection, metadata and configuration when changing plugin and restores the new defaults', () => {
+    selectPlugin();
+    const other = { ...assetType, id: 'other-plugin', categoryId: 'other-category' };
+    component.assetTypes.push(other);
+    chooseFile();
+    component.metadataForm.controls['display_name'].setValue('Changed');
+    component.prodChars = [{ name: 'Old config' }];
+    component.charsForm.controls.name.setValue('Unfinished');
+    component.goToStep(0);
+    fixture.detectChanges();
+    const select = fixture.nativeElement.querySelector('#serv-type') as HTMLSelectElement;
+    select.value = other.id;
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(component.pendingAssetFile).toBeNull();
+    expect(component.detailsForm.value).toEqual({ fileId: '' });
+    expect(component.metadataForm.value).toEqual({});
+    expect(component.prodChars).toEqual([]);
+    expect(component.charsForm.value.name).toBeNull();
+    expect(component.highestStep).toBe(0);
+    expect(component.generalForm.value.name).toBe('Logging');
+    select.value = loggingType.id;
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(component.metadataForm.controls['display_name'].value).toBe('Demo service');
+    expect(component.metadataForm.untouched).toBeTrue();
+  });
+
+  it('keeps files local until Save, then submits the upload response ID instead of its content or href', () => {
+    selectPlugin();
+    const response = new Subject<ManagedFileUpload>();
+    const upload = spyOn(TestBed.inject(AttachmentServiceService), 'uploadManagedFile').and.returnValue(response);
     const saved = new Subject<any>();
     const post = spyOn(serviceSpecService, 'postServSpec').and.returnValue(saved);
-    chooseFile();
-    fixture.detectChanges();
+    const file = chooseFile();
     expect(upload).not.toHaveBeenCalled();
-    expect(FileReader.prototype.readAsDataURL).not.toHaveBeenCalled();
-    expect(component.uploadingAsset).toBeFalse();
     expect(component.canSaveDraftServiceSpec()).toBeTrue();
-    expect(component.detailsForm.controls.url.value).toBe('');
-    expect((fixture.nativeElement.querySelector('[data-cy="servSpecNext"]') as HTMLButtonElement).disabled).toBeFalse();
-
-    component.goToStep(2);
     component.createService();
-    fixture.detectChanges();
-    expect(component.uploadingAsset).toBeTrue();
-    expect(component.canSaveDraftServiceSpec()).toBeFalse();
+    component.createService(); // Duplicate click is ignored while saving.
+    expect(upload).toHaveBeenCalledOnceWith(file, { contentType: 'application/json', isPublic: false });
     expect(post).not.toHaveBeenCalled();
-    expect(upload.calls.mostRecent().args[0]).toEqual({
-      content: { name: jasmine.stringMatching(/_service.json$/), data: 'e30=' },
-      contentType: 'application/json', isPublic: true
-    });
-    component.createService(); // Ignore repeated clicks while saving.
-    expect(upload).toHaveBeenCalledTimes(1);
-    response.next({ content: '/assets/uploaded.json' });
+    response.next(uploaded);
     response.complete();
     expect(post).toHaveBeenCalledTimes(1);
-    expect(component.loading).toBeTrue(); // Save stays busy until the spec request completes.
-    const url = post.calls.mostRecent().args[0].specCharacteristic.find((c: any) => c.name === 'URL');
-    expect(url.characteristicValueSpecification).toEqual([{ value: environment.BASE_URL + '/assets/uploaded.json' }]);
-    expect(component.pendingAssetFile).toBeNull();
-    saved.next({ id: 'saved-spec' });
+    expect(payloadValues()['File']).toBe(uploaded.id);
+    expect(payloadValues()['File']).not.toBe(uploaded.content);
+    expect(payloadValues()['File']).not.toBe(uploaded.href);
+    expect(component.loading).toBeTrue();
+    saved.next({ id: 'saved' });
     saved.complete();
     expect(component.loading).toBeFalse();
-    expect(component.showSuccessModal).toBeTrue();
   });
 
-  it('does not upload invalid details or when the selected file is discarded', () => {
-    selectLoggingType({ ...loggingType, formats: ['FILE'] });
-    const upload = spyOn(TestBed.inject(AttachmentServiceService), 'uploadFile');
-    const post = spyOn(serviceSpecService, 'postServSpec');
+  it('uploads before updating an existing service specification', () => {
+    component.serv = { id: 'existing', name: 'Existing', specCharacteristic: [] };
+    selectPlugin();
+    spyOn(TestBed.inject(AttachmentServiceService), 'uploadManagedFile').and.returnValue(of(uploaded));
+    const patch = spyOn(serviceSpecService, 'updateServSpec').and.returnValue(of({}));
     chooseFile();
-    component.metadataForm.controls['display_name'].setValue('');
+    component.createService();
+    expect(patch).toHaveBeenCalledWith(jasmine.objectContaining({
+      specCharacteristic: jasmine.arrayContaining([{ name: 'File', characteristicValueSpecification: [{ value: uploaded.id }] }])
+    }), 'existing');
+  });
+
+  it('uses application/octet-stream when a file has no browser MIME type', () => {
+    selectPlugin();
+    const upload = spyOn(TestBed.inject(AttachmentServiceService), 'uploadManagedFile').and.returnValue(of(uploaded));
+    spyOn(serviceSpecService, 'postServSpec').and.returnValue(of({ id: 'saved' }));
+    const file = chooseFile(new File(['data'], 'unknown'));
+    component.createService();
+    expect(upload).toHaveBeenCalledWith(file, { contentType: 'application/octet-stream', isPublic: false });
+  });
+
+  it('rejects unsupported or oversized files without uploading', () => {
+    selectPlugin();
+    const upload = spyOn(TestBed.inject(AttachmentServiceService), 'uploadManagedFile');
+    chooseFile(new File(['x'], 'image.png', { type: 'image/png' }));
+    expect(component.assetUploadError).toBeTruthy();
+    expect(component.pendingAssetFile).toBeNull();
+    const file = new File(['x'], 'large.json', { type: 'application/json' });
+    Object.defineProperty(file, 'size', { value: environment.MAX_FILE_SIZE + 1 });
+    chooseFile(file);
     component.createService();
     expect(upload).not.toHaveBeenCalled();
-    expect(post).not.toHaveBeenCalled();
-    component.discardLeave();
-    expect(upload).not.toHaveBeenCalled();
   });
 
-  it('stops submission on upload failure or missing URL and allows retrying the same local file', () => {
-    selectLoggingType({ ...loggingType, formats: ['FILE'] });
-    mockFileRead();
-    const upload = spyOn(TestBed.inject(AttachmentServiceService), 'uploadFile')
+  it('stops on upload errors or missing string IDs, and retries the same local file', () => {
+    selectPlugin();
+    const upload = spyOn(TestBed.inject(AttachmentServiceService), 'uploadManagedFile')
       .and.returnValue(throwError(() => ({ status: 500 })));
     const post = spyOn(serviceSpecService, 'postServSpec').and.returnValue(of({ id: 'saved' }));
     chooseFile();
     component.createService();
-    expect(component.assetUploadError).toBeTruthy();
-    expect(component.uploadingAsset).toBeFalse();
     expect(component.loading).toBeFalse();
-    expect(post).not.toHaveBeenCalled();
-    expect(component.pendingAssetFile).toBeTruthy();
-    expect(component.canSaveDraftServiceSpec()).toBeTrue();
-    upload.and.returnValue(of({}));
-    component.createService();
     expect(component.assetUploadError).toBeTruthy();
-    expect(component.detailsForm.controls.url.value).toBe('');
     expect(post).not.toHaveBeenCalled();
-    upload.and.returnValue(of({ content: 'https://files.example/service.json' }));
+    upload.and.returnValue(of({ ...uploaded, id: '' }));
+    component.createService();
+    expect(post).not.toHaveBeenCalled(); // content/href must never substitute for id.
+    upload.and.returnValue(of(uploaded));
     component.createService();
     expect(post).toHaveBeenCalledTimes(1);
   });
 
-  it('reuses an uploaded URL if service specification creation fails and is retried', () => {
-    selectLoggingType({ ...loggingType, formats: ['FILE'] });
-    mockFileRead();
-    const upload = spyOn(TestBed.inject(AttachmentServiceService), 'uploadFile')
-      .and.returnValue(of({ content: 'https://files.example/service.json' }));
+  it('reuses the Resource ID after a specification save failure', () => {
+    selectPlugin();
+    const upload = spyOn(TestBed.inject(AttachmentServiceService), 'uploadManagedFile').and.returnValue(of(uploaded));
     const post = spyOn(serviceSpecService, 'postServSpec').and.returnValue(throwError(() => ({ status: 500 })));
     chooseFile();
     component.createService();
-    expect(component.loading).toBeFalse();
-    expect(component.pendingAssetFile).toBeNull();
     post.and.returnValue(of({ id: 'saved' }));
     component.createService();
     expect(upload).toHaveBeenCalledTimes(1);
     expect(post).toHaveBeenCalledTimes(2);
   });
 
-  it('uploads before updating an existing service specification', () => {
-    component.serv = { id: 'existing', name: 'Existing', specCharacteristic: [] };
-    selectLoggingType({ ...loggingType, formats: ['FILE'] });
-    mockFileRead();
-    const response = new Subject<any>();
-    spyOn(TestBed.inject(AttachmentServiceService), 'uploadFile').and.returnValue(response);
-    const patch = spyOn(serviceSpecService, 'updateServSpec').and.returnValue(of({}));
-    chooseFile();
-    expect(patch).not.toHaveBeenCalled();
-    component.createService();
-    expect(patch).not.toHaveBeenCalled();
-    response.next({ content: '/updated.json' });
-    response.complete();
-    expect(patch).toHaveBeenCalledWith(jasmine.objectContaining({
-      specCharacteristic: jasmine.arrayContaining([
-        { name: 'URL', characteristicValueSpecification: [{ value: environment.BASE_URL + '/updated.json' }] }
-      ])
-    }), 'existing');
-  });
-
-  it('uploads before saving a draft on leaving the editor', () => {
-    selectLoggingType({ ...loggingType, formats: ['FILE'] });
-    mockFileRead();
-    const response = new Subject<any>();
-    spyOn(TestBed.inject(AttachmentServiceService), 'uploadFile').and.returnValue(response);
+  it('uploads before saving a draft when leaving the editor', () => {
+    selectPlugin();
+    const response = new Subject<ManagedFileUpload>();
+    spyOn(TestBed.inject(AttachmentServiceService), 'uploadManagedFile').and.returnValue(response);
     const post = spyOn(serviceSpecService, 'postServSpec').and.returnValue(of({ id: 'draft' }));
     chooseFile();
-    component.showLeaveModal = true;
     component.confirmLeave();
     expect(post).not.toHaveBeenCalled();
-    response.next({ content: '/draft.json' });
+    response.next(uploaded);
     response.complete();
     expect(post).toHaveBeenCalledTimes(1);
     expect(component.showSuccessModal).toBeFalse();
   });
 
-  it('rejects unsupported and oversized files before uploading', () => {
-    selectLoggingType({ ...loggingType, formats: ['FILE'] });
-    const upload = spyOn(TestBed.inject(AttachmentServiceService), 'uploadFile');
-    chooseFile(new File(['x'], 'image.png', { type: 'image/png' }));
-    expect(component.assetUploadError).toBeTruthy();
-    expect(component.pendingAssetFile).toBeNull();
-    const large = new File(['x'], 'large.json', { type: 'application/json' });
-    Object.defineProperty(large, 'size', { value: environment.MAX_FILE_SIZE + 1 });
-    chooseFile(large);
-    expect(component.assetUploadError).toContain('_asset_file_size_error');
-    component.createService();
-    expect(upload).not.toHaveBeenCalled();
-  });
-
-  it('clears local files when switching source or service type without uploading', () => {
-    selectLoggingType();
-    const upload = spyOn(TestBed.inject(AttachmentServiceService), 'uploadFile');
-    component.detailsForm.controls.source.setValue('FILE');
-    component.onAssetSourceChange();
-    chooseFile();
-    expect(component.pendingAssetFile).toBeTruthy();
-    component.detailsForm.controls.source.setValue('URL');
-    component.onAssetSourceChange();
-    expect(component.pendingAssetFile).toBeNull();
-    component.detailsForm.controls.source.setValue('FILE');
-    component.onAssetSourceChange();
-    chooseFile();
-    component.goToStep(0);
-    component.generalForm.controls.serviceType.setValue('');
-    component.onServiceTypeChange();
-    expect(component.pendingAssetFile).toBeNull();
-    expect(component.detailsForm.controls.url.value).toBe('');
-    expect(upload).not.toHaveBeenCalled();
-  });
-
-  it('cancels an in-progress save on destroy without submitting a late upload URL', () => {
-    selectLoggingType({ ...loggingType, formats: ['FILE'] });
-    mockFileRead();
-    const response = new Subject<any>();
-    spyOn(TestBed.inject(AttachmentServiceService), 'uploadFile').and.returnValue(response);
+  it('does not upload when discarding and cancels an in-progress save on destroy', () => {
+    selectPlugin();
+    const response = new Subject<ManagedFileUpload>();
+    const upload = spyOn(TestBed.inject(AttachmentServiceService), 'uploadManagedFile').and.returnValue(response);
     const post = spyOn(serviceSpecService, 'postServSpec');
     chooseFile();
+    component.discardLeave();
+    expect(upload).not.toHaveBeenCalled();
     component.createService();
     component.ngOnDestroy();
-    response.next({ content: '/stale.json' });
+    response.next(uploaded);
     expect(post).not.toHaveBeenCalled();
     expect(component.loading).toBeFalse();
   });

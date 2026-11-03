@@ -15,7 +15,7 @@ export interface AssetType {
   version: string;
   categoryId: string | null;
   mediaTypes: string[];
-  formats: ('URL' | 'FILE')[];
+  requiresFile: boolean;
   overrides: ('NAME' | 'VERSION' | 'OPEN')[];
   formOrder?: string[];
   form?: Record<string, AssetTypeFormField>;
