@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { of, throwError, Subject } from 'rxjs';
@@ -351,6 +351,60 @@ describe('CreateResourceSpecComponent', () => {
     const file = chooseFile(new File(['data'], 'unknown'));
     component.createResource();
     expect(upload).toHaveBeenCalledWith(file, { contentType: 'application/octet-stream', isPublic: false });
+  });
+
+  it('accepts filenames allowed by the backend regex without modifying them', () => {
+    selectPlugin();
+    for (const name of ['service.json', '.env', '...', ' report.json ', 'café 数据.txt', 'data:name*.json',
+      '\uFEFF', 'line\u2028name.txt', 'line\u2029name.txt']) {
+      const file = new File(['{}'], 'placeholder.json', { type: 'application/json' });
+      Object.defineProperty(file, 'name', { value: name });
+      chooseFile(file);
+      expect(component.pendingAssetFile).withContext(JSON.stringify(name)).toBe(file);
+      expect(component.assetFileName).toBe(name);
+      expect(component.assetUploadError).toBe('');
+    }
+  });
+
+  it('shows filename errors and blocks saving for every forbidden character and blank or dot names', () => {
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('en', { CREATE_RES_SPEC: { _asset_file_name_error: 'Invalid file name' } });
+    translate.use('en');
+    selectPlugin();
+    const upload = spyOn(TestBed.inject(AttachmentServiceService), 'uploadManagedFile');
+    const post = spyOn(resourceSpecService, 'postResSpec');
+    const invalidNames = ['', '.', '..', ' ', '\t', '\u00a0', '\u2028\u2029',
+      ...['/', '\\', '#', '?', '%'].map(character => 'file' + character + '.json'),
+      ...Array.from({ length: 32 }, (_, code) => 'file' + String.fromCharCode(code) + '.json'),
+      ...Array.from({ length: 33 }, (_, index) => 'file' + String.fromCharCode(127 + index) + '.json'),
+      'file.json\n', 'file.json\r\n'];
+
+    for (const name of invalidNames) {
+      chooseFile(); // A rejected replacement must also clear any previously selected file.
+      const file = new File(['{}'], 'placeholder.json', { type: 'application/json' });
+      // File constructors can normalize separators; validate the exact supplied name.
+      Object.defineProperty(file, 'name', { value: name });
+      chooseFile(file);
+      fixture.detectChanges();
+      expect(component.pendingAssetFile).withContext(JSON.stringify(name)).toBeNull();
+      expect(component.assetUploadError).toBe('Invalid file name');
+      expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('Invalid file name');
+      expect((fixture.nativeElement.querySelector('[data-cy="resSpecNext"]') as HTMLButtonElement).disabled).toBeTrue();
+      component.createResource();
+      expect(post).not.toHaveBeenCalled();
+    }
+    expect(upload).not.toHaveBeenCalled();
+  });
+
+  it('clears the filename error when a valid replacement is selected', () => {
+    selectPlugin();
+    chooseFile(new File(['{}'], 'invalid#name.json', { type: 'application/json' }));
+    expect(component.assetUploadError).toBeTruthy();
+    const valid = chooseFile();
+    fixture.detectChanges();
+    expect(component.pendingAssetFile).toBe(valid);
+    expect(component.assetUploadError).toBe('');
+    expect((fixture.nativeElement.querySelector('[data-cy="resSpecNext"]') as HTMLButtonElement).disabled).toBeFalse();
   });
 
   it('rejects unsupported or oversized files without uploading', () => {

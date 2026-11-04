@@ -9,7 +9,7 @@ import { LoginInfo } from 'src/app/models/interfaces';
 import { EventMessageService } from "src/app/services/event-message.service";
 import { LocalStorageService } from "src/app/services/local-storage.service";
 import { ResourceSpecServiceService } from 'src/app/services/resource-spec-service.service';
-import { noWhitespaceValidator } from 'src/app/validators/validators';
+import { isValidFileName, noWhitespaceValidator } from 'src/app/validators/validators';
 import { v4 as uuidv4 } from 'uuid';
 import { TranslateService } from '@ngx-translate/core';
 import { formatApiErrorMessage } from 'src/app/shared/error-message/api-error-message';
@@ -293,6 +293,10 @@ export class CreateResourceSpecComponent implements OnInit, OnDestroy, DoCheck {
     this.pendingAssetFile = null;
     this.assetFileName = file.name;
     this.assetUploadError = '';
+    if (!isValidFileName(file.name)) {
+      this.assetUploadError = this.translate.instant('CREATE_RES_SPEC._asset_file_name_error');
+      return;
+    }
     if (file.size > environment.MAX_FILE_SIZE) {
       this.assetUploadError = this.translate.instant('CREATE_RES_SPEC._asset_file_size_error');
       return;
