@@ -1,60 +1,83 @@
-
-<div class="container mx-auto pt-2 pb-8">
-    <h1 class="hidden lg:block mb-8 mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-4xl lg:text-5xl dark:text-white w-full"><span class="underline underline-offset-3 decoration-8 decoration-primary-100 dark:decoration-primary-100">My inventory</span></h1>
-    <div class="flex flex-cols mr-2 ml-2 lg:hidden">
-      <h1 class="mb-8 mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 lg:text-4xl lg:text-5xl dark:text-white w-full"><span class="underline underline-offset-3 decoration-8 decoration-primary-100 dark:decoration-primary-100">My inventory</span></h1>
-      <div class="flex align-middle content-center items-center">
-        <button id="dropdown-nav" data-dropdown-toggle="dropdown-nav-content" 
-        class="text-black dark:text-white h-fit w-fit justify-between shadow bg-white dark:bg-secondary-200 hover:bg-gray-100 dark:hover:bg-secondary-300 focus:ring-4 focus:outline-none focus:ring-primary-100 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center shadow-lg"
-        type="button">
-        <svg class="w-4 h-4 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+<div class="bg-offerings-page dark:bg-secondary-500 min-h-[calc(100vh-88px)] flex flex-col">
+  <div class="w-full px-4 sm:px-8 pt-4 pb-6 flex-1 flex flex-col">
+    <div class="flex items-center justify-between gap-4 mb-6 lg:hidden">
+      <h1 class="text-3xl font-extrabold text-offerings-text dark:text-offerings-on-dark">{{ 'HEADER._inventory' | translate }}</h1>
+      <button id="dropdown-nav" data-dropdown-toggle="dropdown-nav-content" type="button"
+        class="inline-flex items-center gap-2 shrink-0 h-10 px-3 rounded-lg border border-offerings-border bg-offerings-surface text-offerings-text dark:bg-secondary-200 dark:border-secondary-100 dark:text-offerings-on-dark hover:bg-offerings-neutral dark:hover:bg-secondary-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-100">
+        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
         </svg>
         {{ 'PRODUCT_INVENTORY._inventory' | translate }}
       </button>
-      </div>
-  
-    </div>
-    <!-- Dropdown menu -->
-    <div id="dropdown-nav-content" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-      <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdown-nav">
-        <li>
-          <a data-cy="inventoryProducts" (click)="goToOffers()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'PRODUCT_INVENTORY._products' | translate }}</a>
-        </li>
-        <li>
-          <a (click)="getServices()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'PRODUCT_INVENTORY._services' | translate }}</a>
-        </li>
-        <li>
-          <a (click)="getResources()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'PRODUCT_INVENTORY._resources' | translate }}</a>
-        </li>
-      </ul>
     </div>
 
-    <div class="w-full grid lg:grid-cols-20/80">
-      <div class="hidden lg:block">
-        <div class="w-48 h-fit text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-            <button data-cy="inventoryProducts" id="prod-button" (click)="goToOffers()" aria-current="true" class="block w-full px-4 py-2 text-white bg-primary-100 border-b border-gray-200 rounded-t-lg cursor-pointer dark:border-gray-600 hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-              {{ 'PRODUCT_INVENTORY._products' | translate }}
-            </button>
-            <button data-cy="inventoryServices" id="serv-button" (click)="getServices()" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-              {{ 'PRODUCT_INVENTORY._services' | translate }}
-            </button>
-            <button data-cy="inventoryResources" id="res-button" (click)="getResources()" class="block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
-              {{ 'PRODUCT_INVENTORY._resources' | translate }}
-            </button>
-        </div>
-      </div>
-        <div>
-          @if(show_prods){
-            <inventory-products [prodId]="openProdId"></inventory-products>
-          }
-          @if(show_serv){
-            <inventory-services [serviceId]="openServiceId" [prodId]="openProdId"></inventory-services>
-          }
-          @if(show_res){
-            <inventory-resources [resourceId]="openResourceId" [prodId]="openProdId"></inventory-resources>
-          }
-        </div>      
-    </div>
+    <nav id="dropdown-nav-content" aria-labelledby="dropdown-nav"
+      class="z-10 hidden w-48 p-2 rounded-2xl border border-offerings-border bg-offerings-surface shadow-sm dark:bg-secondary-200 dark:border-secondary-100">
+      <button data-cy="inventoryProducts" type="button" (click)="goToOffers()"
+        [attr.aria-current]="show_prods ? 'page' : null"
+        [ngClass]="show_prods ? 'bg-secondary-50 text-offerings-text dark:bg-secondary-300 dark:text-offerings-on-dark' : 'text-offerings-body dark:text-offerings-on-dark-body hover:bg-offerings-neutral dark:hover:bg-secondary-300'"
+        class="block w-full px-4 py-3 rounded-lg text-sm font-medium text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-100">
+        {{ 'PRODUCT_INVENTORY._products' | translate }}
+      </button>
+      <button data-cy="inventoryServices" type="button" (click)="getServices()"
+        [attr.aria-current]="show_serv ? 'page' : null"
+        [ngClass]="show_serv ? 'bg-secondary-50 text-offerings-text dark:bg-secondary-300 dark:text-offerings-on-dark' : 'text-offerings-body dark:text-offerings-on-dark-body hover:bg-offerings-neutral dark:hover:bg-secondary-300'"
+        class="block w-full px-4 py-3 rounded-lg text-sm font-medium text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-100">
+        {{ 'PRODUCT_INVENTORY._services' | translate }}
+      </button>
+      <button data-cy="inventoryResources" type="button" (click)="getResources()"
+        [attr.aria-current]="show_res ? 'page' : null"
+        [ngClass]="show_res ? 'bg-secondary-50 text-offerings-text dark:bg-secondary-300 dark:text-offerings-on-dark' : 'text-offerings-body dark:text-offerings-on-dark-body hover:bg-offerings-neutral dark:hover:bg-secondary-300'"
+        class="block w-full px-4 py-3 rounded-lg text-sm font-medium text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-100">
+        {{ 'PRODUCT_INVENTORY._resources' | translate }}
+      </button>
+    </nav>
 
+    <div class="w-full flex flex-col lg:flex-row lg:gap-6 flex-1">
+      <aside class="hidden lg:flex lg:flex-col lg:w-[324px] lg:shrink-0 lg:basis-[324px]">
+        <h1 id="inventory-heading" class="text-3xl font-extrabold text-offerings-text dark:text-offerings-on-dark mb-6 mt-4 px-2">{{ 'HEADER._inventory' | translate }}</h1>
+        <nav aria-labelledby="inventory-heading" class="flex flex-col gap-2">
+          <button data-cy="inventoryProducts" id="prod-button" type="button" (click)="goToOffers()"
+            [attr.aria-current]="show_prods ? 'page' : null"
+            [ngClass]="show_prods ? 'bg-secondary-50 text-offerings-text dark:bg-secondary-200 dark:text-offerings-on-dark' : 'text-offerings-text dark:text-offerings-on-dark-body hover:bg-secondary-50/50 dark:hover:bg-secondary-300'"
+            class="flex items-center gap-3 w-full p-4 rounded-2xl text-base font-medium text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-100">
+            <svg class="w-5 h-5 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/>
+            </svg>
+            {{ 'PRODUCT_INVENTORY._products' | translate }}
+          </button>
+          <button data-cy="inventoryServices" id="serv-button" type="button" (click)="getServices()"
+            [attr.aria-current]="show_serv ? 'page' : null"
+            [ngClass]="show_serv ? 'bg-secondary-50 text-offerings-text dark:bg-secondary-200 dark:text-offerings-on-dark' : 'text-offerings-text dark:text-offerings-on-dark-body hover:bg-secondary-50/50 dark:hover:bg-secondary-300'"
+            class="flex items-center gap-3 w-full p-4 rounded-2xl text-base font-medium text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-100">
+            <svg class="w-5 h-5 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1M5.6 18.4l2.1-2.1m8.6-8.6 2.1-2.1M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/>
+            </svg>
+            {{ 'PRODUCT_INVENTORY._services' | translate }}
+          </button>
+          <button data-cy="inventoryResources" id="res-button" type="button" (click)="getResources()"
+            [attr.aria-current]="show_res ? 'page' : null"
+            [ngClass]="show_res ? 'bg-secondary-50 text-offerings-text dark:bg-secondary-200 dark:text-offerings-on-dark' : 'text-offerings-text dark:text-offerings-on-dark-body hover:bg-secondary-50/50 dark:hover:bg-secondary-300'"
+            class="flex items-center gap-3 w-full p-4 rounded-2xl text-base font-medium text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-100">
+            <svg class="w-5 h-5 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v6H4V4Zm0 10h16v6H4v-6Zm4-7h.01M8 17h.01"/>
+            </svg>
+            {{ 'PRODUCT_INVENTORY._resources' | translate }}
+          </button>
+        </nav>
+      </aside>
+
+      <div class="flex-1 min-w-0 flex flex-col bg-offerings-surface dark:bg-secondary-300 rounded-2xl border border-offerings-border dark:border-secondary-200 shadow-sm p-2">
+        @if(show_prods){
+          <inventory-products [prodId]="openProdId"></inventory-products>
+        }
+        @if(show_serv){
+          <inventory-services [serviceId]="openServiceId" [prodId]="openProdId"></inventory-services>
+        }
+        @if(show_res){
+          <inventory-resources [resourceId]="openResourceId" [prodId]="openProdId"></inventory-resources>
+        }
+      </div>
+    </div>
+  </div>
 </div>
