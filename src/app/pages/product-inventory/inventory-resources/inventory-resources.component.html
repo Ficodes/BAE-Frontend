@@ -1,93 +1,18 @@
 <div class="flex flex-col p-4 justify-end">
     @if(!showDetails){
-        <div class="w-full h-fit mb-4 bg-secondary-50 rounded-lg dark:bg-secondary-100 dark:border-gray-800 border-secondary-50 border flex flex-col shadow-lg">
-            <div class="flex w-full flex-cols items-center justify-between">
-              <div class="mb-4 lg:mb-0 lg:w-1/4 p-8 justify-start">
-                  <h2 class="text-xl font-bold dark:text-white">{{ 'PRODUCT_INVENTORY._search_criteria' | translate }}</h2>  
-              </div>  
-            </div>
-            <div class="flex w-full flex-col items-center lg:flex-row justify-between">
-      
-              <div class="p-8 w-full">
-                <div class="flex flex-row mb-1">
-                  <fa-icon [icon]="faSwatchbook" class="fa-base text-primary-100 align-middle mr-2"></fa-icon>
-                  <h2 class="text-base dark:text-white font-bold">{{ 'OFFERINGS._filter_state' | translate }}</h2>
-                  </div>
-                  <button id="dropdownDefault" data-dropdown-toggle="dropdown"
-                  class="text-black dark:text-white w-full justify-between shadow bg-white dark:bg-secondary-200 hover:bg-gray-100 dark:hover:bg-secondary-300 focus:ring-4 focus:outline-none focus:ring-primary-100 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center shadow-lg"
-                  type="button">
-                  {{ 'OFFERINGS._filter_state' | translate }}
-                  <svg class="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                  </svg>
-                  </button>
-                  
-                  <div id="dropdown" class="z-20 hidden w-fit md:w-1/5 p-3 bg-white rounded-lg shadow dark:bg-secondary-200">
-                  <h6 class="mb-3 text-sm font-medium text-gray-900 dark:text-white">
-                      {{ 'OFFERINGS._status' | translate }}
-                  </h6>
-                  <ul class="space-y-2 text-sm" aria-labelledby="dropdownDefault">
-        
-                      <li class="flex items-center">
-                      <input id="standby" type="checkbox" value="" (change)="onStateFilterChange('standby')"
-                          class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100" />
-          
-                      <label for="standby" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-200">
-                        {{ 'PRODUCT_INVENTORY._standby' | translate }}
-                      </label>
-                      </li>
-          
-                      <li class="flex items-center">
-                      <input id="alarm" type="checkbox" value="" (change)="onStateFilterChange('alarm')"
-                          class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100" />
-          
-                      <label for="alarm" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-200">
-                        {{ 'PRODUCT_INVENTORY._alarm' | translate }}
-                      </label>
-                      </li>
-          
-                      <li class="flex items-center">
-                      <input id="available" type="checkbox" value="" (change)="onStateFilterChange('available')"
-                          class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100" />
-          
-                      <label for="available" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-200">
-                        {{ 'PRODUCT_INVENTORY._available' | translate }}
-                      </label>
-                      </li>
-      
-                      <li class="flex items-center">
-                        <input id="reserved" type="checkbox" value="" (change)="onStateFilterChange('reserved')"
-                            class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100" />
-            
-                        <label for="reserved" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-200">
-                            {{ 'PRODUCT_INVENTORY._reserved' | translate }}
-                        </label>
-                      </li>
-
-                      <li class="flex items-center">
-                        <input id="suspended" type="checkbox" value="" (change)="onStateFilterChange('suspended')"
-                            class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100" />
-            
-                        <label for="suspended" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-200">
-                            {{ 'PRODUCT_INVENTORY._suspended' | translate }}
-                        </label>
-                      </li>
-
-                      <li class="flex items-center">
-                        <input id="unknown" type="checkbox" value="" (change)="onStateFilterChange('unknown')"
-                            class="w-4 h-4 bg-gray-100 checked:bg-primary-100 dark:checked:bg-primary-100 border-gray-300 rounded focus:ring-primary-100" />
-            
-                        <label for="unknown" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-200">
-                            {{ 'PRODUCT_INVENTORY._unknown' | translate }}
-                        </label>
-                      </li>
-                      
-                  </ul>
-                </div>
-            </div>
-          </div>
-        </div> 
+        <h2 class="text-2xl font-extrabold text-offerings-text dark:text-offerings-on-dark mb-8">{{ 'PRODUCT_INVENTORY._resources' | translate }}</h2>
+        <div role="group" [attr.aria-label]="'OFFERINGS._status' | translate"
+            class="border-b border-offerings-border dark:border-secondary-200 flex items-stretch overflow-x-auto mb-8">
+            @for (tab of statusTabs; track tab.value) {
+                <button type="button" data-cy="inventoryStatusTab" [attr.data-status]="tab.value"
+                    (click)="selectStatusTab(tab.value)" [disabled]="loading || loading_more"
+                    [attr.aria-pressed]="selectedStatus === tab.value"
+                    class="w-56 shrink-0 lg:shrink flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold tracking-[0.5px] leading-6 border-b-[3px] -mb-px transition-colors disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-100"
+                    [ngClass]="selectedStatus === tab.value ? 'text-offerings-text dark:text-offerings-on-dark border-primary-100 dark:border-primary-50' : 'text-offerings-muted-text dark:text-offerings-on-dark-body border-transparent hover:text-offerings-body dark:hover:text-offerings-on-dark'">
+                    {{ tab.label | translate }}
+                </button>
+            }
+        </div>
         @if(loading){
             <div role="status" class="w-full h-full flex justify-center align-middle">
                 <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin dark:text-gray-600 fill-secondary-400" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -97,7 +22,7 @@
                 <span class="sr-only">Loading...</span>
             </div>
         } @else {
-            <div class="bg-secondary-50 dark:bg-secondary-100 border dark:border-gray-800 mt-8 p-4 rounded-lg">
+            <div class="bg-secondary-50 dark:bg-secondary-100 border dark:border-gray-800 p-4 rounded-lg">
                 <div class="relative overflow-x-auto shadow-md sm:rounded-lg w-full bg-white dark:bg-secondary-300">
                     <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-200">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-secondary-200 dark:text-white">

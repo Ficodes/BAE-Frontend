@@ -15,7 +15,6 @@ type ProductOffering = components["schemas"]["ProductOffering"];
 import moment from 'moment';
 import { FormControl } from '@angular/forms';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
-import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
@@ -28,9 +27,6 @@ import { AccountServiceService } from 'src/app/services/account-service.service'
 })
 export class InventoryProductsComponent implements OnInit, OnDestroy {
 
-  protected readonly faIdCard = faIdCard;
-  protected readonly faSort = faSort;
-  protected readonly faSwatchbook = faSwatchbook;
 
   @Input() prodId: any = undefined;
 
@@ -45,7 +41,14 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
   prodToRenew:any;
   prodToUnsubscribe:any;
   prices: any[]=[];
-  filters: any[]=['active','created'];
+  readonly statusTabs = [
+    { value: 'created', label: 'PRODUCT_INVENTORY._created' },
+    { value: 'active', label: 'PRODUCT_INVENTORY._active' },
+    { value: 'suspended', label: 'PRODUCT_INVENTORY._suspended' },
+    { value: 'terminated', label: 'PRODUCT_INVENTORY._terminated' },
+  ];
+  selectedStatus = this.statusTabs[0].value;
+  filters: string[] = [this.selectedStatus];
   loading_more: boolean = false;
   page_check:boolean = true;
   page: number=0;
@@ -198,18 +201,15 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
     })
   }
 
-  onStateFilterChange(filter:string){
-    const index = this.filters.findIndex(item => item === filter);
-    if (index !== -1) {
-      this.filters.splice(index, 1);
-      console.log('elimina filtro')
-      console.log(this.filters)
-    } else {
-      console.log('añade filtro')
-      console.log(this.filters)
-      this.filters.push(filter)
-    }
-    this.getInventory(false);
+  selectStatusTab(status: string) {
+    if (this.loading || this.loading_more || this.selectedStatus === status || !this.statusTabs.some(tab => tab.value === status)) return;
+
+    this.selectedStatus = status;
+    this.filters = [status];
+    this.page = 0;
+    this.inventory = [];
+    this.nextInventory = [];
+    return this.getInventory(false);
   }
 
   async next(){

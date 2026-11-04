@@ -6,7 +6,6 @@ import { ApiServiceService } from 'src/app/services/product-service.service';
 import { Router } from '@angular/router';
 import { PaginationService } from 'src/app/services/pagination.service';
 import {EventMessageService} from "src/app/services/event-message.service";
-import {faIdCard, faSort, faSwatchbook} from "@fortawesome/pro-solid-svg-icons";
 import { initFlowbite } from 'flowbite';
 import { environment } from 'src/environments/environment';
 import moment from 'moment';
@@ -20,9 +19,6 @@ import { takeUntil } from 'rxjs/operators';
 })
 export class InventoryResourcesComponent implements OnInit, OnDestroy {
 
-  protected readonly faIdCard = faIdCard;
-  protected readonly faSort = faSort;
-  protected readonly faSwatchbook = faSwatchbook;
 
   @Input() resourceId: any = undefined;
   @Input() prodId: any = undefined;
@@ -31,7 +27,13 @@ export class InventoryResourcesComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   resources:any[]=[];
   nextResources:any[]=[];
-  status:any[]=[];
+  readonly statusTabs = [
+    { value: 'reserved', label: 'PRODUCT_INVENTORY._reserved' },
+    { value: 'available', label: 'PRODUCT_INVENTORY._available' },
+    { value: 'suspended', label: 'PRODUCT_INVENTORY._suspended' },
+  ];
+  selectedStatus = this.statusTabs[0].value;
+  status: string[] = [this.selectedStatus];
   loading_more: boolean = false;
   page_check:boolean = true;
   page: number=0;
@@ -133,18 +135,15 @@ export class InventoryResourcesComponent implements OnInit, OnDestroy {
     }    
   }
 
-  onStateFilterChange(filter:string){
-    const index = this.status.findIndex(item => item === filter);
-    if (index !== -1) {
-      this.status.splice(index, 1);
-      console.log('elimina filtro')
-      console.log(this.status)
-    } else {
-      console.log('añade filtro')
-      console.log(this.status)
-      this.status.push(filter)
-    }
-    this.getInventory(false);
+  selectStatusTab(status: string) {
+    if (this.loading || this.loading_more || this.selectedStatus === status || !this.statusTabs.some(tab => tab.value === status)) return;
+
+    this.selectedStatus = status;
+    this.status = [status];
+    this.page = 0;
+    this.resources = [];
+    this.nextResources = [];
+    return this.getInventory(false);
   }
 
   hasLongWord(str: string | undefined, threshold = 20) {
