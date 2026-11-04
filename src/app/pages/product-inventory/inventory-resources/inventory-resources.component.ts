@@ -1,8 +1,7 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit, HostListener, Input, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { LoginInfo } from 'src/app/models/interfaces';
 import { ProductInventoryServiceService } from 'src/app/services/product-inventory-service.service';
 import { LocalStorageService } from 'src/app/services/local-storage.service';
-import { ApiServiceService } from 'src/app/services/product-service.service';
 import { Router } from '@angular/router';
 import { PaginationService } from 'src/app/services/pagination.service';
 import {EventMessageService} from "src/app/services/event-message.service";
@@ -20,8 +19,6 @@ import { takeUntil } from 'rxjs/operators';
 export class InventoryResourcesComponent implements OnInit, OnDestroy {
 
 
-  @Input() resourceId: any = undefined;
-  @Input() prodId: any = undefined;
 
   partyId:any='';
   loading: boolean = false;
@@ -38,15 +35,11 @@ export class InventoryResourcesComponent implements OnInit, OnDestroy {
   page_check:boolean = true;
   page: number=0;
   INVENTORY_LIMIT: number = environment.INVENTORY_RES_LIMIT;
-  showDetails:boolean=false;
-  selectedRes:any;
   private destroy$ = new Subject<void>();
 
   constructor(
     private inventoryService: ProductInventoryServiceService,
     private localStorage: LocalStorageService,
-    private api: ApiServiceService,
-    private cdr: ChangeDetectorRef,
     private router: Router,
     private eventMessage: EventMessageService,
     private paginationService: PaginationService
@@ -61,13 +54,8 @@ export class InventoryResourcesComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    if(this.resourceId!=undefined){      
-      this.api.getResourceSpec(this.resourceId).then(res => {
-        this.selectResource(res)
-        console.log('entre')
-        console.log(res)
-      })      
-    }
+    this.selectedStatus = this.statusTabs[0].value;
+    this.status = [this.selectedStatus];
     this.initInventory();
   }
 
@@ -121,18 +109,8 @@ export class InventoryResourcesComponent implements OnInit, OnDestroy {
     await this.getInventory(true);
   }
 
-  selectResource(res:any){
-    this.selectedRes=res;
-    this.showDetails=true;
-  }
-
-  back(){
-    if(this.prodId!=undefined){
-      this.eventMessage.emitOpenProductInvDetails(this.prodId);
-      this.showDetails=false;
-    } else {
-      this.showDetails=false;
-    }    
+  selectResource(item: any) {
+    return this.router.navigate(['/product-inventory/resources', item.id]);
   }
 
   selectStatusTab(status: string) {

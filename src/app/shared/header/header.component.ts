@@ -106,7 +106,20 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   activeEditor: 'offer' | 'productSpec' | 'serviceSpec' | 'resourceSpec' | 'usageSpec' | 'catalog' | null = null;
   get isOfferEditorActive(): boolean { return this.activeEditor === 'offer'; }
 
+  private get inventoryDetailKind(): 'products' | 'services' | 'resources' | null {
+    const segments = this.router.parseUrl(this.router.url).root.children['primary']?.segments.map(segment => segment.path) ?? [];
+    if (segments[0] !== 'product-inventory') return null;
+    if (segments.length === 2) return 'products';
+    if (segments.length === 3 && (segments[1] === 'services' || segments[1] === 'resources')) return segments[1];
+    return null;
+  }
+
   get backLabelKey(): string {
+    const kind = this.inventoryDetailKind;
+    if (kind) {
+      const parent = this.router.parseUrl(this.router.url).queryParams['productId'];
+      return parent && kind !== 'products' ? 'PRODUCT_INVENTORY._back_to_product' : 'PRODUCT_INVENTORY._back_to_' + kind;
+    }
     switch (this.activeEditor) {
       case 'offer':        return 'CREATE_OFFER._back_to_offers';
       case 'productSpec':  return 'OFFERINGS._back_to_product_specs';
@@ -384,6 +397,17 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
   }
 
   onWorkspaceBackClick() {
+    const kind = this.inventoryDetailKind;
+    if (kind) {
+      const query = this.router.parseUrl(this.router.url).queryParams;
+      const queryParams = { view: query['view'] };
+      if (kind !== 'products' && query['productId']) {
+        this.router.navigate(['/product-inventory', query['productId']], { queryParams });
+      } else {
+        this.router.navigate(['/product-inventory'], { queryParams: { ...queryParams, section: kind } });
+      }
+      return;
+    }
     switch (this.activeEditor) {
       case 'offer':
         this.eventMessage.emitLeaveOfferEditorRequest();

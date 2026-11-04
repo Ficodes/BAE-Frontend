@@ -69,13 +69,13 @@
 
       <div class="flex-1 min-w-0 flex flex-col bg-offerings-surface dark:bg-secondary-300 rounded-2xl border border-offerings-border dark:border-secondary-200 shadow-sm p-2">
         @if(show_prods){
-          <inventory-products [prodId]="openProdId"></inventory-products>
+          <inventory-products></inventory-products>
         }
         @if(show_serv){
-          <inventory-services [serviceId]="openServiceId" [prodId]="openProdId"></inventory-services>
+          <inventory-services></inventory-services>
         }
         @if(show_res){
-          <inventory-resources [resourceId]="openResourceId" [prodId]="openProdId"></inventory-resources>
+          <inventory-resources></inventory-resources>
         }
       </div>
     </div>

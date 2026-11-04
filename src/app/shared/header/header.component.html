@@ -4,12 +4,12 @@
   <div class="mx-auto max-w-[1180px] px-6 sm:px-10">
     <div class="flex h-[88px] items-center" [class.justify-between]="!isWorkspace">
       @if (isWorkspace) {
-        <a (click)="onWorkspaceBackClick()" class="flex items-center gap-2 cursor-pointer select-none text-sm font-medium text-white hover:text-white/80">
+        <button type="button" data-cy="workspaceBack" (click)="onWorkspaceBackClick()" class="flex items-center gap-2 cursor-pointer select-none text-sm font-medium text-white hover:text-white/80">
           <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
           </svg>
           {{ backLabelKey | translate }}
-        </a>
+        </button>
 
         <div class="flex items-center justify-center flex-1">
           @if (currentTheme?.assets?.logoUrl) {

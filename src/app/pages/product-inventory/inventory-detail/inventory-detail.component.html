@@ -1,0 +1,100 @@
+<div class="min-h-screen bg-offerings-surface dark:bg-secondary-500 font-[Blinker]">
+  <div class="mx-auto max-w-[1200px] px-8 pt-6">
+    @if (loading) {
+      <div role="status" class="py-24 text-center text-offerings-muted-text dark:text-offerings-on-dark-body">{{ 'COMMON._loading' | translate }}</div>
+    } @else if (error || !entity) {
+      <p role="alert" class="rounded-xl bg-status-danger-bg text-status-danger-text p-6">{{ 'PRODUCT_INVENTORY._details_error' | translate }}</p>
+    } @else {
+      <div class="flex items-start gap-4 sm:gap-6 pb-4">
+        <div class="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-2xl bg-secondary-50 dark:bg-secondary-300 text-primary-100 dark:text-primary-50">
+          <svg aria-hidden="true" class="h-8 w-8 sm:h-10 sm:w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            @if (kind === 'services') {
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1M5.6 18.4l2.1-2.1m8.6-8.6 2.1-2.1M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/>
+            } @else {
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v6H4V4Zm0 10h16v6H4v-6Zm4-7h.01M8 17h.01"/>
+            }
+          </svg>
+        </div>
+        <div class="flex flex-col min-w-0">
+          <h1 data-cy="inventoryEntityTitle" class="text-[32px] font-bold leading-tight text-secondary-100 dark:text-offerings-on-dark break-words mb-3">{{ entity.name || entity.id }}</h1>
+          <div class="mb-5">
+            <div [class.line-clamp-5]="!descriptionExpanded" class="overflow-hidden">
+              <markdown class="text-[16px] leading-[26px] text-secondary-500 dark:text-offerings-on-dark-body break-words" [data]="visibleDescription(entity.description)"></markdown>
+            </div>
+            @if ((entity.description || '').length > 280) {
+              <button type="button" (click)="descriptionExpanded = !descriptionExpanded" class="mt-2 text-[14px] font-medium text-primary-100 dark:text-primary-50 hover:underline">{{ (descriptionExpanded ? 'PRODUCT_DETAILS._read_less' : 'PRODUCT_DETAILS._read_more') | translate }}</button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center flex-wrap gap-2 pb-8">
+        <span class="inline-flex items-center px-2 py-1 rounded-lg text-[12px] font-semibold border border-offerings-dashed-border dark:border-secondary-200 text-secondary-500 dark:text-offerings-on-dark-body bg-secondary-50 dark:bg-secondary-200">{{ (kind === 'services' ? 'PRODUCT_INVENTORY._serv_details' : 'PRODUCT_INVENTORY._res_details') | translate }}</span>
+        @if (status) {
+          <span data-cy="inventoryEntityStatus" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="statusClass">{{ statusLabel | translate }}</span>
+        }
+      </div>
+
+      <div class="product-tabs-container sticky top-[88px] z-20 bg-offerings-surface dark:bg-secondary-100 pt-2">
+        <div role="group" [attr.aria-label]="(kind === 'services' ? 'PRODUCT_INVENTORY._serv_details' : 'PRODUCT_INVENTORY._res_details') | translate" class="flex items-center rounded-[16px] bg-offerings-table-header dark:bg-secondary-300 p-1 overflow-x-auto">
+          <div class="flex w-full min-w-[340px] sm:min-w-0 gap-1">
+            <button type="button" data-cy="inventoryEntityTab-overview" (click)="activeTab = 'overview'" [attr.aria-pressed]="activeTab === 'overview'" [ngClass]="tabClass('overview')" class="flex-1 py-1 px-2 text-[16px] leading-[24px] tracking-[0.5px] text-center rounded-[12px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-100">{{ 'PRODUCT_DETAILS._tab_overview' | translate }}</button>
+            <button type="button" data-cy="inventoryEntityTab-characteristics" (click)="activeTab = 'characteristics'" [attr.aria-pressed]="activeTab === 'characteristics'" [ngClass]="tabClass('characteristics')" class="flex-1 py-1 px-2 text-[16px] leading-[24px] tracking-[0.5px] text-center rounded-[12px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-100">{{ characteristicsLabel | translate }}</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-6 pb-8">
+        @if (activeTab === 'overview') {
+          <section data-cy="inventoryEntityOverview">
+            <div class="rounded-[16px] bg-offerings-subtle-surface dark:bg-secondary-300 border border-secondary-50 dark:border-secondary-200 py-4 px-6 mb-8">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ng-container *ngTemplateOutlet="metadataField; context: { label: 'PRODUCT_INVENTORY._inventory_id', value: entity.id, icon: 'M5 8h14M5 16h14M10 3 7 21M17 3l-3 18' }"></ng-container>
+                @if (status) {
+                  <ng-container *ngTemplateOutlet="metadataField; context: { label: 'OFFERINGS._status', value: (statusLabel | translate), icon: 'M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z' }"></ng-container>
+                }
+                @if (entity.startDate || entity.startOperatingDate) {
+                  <ng-container *ngTemplateOutlet="metadataField; context: { label: 'PRODUCT_INVENTORY._start_date', value: ((entity.startDate || entity.startOperatingDate) | date:'dd/MM/yy, HH:mm'), icon: 'M7 3v3m10-3v3M3 10h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z' }"></ng-container>
+                }
+              </div>
+            </div>
+            <app-offer-description [description]="entity.description || ('CATALOGS._no_desc' | translate)" [attachments]="attachments"></app-offer-description>
+          </section>
+        }
+
+        @if (activeTab === 'characteristics') {
+          <section data-cy="inventoryEntityCharacteristics">
+            <h2 class="text-[24px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-4">{{ characteristicsLabel | translate }}</h2>
+            <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              @for (characteristic of characteristics; track $index) {
+                <div data-cy="inventoryEntityCharacteristic" class="relative rounded-2xl bg-offerings-page dark:bg-secondary-300 border border-secondary-50 dark:border-secondary-200 p-6">
+                  <dt class="text-[18px] font-bold text-secondary-100 dark:text-offerings-on-dark break-words">{{ characteristic.name }}</dt>
+                  <dd class="flex items-start gap-3 mt-3">
+                    <span class="mt-1 inline-flex items-center justify-center h-4 w-4 shrink-0 rounded-full border bg-primary-100 text-offerings-on-dark border-primary-100">
+                      <svg aria-hidden="true" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                    </span>
+                    <span class="block text-sm text-offerings-description-text dark:text-offerings-on-dark-body break-all">{{ characteristicValue(characteristic) }} {{ characteristic.unitOfMeasure }}</span>
+                  </dd>
+                </div>
+              } @empty {
+                <div class="col-span-full py-12 text-center text-offerings-muted-text dark:text-offerings-on-dark-body">{{ 'PRODUCT_DETAILS._no_chars' | translate }}</div>
+              }
+            </dl>
+          </section>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<ng-template #metadataField let-label="label" let-value="value" let-icon="icon">
+  <div class="flex items-center gap-4">
+    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-secondary-50 dark:bg-secondary-200">
+      <svg aria-hidden="true" class="h-6 w-6 text-primary-100 dark:text-primary-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" [attr.d]="icon"/></svg>
+    </div>
+    <div class="min-w-0">
+      <span class="text-[14px] text-offerings-label-text dark:text-offerings-on-dark-body block">{{ label | translate }}</span>
+      <span class="text-[16px] font-semibold text-secondary-100 dark:text-offerings-on-dark break-words">{{ value }}</span>
+    </div>
+  </div>
+</ng-template>

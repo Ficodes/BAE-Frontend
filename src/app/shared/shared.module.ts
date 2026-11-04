@@ -1,3 +1,4 @@
+import { OfferDescriptionComponent } from './offer-description/offer-description.component';
 /* Copyright (c) 2022 Future Internet Consulting and Development Solutions S.L. */
 
 import { CommonModule, DatePipe } from '@angular/common';
@@ -36,6 +37,7 @@ const SHARED_MODULES = [
 
 // Lista de componentes/directivas Standalone que se importan y re-exportan.
 const STANDALONE_IMPORTS = [
+  OfferDescriptionComponent,
   CategoriesPanelComponent,
   RouterLink
 ];

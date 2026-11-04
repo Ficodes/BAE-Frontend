@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { initFlowbite } from 'flowbite';
 import {EventMessageService} from "../../services/event-message.service";
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -21,6 +22,8 @@ export class ProductInventoryComponent implements OnInit, AfterViewInit, OnDestr
 
   constructor(
     private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute,
+    private router: Router,
     private eventMessage: EventMessageService
   ) {
     this.eventMessage.messages$
@@ -29,21 +32,25 @@ export class ProductInventoryComponent implements OnInit, AfterViewInit, OnDestr
       if(ev.type === 'OpenServiceDetails') {
         this.openServiceId=(ev.value as any)?.serviceId;
         this.openProdId=(ev.value as any)?.prodId; 
-        this.getServices();
+        this.router.navigate(['/product-inventory/services', this.openServiceId], { queryParams: { source: 'specification', productId: this.openProdId } });
       }
       if(ev.type === 'OpenResourceDetails'){
         this.openResourceId=(ev.value as any)?.resourceId;
         this.openProdId=(ev.value as any)?.prodId;
-        this.getResources();
+        this.router.navigate(['/product-inventory/resources', this.openResourceId], { queryParams: { source: 'specification', productId: this.openProdId } });
       }
       if(ev.type === 'OpenProductInvDetails'){
         this.openProdId=ev.value;
-        this.goToOffers();
+        this.router.navigate(['/product-inventory', this.openProdId]);
       }
     })
   }
 
   ngOnInit() {
+    const section = this.route.snapshot.queryParamMap.get('section');
+    this.show_prods = section !== 'services' && section !== 'resources';
+    this.show_serv = section === 'services';
+    this.show_res = section === 'resources';
     initFlowbite();
   }
 

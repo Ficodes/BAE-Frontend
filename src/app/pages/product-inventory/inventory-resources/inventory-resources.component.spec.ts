@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { PaginationService } from 'src/app/services/pagination.service';
 import { TranslateModule } from '@ngx-translate/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 
@@ -85,5 +86,20 @@ describe('InventoryResourcesComponent', () => {
 
     expect(reload).not.toHaveBeenCalled();
     expect(component.selectedStatus).toBe(component.statusTabs[0].value);
+  });
+  it('opens a standalone inventory detail route', () => {
+    const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    component.selectResource({ id: 'instance-id' });
+
+    expect(navigate).toHaveBeenCalledOnceWith(['/product-inventory/resources', 'instance-id']);
+  });
+  it('starts on the first tab even when the URL contains a previous active status', () => {
+    spyOn(TestBed.inject(ActivatedRoute).snapshot.queryParamMap, 'get').and.callFake(key => key === 'status' ? 'active' : null);
+    spyOn(component, 'initInventory');
+
+    component.ngOnInit();
+
+    expect(component.selectedStatus).toBe(component.statusTabs[0].value);
+    expect(component.status).toEqual([component.statusTabs[0].value]);
   });
 });

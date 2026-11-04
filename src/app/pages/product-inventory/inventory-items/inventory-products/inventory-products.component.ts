@@ -8,7 +8,7 @@ import { PaginationService } from 'src/app/services/pagination.service';
 import {EventMessageService} from "src/app/services/event-message.service";
 import { FastAverageColor } from 'fast-average-color';
 import {components} from "src/app/models/product-catalog";
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { initFlowbite } from 'flowbite';
 import { environment } from 'src/environments/environment';
 type ProductOffering = components["schemas"]["ProductOffering"];
@@ -19,6 +19,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
 import { AccountServiceService } from 'src/app/services/account-service.service';
+import { getShortOfferDescription } from 'src/app/shared/card/offer-card-text.util';
 
 @Component({
   selector: 'inventory-products',
@@ -27,8 +28,10 @@ import { AccountServiceService } from 'src/app/services/account-service.service'
 })
 export class InventoryProductsComponent implements OnInit, OnDestroy {
 
+  readonly getShortDescription = getShortOfferDescription;
+  viewMode: 'grid' | 'list' = 'grid';
 
-  @Input() prodId: any = undefined;
+
 
   inventory:any[] = [];
   nextInventory:any[] =[];
@@ -57,15 +60,11 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
   keywordFilter:any=undefined;
   selectedProduct:any;
   selectedInv:any;
-  selectedResources:any[]=[];
-  selectedServices:any[]=[];
   productOff:any;
 
   errorMessage:any='';
   showError:boolean=false;
-  showDetails:boolean=false;
   checkCustom:boolean=false;
-  checkFrom:boolean=true;
   private destroy$ = new Subject<void>();
 
   isModifyDrawerOpen:boolean = false;
@@ -82,6 +81,7 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private priceService: PriceServiceService,
     private router: Router,
+    private route: ActivatedRoute,
     private orderService: ProductOrderService,
     private eventMessage: EventMessageService,
     private paginationService: PaginationService,
@@ -105,9 +105,9 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    if(this.prodId==undefined){
-      this.checkFrom=false;
-    }
+    this.selectedStatus = this.statusTabs[0].value;
+    this.filters = [this.selectedStatus];
+    this.viewMode = this.route.snapshot.queryParamMap.get('view') === 'list' ? 'list' : 'grid';
     this.initInventory();
     const input = document.querySelector('[type=search]')
     if (input != undefined) {
@@ -164,13 +164,10 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
     return images.length > 0 ? images?.at(0)?.url : 'https://placehold.co/600x400/svg';
   }
 
-  goToProductDetails(productOff:ProductOffering| undefined) {
-    document.querySelector("body > div[modal-backdrop]")?.remove()
-    //this.router.navigate(['/search', productOff?.id]);
-    console.log('info')
-    console.log(productOff)
-    this.router.navigate(['product-inventory', productOff?.id]);
-    //this.router.navigate(['product-inventory', productOff?.id]);
+  goToProductDetails(product: any) {
+    return this.router.navigate(['/product-inventory', product.id], {
+      queryParams: { view: this.viewMode }
+    });
   }
 
   async getInventory(next:boolean){
@@ -193,11 +190,6 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.loading_more = false;
         initFlowbite();
-        if(this.prodId!=undefined && this.checkFrom){
-          let idx = this.inventory.findIndex(element => element.id == this.prodId)
-          this.selectProduct(this.inventory[idx])
-          this.checkFrom=false;
-        }
     })
   }
 
@@ -258,36 +250,13 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
     console.log(id)
   }
 
-  async selectProduct(prod:any){
+  async loadProductForModification(prod:any){
     this.selectedProduct=prod;
     console.log('selecting prod')
     console.log(this.selectedProduct)
-    this.selectedResources=[];
-    this.selectedServices=[];
-    /*for(let i=0; i<this.selectedProduct.productPrice?.length;i++){
-      if(this.selectedProduct.productPrice[i].priceType == 'custom'){
-        this.checkCustom=true;
-      }
-    }*/
-
-    console.log('is prod spec undefined?')
-    console.log(this.selectedProduct.product)
-    let spec = await this.api.getProductSpecification(this.selectedProduct.product.productSpecification.id)
+    const spec = await this.api.getProductSpecification(prod.product.productSpecification.id);
     this.selectedProdSpec = spec;
-    if(spec.serviceSpecification != undefined){
-      for(let j=0; j < spec.serviceSpecification.length; j++){
-        let serv = await this.api.getServiceSpec(spec.serviceSpecification[j].id);
-        this.selectedServices.push(serv);
-      }
-    }
-    if(spec.resourceSpecification != undefined){
-      for(let j=0; j < spec.resourceSpecification.length; j++){
-        let res = await this.api.getResourceSpec(spec.resourceSpecification[j].id);
-        this.selectedResources.push(res);
-      }
-    }
-    console.log('--- spec')
-    console.log(spec)
+    this.checkCustom = false;
 
     let prodOff = await this.api.getProductById(this.selectedProduct.productOffering.id);
     let prodPrices: any[] | undefined= prodOff.productOfferingPrice;
@@ -317,20 +286,7 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
       version: prodOff.version
     }
 
-    this.showDetails=true;
     console.log(this.selectedProduct)
-  }
-
-  back(){
-    this.showDetails=false;
-  }
-
-  selectService(id:any){
-    this.eventMessage.emitOpenServiceDetails({serviceId: id, prodId: this.selectedProduct.id});
-  }
-
-  selectResource(id:any){
-    this.eventMessage.emitOpenResourceDetails({resourceId: id, prodId: this.selectedProduct.id});
   }
 
   hasLongWord(str: string | undefined, threshold = 20) {
@@ -342,8 +298,7 @@ export class InventoryProductsComponent implements OnInit, OnDestroy {
   }
 
   async openModifyFromCard(inv: any) {
-    await this.selectProduct(inv);
-    this.showDetails = false;
+    await this.loadProductForModification(inv);
     this.isModifyDrawerOpen = true;
   }
 
