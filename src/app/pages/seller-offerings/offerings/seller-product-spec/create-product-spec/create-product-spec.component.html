@@ -598,7 +598,7 @@
                   </span>
                 }
               }
-              <input type="text" [(ngModel)]="serviceSearch" (focus)="serviceDropdownOpen=true"
+              <input data-cy="prodSpecServiceSearch" type="text" [(ngModel)]="serviceSearch" (focus)="serviceDropdownOpen=true"
                 placeholder="{{ (linkedServiceSpecIds.length === 0 ? 'CREATE_PROD_SPEC._select_service_placeholder' : 'CREATE_PROD_SPEC._search_specs') | translate }}"
                 class="flex-1 min-w-[160px] bg-transparent border-none outline-none focus:ring-0 focus:border-none focus:outline-none text-sm text-offerings-text placeholder:text-offerings-disabled p-0"
                 style="box-shadow: none;"/>
@@ -613,7 +613,7 @@
                   @for(s of filteredServiceSpecs(); track s.id){
                     <label class="flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-offerings-page"
                       [class.bg-secondary-50]="isServiceSelected(s.id)">
-                      <input type="checkbox" [checked]="isServiceSelected(s.id)" (change)="toggleLinkedService(s.id)" class="w-[18px] h-[18px] rounded accent-primary-100"/>
+                      <input data-cy="prodSpecServiceOption" [attr.data-spec-id]="s.id" type="checkbox" [checked]="isServiceSelected(s.id)" (change)="toggleLinkedService(s.id)" class="w-[18px] h-[18px] rounded accent-primary-100"/>
                       <div class="flex flex-col">
                         <span class="text-sm text-offerings-text">{{ s.name }}</span>
                         <span class="text-xs text-offerings-muted-text mt-0.5">{{ formatSpecDate(s.lastUpdate) }}</span>
@@ -643,7 +643,7 @@
                   </span>
                 }
               }
-              <input type="text" [(ngModel)]="resourceSearch" (focus)="resourceDropdownOpen=true"
+              <input data-cy="prodSpecResourceSearch" type="text" [(ngModel)]="resourceSearch" (focus)="resourceDropdownOpen=true"
                 placeholder="{{ (linkedResourceSpecIds.length === 0 ? 'CREATE_PROD_SPEC._select_resource_placeholder' : 'CREATE_PROD_SPEC._search_specs') | translate }}"
                 class="flex-1 min-w-[160px] bg-transparent border-none outline-none focus:ring-0 focus:border-none focus:outline-none text-sm text-offerings-text placeholder:text-offerings-disabled p-0"
                 style="box-shadow: none;"/>
@@ -658,7 +658,7 @@
                   @for(r of filteredResourceSpecs(); track r.id){
                     <label class="flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-offerings-page"
                       [class.bg-secondary-50]="isResourceSelected(r.id)">
-                      <input type="checkbox" [checked]="isResourceSelected(r.id)" (change)="toggleLinkedResource(r.id)" class="w-[18px] h-[18px] rounded accent-primary-100"/>
+                      <input data-cy="prodSpecResourceOption" [attr.data-spec-id]="r.id" type="checkbox" [checked]="isResourceSelected(r.id)" (change)="toggleLinkedResource(r.id)" class="w-[18px] h-[18px] rounded accent-primary-100"/>
                       <div class="flex flex-col">
                         <span class="text-sm text-offerings-text">{{ r.name }}</span>
                         <span class="text-xs text-offerings-muted-text mt-0.5">{{ formatSpecDate(r.lastUpdate) }}</span>
@@ -1166,7 +1166,7 @@
           <h2 class="text-2xl font-bold text-offerings-text mb-3">{{ 'CREATE_PROD_SPEC._ready_title' | translate }}</h2>
           <p class="text-sm text-offerings-muted-text mb-8 max-w-md">{{ 'CREATE_PROD_SPEC._ready_desc' | translate }}</p>
           <div class="flex flex-col sm:flex-row gap-3 w-full">
-            <button type="button" (click)="finishAsDraft()" [disabled]="loading" class="flex-1 h-12 px-5 border border-primary-100 text-primary-100 rounded-lg text-sm font-semibold hover:bg-secondary-50/50 disabled:opacity-50">
+            <button type="button" data-cy="prodSpecSaveDraft" (click)="finishAsDraft()" [disabled]="loading" class="flex-1 h-12 px-5 border border-primary-100 text-primary-100 rounded-lg text-sm font-semibold hover:bg-secondary-50/50 disabled:opacity-50">
               {{ 'CREATE_PROD_SPEC._save_draft' | translate }}
             </button>
             <button type="button" (click)="validateProduct()" [disabled]="loading || !allRequiredStepsComplete()"

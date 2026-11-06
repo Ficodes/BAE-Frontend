@@ -103,7 +103,7 @@
               <div>
                 @if (field.definition.type === 'checkbox') {
                   <label [for]="'asset-field-' + field.key" class="flex items-center gap-3 text-sm font-semibold text-offerings-text">
-                    <input [id]="'asset-field-' + field.key" type="checkbox" [formControl]="metadataForm.controls[field.key]"
+                    <input [id]="'asset-field-' + field.key" [attr.data-cy]="'servSpecField-' + field.key" type="checkbox" [formControl]="metadataForm.controls[field.key]"
                       [attr.aria-required]="!!field.definition.mandatory"
                       [attr.aria-invalid]="metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid"
                       [class.border-status-danger-border]="metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid"
@@ -118,14 +118,14 @@
                   </label>
                   @switch (field.definition.type) {
                     @case ('textarea') {
-                      <textarea [required]="!!field.definition.mandatory" [id]="'asset-field-' + field.key" [formControl]="metadataForm.controls[field.key]"
+                      <textarea [required]="!!field.definition.mandatory" [id]="'asset-field-' + field.key" [attr.data-cy]="'servSpecField-' + field.key" [formControl]="metadataForm.controls[field.key]"
                       [attr.aria-required]="!!field.definition.mandatory"
                       [attr.aria-invalid]="metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid"
                       [class.border-status-danger-border]="metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid"
                         [placeholder]="field.definition.placeholder || ''" rows="4" class="bg-offerings-surface border border-offerings-border-strong text-offerings-text text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3"></textarea>
                     }
                     @case ('select') {
-                      <select [required]="!!field.definition.mandatory" [id]="'asset-field-' + field.key" [formControl]="metadataForm.controls[field.key]"
+                      <select [required]="!!field.definition.mandatory" [id]="'asset-field-' + field.key" [attr.data-cy]="'servSpecField-' + field.key" [formControl]="metadataForm.controls[field.key]"
                       [attr.aria-required]="!!field.definition.mandatory"
                       [attr.aria-invalid]="metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid"
                       [class.border-status-danger-border]="metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid" class="bg-offerings-surface border border-offerings-border-strong text-offerings-text text-sm rounded-lg focus:ring-primary-100 focus:border-primary-100 block w-full p-3">
@@ -136,7 +136,7 @@
                       </select>
                     }
                     @default {
-                      <input [required]="!!field.definition.mandatory" [id]="'asset-field-' + field.key" type="text" [formControl]="metadataForm.controls[field.key]"
+                      <input [required]="!!field.definition.mandatory" [id]="'asset-field-' + field.key" [attr.data-cy]="'servSpecField-' + field.key" type="text" [formControl]="metadataForm.controls[field.key]"
                       [attr.aria-required]="!!field.definition.mandatory"
                       [attr.aria-invalid]="metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid"
                       [class.border-status-danger-border]="metadataForm.controls[field.key].touched && metadataForm.controls[field.key].invalid"
@@ -312,7 +312,7 @@
             class="flex-1 px-4 py-2.5 text-sm font-semibold text-primary-100 rounded-lg border border-primary-100 hover:bg-primary-50/10">
             {{ 'CREATE_SERV_SPEC._continue_editing' | translate }}
           </button>
-          <button type="button" (click)="discardLeave()"
+          <button type="button" data-cy="servSpecDiscardChanges" (click)="discardLeave()"
             class="flex-1 px-4 py-2.5 text-sm font-semibold text-status-danger-text rounded-lg border border-status-danger-bg hover:bg-status-danger-bg">
             {{ 'CREATE_SERV_SPEC._leave_discard' | translate }}
           </button>
@@ -500,7 +500,7 @@
           <h2 class="text-2xl font-bold text-offerings-text mb-3">{{ 'CREATE_SERV_SPEC._ready_title' | translate }}</h2>
           <p class="text-sm text-offerings-muted-text mb-8 max-w-md">{{ 'CREATE_SERV_SPEC._ready_desc' | translate }}</p>
           <div class="flex flex-col sm:flex-row gap-3 w-full">
-            <button type="button" (click)="finishAsDraft()" [disabled]="loading" class="flex-1 h-12 px-5 border border-primary-100 text-primary-100 rounded-lg text-sm font-semibold hover:bg-secondary-50/50 disabled:opacity-50">
+            <button type="button" data-cy="servSpecSaveDraft" (click)="finishAsDraft()" [disabled]="loading" class="flex-1 h-12 px-5 border border-primary-100 text-primary-100 rounded-lg text-sm font-semibold hover:bg-secondary-50/50 disabled:opacity-50">
               {{ 'CREATE_SERV_SPEC._save_draft' | translate }}
             </button>
             <button type="button" (click)="validateService()" [disabled]="loading" class="flex-1 h-12 px-5 bg-primary-100 text-offerings-on-dark rounded-lg text-sm font-semibold hover:bg-primary-50 disabled:opacity-50">

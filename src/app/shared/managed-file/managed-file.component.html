@@ -3,11 +3,11 @@
     <p>{{ 'MANAGED_FILE._loading' | translate }}</p>
   } @else if (loadError) {
     <p role="alert" class="text-status-danger-border">{{ 'MANAGED_FILE._load_error' | translate }}</p>
-    <button type="button" class="underline text-primary-100" (click)="loadFile()">{{ 'MANAGED_FILE._retry' | translate }}</button>
+    <button type="button" data-cy="managedFileRetry" class="underline text-primary-100" (click)="loadFile()">{{ 'MANAGED_FILE._retry' | translate }}</button>
   } @else if (file) {
-    <p class="break-all">{{ 'MANAGED_FILE._current_file' | translate }} {{ fileName || ('MANAGED_FILE._unnamed' | translate) }}</p>
+    <p data-cy="managedFileName" class="break-all">{{ 'MANAGED_FILE._current_file' | translate }} {{ fileName || ('MANAGED_FILE._unnamed' | translate) }}</p>
     <p>{{ file.contentType }}</p>
-    <button type="button" [class]="prominent ? 'mt-4 inline-flex items-center justify-center rounded-lg bg-primary-100 px-5 py-3 font-semibold text-white hover:opacity-90 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-100' : 'underline text-primary-100 disabled:opacity-50'" [disabled]="downloading" (click)="download()">
+    <button type="button" data-cy="managedFileDownload" [class]="prominent ? 'mt-4 inline-flex items-center justify-center rounded-lg bg-primary-100 px-5 py-3 font-semibold text-white hover:opacity-90 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-100' : 'underline text-primary-100 disabled:opacity-50'" [disabled]="downloading" (click)="download()">
       {{ (downloading ? 'MANAGED_FILE._downloading' : 'MANAGED_FILE._download') | translate }}
     </button>
     @if (downloadError) {

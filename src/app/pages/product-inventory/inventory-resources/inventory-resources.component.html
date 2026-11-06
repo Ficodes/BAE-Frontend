@@ -34,9 +34,9 @@
                         </thead>
                         <tbody>
                             @for (res of resources; track res.id; let last = $last) {
-                                <tr data-cy="inventoryRow" class="h-[56px] group" [ngClass]="{ 'border-b border-offerings-border dark:border-secondary-200': !last }">
+                                <tr data-cy="inventoryRow" [attr.data-entity-id]="res.id" class="h-[56px] group" [ngClass]="{ 'border-b border-offerings-border dark:border-secondary-200': !last }">
                                     <td class="px-6 break-all group-hover:bg-offerings-page dark:group-hover:bg-secondary-200" [class.rounded-bl-2xl]="last">
-                                        <button type="button" (click)="selectResource(res)" class="py-3 text-left font-medium text-offerings-link dark:text-primary-50 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-100">{{ res.id }}</button>
+                                        <button type="button" data-cy="inventoryEntityOpen" [attr.data-entity-id]="res.id" (click)="selectResource(res)" class="py-3 text-left font-medium text-offerings-link dark:text-primary-50 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-100">{{ res.id }}</button>
                                     </td>
                                     <td [ngClass]="{ 'break-all': hasLongWord(res.name, 20), 'break-words': !hasLongWord(res.name, 20) }"
                                         class="px-6 text-offerings-text dark:text-offerings-on-dark group-hover:bg-offerings-page dark:group-hover:bg-secondary-200">

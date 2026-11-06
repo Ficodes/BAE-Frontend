@@ -120,7 +120,7 @@
     }
 
     @if (is_logged) {
-    <div id="userDropdown"
+    <div id="userDropdown" data-cy="userDropdown"
       class="dropdown-glass hidden absolute right-6 sm:right-10 top-[88px] z-50 w-[260px] rounded-[14px] p-2">
       <div class="px-3 py-2">
         <div class="text-[13px] font-semibold text-slate-900">{{ username }}</div>
@@ -131,14 +131,14 @@
 
       <ul class="flex flex-col">
         <li>
-          <button id="userProfile" type="button" class="dropdown-item" (click)="goTo('/profile')">
+          <button id="userProfile" data-cy="userProfile" type="button" class="dropdown-item" (click)="goTo('/profile')">
             <fa-icon [icon]="faAddressCard" class="mr-2"></fa-icon>{{ 'HEADER._profile' | translate }}
           </button>
         </li>
 
         @if (roles.includes(sellerRole)) {
         <li>
-          <button id="myOfferings" type="button" class="dropdown-item" (click)="goTo('/my-offerings')">
+          <button id="myOfferings" data-cy="myOfferings" type="button" class="dropdown-item" (click)="goTo('/my-offerings')">
             <fa-icon [icon]="faHandHoldingBox" class="mr-2"></fa-icon>{{ 'HEADER._offerings' | translate }}
           </button>
         </li>
@@ -153,7 +153,7 @@
         }
 
         <li>
-          <button id="productOrders" type="button" class="dropdown-item" (click)="goTo('/product-orders')">
+          <button id="productOrders" data-cy="productOrders" type="button" class="dropdown-item" (click)="goTo('/product-orders')">
             <fa-icon [icon]="faReceipt" class="mr-2"></fa-icon>{{ 'HEADER._orders' | translate }}
           </button>
         </li>
@@ -183,7 +183,7 @@
         }
 
         <li>
-          <button id="myInventory" type="button" class="dropdown-item" (click)="goTo('/product-inventory')">
+          <button id="myInventory" data-cy="myInventory" type="button" class="dropdown-item" (click)="goTo('/product-inventory')">
             <fa-icon [icon]="faBoxesStacked" class="mr-2"></fa-icon>{{ 'HEADER._inventory' | translate }}
           </button>
         </li>
