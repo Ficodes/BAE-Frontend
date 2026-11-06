@@ -1,3 +1,4 @@
+import { parseOfferDescription, splitOfferAttachments } from 'src/app/shared/offer-description/offer-description.util';
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, Renderer2, ViewChild } from '@angular/core';
 
 import { ActivatedRoute, Router } from '@angular/router';
@@ -398,16 +399,9 @@ export class ProductDetailsComponent implements OnInit, OnDestroy, AfterViewInit
     this.categories = this.productOff?.category;
     this.price = this.productOff?.productOfferingPrice?.at(0)?.price?.value + ' ' + this.productOff?.productOfferingPrice?.at(0)?.price?.unit ?? 'n/a';
 
-    let profile = this.productOff?.attachment?.filter(item => item.name === 'Profile Picture') ?? [];
-    console.log('profile...')
-    console.log(profile)
-    if (profile.length == 0) {
-      this.images = this.productOff?.attachment?.filter(item => item.attachmentType === 'Picture') ?? [];
-      this.attatchments = this.productOff?.attachment?.filter(item => item.attachmentType != 'Picture') ?? [];
-    } else {
-      this.images = profile;
-      this.attatchments = this.productOff?.attachment?.filter(item => item.name != 'Profile Picture') ?? [];
-    }
+    const media = splitOfferAttachments(this.productOff?.attachment);
+    this.images = media.images;
+    this.attatchments = media.attachments;
 
     this.setOfferingTerms(this.productOff?.productOfferingTerm);
 
@@ -1171,39 +1165,8 @@ export class ProductDetailsComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   private parseProductDetails(raw: string | undefined): void {
-    this.howItWorks = '';
-    this.keyFeatures = [];
-    this.businessBenefits = [];
-    this.useCases = [];
-    this.faqs = [];
+    Object.assign(this, parseOfferDescription(raw));
     this.openFaqIdx = null;
-    const text = (raw ?? '').toString();
-    const startIdx = text.indexOf(this.DETAILS_START);
-    if (startIdx === -1) {
-      this.specOverview = text;
-      return;
-    }
-    this.specOverview = text.slice(0, startIdx).replace(/\n+$/, '');
-    const endIdx = text.indexOf(this.DETAILS_END);
-    const inner = text.slice(startIdx + this.DETAILS_START.length, endIdx > -1 ? endIdx : undefined);
-    try {
-      const doc = new DOMParser().parseFromString(`<div>${inner}</div>`, 'text/html');
-      const how = doc.querySelector('[data-dome-section="how-it-works"]');
-      if (how) this.howItWorks = how.getAttribute('data-text') || how.querySelector('p')?.textContent || '';
-      this.keyFeatures = this.parseDetailItems(doc, 'key-features', true);
-      this.businessBenefits = this.parseDetailItems(doc, 'business-benefits', false);
-      this.useCases = this.parseDetailItems(doc, 'use-cases', true);
-      this.faqs = this.parseFaqs(doc);
-    } catch { }
-  }
-
-  private parseFaqs(doc: Document): { question: string, answer: string }[] {
-    const section = doc.querySelector('[data-dome-section="faqs"]');
-    if (!section) return [];
-    return Array.from(section.querySelectorAll('li')).map((li: any) => ({
-      question: li.getAttribute('data-q') || li.querySelector('strong')?.textContent || '',
-      answer: li.getAttribute('data-a') || li.querySelector('p')?.textContent || ''
-    })).filter(f => f.question || f.answer);
   }
 
   toggleFaq(idx: number): void {
@@ -1212,16 +1175,6 @@ export class ProductDetailsComponent implements OnInit, OnDestroy, AfterViewInit
 
   isFaqOpen(idx: number): boolean {
     return this.openFaqIdx === idx;
-  }
-
-  private parseDetailItems(doc: Document, key: string, withIcon: boolean): any[] {
-    const section = doc.querySelector(`[data-dome-section="${key}"]`);
-    if (!section) return [];
-    return Array.from(section.querySelectorAll('li')).map((li: any) => {
-      const name = li.getAttribute('data-name') || li.querySelector('strong')?.textContent || '';
-      const description = li.getAttribute('data-desc') || '';
-      return withIcon ? { name, description, icon: li.getAttribute('data-icon') || null } : { name, description };
-    });
   }
 
   isLongText(str: string | undefined): boolean {
