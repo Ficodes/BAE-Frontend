@@ -35,10 +35,20 @@
         }
       </div>
 
+      @if (pluginFileId; as fileId) {
+        <div data-cy="inventoryEntityFile" class="flex items-start gap-4 rounded-2xl bg-offerings-subtle-surface dark:bg-secondary-300 border border-secondary-50 dark:border-secondary-200 p-6 mb-6">
+          <svg aria-hidden="true" class="h-8 w-8 shrink-0 text-primary-100 dark:text-primary-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm0 0v6h6M12 11v7m-3-3 3 3 3-3"/></svg>
+          <app-managed-file class="min-w-0 flex-1" [fileId]="fileId" [prominent]="true" />
+        </div>
+      }
+
       <div class="product-tabs-container sticky top-[88px] z-20 bg-offerings-surface dark:bg-secondary-100 pt-2">
         <div role="group" [attr.aria-label]="(kind === 'services' ? 'PRODUCT_INVENTORY._serv_details' : 'PRODUCT_INVENTORY._res_details') | translate" class="flex items-center rounded-[16px] bg-offerings-table-header dark:bg-secondary-300 p-1 overflow-x-auto">
           <div class="flex w-full min-w-[340px] sm:min-w-0 gap-1">
             <button type="button" data-cy="inventoryEntityTab-overview" (click)="activeTab = 'overview'" [attr.aria-pressed]="activeTab === 'overview'" [ngClass]="tabClass('overview')" class="flex-1 py-1 px-2 text-[16px] leading-[24px] tracking-[0.5px] text-center rounded-[12px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-100">{{ 'PRODUCT_DETAILS._tab_overview' | translate }}</button>
+            @if (isPlugin) {
+              <button type="button" data-cy="inventoryEntityTab-plugin" (click)="activeTab = 'plugin'" [attr.aria-pressed]="activeTab === 'plugin'" [ngClass]="tabClass('plugin')" class="flex-1 py-1 px-2 text-[16px] leading-[24px] tracking-[0.5px] text-center rounded-[12px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-100">{{ 'PRODUCT_INVENTORY._plugin_information' | translate }}</button>
+            }
             <button type="button" data-cy="inventoryEntityTab-characteristics" (click)="activeTab = 'characteristics'" [attr.aria-pressed]="activeTab === 'characteristics'" [ngClass]="tabClass('characteristics')" class="flex-1 py-1 px-2 text-[16px] leading-[24px] tracking-[0.5px] text-center rounded-[12px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-100">{{ characteristicsLabel | translate }}</button>
           </div>
         </div>
@@ -62,13 +72,19 @@
           </section>
         }
 
-        @if (activeTab === 'characteristics') {
-          <section data-cy="inventoryEntityCharacteristics">
-            <h2 class="text-[24px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-4">{{ characteristicsLabel | translate }}</h2>
+        @if (pluginMetadataError) {
+          <div role="alert" class="mb-4 text-status-danger-text">
+            <p>{{ 'PRODUCT_INVENTORY._plugin_metadata_error' | translate }}</p>
+            <button type="button" class="underline" (click)="retryPluginMetadata()">{{ 'MANAGED_FILE._retry' | translate }}</button>
+          </div>
+        }
+        @if (activeTab === 'characteristics' || activeTab === 'plugin') {
+          <section [attr.data-cy]="activeTab === 'plugin' ? 'inventoryEntityPlugin' : 'inventoryEntityCharacteristics'">
+            <h2 class="text-[24px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-4">{{ (activeTab === 'plugin' ? 'PRODUCT_INVENTORY._plugin_information' : characteristicsLabel) | translate }}</h2>
             <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              @for (characteristic of characteristics; track $index) {
+              @for (characteristic of displayedCharacteristics; track $index) {
                 <div data-cy="inventoryEntityCharacteristic" class="relative rounded-2xl bg-offerings-page dark:bg-secondary-300 border border-secondary-50 dark:border-secondary-200 p-6">
-                  <dt class="text-[18px] font-bold text-secondary-100 dark:text-offerings-on-dark break-words">{{ characteristic.name }}</dt>
+                  <dt class="text-[18px] font-bold text-secondary-100 dark:text-offerings-on-dark break-words">{{ characteristicLabel(characteristic) }}</dt>
                   <dd class="flex items-start gap-3 mt-3">
                     <span class="mt-1 inline-flex items-center justify-center h-4 w-4 shrink-0 rounded-full border bg-primary-100 text-offerings-on-dark border-primary-100">
                       <svg aria-hidden="true" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>

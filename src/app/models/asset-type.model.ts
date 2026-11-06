@@ -20,3 +20,7 @@ export interface AssetType {
   formOrder?: string[];
   form?: Record<string, AssetTypeFormField>;
 }
+
+export interface PluginInfo extends AssetType {
+  type: 'service' | 'resource';
+}

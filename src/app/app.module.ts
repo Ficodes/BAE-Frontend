@@ -1,3 +1,4 @@
+import { PluginsComponent } from './pages/admin/plugins/plugins.component';
 import { NgOptimizedImage } from '@angular/common';
 import { HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
 import { APP_INITIALIZER, NgModule } from '@angular/core';
@@ -180,6 +181,7 @@ import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.c
     BrowserModule,
     FontAwesomeModule,
     SharedModule,
+    PluginsComponent,
     AppRoutingModule,
     NgOptimizedImage,
     FaIconComponent,

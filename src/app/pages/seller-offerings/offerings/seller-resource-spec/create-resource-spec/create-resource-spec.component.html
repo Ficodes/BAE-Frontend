@@ -91,7 +91,7 @@
                 <p class="text-sm text-offerings-body mt-2">{{ assetFileName }}</p>
               }
               @if (detailsForm.controls.fileId.value) {
-                <p class="text-sm text-offerings-body mt-2 break-all">{{ 'CREATE_RES_SPEC._asset_current_file' | translate }} {{ detailsForm.controls.fileId.value }}</p>
+                <app-managed-file [fileId]="detailsForm.controls.fileId.value" />
               }
               @if (assetUploadError) {
                 <p role="alert" class="text-sm text-status-danger-border mt-2">{{ assetUploadError }}</p>
