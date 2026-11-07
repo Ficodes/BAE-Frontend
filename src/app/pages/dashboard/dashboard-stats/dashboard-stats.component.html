@@ -11,7 +11,8 @@
         </p>
       </div>
 
-      <div class="stats-grid grid w-full grid-cols-1 gap-6 md:grid-cols-3">
+      <!-- Providers card hidden for now (Oct 2026), kept below for later. To bring it back: uncomment the card and set md:grid-cols-3 here. -->
+      <div class="stats-grid grid w-full grid-cols-1 gap-6 md:grid-cols-2">
         <article class="stats-card">
           <div class="stats-number">
             {{ stats().services }}
@@ -32,6 +33,7 @@
           </p>
         </article>
 
+        <!--
         <article class="stats-card">
           <div class="stats-number">
             {{ stats().providers }}
@@ -41,6 +43,7 @@
             {{ 'DASHBOARD.stats.providers' | translate }}
           </p>
         </article>
+        -->
       </div>
     </div>
   </div>
