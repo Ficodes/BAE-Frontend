@@ -1,6 +1,10 @@
 name: Trigger E2E Testing Workflow
 
 on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - main
   pull_request_target:
     types: [opened, reopened, synchronize]
     branches:
@@ -8,6 +12,13 @@ on:
 
 jobs:
   trigger-system-tests:
+    # Same-repository PRs can test workflow changes before merging. Fork PRs
+    # need the base-branch workflow to access the cross-repository token.
+    if: >-
+      ${{
+        (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+        (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository)
+      }}
     runs-on: ubuntu-latest
     steps:
       - name: Check if system testing is activated
