@@ -25,10 +25,14 @@ jobs:
             echo "System testing NOT activated (add 'SYSTEM_TESTING: ACTIVATE' to PR body to enable)"
           fi
 
-      - name: Trigger Repository Dispatch
+      - name: Trigger E2E Workflow
         if: steps.check_activation.outputs.activated == 'true'
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
+          FRONTEND_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          FRONTEND_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.ADMIN }}
         run: |
           echo "Parsing PR body for dependencies..."
 
@@ -44,8 +48,9 @@ jobs:
           TM_VERSION=$(echo "$PR_BODY" | grep '^TM_VERSION:' | sed 's/TM_VERSION: *//' | tr -d '\r' | sed 's/\xc2\xa0/ /g; s/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
           echo "TMForum API version: $TM_VERSION"
 
-          # Parse E2E_BRANCH (optional - branch of E2E-DOME-BAE to use)
+          # Select both the workflow definition and test code from this E2E ref.
           E2E_BRANCH=$(echo "$PR_BODY" | grep '^E2E_BRANCH:' | sed 's/E2E_BRANCH: *//' | tr -d '\r' | sed 's/\xc2\xa0/ /g; s/^[[:space:]]*//;s/[[:space:]]*$//' | xargs)
+          E2E_BRANCH="${E2E_BRANCH:-master}"
           echo "E2E branch: $E2E_BRANCH"
 
           # Default values (using upstream FIWARE-TMForum repos)
@@ -91,36 +96,47 @@ jobs:
           echo "E2E Test Configuration:"
           echo "  Proxy:     $PROXY_REPO @ $PROXY_BRANCH"
           echo "  Charging:  $CHARGING_REPO @ $CHARGING_BRANCH"
-          echo "  Frontend:  ${{ github.event.pull_request.head.repo.full_name }} @ ${{ github.event.pull_request.head.ref }}"
+          echo "  Frontend:  $FRONTEND_REPO @ $FRONTEND_BRANCH"
           echo "  TM Version: $TM_VERSION"
           echo "  E2E Branch: $E2E_BRANCH"
-          echo "  PR URL:    ${{ github.event.pull_request.html_url }}"
+          echo "  PR URL:    $PR_URL"
           echo ""
 
-          # Trigger E2E tests in E2E-DOME-BAE repository
+          # The target workflow must support workflow_dispatch on the default
+          # branch and on E2E_BRANCH. Do not fall back to repository_dispatch:
+          # that would use the default branch's workflow instead of this ref.
+          PAYLOAD=$(jq -n \
+            --arg ref "$E2E_BRANCH" \
+            --arg repository_A "$PROXY_REPO" \
+            --arg branch_A "$PROXY_BRANCH" \
+            --arg repository_B "$CHARGING_REPO" \
+            --arg branch_B "$CHARGING_BRANCH" \
+            --arg repository_frontend "$FRONTEND_REPO" \
+            --arg branch_frontend "$FRONTEND_BRANCH" \
+            --arg tm_version "$TM_VERSION" \
+            --arg pull_request_url "$PR_URL" \
+            '{ref: $ref, inputs: {
+              repository_A: $repository_A,
+              branch_A: $branch_A,
+              repository_B: $repository_B,
+              branch_B: $branch_B,
+              repository_frontend: $repository_frontend,
+              branch_frontend: $branch_frontend,
+              tm_version: $tm_version,
+              pull_request_url: $pull_request_url
+            }}')
+
           echo "Triggering E2E tests..."
           HTTP_STATUS=$(curl -X POST \
-            -H "Authorization: token ${{ secrets.ADMIN }}" \
-            -H "Accept: application/vnd.github.everest-preview+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
             -H "Content-Type: application/json" \
             -w "%{http_code}" \
-            -o /dev/null \
-            -s \
-            -d "{
-              \"event_type\": \"cross-repo-test\",
-              \"client_payload\": {
-                \"repository_A\": \"$PROXY_REPO\",
-                \"branch_A\": \"$PROXY_BRANCH\",
-                \"repository_B\": \"$CHARGING_REPO\",
-                \"branch_B\": \"$CHARGING_BRANCH\",
-                \"repository_frontend\": \"${{ github.event.pull_request.head.repo.full_name }}\",
-                \"branch_frontend\": \"${{ github.event.pull_request.head.ref }}\",
-                \"tm_version\": \"$TM_VERSION\",
-                \"cypress_branch\": \"$E2E_BRANCH\",
-                \"pull_request_url\": \"${{ github.event.pull_request.html_url }}\"
-              }
-            }" \
-            https://api.github.com/repos/Ficodes/E2E-DOME-BAE/dispatches)
+            -o "$RUNNER_TEMP/e2e-dispatch-response.json" \
+            -sS \
+            -d "$PAYLOAD" \
+            https://api.github.com/repos/Ficodes/E2E-DOME-BAE/actions/workflows/cross-repo-test.yml/dispatches)
 
           echo "HTTP Status: $HTTP_STATUS"
 
@@ -131,7 +147,10 @@ jobs:
             if [ "$HTTP_STATUS" -eq 401 ]; then
               echo "Error: Unauthorized. Check if the ADMIN token has the correct permissions."
             elif [ "$HTTP_STATUS" -eq 404 ]; then
-              echo "Error: Repository not found or token doesn't have access."
+              echo "Error: Workflow not found or token doesn't have access."
+            elif [ "$HTTP_STATUS" -eq 422 ]; then
+              echo "Error: Check that E2E ref '$E2E_BRANCH' exists and cross-repo-test.yml supports workflow_dispatch with these inputs."
             fi
+            cat "$RUNNER_TEMP/e2e-dispatch-response.json"
             exit 1
           fi
