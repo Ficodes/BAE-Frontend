@@ -1,6 +1,11 @@
 .settings-nav-item.nav-active {
-  background-color: #B6CAEC;
-  color: #234481;
+  background-color: rgb(var(--theme-offerings-active-chip-bg));
+  color: rgb(var(--theme-secondary-400));
   font-weight: 700;
   line-height: 22px;
+}
+
+:host-context(.dark) .settings-nav-item.nav-active {
+  background-color: rgb(var(--theme-secondary-200));
+  color: rgb(var(--theme-offerings-on-dark-text));
 }

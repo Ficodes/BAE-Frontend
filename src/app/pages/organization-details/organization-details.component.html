@@ -20,9 +20,9 @@
               <span class="hidden lg:block h-[16px] w-px bg-offerings-border-strong dark:bg-secondary-200"></span>
               <span class="hidden lg:flex items-center gap-[4px] text-secondary-100 dark:text-offerings-on-dark-body" data-cy="summarySovereignty">
                 <span class="text-[14px] font-semibold leading-[16px] tracking-[0.5px]">{{ 'ORGANIZATION._sovereignty_score' | translate }}</span>
-                <span class="rounded-[6px] bg-[#DDE6F6] px-[6px] py-[4px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-secondary-100 dark:bg-secondary-200 dark:text-offerings-on-dark">{{ sovereigntyScore }}</span>
+                <span class="rounded-[6px] bg-secondary-50 px-[6px] py-[4px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-secondary-100 dark:bg-secondary-200 dark:text-offerings-on-dark">{{ sovereigntyScore }}</span>
                 @if (sovereigntySeal) {
-                  <span class="rounded-[6px] bg-[#DDE6F6] px-[6px] py-[4px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-secondary-100 dark:bg-secondary-200 dark:text-offerings-on-dark">{{ 'ORGANIZATION._overall_seal_value' | translate: { seal: sovereigntySeal } }}</span>
+                  <span class="rounded-[6px] bg-secondary-50 px-[6px] py-[4px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-secondary-100 dark:bg-secondary-200 dark:text-offerings-on-dark">{{ 'ORGANIZATION._overall_seal_value' | translate: { seal: sovereigntySeal } }}</span>
                 }
               </span>
             }
@@ -81,9 +81,9 @@
             @if (sovereigntyScore) {
               <div class="flex flex-wrap items-center gap-[4px] text-secondary-100 dark:text-offerings-on-dark-body" data-cy="providerSovereignty">
                 <span class="text-[14px] font-semibold leading-[16px] tracking-[0.5px]">{{ 'ORGANIZATION._sovereignty_score' | translate }}</span>
-                <span data-cy="providerSovereigntyScore" class="rounded-[6px] bg-[#DDE6F6] px-[6px] py-[4px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-secondary-100 dark:bg-secondary-200 dark:text-offerings-on-dark">{{ sovereigntyScore }}</span>
+                <span data-cy="providerSovereigntyScore" class="rounded-[6px] bg-secondary-50 px-[6px] py-[4px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-secondary-100 dark:bg-secondary-200 dark:text-offerings-on-dark">{{ sovereigntyScore }}</span>
                 @if (sovereigntySeal) {
-                  <span data-cy="providerSovereigntySeal" class="rounded-[6px] bg-[#DDE6F6] px-[6px] py-[4px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-secondary-100 dark:bg-secondary-200 dark:text-offerings-on-dark">{{ 'ORGANIZATION._overall_seal_value' | translate: { seal: sovereigntySeal } }}</span>
+                  <span data-cy="providerSovereigntySeal" class="rounded-[6px] bg-secondary-50 px-[6px] py-[4px] text-[14px] font-semibold leading-[16px] tracking-[0.5px] text-secondary-100 dark:bg-secondary-200 dark:text-offerings-on-dark">{{ 'ORGANIZATION._overall_seal_value' | translate: { seal: sovereigntySeal } }}</span>
                 }
               </div>
             }

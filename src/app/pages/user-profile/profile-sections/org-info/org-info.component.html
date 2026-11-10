@@ -1,113 +1,113 @@
 @if (loading) {
     <div role="status" class="flex w-full justify-center py-16">
-      <svg aria-hidden="true" class="h-12 w-12 animate-spin text-[#D8DADE] fill-[#2D58A7]" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg aria-hidden="true" class="h-12 w-12 animate-spin text-offerings-border-strong dark:text-secondary-300 fill-primary-100 dark:fill-primary-50" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
           <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
       </svg>
       <span class="sr-only">Loading...</span>
     </div>
   } @else {
-    <div class="flex flex-col gap-6 font-[Blinker] lg:gap-10">
+    <div class="flex flex-col gap-6 font-body lg:gap-10">
       <div class="flex flex-col items-start justify-center gap-2">
-        <h2 class="text-[30px] font-bold leading-[36px] text-[#1A3360]">{{ 'PROFILE._company_settings' | translate }}</h2>
+        <h2 class="text-[30px] font-bold leading-[36px] text-secondary-400 dark:text-offerings-on-dark">{{ 'PROFILE._company_settings' | translate }}</h2>
         <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <span data-cy="orgTypeTag" class="inline-flex h-6 items-center rounded-lg bg-[#A5F3FC] px-2 py-1 text-[12px] font-semibold leading-4 tracking-[0.5px] text-[#131B25]">{{ (isProvider ? 'PROFILE._provider' : 'PROFILE._customer') | translate }}</span>
+          <span data-cy="orgTypeTag" class="inline-flex h-6 items-center rounded-lg bg-offerings-active-chip dark:bg-secondary-300 px-2 py-1 text-[12px] font-semibold leading-4 tracking-[0.5px] text-offerings-text dark:text-offerings-on-dark-body">{{ (isProvider ? 'PROFILE._provider' : 'PROFILE._customer') | translate }}</span>
           @if(!isProvider){
-            <p data-cy="becomeProvider" class="text-[16px] font-semibold leading-6 text-[#2D58A7]">
+            <p data-cy="becomeProvider" class="text-[16px] font-semibold leading-6 text-primary-100 dark:text-primary-50">
               {{ 'PROFILE._become_provider' | translate }}
-              <a [href]="becomeProviderUrl" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2 hover:text-[#234481] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7]">{{ 'PROFILE._click_here' | translate }}</a>
+              <a [href]="becomeProviderUrl" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2 hover:text-secondary-400 dark:hover:text-primary-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-100 dark:focus-visible:ring-primary-50">{{ 'PROFILE._click_here' | translate }}</a>
             </p>
           }
         </div>
       </div>
 
-      <div class="flex flex-col gap-11 rounded-xl bg-white p-6">
+      <div class="flex flex-col gap-11 rounded-xl bg-offerings-surface dark:bg-tertiary-100 p-6">
         <section class="flex flex-col gap-4">
-          <h3 class="text-[20px] font-bold leading-6 text-[#1A3360]">{{ 'PROFILE._company_information' | translate }}</h3>
+          <h3 class="text-[20px] font-bold leading-6 text-secondary-400 dark:text-offerings-on-dark">{{ 'PROFILE._company_information' | translate }}</h3>
           <form class="flex flex-col gap-4" [formGroup]="profileForm">
             <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div class="flex flex-col gap-2">
-                <label for="name" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._company_legal_name' | translate }}</label>
+                <label for="name" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._company_legal_name' | translate }}</label>
                 <input type="text" formControlName="name" id="name" [readonly]="isReadOnly || !!profile?.tradingName"
-                [ngClass]="(isReadOnly || !!profile?.tradingName) ? 'cursor-not-allowed border-[#D8DADE] bg-[#F4F5F6] text-[#858B99] focus:border-[#D8DADE] focus:ring-0' : (((profileForm.get('name')?.invalid == true && profileForm.value.name!='') || (profileForm.get('name')?.touched && profileForm.value.name=='')) ? 'border-red-600 bg-white text-[#202D3E] focus:border-red-600 focus:ring-1 focus:ring-red-600' : 'border-[#BCBFC7] bg-white text-[#202D3E] focus:border-[#2D58A7] focus:ring-1 focus:ring-[#2D58A7]')"
-                class="block h-10 w-full rounded-md border px-3 py-2 text-[16px] leading-6 placeholder:text-[#858B99] focus:outline-none" />
+                [ngClass]="(isReadOnly || !!profile?.tradingName) ? 'cursor-not-allowed border-offerings-border-strong dark:border-secondary-400 bg-offerings-neutral dark:bg-secondary-200 text-offerings-disabled-strong dark:text-offerings-disabled focus:border-offerings-border-strong dark:focus:border-secondary-400 focus:ring-0' : (((profileForm.get('name')?.invalid == true && profileForm.value.name!='') || (profileForm.get('name')?.touched && profileForm.value.name=='')) ? 'border-status-danger-border bg-offerings-surface dark:bg-tertiary-100 text-offerings-text dark:text-offerings-on-dark-body focus:border-status-danger-border focus:ring-1 focus:ring-status-danger-border' : 'border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 text-offerings-text dark:text-offerings-on-dark-body focus:border-primary-100 dark:focus:border-primary-50 focus:ring-1 focus:ring-primary-100 dark:focus:ring-primary-50')"
+                class="block h-10 w-full rounded-md border px-3 py-2 text-[16px] leading-6 placeholder:text-offerings-disabled-strong dark:placeholder:text-offerings-disabled focus:outline-none" />
                 @if(profileForm.get('name')?.invalid && profileForm.get('name')?.errors?.['required'] && (profileForm.get('name')?.touched && profileForm.value.name=='')){
-                  <p class="text-[12px] leading-[14px] text-red-600">This field is mandatory.</p>
+                  <p class="text-[12px] leading-[14px] text-status-danger-text dark:text-status-danger-bg">This field is mandatory.</p>
                 }
               </div>
               <div class="flex flex-col gap-2">
-                <label for="vatNumber" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._vat_number' | translate }}</label>
+                <label for="vatNumber" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._vat_number' | translate }}</label>
                 <input type="text" id="vatNumber" data-cy="orgVatNumber" [value]="vatNumber" readonly
-                class="block h-10 w-full cursor-not-allowed rounded-md border border-[#D8DADE] bg-[#F4F5F6] px-3 py-2 text-[16px] leading-6 text-[#858B99] focus:border-[#D8DADE] focus:outline-none focus:ring-0" />
+                class="block h-10 w-full cursor-not-allowed rounded-md border border-offerings-border-strong dark:border-secondary-400 bg-offerings-neutral dark:bg-secondary-200 px-3 py-2 text-[16px] leading-6 text-offerings-disabled-strong dark:text-offerings-disabled focus:border-offerings-border-strong dark:focus:border-secondary-400 focus:outline-none focus:ring-0" />
               </div>
               <div class="flex flex-col gap-2">
-                <label for="website" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._company_website' | translate }}</label>
+                <label for="website" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._company_website' | translate }}</label>
                 <input type="text" formControlName="website" id="website" [readonly]="isReadOnly"
-                [ngClass]="isReadOnly ? 'cursor-not-allowed border-[#D8DADE] bg-[#F4F5F6] text-[#858B99] focus:border-[#D8DADE] focus:ring-0' : 'border-[#BCBFC7] bg-white text-[#202D3E] focus:border-[#2D58A7] focus:ring-1 focus:ring-[#2D58A7]'"
-                class="block h-10 w-full rounded-md border px-3 py-2 text-[16px] leading-6 placeholder:text-[#858B99] focus:outline-none" />
+                [ngClass]="isReadOnly ? 'cursor-not-allowed border-offerings-border-strong dark:border-secondary-400 bg-offerings-neutral dark:bg-secondary-200 text-offerings-disabled-strong dark:text-offerings-disabled focus:border-offerings-border-strong dark:focus:border-secondary-400 focus:ring-0' : 'border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 text-offerings-text dark:text-offerings-on-dark-body focus:border-primary-100 dark:focus:border-primary-50 focus:ring-1 focus:ring-primary-100 dark:focus:ring-primary-50'"
+                class="block h-10 w-full rounded-md border px-3 py-2 text-[16px] leading-6 placeholder:text-offerings-disabled-strong dark:placeholder:text-offerings-disabled focus:outline-none" />
               </div>
             </div>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_150px_150px_minmax(0,1fr)]">
               <div class="flex flex-col gap-2">
-                <label for="country" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._country' | translate }}</label>
+                <label for="country" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._country' | translate }}</label>
                 @if(countryLocked){
                   <input type="text" id="country" data-cy="orgCountry" [value]="countryName" readonly aria-readonly="true" [title]="'PROFILE._country_locked' | translate"
-                  class="block h-10 w-full cursor-not-allowed rounded-md border border-[#D8DADE] bg-[#F4F5F6] px-3 py-2 text-[16px] leading-6 text-[#858B99] focus:border-[#D8DADE] focus:outline-none focus:ring-0" />
+                  class="block h-10 w-full cursor-not-allowed rounded-md border border-offerings-border-strong dark:border-secondary-400 bg-offerings-neutral dark:bg-secondary-200 px-3 py-2 text-[16px] leading-6 text-offerings-disabled-strong dark:text-offerings-disabled focus:border-offerings-border-strong dark:focus:border-secondary-400 focus:outline-none focus:ring-0" />
                 } @else {
                   <div class="relative">
                     <select data-cy="orgCountry" id="country" formControlName="country" [disabled]="isReadOnly"
-                    [ngClass]="isReadOnly ? 'pointer-events-none cursor-not-allowed border-[#D8DADE] bg-[#F4F5F6] text-[#858B99]' : 'border-[#BCBFC7] bg-white text-[#202D3E] focus:border-[#2D58A7] focus:ring-1 focus:ring-[#2D58A7]'"
+                    [ngClass]="isReadOnly ? 'pointer-events-none cursor-not-allowed border-offerings-border-strong dark:border-secondary-400 bg-offerings-neutral dark:bg-secondary-200 text-offerings-disabled-strong dark:text-offerings-disabled' : 'border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 text-offerings-text dark:text-offerings-on-dark-body focus:border-primary-100 dark:focus:border-primary-50 focus:ring-1 focus:ring-primary-100 dark:focus:ring-primary-50'"
                     class="block h-10 w-full appearance-none rounded-md border !bg-none py-2 pl-3 pr-10 text-[16px] leading-6 focus:outline-none">
                       <option *ngFor="let country of euCountries" [value]="country.code">
                         {{ country.name }}
                       </option>
                     </select>
-                    <svg class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#202D3E]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <svg class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-offerings-text dark:text-offerings-on-dark-body" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                       <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
                     </svg>
                   </div>
                 }
               </div>
               <div class="flex flex-col gap-2">
-                <label for="orgCity" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._city' | translate }}</label>
+                <label for="orgCity" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._city' | translate }}</label>
                 <input type="text" id="orgCity" data-cy="orgCity" [formControl]="addressForm.controls.city" [readonly]="isReadOnly"
-                [ngClass]="isReadOnly ? 'cursor-not-allowed border-[#D8DADE] bg-[#F4F5F6] text-[#858B99] focus:border-[#D8DADE] focus:ring-0' : (addressForm.controls.city.invalid ? 'border-red-600 bg-white text-[#202D3E] focus:border-red-600 focus:ring-1 focus:ring-red-600' : 'border-[#BCBFC7] bg-white text-[#202D3E] focus:border-[#2D58A7] focus:ring-1 focus:ring-[#2D58A7]')"
-                class="block h-10 w-full rounded-md border px-3 py-2 text-[16px] leading-6 placeholder:text-[#858B99] focus:outline-none" />
+                [ngClass]="isReadOnly ? 'cursor-not-allowed border-offerings-border-strong dark:border-secondary-400 bg-offerings-neutral dark:bg-secondary-200 text-offerings-disabled-strong dark:text-offerings-disabled focus:border-offerings-border-strong dark:focus:border-secondary-400 focus:ring-0' : (addressForm.controls.city.invalid ? 'border-status-danger-border bg-offerings-surface dark:bg-tertiary-100 text-offerings-text dark:text-offerings-on-dark-body focus:border-status-danger-border focus:ring-1 focus:ring-status-danger-border' : 'border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 text-offerings-text dark:text-offerings-on-dark-body focus:border-primary-100 dark:focus:border-primary-50 focus:ring-1 focus:ring-primary-100 dark:focus:ring-primary-50')"
+                class="block h-10 w-full rounded-md border px-3 py-2 text-[16px] leading-6 placeholder:text-offerings-disabled-strong dark:placeholder:text-offerings-disabled focus:outline-none" />
               </div>
               <div class="flex flex-col gap-2">
-                <label for="orgPostCode" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._postal_code' | translate }}</label>
+                <label for="orgPostCode" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._postal_code' | translate }}</label>
                 <input type="text" id="orgPostCode" data-cy="orgPostCode" [formControl]="addressForm.controls.postCode" [readonly]="isReadOnly"
-                [ngClass]="isReadOnly ? 'cursor-not-allowed border-[#D8DADE] bg-[#F4F5F6] text-[#858B99] focus:border-[#D8DADE] focus:ring-0' : (addressForm.controls.postCode.invalid ? 'border-red-600 bg-white text-[#202D3E] focus:border-red-600 focus:ring-1 focus:ring-red-600' : 'border-[#BCBFC7] bg-white text-[#202D3E] focus:border-[#2D58A7] focus:ring-1 focus:ring-[#2D58A7]')"
-                class="block h-10 w-full rounded-md border px-3 py-2 text-[16px] leading-6 placeholder:text-[#858B99] focus:outline-none" />
+                [ngClass]="isReadOnly ? 'cursor-not-allowed border-offerings-border-strong dark:border-secondary-400 bg-offerings-neutral dark:bg-secondary-200 text-offerings-disabled-strong dark:text-offerings-disabled focus:border-offerings-border-strong dark:focus:border-secondary-400 focus:ring-0' : (addressForm.controls.postCode.invalid ? 'border-status-danger-border bg-offerings-surface dark:bg-tertiary-100 text-offerings-text dark:text-offerings-on-dark-body focus:border-status-danger-border focus:ring-1 focus:ring-status-danger-border' : 'border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 text-offerings-text dark:text-offerings-on-dark-body focus:border-primary-100 dark:focus:border-primary-50 focus:ring-1 focus:ring-primary-100 dark:focus:ring-primary-50')"
+                class="block h-10 w-full rounded-md border px-3 py-2 text-[16px] leading-6 placeholder:text-offerings-disabled-strong dark:placeholder:text-offerings-disabled focus:outline-none" />
               </div>
               <div class="flex flex-col gap-2">
-                <label for="orgStreet" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._street_name_number' | translate }}</label>
+                <label for="orgStreet" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._street_name_number' | translate }}</label>
                 <input type="text" id="orgStreet" data-cy="orgStreet" [formControl]="addressForm.controls.street" [readonly]="isReadOnly"
-                [ngClass]="isReadOnly ? 'cursor-not-allowed border-[#D8DADE] bg-[#F4F5F6] text-[#858B99] focus:border-[#D8DADE] focus:ring-0' : (addressForm.controls.street.invalid ? 'border-red-600 bg-white text-[#202D3E] focus:border-red-600 focus:ring-1 focus:ring-red-600' : 'border-[#BCBFC7] bg-white text-[#202D3E] focus:border-[#2D58A7] focus:ring-1 focus:ring-[#2D58A7]')"
-                class="block h-10 w-full rounded-md border px-3 py-2 text-[16px] leading-6 placeholder:text-[#858B99] focus:outline-none" />
+                [ngClass]="isReadOnly ? 'cursor-not-allowed border-offerings-border-strong dark:border-secondary-400 bg-offerings-neutral dark:bg-secondary-200 text-offerings-disabled-strong dark:text-offerings-disabled focus:border-offerings-border-strong dark:focus:border-secondary-400 focus:ring-0' : (addressForm.controls.street.invalid ? 'border-status-danger-border bg-offerings-surface dark:bg-tertiary-100 text-offerings-text dark:text-offerings-on-dark-body focus:border-status-danger-border focus:ring-1 focus:ring-status-danger-border' : 'border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 text-offerings-text dark:text-offerings-on-dark-body focus:border-primary-100 dark:focus:border-primary-50 focus:ring-1 focus:ring-primary-100 dark:focus:ring-primary-50')"
+                class="block h-10 w-full rounded-md border px-3 py-2 text-[16px] leading-6 placeholder:text-offerings-disabled-strong dark:placeholder:text-offerings-disabled focus:outline-none" />
               </div>
             </div>
 
             @if(isDataspaceEnabled){
               <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div class="flex flex-col gap-2 md:col-span-3">
-                  <label for="contractManagementAddress" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">Contract Management Address</label>
+                  <label for="contractManagementAddress" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">Contract Management Address</label>
                   <input type="text" formControlName="contractManagementAddress" id="contractManagementAddress" [readonly]="isReadOnly"
-                  [ngClass]="isReadOnly ? 'cursor-not-allowed border-[#D8DADE] bg-[#F4F5F6] text-[#858B99] focus:border-[#D8DADE] focus:ring-0' : 'border-[#BCBFC7] bg-white text-[#202D3E] focus:border-[#2D58A7] focus:ring-1 focus:ring-[#2D58A7]'"
-                  class="block h-10 w-full rounded-md border px-3 py-2 text-[16px] leading-6 placeholder:text-[#858B99] focus:outline-none" />
+                  [ngClass]="isReadOnly ? 'cursor-not-allowed border-offerings-border-strong dark:border-secondary-400 bg-offerings-neutral dark:bg-secondary-200 text-offerings-disabled-strong dark:text-offerings-disabled focus:border-offerings-border-strong dark:focus:border-secondary-400 focus:ring-0' : 'border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 text-offerings-text dark:text-offerings-on-dark-body focus:border-primary-100 dark:focus:border-primary-50 focus:ring-1 focus:ring-primary-100 dark:focus:ring-primary-50'"
+                  class="block h-10 w-full rounded-md border px-3 py-2 text-[16px] leading-6 placeholder:text-offerings-disabled-strong dark:placeholder:text-offerings-disabled focus:outline-none" />
                 </div>
                 <div class="flex flex-col gap-2">
-                  <label for="contractManagementClientId" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">Contract Management Client ID</label>
+                  <label for="contractManagementClientId" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">Contract Management Client ID</label>
                   <input type="text" formControlName="contractManagementClientId" id="contractManagementClientId" [readonly]="isReadOnly"
-                  [ngClass]="isReadOnly ? 'cursor-not-allowed border-[#D8DADE] bg-[#F4F5F6] text-[#858B99] focus:border-[#D8DADE] focus:ring-0' : 'border-[#BCBFC7] bg-white text-[#202D3E] focus:border-[#2D58A7] focus:ring-1 focus:ring-[#2D58A7]'"
-                  class="block h-10 w-full rounded-md border px-3 py-2 text-[16px] leading-6 placeholder:text-[#858B99] focus:outline-none" />
+                  [ngClass]="isReadOnly ? 'cursor-not-allowed border-offerings-border-strong dark:border-secondary-400 bg-offerings-neutral dark:bg-secondary-200 text-offerings-disabled-strong dark:text-offerings-disabled focus:border-offerings-border-strong dark:focus:border-secondary-400 focus:ring-0' : 'border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 text-offerings-text dark:text-offerings-on-dark-body focus:border-primary-100 dark:focus:border-primary-50 focus:ring-1 focus:ring-primary-100 dark:focus:ring-primary-50'"
+                  class="block h-10 w-full rounded-md border px-3 py-2 text-[16px] leading-6 placeholder:text-offerings-disabled-strong dark:placeholder:text-offerings-disabled focus:outline-none" />
                 </div>
                 <div class="flex flex-col gap-2 md:col-span-2">
-                  <label for="contractManagementScopes" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">Contract Management Scopes</label>
+                  <label for="contractManagementScopes" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">Contract Management Scopes</label>
                   <input type="text" formControlName="contractManagementScopes" id="contractManagementScopes" [readonly]="isReadOnly"
-                  [ngClass]="isReadOnly ? 'cursor-not-allowed border-[#D8DADE] bg-[#F4F5F6] text-[#858B99] focus:border-[#D8DADE] focus:ring-0' : 'border-[#BCBFC7] bg-white text-[#202D3E] focus:border-[#2D58A7] focus:ring-1 focus:ring-[#2D58A7]'"
-                  class="block h-10 w-full rounded-md border px-3 py-2 text-[16px] leading-6 placeholder:text-[#858B99] focus:outline-none"
+                  [ngClass]="isReadOnly ? 'cursor-not-allowed border-offerings-border-strong dark:border-secondary-400 bg-offerings-neutral dark:bg-secondary-200 text-offerings-disabled-strong dark:text-offerings-disabled focus:border-offerings-border-strong dark:focus:border-secondary-400 focus:ring-0' : 'border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 text-offerings-text dark:text-offerings-on-dark-body focus:border-primary-100 dark:focus:border-primary-50 focus:ring-1 focus:ring-primary-100 dark:focus:ring-primary-50'"
+                  class="block h-10 w-full rounded-md border px-3 py-2 text-[16px] leading-6 placeholder:text-offerings-disabled-strong dark:placeholder:text-offerings-disabled focus:outline-none"
                   placeholder="external-marketplace, another-scope" />
                 </div>
               </div>
@@ -117,17 +117,17 @@
               <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <div class="flex min-w-0 flex-col gap-2">
                   <div class="flex items-center gap-2">
-                    <span class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._logo' | translate }}</span>
+                    <span class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._logo' | translate }}</span>
                     @if(!isReadOnly){
-                      <svg data-popover-target="popover-logo" class="h-4 w-4 cursor-help text-[#858B99]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg data-popover-target="popover-logo" class="h-4 w-4 cursor-help text-offerings-disabled-strong dark:text-offerings-disabled" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                       </svg>
                     }
                   </div>
                   @if(!isReadOnly){
-                    <div data-popover id="popover-logo" role="tooltip" class="absolute z-20 invisible inline-block w-64 rounded-lg border border-[#D8DADE] bg-white text-[14px] text-[#4C5A6B] opacity-0 shadow-sm transition-opacity duration-300">
-                      <div class="rounded-t-lg border-b border-[#D8DADE] bg-[#F4F5F6] px-3 py-2">
-                        <h3 class="font-semibold text-[#131B25]">Logo requirements</h3>
+                    <div data-popover id="popover-logo" role="tooltip" class="absolute z-20 invisible inline-block w-64 rounded-lg border border-offerings-border-strong dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 text-[14px] text-offerings-body dark:text-offerings-on-dark-body opacity-0 shadow-sm transition-opacity duration-300">
+                      <div class="rounded-t-lg border-b border-offerings-border-strong dark:border-secondary-400 bg-offerings-neutral dark:bg-secondary-200 px-3 py-2">
+                        <h3 class="font-semibold text-offerings-text dark:text-offerings-on-dark-body">Logo requirements</h3>
                       </div>
                       <div class="inline-block px-3 py-2">
                         <p class="inline-block">The supported formats are SVG and PNG. The logo size should follow an 1:1 aspect ratio (e.g. 160x160px resolution) and transparent background.
@@ -137,11 +137,11 @@
                     </div>
                   }
                   @if(isReadOnly){
-                    <div class="relative flex h-[234px] w-full items-center justify-center overflow-hidden rounded-[9.33px] border border-[#BCBFC7]" [ngClass]="showImgPreview ? 'bg-white' : 'bg-[#F4F5F6]'">
+                    <div class="relative flex h-[234px] w-full items-center justify-center overflow-hidden rounded-[9.33px] border border-offerings-price-border dark:border-secondary-400" [ngClass]="showImgPreview ? 'bg-offerings-surface dark:bg-tertiary-100' : 'bg-offerings-neutral dark:bg-secondary-200'">
                       @if(showImgPreview){
                         <img src="{{imgPreview}}" alt="" class="h-full w-full max-w-[402px] object-contain">
                       } @else {
-                        <svg class="h-[65px] w-[65px] text-[#BCBFC7]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <svg class="h-[65px] w-[65px] text-offerings-disabled" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                           <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.97.97a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z" clip-rule="evenodd"/>
                         </svg>
                       }
@@ -149,22 +149,22 @@
                   } @else {
                     <ngx-file-drop class="block w-full" dropZoneClassName="w-full" contentClassName="flex w-full flex-col gap-1" (onFileDrop)="dropped($event,'img')" (onFileOver)="fileOver($event)" (onFileLeave)="fileLeave($event)">
                       <ng-template ngx-file-drop-content-tmp let-openFileSelector="openFileSelector">
-                        <div class="relative flex h-[234px] w-full items-center justify-center overflow-hidden rounded-[9.33px] border border-[#BCBFC7]" [ngClass]="showImgPreview ? 'bg-white' : 'bg-[#F4F5F6]'">
+                        <div class="relative flex h-[234px] w-full items-center justify-center overflow-hidden rounded-[9.33px] border border-offerings-price-border dark:border-secondary-400" [ngClass]="showImgPreview ? 'bg-offerings-surface dark:bg-tertiary-100' : 'bg-offerings-neutral dark:bg-secondary-200'">
                           @if(showImgPreview){
                             <img src="{{imgPreview}}" alt="" class="h-full w-full max-w-[402px] object-contain">
-                            <button (click)="removeImg()" type="button" data-cy="orgLogoRemove" [attr.aria-label]="'PROFILE._remove_logo' | translate" class="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#2D58A7] shadow hover:bg-[#EBF0F7]">
+                            <button (click)="removeImg()" type="button" data-cy="orgLogoRemove" [attr.aria-label]="'PROFILE._remove_logo' | translate" class="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-offerings-surface dark:bg-tertiary-100 text-primary-100 dark:text-primary-50 shadow hover:bg-offerings-table-header dark:hover:bg-secondary-200">
                               <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/>
                               </svg>
                             </button>
                           } @else {
-                            <svg class="h-[65px] w-[65px] text-[#BCBFC7]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <svg class="h-[65px] w-[65px] text-offerings-disabled" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                               <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.97.97a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z" clip-rule="evenodd"/>
                             </svg>
                           }
                         </div>
                         <div class="flex items-center justify-end gap-6">
-                          <button (click)="openFileSelector()" type="button" data-cy="orgLogoUpload" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4 py-2 text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#2D58A7] hover:bg-[#EBF0F7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7]">
+                          <button (click)="openFileSelector()" type="button" data-cy="orgLogoUpload" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4 py-2 text-[14px] font-semibold leading-4 tracking-[0.5px] text-primary-100 dark:text-primary-50 hover:bg-offerings-table-header dark:hover:bg-secondary-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-100 dark:focus-visible:ring-primary-50">
                             @if(showImgPreview){
                               {{ 'PROFILE._replace' | translate }}
                               <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -185,17 +185,17 @@
                 </div>
 
                 <div class="flex min-w-0 flex-col gap-2">
-                  <label for="editor" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._description' | translate }}</label>
+                  <label for="editor" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._description' | translate }}</label>
                   @if(isReadOnly) {
-                    <div class="min-h-[234px] w-full rounded-md border border-[#D8DADE] bg-[#F4F5F6] px-3 py-2">
+                    <div class="min-h-[234px] w-full rounded-md border border-offerings-border-strong dark:border-secondary-400 bg-offerings-neutral dark:bg-secondary-200 px-3 py-2">
                       <markdown [ngClass]="{
                           'break-all': hasLongWord(description, 20),
                           'break-words': !hasLongWord(description, 20)
-                      }" class="text-wrap break-words text-[16px] leading-6 text-[#202D3E]" [data]="description"></markdown>
+                      }" class="text-wrap break-words text-[16px] leading-6 text-offerings-text dark:text-offerings-on-dark-body" [data]="description"></markdown>
                     </div>
                   } @else {
                     <textarea id="editor" formControlName="description" data-cy="orgDescription"
-                    class="block h-[234px] w-full resize-none rounded-md border border-[#BCBFC7] bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] placeholder:text-[#858B99] focus:border-[#2D58A7] focus:outline-none focus:ring-1 focus:ring-[#2D58A7]"></textarea>
+                    class="block h-[234px] w-full resize-none rounded-md border border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 px-3 py-2 text-[16px] leading-6 text-offerings-text dark:text-offerings-on-dark-body placeholder:text-offerings-disabled-strong dark:placeholder:text-offerings-disabled focus:border-primary-100 dark:focus:border-primary-50 focus:outline-none focus:ring-1 focus:ring-primary-100 dark:focus:ring-primary-50"></textarea>
                   }
                 </div>
               </div>
@@ -206,10 +206,10 @@
         <section class="flex flex-col gap-6" data-cy="orgCredentials">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex flex-col gap-1">
-              <h3 class="text-[20px] font-bold leading-6 text-[#1A3360]">{{ 'PROFILE._credentials_management' | translate }}</h3>
-              <p class="text-[16px] leading-6 text-[#1A3360]">{{ 'PROFILE._credentials_management_desc' | translate }}</p>
+              <h3 class="text-[20px] font-bold leading-6 text-secondary-400 dark:text-offerings-on-dark">{{ 'PROFILE._credentials_management' | translate }}</h3>
+              <p class="text-[16px] leading-6 text-secondary-400 dark:text-offerings-on-dark">{{ 'PROFILE._credentials_management_desc' | translate }}</p>
             </div>
-            <a [attr.href]="learUrl || null" target="_blank" rel="noopener noreferrer" data-cy="orgCredentialIssuer" [attr.aria-disabled]="!learUrl" [ngClass]="learUrl ? 'cursor-pointer hover:bg-[#EBF0F7]' : 'pointer-events-none opacity-50'" class="inline-flex h-10 shrink-0 items-center justify-center gap-2 self-start rounded-lg px-4 py-2 text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#2D58A7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7] sm:self-auto">
+            <a [attr.href]="learUrl || null" target="_blank" rel="noopener noreferrer" data-cy="orgCredentialIssuer" [attr.aria-disabled]="!learUrl" [ngClass]="learUrl ? 'cursor-pointer hover:bg-offerings-table-header dark:hover:bg-secondary-200' : 'pointer-events-none opacity-50'" class="inline-flex h-10 shrink-0 items-center justify-center gap-2 self-start rounded-lg px-4 py-2 text-[14px] font-semibold leading-4 tracking-[0.5px] text-primary-100 dark:text-primary-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-100 dark:focus-visible:ring-primary-50 sm:self-auto">
               {{ 'PROFILE._go_to_credential_issuer' | translate }}
               <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                 <path fill-rule="evenodd" d="M15.75 2.25H21a.75.75 0 0 1 .75.75v5.25a.75.75 0 0 1-1.5 0V4.81L8.03 17.03a.75.75 0 0 1-1.06-1.06L19.19 3.75h-3.44a.75.75 0 0 1 0-1.5Zm-10.5 4.5a1.5 1.5 0 0 0-1.5 1.5v10.5a1.5 1.5 0 0 0 1.5 1.5h10.5a1.5 1.5 0 0 0 1.5-1.5V10.5a.75.75 0 0 1 1.5 0v8.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V8.25a3 3 0 0 1 3-3h8.25a.75.75 0 0 1 0 1.5H5.25Z" clip-rule="evenodd"/>
@@ -221,11 +221,11 @@
         <section class="flex flex-col gap-4" data-cy="orgContacts">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex flex-col gap-1">
-              <h3 class="text-[20px] font-bold leading-6 text-[#1A3360]">{{ 'PROFILE._contact_info' | translate }}</h3>
-              <p class="text-[16px] leading-6 text-[#1A3360]">{{ 'PROFILE._contact_info_desc' | translate }}</p>
+              <h3 class="text-[20px] font-bold leading-6 text-secondary-400 dark:text-offerings-on-dark">{{ 'PROFILE._contact_info' | translate }}</h3>
+              <p class="text-[16px] leading-6 text-secondary-400 dark:text-offerings-on-dark">{{ 'PROFILE._contact_info_desc' | translate }}</p>
             </div>
             @if(!isReadOnly){
-              <button type="button" data-cy="addContact" (click)="openNewContact()" [attr.aria-expanded]="showNewContact" aria-controls="new-contact-form" class="inline-flex h-10 shrink-0 items-center justify-center gap-2 self-start rounded-lg border border-[#2D58A7] bg-white px-4 text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#2D58A7] hover:bg-[#EBF0F7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7] focus-visible:ring-offset-2 sm:self-auto">
+              <button type="button" data-cy="addContact" (click)="openNewContact()" [attr.aria-expanded]="showNewContact" aria-controls="new-contact-form" class="inline-flex h-10 shrink-0 items-center justify-center gap-2 self-start rounded-lg border border-primary-100 dark:border-primary-50 bg-offerings-surface dark:bg-tertiary-100 px-4 text-[14px] font-semibold leading-4 tracking-[0.5px] text-primary-100 dark:text-primary-50 hover:bg-offerings-table-header dark:hover:bg-secondary-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-100 dark:focus-visible:ring-primary-50 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-tertiary-100 sm:self-auto">
                 <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"/>
                 </svg>
@@ -237,20 +237,20 @@
           @if(contactCards.length > 0){
             <ul class="flex flex-col gap-4" data-cy="contactCards">
               @for(medium of contactCards; track medium) {
-                <li data-cy="contactCard" class="relative flex min-h-[70px] items-center gap-4 overflow-hidden rounded-xl border-2 border-[#B6CAEC] bg-white py-2.5 pl-4 pr-3 shadow-[0_0_6px_rgba(0,0,0,0.08)]">
+                <li data-cy="contactCard" class="relative flex min-h-[70px] items-center gap-4 overflow-hidden rounded-xl border-2 border-primary-100/40 dark:border-primary-50/40 bg-offerings-surface dark:bg-tertiary-100 py-2.5 pl-4 pr-3 shadow-sm">
                   @if(medium.mediumType == 'Email'){
-                    <svg class="pointer-events-none absolute -top-1 right-12 h-[124px] w-[124px] text-[#EBF0F7] sm:left-[67.75%] sm:right-auto" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <svg class="pointer-events-none absolute -top-1 right-12 h-[124px] w-[124px] text-secondary-50 dark:text-secondary-200 sm:left-[67.75%] sm:right-auto" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.928 5.493a3 3 0 0 1-3.144 0L1.5 8.67Z"/>
                       <path d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 5.978a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z"/>
                     </svg>
                   } @else {
-                    <svg class="pointer-events-none absolute -top-1 right-12 h-[124px] w-[124px] text-[#EBF0F7] sm:left-[67.75%] sm:right-auto" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <svg class="pointer-events-none absolute -top-1 right-12 h-[124px] w-[124px] text-secondary-50 dark:text-secondary-200 sm:left-[67.75%] sm:right-auto" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                       <path fill-rule="evenodd" d="M1.5 4.5a3 3 0 0 1 3-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 0 1-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 0 0 6.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 0 1 1.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 0 1-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5Z" clip-rule="evenodd"/>
                     </svg>
                   }
                   <div class="relative z-10 flex min-w-0 flex-1 flex-col">
-                    <p class="break-words text-[16px] font-semibold leading-6 tracking-[0.5px] text-[#202D3E]">{{ getMediumContactType(medium, medium.mediumType) }}:</p>
-                    <p class="break-all text-[16px] leading-6 text-[#1A3360]">
+                    <p class="break-words text-[16px] font-semibold leading-6 tracking-[0.5px] text-offerings-text dark:text-offerings-on-dark-body">{{ getMediumContactType(medium, medium.mediumType) }}:</p>
+                    <p class="break-all text-[16px] leading-6 text-secondary-400 dark:text-offerings-on-dark">
                       @if(medium.mediumType == 'Email'){
                         {{medium.characteristic.emailAddress}}
                       } @else {
@@ -260,7 +260,7 @@
                   </div>
                   @if(!isReadOnly){
                     <div class="relative z-10 flex shrink-0 items-center gap-1">
-                      <button data-cy="editContact" type="button" (click)="closeNewContact(); showEdit(medium)" [attr.aria-label]="'PROFILE._edit' | translate" class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-[#2D58A7] hover:bg-[#EBF0F7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7]">
+                      <button data-cy="editContact" type="button" (click)="closeNewContact(); showEdit(medium)" [attr.aria-label]="'PROFILE._edit' | translate" class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-primary-100 dark:text-primary-50 hover:bg-offerings-table-header dark:hover:bg-secondary-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-100 dark:focus-visible:ring-primary-50">
                         <svg class="h-6 w-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z"/>
                           <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z"/>
@@ -279,29 +279,29 @@
           }
 
           @if(!isReadOnly && showNewContact){
-            <div id="new-contact-form" data-cy="newContactForm" class="flex flex-col gap-7 rounded-xl border-2 border-[#B6CAEC] bg-white px-4 py-6 shadow-[0_0_6px_rgba(0,0,0,0.08)]">
-              <h4 class="text-[16px] font-bold leading-6 text-[#1A3360]">{{ 'PROFILE._new_contact' | translate }}</h4>
+            <div id="new-contact-form" data-cy="newContactForm" class="flex flex-col gap-7 rounded-xl border-2 border-primary-100/40 dark:border-primary-50/40 bg-offerings-surface dark:bg-tertiary-100 px-4 py-6 shadow-sm">
+              <h4 class="text-[16px] font-bold leading-6 text-secondary-400 dark:text-offerings-on-dark">{{ 'PROFILE._new_contact' | translate }}</h4>
               <form class="flex flex-col gap-8 sm:px-4" [formGroup]="mediumForm" (ngSubmit)="saveMedium()">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-8">
                   <div class="flex w-full flex-col gap-2 lg:w-[484px] lg:shrink-0">
-                    <label for="contactCategory" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._category_type' | translate }}</label>
+                    <label for="contactCategory" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._category_type' | translate }}</label>
                     <div class="flex flex-col gap-1">
                       <input #contactCategory id="contactCategory" data-cy="contactCategory" formControlName="contactTitle" type="text" maxlength="50" aria-describedby="contactCategoryHelp"
                       [placeholder]="'PROFILE._category_type_placeholder' | translate"
-                      class="block h-10 w-full rounded-md border bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] placeholder:text-[#858B99] focus:outline-none focus:ring-1"
-                      [ngClass]="mediumForm.get('contactTitle')?.invalid && (mediumForm.get('contactTitle')?.dirty || mediumForm.get('contactTitle')?.touched) ? 'border-red-600 focus:border-red-600 focus:ring-red-600' : 'border-[#BCBFC7] focus:border-[#2D58A7] focus:ring-[#2D58A7]'">
-                      <p id="contactCategoryHelp" class="text-[12px] leading-4 text-[#4C5A6B]">{{ 'PROFILE._max_50_characters' | translate }}</p>
+                      class="block h-10 w-full rounded-md border bg-offerings-surface dark:bg-tertiary-100 px-3 py-2 text-[16px] leading-6 text-offerings-text dark:text-offerings-on-dark-body placeholder:text-offerings-disabled-strong dark:placeholder:text-offerings-disabled focus:outline-none focus:ring-1"
+                      [ngClass]="mediumForm.get('contactTitle')?.invalid && (mediumForm.get('contactTitle')?.dirty || mediumForm.get('contactTitle')?.touched) ? 'border-status-danger-border focus:border-status-danger-border focus:ring-status-danger-border' : 'border-offerings-price-border dark:border-secondary-400 focus:border-primary-100 dark:focus:border-primary-50 focus:ring-primary-100 dark:focus:ring-primary-50'">
+                      <p id="contactCategoryHelp" class="text-[12px] leading-4 text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._max_50_characters' | translate }}</p>
                     </div>
                   </div>
                   <div role="radiogroup" [attr.aria-label]="'PROFILE._medium_type' | translate" class="flex flex-wrap items-center gap-x-8 gap-y-3 lg:mt-6 lg:h-10">
-                    <label class="inline-flex cursor-pointer items-center gap-2 text-[16px] leading-6 text-[#4C5A6B]">
+                    <label class="inline-flex cursor-pointer items-center gap-2 text-[16px] leading-6 text-offerings-body dark:text-offerings-on-dark-body">
                       <input type="radio" name="newContactType" value="email" data-cy="contactTypeEmail" [checked]="newContactType === 'email'" (change)="selectContactType($event)"
-                      class="h-5 w-5 cursor-pointer border-[#BCBFC7] bg-white text-[#2D58A7] focus:ring-2 focus:ring-[#2D58A7] focus:ring-offset-0">
+                      class="h-5 w-5 cursor-pointer border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 text-primary-100 dark:text-primary-50 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-50 focus:ring-offset-0">
                       {{ 'PROFILE._email' | translate }}
                     </label>
-                    <label class="inline-flex cursor-pointer items-center gap-2 text-[16px] leading-6 text-[#4C5A6B]">
+                    <label class="inline-flex cursor-pointer items-center gap-2 text-[16px] leading-6 text-offerings-body dark:text-offerings-on-dark-body">
                       <input type="radio" name="newContactType" value="phone" data-cy="contactTypePhone" [checked]="newContactType === 'phone'" (change)="selectContactType($event)"
-                      class="h-5 w-5 cursor-pointer border-[#BCBFC7] bg-white text-[#2D58A7] focus:ring-2 focus:ring-[#2D58A7] focus:ring-offset-0">
+                      class="h-5 w-5 cursor-pointer border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 text-primary-100 dark:text-primary-50 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-50 focus:ring-offset-0">
                       {{ 'PROFILE._phone_number' | translate }}
                     </label>
                   </div>
@@ -309,26 +309,26 @@
 
                 @if(newContactType === 'email'){
                   <div class="flex w-full flex-col gap-2 lg:w-[484px]">
-                    <label for="newContactEmail" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._email' | translate }}</label>
+                    <label for="newContactEmail" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._email' | translate }}</label>
                     <input formControlName="email" type="text" id="newContactEmail" data-cy="contactEmail"
-                    class="block h-10 w-full rounded-md border bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] focus:outline-none focus:ring-1"
-                    [ngClass]="mediumForm.get('email')?.invalid && (mediumForm.get('email')?.dirty || mediumForm.get('email')?.touched) ? 'border-red-600 focus:border-red-600 focus:ring-red-600' : 'border-[#BCBFC7] focus:border-[#2D58A7] focus:ring-[#2D58A7]'"/>
+                    class="block h-10 w-full rounded-md border bg-offerings-surface dark:bg-tertiary-100 px-3 py-2 text-[16px] leading-6 text-offerings-text dark:text-offerings-on-dark-body focus:outline-none focus:ring-1"
+                    [ngClass]="mediumForm.get('email')?.invalid && (mediumForm.get('email')?.dirty || mediumForm.get('email')?.touched) ? 'border-status-danger-border focus:border-status-danger-border focus:ring-status-danger-border' : 'border-offerings-price-border dark:border-secondary-400 focus:border-primary-100 dark:focus:border-primary-50 focus:ring-primary-100 dark:focus:ring-primary-50'"/>
                   </div>
                 } @else if(newContactType === 'phone'){
                   <div class="flex w-full flex-col gap-2 lg:w-[484px]">
-                    <label for="phoneNumber" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._phone' | translate }}</label>
+                    <label for="phoneNumber" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._phone' | translate }}</label>
                     <div class="relative flex items-center">
                       <button (click)="prefixCheck=!prefixCheck" type="button"
-                      class="z-10 inline-flex h-10 flex-shrink-0 items-center rounded-s-md border border-[#BCBFC7] bg-[#F4F5F6] px-3 text-[14px] text-[#202D3E] hover:bg-[#EBF0F7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7]">
+                      class="z-10 inline-flex h-10 flex-shrink-0 items-center rounded-s-md border border-offerings-price-border dark:border-secondary-400 bg-offerings-neutral dark:bg-secondary-200 px-3 text-[14px] text-offerings-text dark:text-offerings-on-dark-body hover:bg-offerings-table-header dark:hover:bg-secondary-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-100 dark:focus-visible:ring-primary-50">
                         {{phonePrefix.flag}} {{phonePrefix.code}}
                         <svg class="ms-2.5 h-2.5 w-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/></svg>
                       </button>
                       @if(prefixCheck==true){
-                        <div class="absolute bottom-12 right-0 z-20 max-h-48 w-full overflow-y-auto rounded-lg border border-[#D8DADE] bg-white shadow">
-                          <ul class="py-2 text-[14px] text-[#202D3E]" aria-labelledby="dropdown-phone-button">
+                        <div class="absolute bottom-12 right-0 z-20 max-h-48 w-full overflow-y-auto rounded-lg border border-offerings-border-strong dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 shadow">
+                          <ul class="py-2 text-[14px] text-offerings-text dark:text-offerings-on-dark-body" aria-labelledby="dropdown-phone-button">
                             <li>
                               @for(pref of prefixes;track pref.code){
-                                <button type="button" (click)="selectPrefix(pref)" class="inline-flex w-full px-4 py-2 hover:bg-[#EBF0F7]" role="menuitem">
+                                <button type="button" (click)="selectPrefix(pref)" class="inline-flex w-full px-4 py-2 hover:bg-offerings-table-header dark:hover:bg-secondary-200" role="menuitem">
                                   <div class="inline-flex items-center">
                                     {{pref.text}}
                                   </div>
@@ -339,17 +339,17 @@
                         </div>
                       }
                       <input min="0" id="phoneNumber" data-cy="contactPhone" formControlName="telephoneNumber" name="phoneNumber" type="number"
-                      [ngClass]="mediumForm.get('telephoneNumber')?.errors?.['invalidPhoneNumber'] == true ? 'border-red-600 focus:border-red-600 focus:ring-red-600' : 'border-[#BCBFC7] focus:border-[#2D58A7] focus:ring-[#2D58A7]'"
-                      class="block h-10 w-full rounded-e-md border border-s-0 bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] focus:outline-none focus:ring-1">
+                      [ngClass]="mediumForm.get('telephoneNumber')?.errors?.['invalidPhoneNumber'] == true ? 'border-status-danger-border focus:border-status-danger-border focus:ring-status-danger-border' : 'border-offerings-price-border dark:border-secondary-400 focus:border-primary-100 dark:focus:border-primary-50 focus:ring-primary-100 dark:focus:ring-primary-50'"
+                      class="block h-10 w-full rounded-e-md border border-s-0 bg-offerings-surface dark:bg-tertiary-100 px-3 py-2 text-[16px] leading-6 text-offerings-text dark:text-offerings-on-dark-body focus:outline-none focus:ring-1">
                     </div>
                   </div>
                 }
 
                 <div class="flex items-center justify-center gap-4 sm:gap-10">
-                  <button type="button" data-cy="cancelContact" (click)="closeNewContact()" class="inline-flex h-11 items-center justify-center rounded-lg px-6 text-[18px] font-semibold leading-6 text-[#2D58A7] hover:bg-[#EBF0F7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7] focus-visible:ring-offset-2">
+                  <button type="button" data-cy="cancelContact" (click)="closeNewContact()" class="inline-flex h-11 items-center justify-center rounded-lg px-6 text-[18px] font-semibold leading-6 text-primary-100 dark:text-primary-50 hover:bg-offerings-table-header dark:hover:bg-secondary-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-100 dark:focus-visible:ring-primary-50 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-tertiary-100">
                     {{ 'PROFILE._cancel_contact' | translate }}
                   </button>
-                  <button data-cy="saveOrgProfile" type="submit" [disabled]="!newContactType || !mediumForm.valid" [ngClass]="(!newContactType || !mediumForm.valid) ? 'cursor-not-allowed border-[#D8DADE] text-[#A2A5AF]' : 'cursor-pointer border-[#2D58A7] text-[#2D58A7] hover:bg-[#EBF0F7]'" class="inline-flex h-11 items-center justify-center rounded-lg border-2 bg-white px-6 text-[18px] font-semibold leading-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7] focus-visible:ring-offset-2">
+                  <button data-cy="saveOrgProfile" type="submit" [disabled]="!newContactType || !mediumForm.valid" [ngClass]="(!newContactType || !mediumForm.valid) ? 'cursor-not-allowed border-offerings-border-strong dark:border-secondary-400 text-offerings-disabled' : 'cursor-pointer border-primary-100 dark:border-primary-50 text-primary-100 dark:text-primary-50 hover:bg-offerings-table-header dark:hover:bg-secondary-200'" class="inline-flex h-11 items-center justify-center rounded-lg border-2 bg-offerings-surface dark:bg-tertiary-100 px-6 text-[18px] font-semibold leading-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-100 dark:focus-visible:ring-primary-50 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-tertiary-100">
                     {{ 'PROFILE._save_contact' | translate }}
                   </button>
                 </div>
@@ -361,7 +361,7 @@
 
       @if(!isReadOnly){
         <div class="flex w-full justify-end lg:pt-4">
-          <button data-cy="orgUpdate" type="button" [disabled]="!profileForm.valid || !addressForm.valid" [ngClass]="(!profileForm.valid || !addressForm.valid) ? 'cursor-not-allowed bg-[#D8DADE] text-[#858B99]' : 'cursor-pointer bg-[#2D58A7] text-white hover:bg-[#234481]'" (click)="updateProfile()" class="inline-flex h-11 w-full items-center justify-center rounded-lg px-6 text-[18px] font-semibold leading-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7] focus-visible:ring-offset-2 sm:w-[260px]">
+          <button data-cy="orgUpdate" type="button" [disabled]="!profileForm.valid || !addressForm.valid" [ngClass]="(!profileForm.valid || !addressForm.valid) ? 'cursor-not-allowed bg-offerings-border-strong dark:bg-secondary-300 text-offerings-disabled-strong dark:text-offerings-disabled' : 'cursor-pointer bg-primary-100 text-offerings-on-dark hover:bg-secondary-400'" (click)="updateProfile()" class="inline-flex h-11 w-full items-center justify-center rounded-lg px-6 text-[18px] font-semibold leading-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-100 dark:focus-visible:ring-primary-50 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-tertiary-100 sm:w-[260px]">
             {{ 'PROFILE._save_changes' | translate }}
           </button>
         </div>
@@ -372,12 +372,12 @@
     <error-message class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50" [message]="errorMessage"></error-message>
 }
 @if(showEditMedium){
-<div id="edit-medium-modal" [ngClass]="showEditMedium ? 'backdrop-blur-sm': ''" tabindex="-1" aria-hidden="true" class="fixed left-0 right-0 top-0 z-40 flex h-fit max-h-full w-full items-center justify-center overflow-y-auto overflow-x-hidden bg-[#131B25]/30 md:inset-0 lg:h-[calc(100%)]">
-    <div class="relative flex w-4/5 flex-col gap-6 rounded-xl bg-white p-6 font-[Blinker] shadow-xl lg:w-1/2" (click)="$event.stopPropagation();">
+<div id="edit-medium-modal" [ngClass]="showEditMedium ? 'backdrop-blur-sm': ''" tabindex="-1" aria-hidden="true" class="fixed left-0 right-0 top-0 z-40 flex h-fit max-h-full w-full items-center justify-center overflow-y-auto overflow-x-hidden bg-offerings-overlay/30 md:inset-0 lg:h-[calc(100%)]">
+    <div class="relative flex w-4/5 flex-col gap-6 rounded-xl bg-offerings-surface dark:bg-tertiary-100 p-6 font-body shadow-xl lg:w-1/2" (click)="$event.stopPropagation();">
         <div class="flex items-center justify-between gap-4">
-            <h2 class="text-[20px] font-bold leading-6 text-[#1A3360]">{{ 'PROFILE._edit' | translate }}</h2>
+            <h2 class="text-[20px] font-bold leading-6 text-secondary-400 dark:text-offerings-on-dark">{{ 'PROFILE._edit' | translate }}</h2>
             <button (click)="showEditMedium=false;" type="button"
-            class="ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#4C5A6B] hover:bg-[#EBF0F7] hover:text-[#1A3360]"
+            class="ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg text-offerings-body dark:text-offerings-on-dark-body hover:bg-offerings-table-header dark:hover:bg-secondary-200 hover:text-secondary-400 dark:hover:text-offerings-on-dark"
             data-modal-hide="edit-medium-modal">
                 <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/>
@@ -397,60 +397,60 @@
 
             <form class="grid grid-cols-1 gap-4 md:grid-cols-2" [formGroup]="mediumForm">
                 <div class="flex flex-col gap-2 md:col-span-2">
-                    <label for="editContactTitle" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._category_type' | translate }}</label>
+                    <label for="editContactTitle" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._category_type' | translate }}</label>
                     <input id="editContactTitle" formControlName="contactTitle" name="editContactTitle" type="text"
-                    class="block h-10 w-full rounded-md border bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] focus:outline-none focus:ring-1"
-                    [ngClass]="(mediumForm.get('contactTitle')?.invalid == true && mediumForm.value.contactTitle!='') || (mediumForm.get('contactTitle')?.touched == true && mediumForm.value.contactTitle=='') ? 'border-red-600 focus:border-red-600 focus:ring-red-600' : 'border-[#BCBFC7] focus:border-[#2D58A7] focus:ring-[#2D58A7]'">
+                    class="block h-10 w-full rounded-md border bg-offerings-surface dark:bg-tertiary-100 px-3 py-2 text-[16px] leading-6 text-offerings-text dark:text-offerings-on-dark-body focus:outline-none focus:ring-1"
+                    [ngClass]="(mediumForm.get('contactTitle')?.invalid == true && mediumForm.value.contactTitle!='') || (mediumForm.get('contactTitle')?.touched == true && mediumForm.value.contactTitle=='') ? 'border-status-danger-border focus:border-status-danger-border focus:ring-status-danger-border' : 'border-offerings-price-border dark:border-secondary-400 focus:border-primary-100 dark:focus:border-primary-50 focus:ring-primary-100 dark:focus:ring-primary-50'">
                 </div>
                 @if(selectedMedium.mediumType=='Email'){
                     <div class="flex flex-col gap-2 md:col-span-2">
-                        <label for="edit-email" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">Email</label>
+                        <label for="edit-email" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">Email</label>
                         <input formControlName="email" type="text" id="edit-email"
-                        [ngClass]="mediumForm.get('email')?.invalid == true && mediumForm.value.email!='' ? 'border-red-600 focus:border-red-600 focus:ring-red-600' : 'border-[#BCBFC7] focus:border-[#2D58A7] focus:ring-[#2D58A7]'"
-                        class="block h-10 w-full rounded-md border bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] focus:outline-none focus:ring-1" />
+                        [ngClass]="mediumForm.get('email')?.invalid == true && mediumForm.value.email!='' ? 'border-status-danger-border focus:border-status-danger-border focus:ring-status-danger-border' : 'border-offerings-price-border dark:border-secondary-400 focus:border-primary-100 dark:focus:border-primary-50 focus:ring-primary-100 dark:focus:ring-primary-50'"
+                        class="block h-10 w-full rounded-md border bg-offerings-surface dark:bg-tertiary-100 px-3 py-2 text-[16px] leading-6 text-offerings-text dark:text-offerings-on-dark-body focus:outline-none focus:ring-1" />
                     </div>
                 } @else if(selectedMedium.mediumType=='PostalAddress'){
                     <div class="flex flex-col gap-2">
-                        <label for="edit-address.country" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._country' | translate }}</label>
+                        <label for="edit-address.country" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._country' | translate }}</label>
                         <input data-cy="orgCountry" id="edit-address.country" formControlName="country" name="address.country" type="text"
-                        class="block h-10 w-full rounded-md border border-[#BCBFC7] bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] focus:border-[#2D58A7] focus:outline-none focus:ring-1 focus:ring-[#2D58A7]">
+                        class="block h-10 w-full rounded-md border border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 px-3 py-2 text-[16px] leading-6 text-offerings-text dark:text-offerings-on-dark-body focus:border-primary-100 dark:focus:border-primary-50 focus:outline-none focus:ring-1 focus:ring-primary-100 dark:focus:ring-primary-50">
                     </div>
                     <div class="flex flex-col gap-2">
-                        <label for="edit-address.city" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._city' | translate }}</label>
+                        <label for="edit-address.city" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._city' | translate }}</label>
                         <input id="edit-address.city" formControlName="city" name="address.city" type="text"
-                        class="block h-10 w-full rounded-md border border-[#BCBFC7] bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] focus:border-[#2D58A7] focus:outline-none focus:ring-1 focus:ring-[#2D58A7]">
+                        class="block h-10 w-full rounded-md border border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 px-3 py-2 text-[16px] leading-6 text-offerings-text dark:text-offerings-on-dark-body focus:border-primary-100 dark:focus:border-primary-50 focus:outline-none focus:ring-1 focus:ring-primary-100 dark:focus:ring-primary-50">
                     </div>
                     <div class="flex flex-col gap-2">
-                        <label for="edit-address.state" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._state' | translate }}</label>
+                        <label for="edit-address.state" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._state' | translate }}</label>
                         <input id="edit-address.state" formControlName="stateOrProvince" name="address.state" type="text"
-                        class="block h-10 w-full rounded-md border border-[#BCBFC7] bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] focus:border-[#2D58A7] focus:outline-none focus:ring-1 focus:ring-[#2D58A7]">
+                        class="block h-10 w-full rounded-md border border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 px-3 py-2 text-[16px] leading-6 text-offerings-text dark:text-offerings-on-dark-body focus:border-primary-100 dark:focus:border-primary-50 focus:outline-none focus:ring-1 focus:ring-primary-100 dark:focus:ring-primary-50">
                     </div>
                     <div class="flex flex-col gap-2">
-                        <label for="edit-address.zip" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._post_code' | translate }}</label>
+                        <label for="edit-address.zip" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._post_code' | translate }}</label>
                         <input id="edit-address.zip" formControlName="postCode" name="address.zip" type="text"
-                        class="block h-10 w-full rounded-md border border-[#BCBFC7] bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] focus:border-[#2D58A7] focus:outline-none focus:ring-1 focus:ring-[#2D58A7]">
+                        class="block h-10 w-full rounded-md border border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 px-3 py-2 text-[16px] leading-6 text-offerings-text dark:text-offerings-on-dark-body focus:border-primary-100 dark:focus:border-primary-50 focus:outline-none focus:ring-1 focus:ring-primary-100 dark:focus:ring-primary-50">
                     </div>
                     <div class="flex flex-col gap-2 md:col-span-2">
-                        <label for="edit-address.street_address" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._street' | translate }}</label>
+                        <label for="edit-address.street_address" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._street' | translate }}</label>
                         <textarea id="edit-address.street_address" formControlName="street" name="address.street_address"
-                        class="block min-h-fit w-full rounded-md border border-[#BCBFC7] bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] focus:border-[#2D58A7] focus:outline-none focus:ring-1 focus:ring-[#2D58A7]" rows="4"></textarea>
+                        class="block min-h-fit w-full rounded-md border border-offerings-price-border dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 px-3 py-2 text-[16px] leading-6 text-offerings-text dark:text-offerings-on-dark-body focus:border-primary-100 dark:focus:border-primary-50 focus:outline-none focus:ring-1 focus:ring-primary-100 dark:focus:ring-primary-50" rows="4"></textarea>
                     </div>
                 } @else {
                     <div class="flex flex-col gap-2 md:col-span-2">
-                        <label for="edit-phoneNumber" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-[#4C5A6B]">{{ 'PROFILE._phone' | translate }}</label>
+                        <label for="edit-phoneNumber" class="text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-body dark:text-offerings-on-dark-body">{{ 'PROFILE._phone' | translate }}</label>
                         <div class="w-full">
                             <div class="relative flex items-center">
                                 <button (click)="prefixCheck=!prefixCheck" type="button"
-                                class="z-10 inline-flex h-10 flex-shrink-0 items-center rounded-s-md border border-[#BCBFC7] bg-[#F4F5F6] px-3 text-[14px] text-[#202D3E] hover:bg-[#EBF0F7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7]">
+                                class="z-10 inline-flex h-10 flex-shrink-0 items-center rounded-s-md border border-offerings-price-border dark:border-secondary-400 bg-offerings-neutral dark:bg-secondary-200 px-3 text-[14px] text-offerings-text dark:text-offerings-on-dark-body hover:bg-offerings-table-header dark:hover:bg-secondary-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-100 dark:focus-visible:ring-primary-50">
                                     {{phonePrefix.flag}} {{phonePrefix.code}}
                                     <svg class="ms-2.5 h-2.5 w-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/></svg>
                                 </button>
                                 @if(prefixCheck==true){
-                                    <div class="absolute bottom-12 right-0 z-20 max-h-48 w-full overflow-y-auto rounded-lg border border-[#D8DADE] bg-white shadow">
-                                        <ul class="py-2 text-[14px] text-[#202D3E]" aria-labelledby="dropdown-phone-button">
+                                    <div class="absolute bottom-12 right-0 z-20 max-h-48 w-full overflow-y-auto rounded-lg border border-offerings-border-strong dark:border-secondary-400 bg-offerings-surface dark:bg-tertiary-100 shadow">
+                                        <ul class="py-2 text-[14px] text-offerings-text dark:text-offerings-on-dark-body" aria-labelledby="dropdown-phone-button">
                                             <li>
                                                 @for(pref of prefixes;track pref.code){
-                                                    <button type="button" (click)="selectPrefix(pref)" class="inline-flex w-full px-4 py-2 hover:bg-[#EBF0F7]" role="menuitem">
+                                                    <button type="button" (click)="selectPrefix(pref)" class="inline-flex w-full px-4 py-2 hover:bg-offerings-table-header dark:hover:bg-secondary-200" role="menuitem">
                                                         <div class="inline-flex items-center">
                                                             {{pref.text}}
                                                         </div>
@@ -460,8 +460,8 @@
                                         </ul>
                                     </div>
                                 }
-                                <input id="edit-phoneNumber" formControlName="telephoneNumber" name="phoneNumber" type="number" [ngClass]="mediumForm.get('telephoneNumber')?.errors?.['invalidPhoneNumber'] == true ? 'border-red-600 focus:border-red-600 focus:ring-red-600' : 'border-[#BCBFC7] focus:border-[#2D58A7] focus:ring-[#2D58A7]'"
-                                class="block h-10 w-full rounded-e-md border border-s-0 bg-white px-3 py-2 text-[16px] leading-6 text-[#202D3E] focus:outline-none focus:ring-1">
+                                <input id="edit-phoneNumber" formControlName="telephoneNumber" name="phoneNumber" type="number" [ngClass]="mediumForm.get('telephoneNumber')?.errors?.['invalidPhoneNumber'] == true ? 'border-status-danger-border focus:border-status-danger-border focus:ring-status-danger-border' : 'border-offerings-price-border dark:border-secondary-400 focus:border-primary-100 dark:focus:border-primary-50 focus:ring-primary-100 dark:focus:ring-primary-50'"
+                                class="block h-10 w-full rounded-e-md border border-s-0 bg-offerings-surface dark:bg-tertiary-100 px-3 py-2 text-[16px] leading-6 text-offerings-text dark:text-offerings-on-dark-body focus:outline-none focus:ring-1">
                             </div>
                         </div>
                     </div>
@@ -469,7 +469,7 @@
             </form>
         </div>
         <div class="flex w-full justify-end">
-            <button type="button" (click)="editMedium()" [disabled]="mediumForm.get('contactTitle')?.invalid" [ngClass]="mediumForm.get('contactTitle')?.invalid ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-[#234481]'" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#2D58A7] px-4 text-[14px] font-semibold leading-4 tracking-[0.5px] text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D58A7] focus-visible:ring-offset-2">
+            <button type="button" (click)="editMedium()" [disabled]="mediumForm.get('contactTitle')?.invalid" [ngClass]="mediumForm.get('contactTitle')?.invalid ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-secondary-400'" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary-100 px-4 text-[14px] font-semibold leading-4 tracking-[0.5px] text-offerings-on-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-100 dark:focus-visible:ring-primary-50 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-tertiary-100">
                 {{ 'PROFILE._save' | translate }}
                 <svg class="h-4 w-4 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M11 16h2m6.707-9.293-2.414-2.414A1 1 0 0 0 16.586 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.414a1 1 0 0 0-.293-.707ZM16 20v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v6h8ZM9 4h6v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4Z"/>
@@ -481,7 +481,7 @@
 }
 
 @if (toastVisibility) {
-    <div id="toast-warning" class="flex m-2 items-center w-fit max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 fixed top-1/2 right-0 z-50 justify-center" role="alert">
+    <div id="toast-warning" class="flex m-2 items-center w-fit max-w-xs p-4 text-gray-500 bg-offerings-surface dark:bg-tertiary-100 rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 fixed top-1/2 right-0 z-50 justify-center" role="alert">
         <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 bg-red-700 text-red-200 rounded-lg">
             <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z"/>
@@ -510,7 +510,7 @@
 
 @if (successVisibility) {
     <div class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50" >
-        <div id="alert-additional-content-2" class="p-4 mb-4 text-white rounded-lg bg-primary-100" role="alert">
+        <div id="alert-additional-content-2" class="p-4 mb-4 text-offerings-on-dark rounded-lg bg-primary-100" role="alert">
             <div class="flex items-center">
               <svg class="flex-shrink-0 w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
@@ -524,7 +524,7 @@
     </div>
 
 
-    <!--<div id="toast-success" class="flex grid grid-flow-row mr-2 items-center w-auto max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 fixed top-1/2 right-0 z-50 justify-center" role="alert">
+    <!--<div id="toast-success" class="flex grid grid-flow-row mr-2 items-center w-auto max-w-xs p-4 text-gray-500 bg-offerings-surface dark:bg-tertiary-100 rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 fixed top-1/2 right-0 z-50 justify-center" role="alert">
       <div class="flex items-center justify-center">
         <div class="text-sm font-normal">
           {{ 'PROFILE._success' | translate }}.
