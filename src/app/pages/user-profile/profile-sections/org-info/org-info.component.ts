@@ -132,6 +132,8 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
     .subscribe(ev => {
       if(ev.type === 'ChangedSession') {
         this.initPartyInfo();
+      } else if (ev.type === 'OrganizationProfileUpdated' && (ev.value as { partyId: string })?.partyId === this.partyId) {
+        this.getProfile();
       }
     })
   }

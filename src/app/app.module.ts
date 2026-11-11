@@ -9,6 +9,7 @@ import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from "@ngx-translate/http-loader";
 import { NgxFileDropModule } from 'ngx-file-drop';
 import { NotificationComponent } from './shared/notification/notification.component';
+import { OrganizationProfileNoticeComponent } from './shared/organization-profile-notice/organization-profile-notice.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { MatomoInitializationMode, MatomoInitializerService, MatomoModule, MatomoRouterModule } from 'ngx-matomo-client';
 import { CartCardComponent } from 'src/app/shared/cart-card/cart-card.component';
@@ -189,6 +190,7 @@ import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.c
     NgxFileDropModule,
     ChatbotWidgetComponent,
     NotificationComponent,
+    OrganizationProfileNoticeComponent,
     QuotesModule,
     MarkdownModule.forRoot(),
     TranslateModule.forRoot({
