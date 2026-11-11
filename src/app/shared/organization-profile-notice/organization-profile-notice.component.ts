@@ -1,13 +1,14 @@
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { A11yModule } from '@angular/cdk/a11y';
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subject, firstValueFrom } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import moment from 'moment';
-import { countries } from '../../models/country.const';
+import { euCountries } from '../../models/country.const';
 import { LoginInfo } from '../../models/interfaces';
 import { AccountServiceService } from '../../services/account-service.service';
 import { EventMessageService } from '../../services/event-message.service';
@@ -21,6 +22,11 @@ interface OrganizationProfile {
     preferred?: boolean;
     characteristic?: { contactType?: string; emailAddress?: string };
   }[];
+}
+
+interface PaymentInfo {
+  gatewaysCount?: number | string | null;
+  providerUrl?: string | null;
 }
 
 interface OrganizationContext {
@@ -47,8 +53,9 @@ export class OrganizationProfileNoticeComponent implements OnInit, OnDestroy {
   saveErrorMessage = '';
   missingCountry = false;
   missingEmail = false;
+  missingPaymentInfo = false;
   organizationName = '';
-  readonly countries = countries;
+  readonly countries = euCountries;
   readonly form = new FormGroup({
     country: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     email: new FormControl('', { nonNullable: true, validators: [
@@ -68,8 +75,21 @@ export class OrganizationProfileNoticeComponent implements OnInit, OnDestroy {
     private readonly localStorage: LocalStorageService,
     private readonly accountService: AccountServiceService,
     private readonly eventMessage: EventMessageService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly http: HttpClient,
+    private readonly translate: TranslateService
   ) {}
+
+  get missingDetails(): string {
+    const keys: string[] = [];
+    if (this.missingCountry) keys.push('_required_country');
+    if (this.missingEmail) keys.push('_required_email');
+    if (this.missingPaymentInfo) keys.push('_required_payment_info');
+    const details: string[] = keys.map(key => this.translate.instant(`ORGANIZATION_PROFILE_NOTICE.${key}`));
+    const last = details[details.length - 1];
+    if (details.length <= 1) return last ?? '';
+    return `${details.slice(0, -1).join(', ')} ${this.translate.instant('ORGANIZATION_PROFILE_NOTICE._and')} ${last}`;
+  }
 
   ngOnInit(): void {
     this.eventMessage.messages$.pipe(takeUntil(this.destroy$)).subscribe(event => {
@@ -92,7 +112,6 @@ export class OrganizationProfileNoticeComponent implements OnInit, OnDestroy {
     this.contextChanged$.complete();
   }
 
-  @HostListener('document:keydown.escape')
   dismiss(): void {
     this.isOpen = false;
   }
@@ -111,21 +130,29 @@ export class OrganizationProfileNoticeComponent implements OnInit, OnDestroy {
     this.loadFailed = false;
     this.saveFailed = false;
     this.saveErrorMessage = '';
+    this.missingPaymentInfo = false;
     if (!context) return;
 
     this.checking = true;
     this.canEdit = context.canEdit;
     this.organizationName = context.name;
     try {
-      const profile: OrganizationProfile = await this.accountService.getOrgInfo(context.partyId);
+      const [profile, paymentInfo]: [OrganizationProfile, PaymentInfo] = await Promise.all([
+        this.accountService.getOrgInfo(context.partyId),
+        firstValueFrom(this.http.get<PaymentInfo>(`${environment.BASE_URL}/paymentInfo`).pipe(
+          takeUntil(this.contextChanged$),
+          takeUntil(this.destroy$)
+        ))
+      ]);
       if (!this.isCurrentContext(context.key, version)) return;
       this.missingCountry = !this.hasCountry(profile);
       this.missingEmail = !this.hasEmail(profile);
+      this.missingPaymentInfo = Number(paymentInfo?.gatewaysCount ?? 0) === 0;
       this.form.enable();
       this.form.reset({ country: '', email: '' });
       if (!this.missingCountry) this.form.controls.country.disable();
       if (!this.missingEmail) this.form.controls.email.disable();
-      this.isOpen = this.missingCountry || this.missingEmail;
+      this.isOpen = this.missingCountry || this.missingEmail || this.missingPaymentInfo;
     } catch {
       if (!this.isCurrentContext(context.key, version)) return;
       this.loadFailed = true;
@@ -135,9 +162,21 @@ export class OrganizationProfileNoticeComponent implements OnInit, OnDestroy {
     }
   }
 
+  async openPaymentDashboard(): Promise<void> {
+    try {
+      const data = await firstValueFrom(this.http.get<PaymentInfo>(`${environment.BASE_URL}/paymentInfo`).pipe(
+        takeUntil(this.contextChanged$),
+        takeUntil(this.destroy$)
+      ));
+      if (data.providerUrl) window.open(data.providerUrl, '_blank', 'noopener,noreferrer');
+    } catch {
+    }
+  }
+
   async save(): Promise<void> {
     const context = this.getContext();
     if (!context?.canEdit || context.key !== this.contextKey || !this.isOpen || this.loadFailed || this.saving) return;
+    if (!this.missingCountry && !this.missingEmail) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -178,7 +217,10 @@ export class OrganizationProfileNoticeComponent implements OnInit, OnDestroy {
         ));
       }
       if (!this.isCurrentContext(context.key, version)) return;
-      this.isOpen = false;
+      this.missingCountry = false;
+      this.missingEmail = false;
+      this.form.disable();
+      this.isOpen = this.missingPaymentInfo;
       this.eventMessage.emitOrganizationProfileUpdated(context.partyId);
     } catch (error) {
       if (this.isCurrentContext(context.key, version)) {

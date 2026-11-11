@@ -4,7 +4,7 @@ import { ApiServiceService } from 'src/app/services/product-service.service';
 import { AccountServiceService } from 'src/app/services/account-service.service';
 import {LocalStorageService} from "src/app/services/local-storage.service";
 import { FormGroup, FormControl, Validators, AbstractControl } from '@angular/forms';
-import { phoneNumbers, countries } from 'src/app/models/country.const'
+import { phoneNumbers, countries, euCountries } from 'src/app/models/country.const'
 import {EventMessageService} from "src/app/services/event-message.service";
 import { initFlowbite } from 'flowbite';
 import moment from 'moment';
@@ -84,35 +84,7 @@ export class OrgInfoComponent implements OnInit, OnDestroy {
 
   selectedCountry: string = ''; // Stores the selected country code
 
-  euCountries = [
-    { code: 'AT', name: 'Austria' },
-    { code: 'BE', name: 'Belgium' },
-    { code: 'BG', name: 'Bulgaria' },
-    { code: 'HR', name: 'Croatia' },
-    { code: 'CY', name: 'Cyprus' },
-    { code: 'CZ', name: 'Czech Republic' },
-    { code: 'DK', name: 'Denmark' },
-    { code: 'EE', name: 'Estonia' },
-    { code: 'FI', name: 'Finland' },
-    { code: 'FR', name: 'France' },
-    { code: 'DE', name: 'Germany' },
-    { code: 'GR', name: 'Greece' },
-    { code: 'HU', name: 'Hungary' },
-    { code: 'IE', name: 'Ireland' },
-    { code: 'IT', name: 'Italy' },
-    { code: 'LV', name: 'Latvia' },
-    { code: 'LT', name: 'Lithuania' },
-    { code: 'LU', name: 'Luxembourg' },
-    { code: 'MT', name: 'Malta' },
-    { code: 'NL', name: 'Netherlands' },
-    { code: 'PL', name: 'Poland' },
-    { code: 'PT', name: 'Portugal' },
-    { code: 'RO', name: 'Romania' },
-    { code: 'SK', name: 'Slovakia' },
-    { code: 'SI', name: 'Slovenia' },
-    { code: 'ES', name: 'Spain' },
-    { code: 'SE', name: 'Sweden' }
-  ];
+  euCountries = euCountries;
 
   @ViewChild('imgURL') imgURL!: ElementRef;
 

@@ -14,11 +14,13 @@ import { OrganizationProfileNoticeComponent } from './organization-profile-notic
 describe('OrganizationProfileNoticeComponent', () => {
   let fixture: ComponentFixture<OrganizationProfileNoticeComponent>;
   let component: OrganizationProfileNoticeComponent;
+  let organizationCheck: jasmine.Spy;
   let http: HttpTestingController;
   let events: EventMessageService;
   let session: LoginInfo;
   const organizationUrl = `${AccountServiceService.BASE_URL}/party/organization/party-second`;
   const firstOrganizationUrl = `${AccountServiceService.BASE_URL}/party/organization/party-first`;
+  const paymentInfoUrl = `${environment.BASE_URL}/paymentInfo`;
   const completeProfile = {
     partyCharacteristic: [{ name: 'country', value: 'ES' }],
     contactMedium: [{ mediumType: 'Email', characteristic: { emailAddress: 'contact@example.com' } }]
@@ -43,6 +45,7 @@ describe('OrganizationProfileNoticeComponent', () => {
     }).compileComponents();
     fixture = TestBed.createComponent(OrganizationProfileNoticeComponent);
     component = fixture.componentInstance;
+    organizationCheck = spyOn(component, 'checkOrganization').and.callThrough();
     http = TestBed.inject(HttpTestingController);
     events = TestBed.inject(EventMessageService);
   });
@@ -52,12 +55,17 @@ describe('OrganizationProfileNoticeComponent', () => {
     http.verify();
   });
 
-  async function open(profile: object = {}): Promise<void> {
+  async function open(profile: object = {}, gatewaysCount: number | string = 1): Promise<void> {
     fixture.detectChanges();
     const request = http.expectOne(organizationUrl);
     expect(request.request.method).toBe('GET');
     expect(request.request.headers.get('X-Organization')).toBe('second');
     request.flush(profile);
+    const payment = http.expectOne(paymentInfoUrl);
+    expect(payment.request.method).toBe('GET');
+    expect(payment.request.headers.get('X-Organization')).toBe('second');
+    payment.flush({ gatewaysCount });
+    await organizationCheck.calls.first().returnValue;
     await fixture.whenStable();
     fixture.detectChanges();
   }
@@ -69,14 +77,47 @@ describe('OrganizationProfileNoticeComponent', () => {
     expect(component.isOpen).toBeTrue();
     expect(component.missingCountry).toBeTrue();
     expect(component.missingEmail).toBeTrue();
+    expect(component.missingPaymentInfo).toBeFalse();
+    expect(component.missingDetails).not.toContain('_required_payment_info');
+    expect(fixture.nativeElement.querySelector('[data-cy="organizationNoticePaymentDashboard"]')).toBeNull();
     expect(fixture.nativeElement.querySelector('[data-cy="organizationNoticeCountry"]')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('[data-cy="organizationNoticeEmail"]')).toBeTruthy();
+  });
+
+  it('only offers EU countries so the saved country can be selected in Profile', async () => {
+    await open();
+    const select: HTMLSelectElement = fixture.nativeElement.querySelector('[data-cy="organizationNoticeCountry"]');
+    const options = Array.from(select.options, option => option.value);
+    expect(options.length).toBe(28); // Placeholder and the 27 EU countries.
+    expect(options).toContain('ES');
+    expect(options).toContain('FR');
+    expect(options).toContain('DE');
+    for (const code of ['AF', 'GB', 'CH', 'US']) {
+      expect(options).not.toContain(code);
+    }
   });
 
   for (const mediumType of ['Email', 'email', 'EMAIL']) {
     it(`does not open the notice for a complete profile with mediumType ${mediumType}`, async () => {
       await open({ ...completeProfile, contactMedium: [{ mediumType, characteristic: { emailAddress: 'contact@example.com' } }] });
       expect(component.isOpen).toBeFalse();
+    });
+  }
+
+  for (const gatewaysCount of [0, '0']) {
+    it(`opens for missing payment info alone when gatewaysCount is ${JSON.stringify(gatewaysCount)}`, async () => {
+      await open(completeProfile, gatewaysCount);
+      expect(component.isOpen).toBeTrue();
+      expect(component.missingCountry).toBeFalse();
+      expect(component.missingEmail).toBeFalse();
+      expect(component.missingPaymentInfo).toBeTrue();
+      expect(fixture.nativeElement.querySelector('[data-cy="organizationNoticeCountry"]')).toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-cy="organizationNoticeEmail"]')).toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-cy="organizationNoticePaymentDashboard"]')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('[data-cy="saveOrganizationProfileNotice"]')).toBeNull();
+      await component.save();
+      http.expectNone(organizationUrl);
+      expect(component.isOpen).toBeTrue();
     });
   }
 
@@ -95,6 +136,16 @@ describe('OrganizationProfileNoticeComponent', () => {
     session.organizations[1].roles = [{ name: environment.SELLER_ROLE }];
     await open(completeProfile);
     expect(component.isOpen).toBeFalse();
+  });
+
+  it('warns a member when only payment info is missing without showing the admin dashboard button', async () => {
+    session.organizations[1].roles = [{ name: environment.SELLER_ROLE }];
+    await open(completeProfile, 0);
+    expect(component.isOpen).toBeTrue();
+    expect(component.canEdit).toBeFalse();
+    expect(fixture.nativeElement.querySelector('form')).toBeNull();
+    expect(fixture.nativeElement.querySelector('li').textContent).toContain('ORGANIZATION_PROFILE_NOTICE._payment_info');
+    expect(fixture.nativeElement.querySelector('[data-cy="organizationNoticePaymentDashboard"]')).toBeNull();
   });
 
   it('does not query an organization in an individual session', () => {
@@ -196,6 +247,23 @@ describe('OrganizationProfileNoticeComponent', () => {
     expect(updated).toHaveBeenCalledOnceWith('party-second');
   });
 
+  it('keeps the payment reminder open after saving the missing country and email', async () => {
+    await open({}, 0);
+    component.form.setValue({ country: 'ES', email: 'contact@example.com' });
+    const saving = component.save();
+    http.expectOne(organizationUrl).flush({});
+    await Promise.resolve();
+    http.expectOne(organizationUrl).flush({});
+    await saving;
+    fixture.detectChanges();
+    expect(component.isOpen).toBeTrue();
+    expect(component.missingCountry).toBeFalse();
+    expect(component.missingEmail).toBeFalse();
+    expect(component.missingPaymentInfo).toBeTrue();
+    expect(fixture.nativeElement.querySelector('[data-cy="saveOrganizationProfileNotice"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-cy="organizationNoticePaymentDashboard"]')).toBeTruthy();
+  });
+
   it('keeps attributes added elsewhere, including an email medium with an empty address', async () => {
     await open();
     component.form.setValue({ country: 'ES', email: 'contact@example.com' });
@@ -229,29 +297,36 @@ describe('OrganizationProfileNoticeComponent', () => {
     expect(component.isOpen).toBeFalse();
   });
 
-  it('allows closing with Escape without saving', async () => {
+  it('stays open when clicking outside or pressing Escape without saving', async () => {
     await open();
+    fixture.nativeElement.querySelector('[role="dialog"]').parentElement.click();
+    expect(component.isOpen).toBeTrue();
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-    expect(component.isOpen).toBeFalse();
+    expect(component.isOpen).toBeTrue();
     http.expectNone(request => request.method === 'PATCH');
   });
 
   it('ignores responses from an earlier selection, including switching away and back to the same organization', async () => {
     fixture.detectChanges();
     const oldSecond = http.expectOne(organizationUrl);
+    const oldPayment = http.expectOne(paymentInfoUrl);
     session.logged_as = 'first';
     events.emitChangedSession(session);
     const first = http.expectOne(firstOrganizationUrl);
+    const firstPayment = http.expectOne(paymentInfoUrl);
     session.logged_as = 'second';
     events.emitChangedSession(session);
     http.expectOne(organizationUrl).flush(completeProfile);
-    await fixture.whenStable();
+    http.expectOne(paymentInfoUrl).flush({ gatewaysCount: 1 });
+    await organizationCheck.calls.mostRecent().returnValue;
     oldSecond.flush({});
     first.flush({});
     await fixture.whenStable();
     expect(component.organizationName).toBe('Second organization');
     expect(component.isOpen).toBeFalse();
     expect(component.checking).toBeFalse();
+    expect(oldPayment.cancelled).toBeTrue();
+    expect(firstPayment.cancelled).toBeTrue();
   });
 
   it('does not save to the old organization if the selection changes during the fresh read', async () => {
@@ -263,7 +338,9 @@ describe('OrganizationProfileNoticeComponent', () => {
     events.emitChangedSession(session);
     freshRead.flush({});
     http.expectOne(firstOrganizationUrl).flush(completeProfile);
+    http.expectOne(paymentInfoUrl).flush({ gatewaysCount: 1 });
     await saving;
+    await organizationCheck.calls.mostRecent().returnValue;
     await fixture.whenStable();
     http.expectNone(request => request.method === 'PATCH');
     expect(component.isOpen).toBeFalse();
@@ -272,11 +349,29 @@ describe('OrganizationProfileNoticeComponent', () => {
   it('shows a dismissible retry message if the initial read fails', async () => {
     fixture.detectChanges();
     http.expectOne(organizationUrl).flush({}, { status: 500, statusText: 'Server error' });
-    await fixture.whenStable();
+    http.expectOne(paymentInfoUrl).flush({ gatewaysCount: 1 });
+    await organizationCheck.calls.first().returnValue;
     expect(component.loadFailed).toBeTrue();
     expect(component.isOpen).toBeTrue();
     component.dismiss();
     expect(component.isOpen).toBeFalse();
+  });
+
+  it('offers a retry after a payment lookup fails without treating the failure as a zero count', async () => {
+    fixture.detectChanges();
+    http.expectOne(organizationUrl).flush(completeProfile);
+    http.expectOne(paymentInfoUrl).flush({}, { status: 500, statusText: 'Server error' });
+    await organizationCheck.calls.first().returnValue;
+    expect(component.loadFailed).toBeTrue();
+    expect(component.isOpen).toBeTrue();
+    expect(component.missingPaymentInfo).toBeFalse();
+    const retry = component.checkOrganization(true);
+    http.expectOne(organizationUrl).flush(completeProfile);
+    http.expectOne(paymentInfoUrl).flush({ gatewaysCount: 0 });
+    await retry;
+    expect(component.loadFailed).toBeFalse();
+    expect(component.isOpen).toBeTrue();
+    expect(component.missingPaymentInfo).toBeTrue();
   });
 
   it('displays proxy validation errors without blocking dismissal', async () => {
