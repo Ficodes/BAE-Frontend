@@ -1113,7 +1113,7 @@
                   {{res.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}}
                 </td>
                 <td class="px-6 py-4">
-                  <input id="select-checkbox" [checked]="isResSelected(res)" type="checkbox" value=""
+                  <input data-cy="prodSpecResourceOption" [attr.data-spec-id]="res.id" id="select-checkbox" [checked]="isResSelected(res)" type="checkbox" value=""
                     (click)="addResToSelected(res)"
                     class="w-4 h-4 text-primary-100 bg-offerings-neutral border-offerings-border-strong rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-800 focus:ring-2 dark:bg-secondary-200 dark:border-secondary-200">
                 </td>
@@ -1239,7 +1239,7 @@
                   {{serv.lastUpdate | date:'EEEE, dd/MM/yy, HH:mm'}}
                 </td>
                 <td class="px-6 py-4">
-                  <input id="select-checkbox" [checked]="isServSelected(serv)" type="checkbox" value=""
+                  <input data-cy="prodSpecServiceOption" [attr.data-spec-id]="serv.id" id="select-checkbox" [checked]="isServSelected(serv)" type="checkbox" value=""
                     (click)="addServToSelected(serv)"
                     class="w-4 h-4 text-primary-100 bg-offerings-neutral border-offerings-border-strong rounded focus:ring-primary-100 dark:focus:ring-primary-100 dark:ring-offset-gray-800 focus:ring-2 dark:bg-secondary-200 dark:border-secondary-200">
                 </td>

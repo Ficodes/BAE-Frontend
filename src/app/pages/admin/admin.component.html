@@ -28,6 +28,9 @@
         <li>
           <a (click)="goToCategories()" class="cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'ADMIN._categories' | translate }}</a>
         </li>
+        @if (isPlatformAdmin) {
+          <li><button type="button" (click)="goToPlugins()" data-cy="adminPluginsMobileSection" class="w-full text-left cursor-pointer block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'ADMIN_PLUGINS._title' | translate }}</button></li>
+        }
         <li class="my-1 border-t border-gray-100 dark:border-gray-600"></li>
         <li class="px-4 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
           Business
@@ -69,9 +72,12 @@
                 <button (click)="goToDefaultCatalog()" id="default-catalog-button" data-cy="adminDefaultCatalogSection" class="block w-full px-4 py-2 border-b border-gray-200 rounded-t-lg cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
                   {{ 'ADMIN._defaultCatalog' | translate }}
                 </button>
-                <button (click)="goToCategories()" id="categories-button" data-cy="adminCategoriesSection" aria-current="true" class="block w-full px-4 py-2 text-white bg-primary-100 rounded-b-lg cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
+                <button (click)="goToCategories()" id="categories-button" data-cy="adminCategoriesSection" aria-current="true" [class.rounded-b-lg]="!isPlatformAdmin" [class.border-b]="isPlatformAdmin" [class.border-gray-200]="isPlatformAdmin" class="block w-full px-4 py-2 text-white bg-primary-100 cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white">
                   {{ 'ADMIN._categories' | translate }}
                 </button>
+                @if (isPlatformAdmin) {
+                  <button type="button" (click)="goToPlugins()" id="plugins-button" data-cy="adminPluginsSection" [attr.aria-pressed]="show_plugins" class="block w-full px-4 py-2 rounded-b-lg cursor-pointer hover:bg-gray-100 hover:text-secondary-400 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white">{{ 'ADMIN_PLUGINS._title' | translate }}</button>
+                }
               </div>
             </div>
 
@@ -110,6 +116,9 @@
           </div>
        </div>
 
+        @if(show_plugins && isPlatformAdmin){
+          <admin-plugins></admin-plugins>
+        }
         @if(show_categories){
           <admin-categories></admin-categories>
         }

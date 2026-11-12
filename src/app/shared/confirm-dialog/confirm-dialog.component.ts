@@ -12,12 +12,14 @@ import { CommonModule } from '@angular/common';
         <p class="text-gray-600 mb-6">{{ message }}</p>
         <div class="flex justify-end space-x-3">
           <button
+            data-cy="confirmDialogCancel"
             (click)="onCancel()"
             class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             Cancel
           </button>
           <button
+            data-cy="confirmDialogConfirm"
             (click)="onConfirm()"
             [class]="confirmButtonClass"
           >

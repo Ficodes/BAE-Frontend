@@ -44,3 +44,9 @@ export function jsonValidator(control: AbstractControl): ValidationErrors | null
     return { invalidJson: true };
   }
 }
+
+// JavaScript equivalent of the backend filename regex: (?![\s\S]) enforces
+// Python's absolute \Z end, and U+FEFF is non-whitespace in Python.
+export function isValidFileName(name: string): boolean {
+  return /^(?!\.{1,2}$)(?=.*(?:\S|\uFEFF))[^/\\#?%\x00-\x1f\x7f-\x9f]+(?![\s\S])/su.test(name);
+}

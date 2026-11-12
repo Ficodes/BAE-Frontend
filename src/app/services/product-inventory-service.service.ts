@@ -50,6 +50,14 @@ export class ProductInventoryServiceService {
   }
 
 
+  getService(id: string) {
+    return lastValueFrom(this.http.get<any>(`${ProductInventoryServiceService.BASE_URL}/serviceInventory/service/${encodeURIComponent(id)}`));
+  }
+
+  getResource(id: string) {
+    return lastValueFrom(this.http.get<any>(`${ProductInventoryServiceService.BASE_URL}/resourceInventory/resource/${encodeURIComponent(id)}`));
+  }
+
   getResourceInventory(page:any,filters:any[],id:any){
     let url = `${ProductInventoryServiceService.BASE_URL}/resourceInventory/resource?limit=${ProductInventoryServiceService.INVENTORY_RES_LIMIT}&offset=${page}&relatedParty.id=${id}`
     let status=''
