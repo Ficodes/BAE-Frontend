@@ -1,5 +1,5 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { Component, NO_ERRORS_SCHEMA } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
@@ -8,6 +8,9 @@ import { environment } from 'src/environments/environment';
 import { EventMessageService } from 'src/app/services/event-message.service';
 
 import { HeaderComponent } from './header.component';
+
+@Component({ template: '' })
+class TestPageComponent {}
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
@@ -18,8 +21,17 @@ describe('HeaderComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       schemas: [NO_ERRORS_SCHEMA],
-      imports: [HttpClientTestingModule, RouterTestingModule, TranslateModule.forRoot()],
-      declarations: [HeaderComponent]
+      imports: [
+        HttpClientTestingModule,
+        RouterTestingModule.withRoutes([
+          { path: 'my-offerings', component: TestPageComponent },
+          { path: 'profile', component: TestPageComponent },
+          { path: 'admin', component: TestPageComponent },
+          { path: 'dashboard', component: TestPageComponent }
+        ]),
+        TranslateModule.forRoot()
+      ],
+      declarations: [HeaderComponent, TestPageComponent]
     });
     fixture = TestBed.createComponent(HeaderComponent);
     component = fixture.componentInstance;
@@ -75,6 +87,52 @@ describe('HeaderComponent', () => {
     expect(fixture.nativeElement.querySelector('#workspaceSupport')).toBeNull();
     expect(fixture.nativeElement.querySelector('ul')).not.toBeNull();
   });
+
+  ['/profile', '/admin'].forEach(path => {
+    it(`should return to the marketplace after leaving the offer editor for ${path}`, fakeAsync(() => {
+      fixture.ngZone!.run(() => router.navigateByUrl('/my-offerings'));
+      tick();
+      eventMessage.emitSellerCreateOffer(true);
+      fixture.detectChanges();
+      expect(component.activeEditor).toBe('offer');
+
+      const leaveSpy = spyOn(eventMessage, 'emitLeaveOfferEditorRequest').and.callThrough();
+      fixture.ngZone!.run(() => router.navigateByUrl(path));
+      tick();
+      fixture.detectChanges();
+
+      const backLink: HTMLAnchorElement = fixture.nativeElement.querySelector('nav a');
+      expect(component.activeEditor).toBeNull();
+      expect(backLink.textContent).toContain('OFFERINGS._back_to_marketplace');
+
+      fixture.ngZone!.run(() => backLink.click());
+      tick();
+
+      expect(router.url).toBe('/dashboard');
+      expect(leaveSpy).not.toHaveBeenCalled();
+    }));
+  });
+
+  it('should keep offer exit handling when navigating within my-offerings', fakeAsync(() => {
+    fixture.ngZone!.run(() => router.navigateByUrl('/my-offerings'));
+    tick();
+    eventMessage.emitSellerCreateOffer(true);
+    const leaveSpy = spyOn(eventMessage, 'emitLeaveOfferEditorRequest').and.callThrough();
+
+    fixture.ngZone!.run(() => router.navigateByUrl('/my-offerings?tab=offers'));
+    tick();
+    fixture.detectChanges();
+
+    const backLink: HTMLAnchorElement = fixture.nativeElement.querySelector('nav a');
+    expect(component.activeEditor).toBe('offer');
+    expect(backLink.textContent).toContain('CREATE_OFFER._back_to_offers');
+
+    fixture.ngZone!.run(() => backLink.click());
+    tick();
+
+    expect(leaveSpy).toHaveBeenCalledTimes(1);
+    expect(router.url).toBe('/my-offerings?tab=offers');
+  }));
 
   it('goToResources should open configured knowledge base URL', () => {
     const openSpy = spyOn(window, 'open');
