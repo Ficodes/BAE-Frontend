@@ -1,0 +1,98 @@
+@if (isOpen) {
+  <div class="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-black bg-opacity-50 p-4">
+    <section role="dialog" aria-modal="true" aria-labelledby="organization-notice-title" aria-describedby="organization-notice-description"
+      cdkTrapFocus [cdkTrapFocusAutoCapture]="true" data-cy="organizationProfileNotice"
+      class="relative max-h-full w-full max-w-lg overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl dark:border-secondary-200 dark:bg-secondary-100">
+      <div class="flex items-start justify-between gap-4 border-b border-gray-200 p-6 dark:border-secondary-200">
+        <h2 id="organization-notice-title" cdkFocusInitial tabindex="-1" class="text-xl font-bold text-primary-100 focus:outline-none dark:text-white">
+          {{ 'ORGANIZATION_PROFILE_NOTICE._title' | translate }}
+        </h2>
+        <button type="button" data-cy="closeOrganizationProfileNotice" (click)="dismiss()"
+          [attr.aria-label]="'COMMON._close' | translate"
+          class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xl text-gray-500 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-100 dark:text-gray-300 dark:hover:bg-secondary-200">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="space-y-4 p-6 text-sm text-gray-700 dark:text-gray-200">
+        @if (loadFailed) {
+          <p id="organization-notice-description" role="alert">{{ 'ORGANIZATION_PROFILE_NOTICE._load_error' | translate }}</p>
+          <button type="button" (click)="checkOrganization(true)"
+            class="rounded-lg bg-primary-100 px-5 py-2.5 font-medium text-white hover:bg-primary-50 focus:outline-none focus:ring-4 focus:ring-primary-300">
+            {{ 'ORGANIZATION_PROFILE_NOTICE._retry' | translate }}
+          </button>
+        } @else {
+          <p id="organization-notice-description">
+            @if (canEdit) {
+              {{ organizationName }} <span [innerHTML]="'ORGANIZATION_PROFILE_NOTICE._intro' | translate: { details: missingDetails }"></span>
+            } @else {
+              {{ 'ORGANIZATION_PROFILE_NOTICE._member_message' | translate: { organization: organizationName } }}
+            }
+          </p>
+          @if (canEdit) {
+            <form [formGroup]="form" (ngSubmit)="save()" novalidate class="space-y-4">
+              @if (missingCountry) {
+                <div>
+                  <label for="organization-notice-country" class="mb-2 block font-semibold dark:text-white">{{ 'PROFILE._country' | translate }} (*)</label>
+                  <select id="organization-notice-country" formControlName="country" data-cy="organizationNoticeCountry"
+                    class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-100 focus:ring-primary-100 dark:border-secondary-200 dark:bg-secondary-300 dark:text-white"
+                    [attr.aria-invalid]="form.controls.country.touched && form.controls.country.invalid"
+                    aria-describedby="organization-notice-country-error">
+                    <option value="" disabled>{{ 'ORGANIZATION_PROFILE_NOTICE._select_country' | translate }}</option>
+                    @for (country of countries; track country.code) {
+                      <option [value]="country.code">{{ country.name }}</option>
+                    }
+                  </select>
+                  @if (form.controls.country.touched && form.controls.country.invalid) {
+                    <p id="organization-notice-country-error" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ 'ORGANIZATION_PROFILE_NOTICE._country_required' | translate }}</p>
+                  }
+                </div>
+              }
+              @if (missingEmail) {
+                <div>
+                  <label for="organization-notice-email" class="mb-2 block font-semibold dark:text-white">{{ 'ORGANIZATION_PROFILE_NOTICE._contact_email' | translate }} (*)</label>
+                  <input id="organization-notice-email" type="email" formControlName="email" autocomplete="email" maxlength="320" data-cy="organizationNoticeEmail"
+                    class="block w-full rounded-lg border bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-100 focus:ring-primary-100 dark:bg-secondary-300 dark:text-white"
+                    [ngClass]="form.controls.email.invalid && (form.controls.email.touched || form.controls.email.value !== '') ? 'border-red-600 dark:border-red-500' : 'border-gray-300 dark:border-secondary-200'"
+                    [attr.aria-invalid]="form.controls.email.invalid && (form.controls.email.touched || form.controls.email.value !== '')"
+                    aria-describedby="organization-notice-email-error" />
+                  @if (form.controls.email.invalid && (form.controls.email.touched || form.controls.email.value !== '')) {
+                    <p id="organization-notice-email-error" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ (form.controls.email.hasError('required') ? 'ORGANIZATION_PROFILE_NOTICE._email_required' : 'ORGANIZATION_PROFILE_NOTICE._email_invalid') | translate }}</p>
+                  }
+                </div>
+              }
+              @if (missingPaymentInfo) {
+                <div>
+                  <p class="mb-2 font-semibold dark:text-white">{{ 'ORGANIZATION_PROFILE_NOTICE._payment_info' | translate }}</p>
+                  <button type="button" data-cy="organizationNoticePaymentDashboard" (click)="openPaymentDashboard()"
+                    class="inline-flex w-full items-center justify-between gap-3 rounded-none border border-primary-100 bg-white px-4 py-2.5 font-medium text-primary-100 transition-colors hover:bg-primary-100/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-100 dark:bg-secondary-300 dark:text-white dark:hover:bg-primary-100/20">
+                    {{ 'PROFILE._payment_dashboard' | translate }}
+                    <svg aria-hidden="true" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M7 17 17 7M7 7h10v10" />
+                    </svg>
+                  </button>
+                </div>
+              }
+              @if (saveFailed) {
+                <p role="alert" class="text-red-600 dark:text-red-400">{{ 'ORGANIZATION_PROFILE_NOTICE._save_error' | translate }} {{ saveErrorMessage }}</p>
+              }
+              @if (missingCountry || missingEmail) {
+                <div class="flex justify-end">
+                  <button type="submit" data-cy="saveOrganizationProfileNotice" [disabled]="form.invalid || saving"
+                    class="rounded-lg bg-primary-100 px-5 py-2.5 font-medium text-white hover:bg-primary-50 focus:outline-none focus:ring-4 focus:ring-primary-300 disabled:cursor-not-allowed disabled:opacity-50">
+                    {{ (saving ? 'ORGANIZATION_PROFILE_NOTICE._saving' : 'COMMON._save') | translate }}
+                  </button>
+                </div>
+              }
+            </form>
+          } @else {
+            <ul class="list-inside list-disc space-y-1 font-semibold">
+              @if (missingCountry) { <li>{{ 'PROFILE._country' | translate }}</li> }
+              @if (missingEmail) { <li>{{ 'ORGANIZATION_PROFILE_NOTICE._contact_email' | translate }}</li> }
+              @if (missingPaymentInfo) { <li>{{ 'ORGANIZATION_PROFILE_NOTICE._payment_info' | translate }}</li> }
+            </ul>
+          }
+        }
+      </div>
+    </section>
+  </div>
+}

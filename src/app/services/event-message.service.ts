@@ -12,7 +12,7 @@ export interface EventMessage {
   type: 'AddedFilter' | 'RemovedFilter' | 'AddedCartItem' | 'RemovedCartItem' | 'FilterShown' | 'ToggleCartDrawer' | 'LoginProcess' | 'BillAccChanged' |
   'SellerProductSpec' | 'SellerCreateProductSpec' |  'SellerServiceSpec' | 'SellerCreateServiceSpec' | 'SellerResourceSpec' | 'SellerCreateResourceSpec' |
   'SellerOffer' | 'SellerCreateOffer' | 'SellerUpdateProductSpec' | 'SellerUpdateServiceSpec' | 'SellerUpdateResourceSpec' | 'SellerUpdateOffer' | 'SellerCreateCustomOffer' |
-  'SellerCatalog' | 'SellerCatalogCreate' | 'SellerCatalogUpdate' | 'CategoryAdded' | 'CategoryRemoved' | 'ChangedSession' | 'CloseCartCard'|
+  'SellerCatalog' | 'SellerCatalogCreate' | 'SellerCatalogUpdate' | 'CategoryAdded' | 'CategoryRemoved' | 'ChangedSession' | 'OrganizationProfileUpdated' | 'CloseCartCard'|
   'AdminCategories' | 'CreateCategory' | 'UpdateCategory' | 'ShowCartToast' | 'HideCartToast' | 'CloseContact' | 'OpenServiceDetails' | 'OpenResourceDetails' | 'OpenProductInvDetails' |
   'SavePricePlan' | 'UpdatePricePlan' | 'ToggleEditPrice' | 'ToggleNewPrice' |
   'SubformChange' | 'CloseFeedback' | 'UpdateOffer' | 'CloseQuoteRequest' | 'UpdateUsageSpec' | 'UsageSpecList' | 'CreateUsageSpec' |
@@ -167,6 +167,10 @@ export class EventMessageService {
 
   emitChangedSession(session:any){
     this.eventMessageSubject.next({ type: 'ChangedSession', value: session });
+  }
+
+  emitOrganizationProfileUpdated(partyId: string): void {
+    this.eventMessageSubject.next({ type: 'OrganizationProfileUpdated', value: { partyId } });
   }
 
   emitCloseCartCard(val:cartProduct | undefined){
