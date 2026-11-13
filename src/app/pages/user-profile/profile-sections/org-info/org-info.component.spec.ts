@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CommonModule } from '@angular/common';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -15,7 +16,7 @@ describe('OrgInfoComponent', () => {
     await TestBed.configureTestingModule({
       schemas: [NO_ERRORS_SCHEMA],
       declarations: [OrgInfoComponent],
-      imports: [HttpClientTestingModule, ReactiveFormsModule, RouterTestingModule, TranslateModule.forRoot()]
+      imports: [CommonModule, HttpClientTestingModule, ReactiveFormsModule, RouterTestingModule, TranslateModule.forRoot()]
     })
     .compileComponents();
     
@@ -26,6 +27,19 @@ describe('OrgInfoComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('preselects the country saved as an organization characteristic', () => {
+    component.loadProfileData({
+      tradingName: 'Seller organization',
+      partyCharacteristic: [{ name: 'country', value: 'ES' }]
+    });
+    component.loading = false;
+    fixture.detectChanges();
+
+    const select: HTMLSelectElement = fixture.nativeElement.querySelector('select[data-cy="orgCountry"]');
+    expect(select.value).toBe('ES');
+    expect(select.selectedOptions[0].textContent?.trim()).toBe('Spain');
   });
 
   it('should require a title before saving a contact medium', () => {

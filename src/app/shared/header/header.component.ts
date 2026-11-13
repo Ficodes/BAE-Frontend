@@ -274,6 +274,9 @@ export class HeaderComponent implements OnInit, AfterViewInit, DoCheck, OnDestro
       .pipe(takeUntil(this.destroy$), filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe(ev => {
         this.isWorkspace = this.workspaceRoutes.some(r => ev.urlAfterRedirects.startsWith(r));
+        if (!ev.urlAfterRedirects.startsWith('/my-offerings')) {
+          this.activeEditor = null;
+        }
         this.cdr.detectChanges();
         setTimeout(() => initFlowbite(), 0);
       });
