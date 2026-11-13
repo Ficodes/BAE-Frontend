@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
+import { finalize } from 'rxjs';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import {
   CONTACT_US_SUPPORT_TYPES,
@@ -14,7 +15,7 @@ interface EmailConfig {
   smtpPort?: string;
   email?: string;
   emailUser?: string;
-  emailPassword?: string;
+  hasPassword?: boolean;
   contactUsDestinations?: Partial<ContactUsDestinations>;
 }
 
@@ -30,6 +31,14 @@ type ContactUsDestinationControlName =
   styleUrl: './email.component.css'
 })
 export class EmailComponent {
+
+  hasPassword = false;
+  loading = true;
+  configLoaded = false;
+  saving = false;
+  testing = false;
+
+  private readonly configUrl = `${environment.BASE_URL}/charging/api/orderManagement/notify/config`;
 
   showError: boolean = false;
   errorMessage: string = '';
@@ -62,10 +71,10 @@ export class EmailComponent {
     email: new FormControl('', [Validators.required, Validators.email]),
     emailUser: new FormControl('', [Validators.required]),
     emailPassword: new FormControl('', [Validators.required]),
-    contactUsGeneralEmail: new FormControl('', [Validators.required, Validators.email]),
-    contactUsTechnicalEmail: new FormControl('', [Validators.required, Validators.email]),
-    contactUsOnboardingEmail: new FormControl('', [Validators.required, Validators.email]),
-    contactUsLegalEmail: new FormControl('', [Validators.required, Validators.email])
+    contactUsGeneralEmail: new FormControl('', [Validators.email]),
+    contactUsTechnicalEmail: new FormControl('', [Validators.email]),
+    contactUsOnboardingEmail: new FormControl('', [Validators.email]),
+    contactUsLegalEmail: new FormControl('', [Validators.email])
   });
 
   constructor(
@@ -103,7 +112,15 @@ export class EmailComponent {
     return error?.error?.error ? 'Error: ' + error.error.error : defaultMessage;
   }
 
+  private setHasPassword(hasPassword: boolean) {
+    this.hasPassword = hasPassword;
+    const password = this.emailForm.controls.emailPassword;
+    password.setValidators(hasPassword ? [] : [Validators.required]);
+    password.updateValueAndValidity();
+  }
+
   fillData(data: EmailConfig) {
+    this.setHasPassword(data.hasPassword === true);
     const contactUsDestinations = data.contactUsDestinations ?? {};
 
     this.emailForm.setValue({
@@ -120,43 +137,83 @@ export class EmailComponent {
   }
 
   getConfig() {
-    const url = `${environment.BASE_URL}/charging/api/orderManagement/notify/config`;
-    return this.http.get<any>(url).subscribe({
+    this.loading = true;
+    this.configLoaded = false;
+    return this.http.get<EmailConfig>(this.configUrl).pipe(
+      finalize(() => { this.loading = false; })
+    ).subscribe({
       next: data => {
         this.fillData(data);
+        this.configLoaded = true;
       },
       error: error => {
-        console.error('There was an error while getting config!', error);
-        this.showErrorMessage(this.getErrorMessage(error, 'There was an error while getting the config'));
+        // Older deployments may still return 404 before the first configuration.
+        if (error.status === 404) {
+          this.fillData({});
+          this.configLoaded = true;
+          return;
+        }
+        this.showErrorMessage(this.getErrorMessage(error, 'ADMIN._emailConfigLoadError'));
       }
-    })
+    });
   }
 
   addConfig() {
-    const url = `${environment.BASE_URL}/charging/api/orderManagement/notify/config`;
-    const body = {
-      "smtpServer": this.emailForm.value.smtpServer,
-      "smtpPort": this.emailForm.value.smtpPort,
-      "email": this.emailForm.value.email,
-      "emailUser": this.emailForm.value.emailUser,
-      "emailPassword": this.emailForm.value.emailPassword,
-      "contactUsDestinations": {
-        "general": this.emailForm.value.contactUsGeneralEmail,
-        "technical": this.emailForm.value.contactUsTechnicalEmail,
-        "onboarding": this.emailForm.value.contactUsOnboardingEmail,
-        "legal": this.emailForm.value.contactUsLegalEmail
-      }
+    if (this.loading || !this.configLoaded || this.saving || this.testing) return;
+    if (this.emailForm.invalid) {
+      this.emailForm.markAllAsTouched();
+      this.showErrorMessage('ADMIN._emailConfigInvalid');
+      return;
     }
 
-    return this.http.post<any>(url, body).subscribe({
+    const values = this.emailForm.getRawValue();
+    const body = {
+      smtpServer: values.smtpServer,
+      smtpPort: values.smtpPort,
+      email: values.email,
+      emailUser: values.emailUser,
+      ...(values.emailPassword ? { emailPassword: values.emailPassword } : {}),
+      contactUsDestinations: {
+        general: values.contactUsGeneralEmail,
+        technical: values.contactUsTechnicalEmail,
+        onboarding: values.contactUsOnboardingEmail,
+        legal: values.contactUsLegalEmail
+      }
+    };
+
+    this.saving = true;
+    return this.http.post(this.configUrl, body).pipe(
+      finalize(() => { this.saving = false; })
+    ).subscribe({
       next: () => {
+        this.setHasPassword(this.hasPassword || !!values.emailPassword);
         this.emailForm.patchValue({ emailPassword: '' });
+        this.emailForm.markAsPristine();
         this.showSuccessMessage('ADMIN._emailConfigUpdated');
       },
       error: error => {
-        console.error('There was an error while updating!', error);
-        this.showErrorMessage(this.getErrorMessage(error, 'There was an error while updating the config'));
+        this.showErrorMessage(this.getErrorMessage(error, 'ADMIN._emailConfigSaveError'));
       }
-    })
+    });
+  }
+
+  testConfig() {
+    if (this.loading || !this.configLoaded || this.saving || this.testing) return;
+
+    this.testing = true;
+    // The backend tests the saved settings, including environment defaults.
+    return this.http.post(`${this.configUrl}/test`, null).pipe(
+      finalize(() => { this.testing = false; })
+    ).subscribe({
+      next: () => this.showSuccessMessage('ADMIN._emailTestSuccess'),
+      error: error => {
+        const messages: Record<number, string> = {
+          400: 'ADMIN._emailTestInvalid',
+          502: 'ADMIN._emailTestConnectionError',
+          504: 'ADMIN._emailTestTimeout'
+        };
+        this.showErrorMessage(messages[error.status] ?? 'ADMIN._emailTestError');
+      }
+    });
   }
 }
