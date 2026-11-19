@@ -31,45 +31,59 @@
 
         <div class="md:grid">
             <div>
-                <form class="m-4 gap-4" [formGroup]="emailForm">
-                    <label for="smtp-server" class="font-bold text-lg dark:text-white">{{ 'ADMIN._smtpServer' | translate }}</label>
-                    <input formControlName="smtpServer" type="text" id="smtp-server"
-                            [ngClass]="emailForm.get('smtpServer')?.invalid == true && emailForm.value.smtpServer != '' ? 'border-red-600' : 'border-gray-300'"
-                            class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
-
-                    <label for="smtp-port" class="font-bold text-lg dark:text-white">{{ 'ADMIN._smtpPort' | translate }}</label>
-                    <input formControlName="smtpPort" type="text" id="smtp-port"
-                            [ngClass]="emailForm.get('smtpPort')?.invalid == true && emailForm.value.smtpPort != '' ? 'border-red-600' : 'border-gray-300'"
-                            class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
-
-                    <label for="email" class="font-bold text-lg dark:text-white">{{ 'ADMIN._sourceEmail' | translate }}</label>
-                    <input formControlName="email" type="text" id="email"
-                            [ngClass]="emailForm.get('email')?.invalid == true && emailForm.value.email != '' ? 'border-red-600' : 'border-gray-300'"
-                            class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
-
-                    <label for="email-user" class="font-bold text-lg dark:text-white">{{ 'ADMIN._emailUser' | translate }}</label>
-                    <input formControlName="emailUser" type="text" id="email-user"
-                            [ngClass]="emailForm.get('emailUser')?.invalid == true && emailForm.value.emailUser != '' ? 'border-red-600' : 'border-gray-300'"
-                            class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
-
-                    <label for="email-pass" class="font-bold text-lg dark:text-white">{{ 'ADMIN._emailPass' | translate }}</label>
-                    <input formControlName="emailPassword" type="password" id="email-pass"
-                            [ngClass]="emailForm.get('emailPassword')?.invalid == true && emailForm.value.emailPassword != '' ? 'border-red-600' : 'border-gray-300'"
-                            class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
-
-                    <h3 class="mt-6 mb-2 font-bold text-xl text-primary-100 dark:text-white">{{ 'ADMIN._contactUsDestinations' | translate }}</h3>
-
-                    @for(destination of contactUsDestinationFields; track destination.supportType) {
-                        <label [for]="'contact-us-' + destination.supportType + '-email'" class="font-bold text-lg dark:text-white">{{ destination.labelKey | translate }}</label>
-                        <input [formControlName]="destination.controlName" type="text" [id]="'contact-us-' + destination.supportType + '-email'"
-                                [ngClass]="emailForm.get(destination.controlName)?.invalid == true && emailForm.get(destination.controlName)?.value != '' ? 'border-red-600' : 'border-gray-300'"
+                <form class="m-4 gap-4" [formGroup]="emailForm" (ngSubmit)="addConfig()" id="email-config-form">
+                    <fieldset [disabled]="loading || !configLoaded || saving || testing">
+                        <label for="smtp-server" class="font-bold text-lg dark:text-white">{{ 'ADMIN._smtpServer' | translate }}</label>
+                        <input formControlName="smtpServer" type="text" id="smtp-server"
+                                [ngClass]="emailForm.get('smtpServer')?.invalid == true && emailForm.value.smtpServer != '' ? 'border-red-600' : 'border-gray-300'"
                                 class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
-                    }
+
+                        <label for="smtp-port" class="font-bold text-lg dark:text-white">{{ 'ADMIN._smtpPort' | translate }}</label>
+                        <input formControlName="smtpPort" type="text" id="smtp-port"
+                                [ngClass]="emailForm.get('smtpPort')?.invalid == true && emailForm.value.smtpPort != '' ? 'border-red-600' : 'border-gray-300'"
+                                class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+
+                        <label for="email" class="font-bold text-lg dark:text-white">{{ 'ADMIN._sourceEmail' | translate }}</label>
+                        <input formControlName="email" type="text" id="email"
+                                [ngClass]="emailForm.get('email')?.invalid == true && emailForm.value.email != '' ? 'border-red-600' : 'border-gray-300'"
+                                class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+
+                        <label for="email-user" class="font-bold text-lg dark:text-white">{{ 'ADMIN._emailUser' | translate }}</label>
+                        <input formControlName="emailUser" type="text" id="email-user"
+                                [ngClass]="emailForm.get('emailUser')?.invalid == true && emailForm.value.emailUser != '' ? 'border-red-600' : 'border-gray-300'"
+                                class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+
+                        <label for="email-pass" class="font-bold text-lg dark:text-white">{{ 'ADMIN._emailPass' | translate }}</label>
+                        <input formControlName="emailPassword" type="password" id="email-pass" autocomplete="new-password" aria-describedby="email-password-help"
+                                [placeholder]="(hasPassword ? 'ADMIN._emailPasswordStored' : 'ADMIN._emailPasswordRequired') | translate"
+                                [ngClass]="emailForm.get('emailPassword')?.invalid == true && emailForm.get('emailPassword')?.touched ? 'border-red-600' : 'border-gray-300'"
+                                class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+
+                        <p id="email-password-help" class="mb-4 text-sm text-gray-600 dark:text-gray-300">
+                            {{ (hasPassword ? 'ADMIN._emailPasswordKeep' : 'ADMIN._emailPasswordRequired') | translate }}
+                        </p>
+
+                        <h3 class="mt-6 mb-2 font-bold text-xl text-primary-100 dark:text-white">{{ 'ADMIN._contactUsDestinations' | translate }}</h3>
+
+                        @for(destination of contactUsDestinationFields; track destination.supportType) {
+                            <label [for]="'contact-us-' + destination.supportType + '-email'" class="font-bold text-lg dark:text-white">{{ destination.labelKey | translate }}</label>
+                            <input [formControlName]="destination.controlName" type="text" [id]="'contact-us-' + destination.supportType + '-email'"
+                                    [ngClass]="emailForm.get(destination.controlName)?.invalid == true && emailForm.get(destination.controlName)?.value != '' ? 'border-red-600' : 'border-gray-300'"
+                                    class="mb-2 bg-gray-50 dark:bg-secondary-300 border border-gray-300 dark:border-secondary-200 dark:text-white text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                        }
+                        <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">{{ 'ADMIN._contactUsDestinationsOptional' | translate }}</p>
+                    </fieldset>
                 </form>
 
-                <div class="flex w-full justify-items-end justify-end ml-4">
-                    <button data-cy="adminAddCredential" type="button" (click)="addConfig();" class="flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
-                        {{ 'ADMIN._add' | translate }}
+                <p class="m-4 text-sm text-gray-600 dark:text-gray-300">{{ 'ADMIN._emailTestHelp' | translate }}</p>
+                <div class="flex flex-wrap gap-3 w-full justify-items-end justify-end">
+                    <button data-cy="adminTestEmail" type="button" (click)="testConfig()"
+                            [disabled]="loading || !configLoaded || saving || testing"
+                            class="text-white bg-primary-100 hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium rounded-lg text-sm px-5 py-2.5">
+                        {{ (testing ? 'ADMIN._emailTesting' : 'ADMIN._emailTest') | translate }}
+                    </button>
+                    <button data-cy="adminAddCredential" type="submit" form="email-config-form" [disabled]="emailForm.invalid || loading || !configLoaded || saving || testing" class="disabled:opacity-50 disabled:cursor-not-allowed flex text-white justify-end bg-primary-100 hover:bg-primary-50 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        {{ (saving ? 'ADMIN._emailSaving' : 'ADMIN._emailSave') | translate }}
                         <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
                         </svg>
@@ -81,7 +95,7 @@
 </div>
 
 @if(showError){
-    <error-message class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50" [message]="errorMessage"></error-message>
+    <error-message class="flex justify-center items-center fixed w-fit top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50" [message]="errorMessage | translate"></error-message>
 }
 
 @if(showSuccess){
@@ -91,7 +105,7 @@
                 <svg class="flex-shrink-0 w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
                 </svg>
-                <h3 class="text-lg font-medium">{{ 'ADMIN._updateSuccessTitle' | translate }}</h3>
+                <h3 class="text-lg font-medium">{{ 'ADMIN._emailSuccessTitle' | translate }}</h3>
             </div>
             <div class="mt-2 text-sm pr-8 pl-8">
                 {{ successMessage | translate }}
