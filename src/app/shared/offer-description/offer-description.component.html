@@ -1,0 +1,163 @@
+        @if(sections.specOverview){
+        <div class="mb-8">
+          <h2 class="text-[24px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-4">{{ 'PRODUCT_DETAILS._description' | translate }}</h2>
+          <div [ngClass]="descMoreOpen ? '' : 'line-clamp-[8]'" class="overflow-hidden">
+            <markdown [ngClass]="{
+                'break-all': hasLongWord(sections.specOverview, 20),
+                'break-words': !hasLongWord(sections.specOverview, 20)
+              }" class="text-[16px] leading-[26px] text-secondary-500 dark:text-offerings-on-dark-body" [data]="sections.specOverview"></markdown>
+          </div>
+          @if(isLongText(sections.specOverview)){
+            <button (click)="descMoreOpen=!descMoreOpen" class="mt-3 inline-flex items-center gap-1 text-[14px] font-semibold text-primary-100 dark:text-primary-50 hover:underline">
+              {{ (descMoreOpen ? 'PRODUCT_DETAILS._read_less' : 'PRODUCT_DETAILS._read_more') | translate }}
+              <svg class="w-4 h-4 transition-transform" [class.rotate-180]="descMoreOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+          }
+        </div>
+        }
+
+        @if(sections.howItWorks){
+        <div class="mb-8">
+          <h2 class="text-[24px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-4">{{ 'PRODUCT_DETAILS._how_it_works' | translate }}</h2>
+          <div [ngClass]="howItWorksMoreOpen ? '' : 'line-clamp-[8]'" class="overflow-hidden">
+            <markdown [ngClass]="{
+                'break-all': hasLongWord(sections.howItWorks, 20),
+                'break-words': !hasLongWord(sections.howItWorks, 20)
+              }" class="text-[16px] leading-[26px] text-secondary-500 dark:text-offerings-on-dark-body" [data]="sections.howItWorks"></markdown>
+          </div>
+          @if(isLongText(sections.howItWorks)){
+            <button (click)="howItWorksMoreOpen=!howItWorksMoreOpen" class="mt-3 inline-flex items-center gap-1 text-[14px] font-semibold text-primary-100 dark:text-primary-50 hover:underline">
+              {{ (howItWorksMoreOpen ? 'PRODUCT_DETAILS._read_less' : 'PRODUCT_DETAILS._read_more') | translate }}
+              <svg class="w-4 h-4 transition-transform" [class.rotate-180]="howItWorksMoreOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+          }
+        </div>
+        }
+
+        @if(sections.keyFeatures.length > 0){
+        <div class="mb-10">
+          <h2 class="text-[24px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-6">{{ 'PRODUCT_DETAILS._key_features' | translate }}</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            @for(feat of sections.keyFeatures; track feat){
+              <div class="kf-card relative isolate overflow-hidden flex flex-row items-start gap-6 p-6 bg-offerings-surface dark:bg-secondary-100 border border-secondary-50 dark:border-secondary-200 rounded-2xl">
+                <span class="kf-watermark" aria-hidden="true"></span>
+                @if(resolveIcon(feat.icon)){
+                  <div class="relative z-[1] shrink-0 w-10 h-10 flex items-center justify-center text-[32px] leading-none text-primary-100 dark:text-primary-50">
+                    <fa-icon [icon]="resolveIcon(feat.icon)!"></fa-icon>
+                  </div>
+                }
+                <div class="relative z-[2] min-w-0 flex flex-col gap-2">
+                  <h3 [ngClass]="{'break-all': hasLongWord(feat.name, 20), 'break-words': !hasLongWord(feat.name, 20)}" class="text-[20px] leading-[24px] font-semibold text-secondary-500 dark:text-offerings-on-dark-body line-clamp-1">{{feat.name}}</h3>
+                  @if(feat.description){
+                    <p [ngClass]="{'break-all': hasLongWord(feat.description, 20), 'break-words': !hasLongWord(feat.description, 20)}" class="text-[16px] leading-[24px] text-offerings-feature-text dark:text-offerings-on-dark-body line-clamp-2">{{feat.description}}</p>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+        }
+
+        @if(sections.businessBenefits.length > 0){
+        <div class="mb-10">
+          <h2 class="text-[24px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-6">{{ 'PRODUCT_DETAILS._business_benefits' | translate }}</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            @for(benefit of sections.businessBenefits; track benefit){
+              <div class="flex flex-col items-start gap-4 px-6 py-4 bg-secondary-50/70 dark:bg-secondary-200 rounded-2xl">
+                <div class="flex items-center justify-center w-14 h-14 p-3 bg-secondary-50 dark:bg-secondary-200 rounded-2xl text-primary-100 dark:text-primary-50">
+                  <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-3.497 1.307A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549 4.49 4.49 0 0 1-3.498-1.306 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 2.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 0 1 1.307-3.497 4.49 4.49 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <h3 [ngClass]="{'break-all': hasLongWord(benefit.name, 20), 'break-words': !hasLongWord(benefit.name, 20)}" class="text-[20px] leading-[24px] font-semibold text-secondary-500 dark:text-offerings-on-dark-body">{{benefit.name}}</h3>
+                  @if(benefit.description){
+                    <p [ngClass]="{'break-all': hasLongWord(benefit.description, 20), 'break-words': !hasLongWord(benefit.description, 20)}" class="text-[16px] leading-[24px] text-offerings-feature-text dark:text-offerings-on-dark-body">{{benefit.description}}</p>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+        }
+
+        @if(sections.useCases.length > 0){
+        <div class="mb-10">
+          <h2 class="text-[24px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-6">{{ 'PRODUCT_DETAILS._use_cases' | translate }}</h2>
+          <div class="flex flex-col gap-4">
+            @for(uc of sections.useCases; track uc){
+              <div class="rounded-2xl bg-offerings-surface dark:bg-secondary-100 border border-offerings-separator dark:border-secondary-200 p-6">
+                <h3 [ngClass]="{'break-all': hasLongWord(uc.name, 20), 'break-words': !hasLongWord(uc.name, 20)}" class="text-[18px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-2">{{uc.name}}</h3>
+                @if(uc.description){
+                  <p [ngClass]="{'break-all': hasLongWord(uc.description, 20), 'break-words': !hasLongWord(uc.description, 20)}" class="text-[16px] leading-[24px] text-offerings-description-text dark:text-offerings-on-dark-body">{{uc.description}}</p>
+                }
+              </div>
+            }
+          </div>
+        </div>
+        }
+
+        @if(relationships != undefined && relationships.length>0){
+          <h2 class="text-[24px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-4">{{ 'PRODUCT_DETAILS._product_rels' | translate }}</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            @for (rel of relationships; track rel.id) {
+              <div class="rounded-2xl bg-offerings-surface dark:bg-secondary-100 border border-offerings-separator dark:border-secondary-200 p-6">
+                <h3 [ngClass]="{'break-all': hasLongWord(rel.name, 20), 'break-words': !hasLongWord(rel.name, 20)}"
+                  class="text-[18px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-2 break-words">{{rel.name}}</h3>
+                <div class="flex items-center justify-between">
+                  <p class="text-[14px] text-offerings-description-text dark:text-offerings-on-dark-body">{{rel.relationshipType}}</p>
+                  @if(rel.relationshipType == 'dependency'){
+                    <fa-icon [icon]="faArrowProgress" class="text-xl text-primary-100 dark:text-primary-50"></fa-icon>
+                  } @else if(rel.relationshipType == 'migration'){
+                    <fa-icon [icon]="faArrowRightArrowLeft" class="text-xl text-primary-100 dark:text-primary-50"></fa-icon>
+                  } @else if(rel.relationshipType == 'exclusivity'){
+                    <fa-icon [icon]="faObjectExclude" class="text-xl text-primary-100 dark:text-primary-50"></fa-icon>
+                  } @else if(rel.relationshipType == 'substitution'){
+                    <fa-icon [icon]="faSwap" class="text-xl text-primary-100 dark:text-primary-50"></fa-icon>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+        @if(sections.faqs.length > 0){
+        <div class="mb-10">
+          <h2 class="text-[24px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-6">{{ 'PRODUCT_DETAILS._faqs' | translate }}</h2>
+          <div class="flex flex-col gap-4">
+            @for(faq of sections.faqs; track $index){
+              <article class="faq-card" [class.faq-card--open]="isFaqOpen($index)">
+                <button type="button" class="faq-question" (click)="toggleFaq($index)" [attr.aria-expanded]="isFaqOpen($index)">
+                  <span class="faq-question__title" [ngClass]="{'break-all': hasLongWord(faq.question, 20), 'break-words': !hasLongWord(faq.question, 20)}">{{ faq.question }}</span>
+                  <span class="faq-icon" [class.faq-icon--open]="isFaqOpen($index)">
+                    <fa-icon [icon]="isFaqOpen($index) ? faMinus : faPlus"></fa-icon>
+                  </span>
+                </button>
+                <div class="faq-answer" [class.faq-answer--open]="isFaqOpen($index)">
+                  <div class="faq-answer__inner">
+                    <div class="faq-divider"></div>
+                    <div class="faq-answer__content" [ngClass]="{'break-all': hasLongWord(faq.answer, 20), 'break-words': !hasLongWord(faq.answer, 20)}">{{ faq.answer }}</div>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        </div>
+        }
+
+        @if(attachments.length>0){
+          <section data-cy="offerAttachments">
+          <h2 class="text-[24px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-4">{{ 'PRODUCT_DETAILS._product_att' | translate }}</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            @for (att of attachments; track att.id || $index) {
+              <div class="rounded-2xl bg-offerings-surface dark:bg-secondary-100 border border-offerings-separator dark:border-secondary-200 p-6 flex items-center justify-between">
+                <h3 [ngClass]="{'break-all': hasLongWord(att.name, 20), 'break-words': !hasLongWord(att.name, 20)}"
+                  class="text-[18px] font-bold text-secondary-100 dark:text-offerings-on-dark break-words">{{att.name}}</h3>
+                <button type="button" data-cy="offerAttachmentDownload" [attr.aria-label]="att.name" (click)="goToLink(att.url)" class="flex items-center justify-center h-10 w-10 rounded-full bg-secondary-50 dark:bg-secondary-200 hover:bg-secondary-50/80 dark:hover:bg-secondary-300 transition-colors text-primary-100 dark:text-primary-50 shrink-0 ml-4">
+                  <fa-icon [icon]="faDownload" class="text-lg"></fa-icon>
+                </button>
+              </div>
+            }
+          </div>
+          </section>
+        }
+

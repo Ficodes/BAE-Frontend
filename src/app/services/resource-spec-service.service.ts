@@ -7,6 +7,7 @@ import {components} from "../models/product-catalog";
 type ProductOffering = components["schemas"]["ProductOffering"];
 import {LocalStorageService} from "./local-storage.service";
 import moment from 'moment';
+import { AssetType } from '../models/asset-type.model';
 
 @Injectable({
   providedIn: 'root'
@@ -78,6 +79,10 @@ export class ResourceSpecServiceService {
     this.filteredPaginationQuery = null;
     this.filteredPaginationExhausted = false;
     this.filteredPaginationGeneration++;
+  }
+
+  getAssetTypes() {
+    return this.http.get<AssetType[]>(`${ResourceSpecServiceService.BASE_URL}${environment.CHARGING}/api/assetManagement/assetTypes`, { params: { type: 'resource' } });
   }
 
   getResSpecById(id:any){

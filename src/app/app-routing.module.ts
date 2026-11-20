@@ -78,8 +78,19 @@ const routes: Routes = [
     canActivate: [AuthGuard], data: { roles: [] }
   },
   {
+    path: 'product-inventory/services/:id',
+    loadComponent: () => import('./pages/product-inventory/inventory-detail/inventory-detail.component').then(m => m.InventoryDetailComponent),
+    canActivate: [AuthGuard], data: { roles: [], inventoryKind: 'services' }
+  },
+  {
+    path: 'product-inventory/resources/:id',
+    loadComponent: () => import('./pages/product-inventory/inventory-detail/inventory-detail.component').then(m => m.InventoryDetailComponent),
+    canActivate: [AuthGuard], data: { roles: [], inventoryKind: 'resources' }
+  },
+  {
     path: 'product-inventory/:id',
-    component: ProductInvDetailComponent
+    component: ProductInvDetailComponent,
+    canActivate: [AuthGuard], data: { roles: [] }
   },
   {
     path: 'profile',

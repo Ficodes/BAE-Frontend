@@ -1,157 +1,184 @@
-<div class="container mx-auto pt-2 pb-8">
-    <!-- Breadcrumb -->
-    <div class="pb-4">
-        <nav class="flex px-5 py-3 text-gray-700 border border-secondary-50 rounded-lg bg-secondary-50 dark:bg-secondary-100 dark:border-gray-800" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-            <li class="inline-flex items-center">
-                <button (click)="back()" class="inline-flex items-center text-sm font-medium text-gray-500 dark:text-white hover:text-primary-100 dark:hover:text-primary-50">
-                <svg class="w-3 h-3 mr-2 text-gray-400 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 10">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 1 1 5l4 4m6-8L7 5l4 4"/>
-                </svg>
-                {{ 'PRODUCT_DETAILS._back' | translate }}
-                </button>
-            </li>
-            <li aria-current="page">
-                <div class="flex items-center">
-                <svg class="rtl:rotate-180  w-3 h-3 mx-1 text-gray-400 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-                </svg>
-                <span class="ms-1 text-sm font-medium text-gray-500 dark:text-white md:ms-2 ">{{ 'PRODUCT_DETAILS._details' | translate }}</span>
-                </div>
-            </li>
-            </ol>
-        </nav>
-    </div>
-    <!-- End Breadcrumb -->
-
-    <!-- START HEADER CARD -->
-    <div class="w-full lg:h-fit mb-4 bg-secondary-50 rounded-lg dark:bg-secondary-100 dark:border-gray-800 border-secondary-50 border lg:grid lg:grid-cols-60/40">
-        <div class="flex lg:hidden overflow-hidden justify-center items-center bg-white rounded-t-lg w-full">
-            <img class="rounded-t-lg h-5/6 w-5/6 object-contain dark:text-white" src="{{getProductImage()}}" alt="Product image" />
+<div class="min-h-screen bg-offerings-surface dark:bg-secondary-500 font-[Blinker]">
+  <div class="mx-auto max-w-[1200px] px-8 pt-6">
+    @if (loading) {
+      <div role="status" class="py-24 text-center text-offerings-muted-text dark:text-offerings-on-dark-body">{{ 'COMMON._loading' | translate }}</div>
+    } @else if (error) {
+      <p role="alert" class="rounded-xl bg-status-danger-bg text-status-danger-text p-6">{{ 'PRODUCT_INVENTORY._details_error' | translate }}</p>
+    } @else {
+      <div class="grid grid-cols-1 lg:grid-cols-[424px_1fr] gap-6 pb-4">
+        <div class="relative rounded-2xl bg-offerings-muted dark:bg-secondary-300 aspect-[2/1] overflow-hidden">
+          <div class="absolute inset-0 bg-cover bg-center opacity-75" [style.background-image]="'url(' + getProductImage() + ')'" style="filter: blur(20px);"></div>
+          <img class="relative z-10 h-full w-full object-contain" [src]="getProductImage()" [alt]="productOff.name || prod.name || ('PRODUCT_DETAILS._product_image' | translate)">
         </div>
-        <div class="grid grid-rows-auto p-4 md:p-8 h-fit">
-            <div class="mt-2 h-fit">
-                <!--<a href="#">-->
-                <h5 class="md:text-3xl lg:text-4xl font-semibold tracking-tight text-primary-100 dark:text-white">{{productOff?.name}}</h5>
-                <!--</a>-->
+        <div class="flex flex-col">
+          <h1 data-cy="inventoryProductTitle" [ngClass]="{ 'break-all': hasLongWord(productOff.name || prod.name, 20), 'break-words': !hasLongWord(productOff.name || prod.name, 20) }" class="text-[32px] font-bold leading-tight text-secondary-100 dark:text-offerings-on-dark mb-3">{{ productOff.name || prod.name }}</h1>
+          <div class="mb-5">
+            <div [class.line-clamp-5]="!offerDescriptionExpanded" class="overflow-hidden">
+              <markdown [ngClass]="{ 'break-all': hasLongWord(productOff.description || prod.description, 20), 'break-words': !hasLongWord(productOff.description || prod.description, 20) }" class="text-[16px] leading-[26px] text-secondary-500 dark:text-offerings-on-dark-body" [data]="visibleDescription(productOff.description || prod.description)"></markdown>
             </div>
-            <div class="pt-2 line-clamp-5 h-fit">
-                <markdown [ngClass]="{
-                    'break-all': hasLongWord(productOff?.description, 20),
-                    'break-words': !hasLongWord(productOff?.description, 20)
-                    }" class="dark:text-gray-200 text-wrap break-words" [data]="productOff?.description"></markdown>
-            </div>
-            <div class="pt-2 line-clamp-5 h-fit">
-                Start Date: {{ prod.startDate }}
-            </div>
-        </div>
-        <div class="hidden lg:block overflow-hidden rounded-r-lg">
-            <div class="hidden lg:flex relative justify-center items-center w-full h-full">
-                <!-- Imagen de fondo difuminada -->
-                <div class="object-contain overflow-hidden absolute inset-0 bg-cover bg-center opacity-75" style="background-image: url({{getProductImage()}});filter: blur(20px);"></div>
-                <!-- Imagen superior -->
-                <img class="object-contain h-5/6 w-5/6 max-h-[350px] z-10 p-8 dark:text-white" src="{{getProductImage()}}" alt="Product image">
-            </div>
-        </div>
-    </div>
-<!-- END HEADER CARD -->    
-
-    <div class="w-full h-full bg-secondary-50 rounded-b-lg p-4 dark:bg-secondary-100 dark:border-gray-800 border-secondary-50 border-b">        
-
-        <div id="desc-container" class="w-full bg-secondary-50/95 dark:bg-secondary-100/95 rounded-lg p-8 lg:p-12">
-
-            <div id="details-container">            
-                <h2 #detailsContent class="text-4xl font-extrabold text-primary-100 dark:text-primary-50 text-center pb-4">Description</h2>
-                <markdown [ngClass]="{
-                    'break-all': hasLongWord(prodSpec.description, 20),
-                    'break-words': !hasLongWord(prodSpec.description, 20)
-                    }" class="dark:text-gray-200 text-wrap break-words" [data]="prodSpec.description"></markdown>
-                @if(serviceSpecs.length > 0){
-                    <div class="pb-2">                
-                        <h5 class="text-xl font-semibold tracking-tight text-primary-100 dark:text-primary-50">{{ 'PRODUCT_DETAILS._service_spec' | translate }}:</h5>
-                        @for(service of serviceSpecs; track service.id){
-                            <p class="pl-4 dark:text-gray-200"><b>{{service.name}}</b>:  <markdown [ngClass]="{
-                                'break-all': hasLongWord(service.description, 20),
-                                'break-words': !hasLongWord(service.description, 20)
-                                }" class="text-gray-800 dark:text-gray-200 text-wrap break-words" [data]="service.description"></markdown></p>
-                        }
-                    </div>
-                }
-                @if(resourceSpecs.length > 0){
-                    <div class="pb-2">                
-                        <h5 class="text-xl font-semibold tracking-tight text-primary-100 dark:text-primary-50">{{ 'PRODUCT_DETAILS._resource_spec' | translate }}:</h5>
-                        @for(resource of resourceSpecs; track resource.id){
-                            <p class="pl-4 dark:text-gray-200"><b>{{resource.name}}</b>: <markdown [ngClass]="{
-                                'break-all': hasLongWord(resource.description, 20),
-                                'break-words': !hasLongWord(resource.description, 20)
-                                }" class="text-gray-800 dark:text-gray-200 text-wrap break-words" [data]="resource.description"></markdown></p>
-                        }
-                    </div>
-                }
-
-            <h2 class="text-4xl font-extrabold text-primary-100 dark:text-primary-50 text-center pb-8 pt-12">Price Plan</h2>
-            @if(prod?.productPrice != undefined){
-                <div class="grid grid-flow-row gap-4 lg:grid-cols-2 lg:auto-cols-auto justify-items-center p-2">
-                    @if(prod?.productPrice?.length==0){
-                        <div class="inline-flex items-center justify-center w-full">
-                            <div class="max-w-sm bg-white border border-gray-200  rounded-lg shadow w-full">
-                                <div class="bg-blue-500 rounded-t-lg w-full">
-                                    <h5 class="flex justify-center mb-2 p-6 text-2xl font-bold tracking-tight text-gray-900">{{ 'SHOPPING_CART._free' | translate }}</h5>
-                                </div>
-                                <p class="flex justify-center mb-2 p-4 font-normal text-gray-700">{{ 'SHOPPING_CART._free_desc' | translate }}</p>
-                            </div>
-                        </div>
-                    } @else {
-                        <div class="mx-auto bg-white border border-gray-200 dark:bg-secondary-200 dark:border-gray-800 rounded-lg shadow w-full p-4">
-                            <div class="flex justify-start mb-2">
-                                <h2 class="text-gray-900 dark:text-white text-3xl font-extrabold mb-2">{{pricePlan?.name}}</h2>
-                            </div>
-                            <markdown [ngClass]="{
-                                'break-all': hasLongWord(pricePlan?.description, 20),
-                                'break-words': !hasLongWord(pricePlan?.description, 20)
-                                }" class="dark:text-gray-200 w-full p-4 text-wrap break-words" [data]="pricePlan?.description"></markdown>
-                        </div>
-                    }
-                </div>
+            @if ((productOff.description || prod.description || '').length > 280) {
+              <button type="button" (click)="offerDescriptionExpanded = !offerDescriptionExpanded" class="mt-2 text-[14px] font-medium text-primary-100 dark:text-primary-50 hover:underline">{{ (offerDescriptionExpanded ? 'PRODUCT_DETAILS._read_less' : 'PRODUCT_DETAILS._read_more') | translate }}</button>
             }
+          </div>
         </div>
-        @if(prod.productCharacteristic != undefined && prod.productCharacteristic.length>0) {
-            <div #charsContent id="chars-container">
-                <h2 class="text-4xl font-extrabold text-primary-100 text-center pb-8 pt-12 dark:text-primary-50">Configuration options</h2>
-                <div class="container mx-auto px-4">
-                    <div class="flex flex-wrap -mx-4">
-                        @for (char of prod.productCharacteristic; track char.id; let idx = $index) {
-                            <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-8">                
-                                <div class="border border-gray-200 rounded-lg shadow bg-white dark:bg-secondary-200 dark:border-gray-800 shadow-md p-8 h-full">
-                                    <h3 class="text-2xl font-bold mb-4 dark:text-white">{{char.name}}</h3>
-                                    <div class="flex items-center pl-4">
-                                        <input disabled checked id="disabled-checked-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 dark:bg-gray-600 dark:border-gray-800 rounded-full focus:ring-blue-500 focus:ring-2">
-                                        @if(char.value){
-                                            <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 dark:bg-secondary-200 dark:border-gray-800 text-wrap break-all">{{char.value}} ({{char.unitOfMeasure}})</label>
-                                        } @else {
-                                            <label for="disabled-checked-checkbox" class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-200 dark:bg-secondary-200 dark:border-gray-800 text-wrap break-all">{{char.valueFrom}} - {{char.valueTo}} ({{char?.unitOfMeasure}})</label>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        } @empty {
-                            <div class="flex justify-center items-center w-full">
-                                <div class="flex items-center w-1/2 p-4 mb-4 text-sm text-primary-100 rounded-lg bg-white border border-gray-200 shadow-md dark:bg-secondary-200 dark:text-primary-50" role="alert">
-                                  <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-                                  </svg>
-                                  <span class="sr-only">Info</span>
-                                  <p class="text-center">
-                                    {{ 'PRODUCT_DETAILS._no_chars' | translate }}
-                                  </p>
-                                </div>
-                              </div>
-                        }
-                    </div>
-                </div>
-            </div>
-            
-        }        
+      </div>
+      <div class="flex items-center flex-wrap gap-2 pb-8">
+            @if (prod.status) {
+              <span data-cy="inventoryProductStatus" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                [ngClass]="{
+                  'bg-status-success-bg text-status-success-text': prod.status === 'active',
+                  'bg-status-ready-bg text-status-ready-text': prod.status === 'created',
+                  'bg-status-warning-bg text-status-warning-text': prod.status === 'suspended',
+                  'bg-status-danger-bg text-status-danger-text': prod.status === 'terminated'
+                }">{{ ['created', 'active', 'suspended', 'terminated'].includes(prod.status) ? (('PRODUCT_INVENTORY._' + prod.status) | translate) : prod.status }}</span>
+            }
 
-    </div>
+      </div>
+
+      @if (metadataIncomplete) {
+        <p role="status" class="mb-6 p-4 rounded-xl bg-status-warning-bg text-status-warning-text text-sm">{{ 'PRODUCT_INVENTORY._catalog_metadata_unavailable' | translate }}</p>
+      }
+
+      <div class="product-tabs-container sticky top-[88px] z-20 bg-offerings-surface dark:bg-secondary-100 pt-2">
+        <div role="group" [attr.aria-label]="'PRODUCT_INVENTORY._owned_product' | translate" class="flex items-center rounded-[16px] bg-offerings-table-header dark:bg-secondary-300 p-1 overflow-x-auto">
+          <div class="flex w-full min-w-[440px] sm:min-w-0 gap-1">
+            @for (tab of tabs; track tab.id) {
+              <button type="button" [attr.data-cy]="'inventoryTab-' + tab.id" (click)="activeTab = tab.id" [attr.aria-pressed]="activeTab === tab.id"
+                [ngClass]="tabClass(tab.id)" class="flex-1 py-1 px-2 text-[16px] leading-[24px] tracking-[0.5px] text-center rounded-[12px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-100">
+                {{ tab.label | translate }}
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-6 pb-8">
+        @if (activeTab === 'overview') {
+          <section data-cy="inventoryOverview">
+            <div class="rounded-[16px] bg-offerings-subtle-surface dark:bg-secondary-300 border border-secondary-50 dark:border-secondary-200 py-4 px-6 mb-8">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ng-container *ngTemplateOutlet="metadataField; context: { label: 'PRODUCT_INVENTORY._owned_product', value: prod.name || productOff.name, icon: 'M3 7.5 12 2l9 5.5v9L12 22l-9-5.5v-9Zm0 0 9 5 9-5m-9 5V22' }"></ng-container>
+                <ng-container *ngTemplateOutlet="metadataField; context: { label: 'PRODUCT_INVENTORY._inventory_id', value: prod.id, icon: 'M5 8h14M5 16h14M10 3 7 21M17 3l-3 18' }"></ng-container>
+                @if (prod.startDate) {
+                  <ng-container *ngTemplateOutlet="metadataField; context: { label: 'PRODUCT_INVENTORY._start_date', value: (prod.startDate | date:'dd/MM/yy, HH:mm'), icon: 'M7 3v3m10-3v3M3 10h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z' }"></ng-container>
+                }
+                @if (prod.terminationDate) {
+                  <ng-container *ngTemplateOutlet="metadataField; context: { label: 'PRODUCT_INVENTORY._termination_date', value: (prod.terminationDate | date:'dd/MM/yy, HH:mm'), icon: 'M7 3v3m10-3v3M3 10h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z' }"></ng-container>
+                }
+                @if (prod.productSerialNumber) {
+                  <ng-container *ngTemplateOutlet="metadataField; context: { label: 'PRODUCT_INVENTORY._serial_number', value: prod.productSerialNumber, icon: 'M5 8h14M5 16h14M10 3 7 21M17 3l-3 18' }"></ng-container>
+                }
+                @if (prod.billingAccount) {
+                  <ng-container *ngTemplateOutlet="metadataField; context: { label: 'PRODUCT_INVENTORY._billing_account', value: prod.billingAccount.name || prod.billingAccount.id, icon: 'M3 6h18v12H3V6Zm0 4h18M7 14h3' }"></ng-container>
+                }
+                <ng-container *ngTemplateOutlet="metadataField; context: { label: 'PRODUCT_INVENTORY._selected_price_plan', value: selectedPlans.length ? (selectedPlanNames || ('PRODUCT_INVENTORY._selected_price_plan' | translate)) : ('SHOPPING_CART._free' | translate), icon: 'M3 7.5 12 2l9 5.5v9L12 22l-9-5.5v-9Zm0 0 9 5 9-5m-9 5V22' }"></ng-container>
+              </div>
+            </div>
+            <app-offer-description [description]="prodSpec.description || productOff.description || prod.description" [relationships]="prodSpec.productSpecificationRelationship || []" [attachments]="attachments"></app-offer-description>
+          </section>
+        }
+
+        @if (activeTab === 'pricing') {
+          <section data-cy="inventorySelectedPricing">
+            <h2 class="text-[24px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-4">{{ 'PRODUCT_INVENTORY._selected_price_plan' | translate }}</h2>
+            <div class="grid gap-6 mb-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              @for (plan of selectedPlans; track plan.key) {
+                <article data-cy="selectedPricePlan" class="flex flex-col items-center gap-4 text-center rounded-[16px] bg-offerings-surface dark:bg-secondary-100 border border-offerings-price-border dark:border-secondary-200 p-6">
+                  <h3 class="text-[20px] font-semibold text-offerings-body dark:text-offerings-on-dark-body break-words">{{ plan.name || ('PRODUCT_INVENTORY._selected_price_plan' | translate) }}</h3>
+                  @if (plan.description) { <markdown class="w-full text-[16px] text-secondary-500 dark:text-offerings-on-dark-body break-words" [data]="plan.description"></markdown> }
+                  @if (plan.metadataUnavailable) { <p class="text-sm text-offerings-muted-text dark:text-offerings-on-dark-body mb-4">{{ 'PRODUCT_INVENTORY._plan_metadata_unavailable' | translate }}</p> }
+                  @for (charge of plan.charges; track $index) {
+                    <div data-cy="recordedCharge" class="w-full border-t border-offerings-border dark:border-secondary-200 pt-4">
+                      <div class="flex flex-wrap items-baseline justify-between gap-2 mb-2">
+                        <span class="font-semibold text-offerings-text dark:text-offerings-on-dark">{{ charge.name || charge.priceType }}</span>
+                        @if (charge.priceType) { <span class="text-sm text-offerings-muted-text dark:text-offerings-on-dark-body">{{ charge.priceType }}</span> }
+                      </div>
+                      @if (recordedAmount(charge); as amount) {
+                        <p class="text-[24px] font-bold text-secondary-100 dark:text-offerings-on-dark">{{ amount.value | number:'1.2-6' }} <span class="text-base">{{ amount.unit }}</span></p>
+                        <p class="text-xs text-offerings-muted-text dark:text-offerings-on-dark-body">{{ (charge.price?.taxIncludedAmount ? 'PRODUCT_INVENTORY._recorded_amount_including_tax' : charge.price?.dutyFreeAmount ? 'PRODUCT_INVENTORY._recorded_amount_excluding_tax' : 'PRODUCT_INVENTORY._recorded_amount') | translate }}</p>
+                      } @else {
+                        <p class="text-offerings-muted-text dark:text-offerings-on-dark-body">{{ 'PRODUCT_INVENTORY._no_recorded_amount' | translate }}</p>
+                      }
+                      @if (charge.recurringChargePeriod || charge.recurringChargePeriodType) { <p class="text-sm text-offerings-body dark:text-offerings-on-dark-body mt-2">{{ 'PRODUCT_INVENTORY._billing_period' | translate }}: {{ charge.recurringChargePeriod || charge.recurringChargePeriodType }}</p> }
+                      @if (charge.unitOfMeasure) { <p class="text-sm text-offerings-body dark:text-offerings-on-dark-body mt-2">{{ 'PRODUCT_INVENTORY._usage_unit' | translate }}: {{ charge.unitOfMeasure.units || charge.unitOfMeasure }}</p> }
+                      @if (charge.description) { <markdown class="block mt-3 text-sm text-offerings-body dark:text-offerings-on-dark-body break-words" [data]="visibleDescription(charge.description)"></markdown> }
+                    </div>
+                  }
+                </article>
+              } @empty {
+                <article data-cy="inventoryFreePlan" class="flex flex-col items-center gap-4 text-center rounded-[16px] bg-offerings-surface dark:bg-secondary-100 border border-offerings-price-border dark:border-secondary-200 p-6">
+                  <h3 class="text-[20px] font-semibold text-offerings-body dark:text-offerings-on-dark-body">{{ 'SHOPPING_CART._free' | translate }}</h3>
+                  <p class="text-[16px] text-secondary-500 dark:text-offerings-on-dark-body">{{ 'SHOPPING_CART._free_desc' | translate }}</p>
+                </article>
+              }
+            </div>
+          <section data-cy="inventoryConfiguration">
+            <h2 class="text-[24px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-4">{{ 'PRODUCT_INVENTORY._selected_configuration' | translate }}</h2>
+            <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              @for (characteristic of selectedCharacteristics; track $index) {
+                <div data-cy="selectedCharacteristic" class="relative rounded-2xl bg-offerings-page dark:bg-secondary-300 border border-secondary-50 dark:border-secondary-200 p-6">
+                  <dt class="text-[18px] font-bold text-secondary-100 dark:text-offerings-on-dark break-words">{{ characteristic.name }}</dt>
+                  <dd class="flex items-start gap-3 mt-3">
+                    <span class="mt-1 inline-flex items-center justify-center h-4 w-4 shrink-0 rounded-full border bg-primary-100 text-offerings-on-dark border-primary-100">
+                      <svg aria-hidden="true" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                    </span>
+                    <span class="block text-sm text-offerings-description-text dark:text-offerings-on-dark-body break-all">{{ characteristicValue(characteristic) }} {{ characteristic.unitOfMeasure }}</span>
+                  </dd>
+                </div>
+              } @empty {
+                <div class="col-span-full py-12 text-center text-offerings-muted-text dark:text-offerings-on-dark-body">{{ 'PRODUCT_INVENTORY._no_saved_characteristics' | translate }}</div>
+              }
+            </dl>
+          </section>
+          </section>
+        }
+
+        @if (activeTab === 'related') {
+          <section data-cy="inventoryRelatedItems" class="space-y-8">
+            <div>
+              <h2 class="text-[24px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-4">{{ 'PRODUCT_INVENTORY._services' | translate }}</h2>
+              <ng-container *ngTemplateOutlet="relatedItems; context: { $implicit: prod.realizingService || [], kind: 'services' }"></ng-container>
+            </div>
+            <div>
+              <h2 class="text-[24px] font-bold text-secondary-100 dark:text-offerings-on-dark mb-4">{{ 'PRODUCT_INVENTORY._resources' | translate }}</h2>
+              <ng-container *ngTemplateOutlet="relatedItems; context: { $implicit: prod.realizingResource || [], kind: 'resources' }"></ng-container>
+            </div>
+          </section>
+        }
+
+      </div>
+    }
+  </div>
 </div>
+
+<ng-template #relatedItems let-items let-kind="kind">
+  <div class="rounded-2xl overflow-hidden border border-offerings-border-strong dark:border-secondary-200">
+    <table class="w-full text-left text-sm text-offerings-body dark:text-offerings-on-dark-body">
+      <thead class="h-[56px] text-xs uppercase text-offerings-muted-text dark:text-offerings-on-dark-body bg-offerings-subtle-surface dark:bg-secondary-300 border-b border-offerings-border dark:border-secondary-200">
+        <tr><th class="px-6 font-semibold" scope="col">{{ 'OFFERINGS._name' | translate }}</th><th class="px-6 font-semibold" scope="col">{{ 'PRODUCT_INVENTORY._id' | translate }}</th></tr>
+      </thead>
+      <tbody>
+        @for (item of items; track item.id; let last = $last) {
+          <tr class="h-[56px] hover:bg-offerings-page dark:hover:bg-secondary-200" [ngClass]="{ 'border-b border-offerings-border dark:border-secondary-200': !last }">
+            <td class="px-6 py-3"><button type="button" (click)="openRelatedDetails(kind, item.id)" class="text-left font-medium text-offerings-link dark:text-primary-50 hover:underline break-words">{{ item.name || item.id }}</button></td>
+            <td class="px-6 py-3 break-all">{{ item.id }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="2" class="px-6 py-8 text-center">{{ (kind === 'services' ? 'PRODUCT_INVENTORY._no_services' : 'PRODUCT_INVENTORY._no_resources') | translate }}</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</ng-template>
+
+<ng-template #metadataField let-label="label" let-value="value" let-icon="icon">
+  <div class="flex items-center gap-4">
+    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-secondary-50 dark:bg-secondary-200">
+      <svg aria-hidden="true" class="h-6 w-6 text-primary-100 dark:text-primary-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" [attr.d]="icon"/></svg>
+    </div>
+    <div class="min-w-0">
+      <span class="text-[14px] text-offerings-label-text dark:text-offerings-on-dark-body block">{{ label | translate }}</span>
+      <span class="text-[16px] font-semibold text-secondary-100 dark:text-offerings-on-dark break-words">{{ value }}</span>
+    </div>
+  </div>
+</ng-template>

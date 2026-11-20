@@ -1,3 +1,4 @@
+import { isPlatformAdministrator } from 'src/app/shared/auth/platform-admin';
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
@@ -19,6 +20,7 @@ import { takeUntil } from 'rxjs/operators';
   styleUrl: './admin.component.css'
 })
 export class AdminComponent implements OnInit, OnDestroy {
+  show_plugins = false;
   show_categories:boolean = true;
   show_create_categories:boolean = false;
   show_update_categories:boolean = false;
@@ -76,6 +78,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = false;
+    this.show_plugins = false;
     this.cdr.detectChanges();
   }
 
@@ -91,6 +94,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = false;
+    this.show_plugins = false;
     this.cdr.detectChanges();
   }
 
@@ -106,6 +110,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = false;
+    this.show_plugins = false;
     this.cdr.detectChanges();
   }
 
@@ -122,6 +127,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = false;
+    this.show_plugins = false;
     this.cdr.detectChanges();
   }
 
@@ -138,6 +144,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = false;
+    this.show_plugins = false;
     this.cdr.detectChanges();
   }
 
@@ -154,6 +161,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = false;
+    this.show_plugins = false;
     this.cdr.detectChanges();
   }
 
@@ -170,6 +178,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = false;
+    this.show_plugins = false;
     this.cdr.detectChanges();
   }
 
@@ -186,6 +195,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = false;
+    this.show_plugins = false;
     this.cdr.detectChanges();
   }
 
@@ -202,6 +212,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_search_filters = true;
     this.show_features = false;
     this.show_default_catalog = false;
+    this.show_plugins = false;
     this.cdr.detectChanges();
   }
 
@@ -218,6 +229,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_search_filters = false;
     this.show_features = true;
     this.show_default_catalog = false;
+    this.show_plugins = false;
     this.cdr.detectChanges();
   }
 
@@ -234,6 +246,32 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.show_search_filters = false;
     this.show_features = false;
     this.show_default_catalog = true;
+    this.show_plugins = false;
+    this.cdr.detectChanges();
+  }
+
+  get isPlatformAdmin(): boolean {
+    return isPlatformAdministrator(this.localStorage.getObject('login_items'));
+  }
+
+  goToPlugins(): void {
+    if (!this.isPlatformAdmin) return;
+    this.show_categories = false;
+    this.show_create_categories = false;
+    this.show_update_categories = false;
+    this.show_verification = false;
+    this.show_revenue = false;
+    this.show_email = false;
+    this.show_analytics = false;
+    this.show_search = false;
+    this.show_search_filters = false;
+    this.show_features = false;
+    this.show_default_catalog = false;
+    this.show_plugins = true;
+    for (const id of ['categories', 'verify', 'revenue', 'email', 'analytics', 'search', 'search-filters', 'features', 'default-catalog']) {
+      this.unselectMenu(document.getElementById(id + '-button'), 'text-white bg-primary-100');
+    }
+    this.selectMenu(document.getElementById('plugins-button'), 'text-white bg-primary-100');
     this.cdr.detectChanges();
   }
 
@@ -455,6 +493,9 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   selectMenu(elem:HTMLElement| null,cls:string){
+    if (elem?.id !== 'plugins-button') {
+      this.unselectMenu(document.getElementById('plugins-button'), cls);
+    }
     if(elem != null){
       if(elem.className.match(cls)){
         console.log('already selected')

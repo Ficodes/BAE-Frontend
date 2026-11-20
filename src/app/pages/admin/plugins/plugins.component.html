@@ -1,0 +1,94 @@
+<section class="bg-secondary-50 dark:bg-secondary-100 border border-secondary-50 dark:border-gray-800 mt-4 p-6 sm:p-8 rounded-lg min-w-0" data-cy="adminPlugins">
+  <h2 class="text-3xl font-bold text-primary-100 dark:text-white">{{ 'ADMIN_PLUGINS._title' | translate }}</h2>
+  @if (!isAdmin) {
+    <p role="alert" class="mt-4 text-status-danger-text">{{ 'ADMIN_PLUGINS._forbidden' | translate }}</p>
+  } @else {
+    <p class="mt-2 text-gray-600 dark:text-gray-300">{{ 'ADMIN_PLUGINS._description' | translate }}</p>
+    <form class="mt-6 rounded-lg bg-white dark:bg-secondary-300 p-5" (submit)="$event.preventDefault(); install()" [attr.aria-busy]="installing">
+      <h3 class="text-xl font-semibold dark:text-white">{{ 'ADMIN_PLUGINS._install_title' | translate }}</h3>
+      <label for="plugin-package" class="block mt-4 mb-2 font-semibold dark:text-white">{{ 'ADMIN_PLUGINS._package' | translate }}</label>
+      <input #packageInput id="plugin-package" data-cy="adminPluginPackage" type="file" accept=".zip,application/zip" [disabled]="installing || !!deletingId" (change)="selectPackage($event)" aria-describedby="plugin-package-hint" class="block w-full text-sm text-gray-900 dark:text-white border border-gray-300 rounded-lg p-2.5 disabled:opacity-50" />
+      <p id="plugin-package-hint" class="mt-2 text-sm text-gray-600 dark:text-gray-300">{{ 'ADMIN_PLUGINS._package_hint' | translate }}</p>
+      <button type="submit" data-cy="adminInstallPlugin" [disabled]="!canInstall" class="mt-4 rounded-lg bg-primary-100 px-5 py-2.5 font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed">
+        {{ (installing ? 'ADMIN_PLUGINS._installing' : 'ADMIN_PLUGINS._install') | translate }}
+      </button>
+      @if (installError) {
+        <p role="alert" class="mt-4 whitespace-pre-line text-status-danger-text">{{ installError }}</p>
+      }
+      @if (uncertain) {
+        <p role="status" class="mt-3 text-gray-700 dark:text-gray-200">{{ 'ADMIN_PLUGINS._uncertain' | translate }}</p>
+      }
+      @if (successMessage) {
+        <p role="status" class="mt-4 text-status-success-text">{{ successMessage }}</p>
+      }
+    </form>
+
+    <div class="flex items-center justify-between gap-4 mt-8 mb-4">
+      <h3 class="text-xl font-semibold dark:text-white">{{ 'ADMIN_PLUGINS._installed' | translate }}</h3>
+      <button type="button" data-cy="adminRefreshPlugins" (click)="loadPlugins()" [disabled]="loading || installing || !!deletingId" class="underline text-primary-100 dark:text-primary-50 disabled:opacity-50">{{ 'ADMIN_PLUGINS._refresh' | translate }}</button>
+    </div>
+    @if (deleteError) {
+      <p role="alert" class="mb-4 whitespace-pre-line text-status-danger-text">{{ deleteError }}</p>
+    }
+    @if (deleteSuccess) {
+      <p role="status" class="mb-4 text-status-success-text">{{ deleteSuccess }}</p>
+    }
+    @if (deleteUncertain) {
+      <p role="status" class="mb-4 text-gray-700 dark:text-gray-200">{{ 'ADMIN_PLUGINS._delete_uncertain' | translate }}</p>
+    }
+    @if (loading) {
+      <p role="status" class="py-6 text-gray-600 dark:text-gray-300">{{ 'ADMIN_PLUGINS._loading' | translate }}</p>
+    }
+    @if (listError) {
+      <p role="alert" class="mb-4 whitespace-pre-line text-status-danger-text">{{ listError }}</p>
+    }
+    @if (!loading) {
+      <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-600">
+        <table class="w-full text-left text-sm text-gray-700 dark:text-gray-200">
+          <thead class="bg-gray-100 dark:bg-secondary-300">
+            <tr>
+              <th scope="col" class="p-4">{{ 'ADMIN_PLUGINS._name' | translate }}</th>
+              <th scope="col" class="p-4">{{ 'ADMIN_PLUGINS._type' | translate }}</th>
+              <th scope="col" class="p-4">{{ 'ADMIN_PLUGINS._version' | translate }}</th>
+              <th scope="col" class="p-4">{{ 'ADMIN_PLUGINS._author' | translate }}</th>
+              <th scope="col" class="p-4">{{ 'ADMIN_PLUGINS._category' | translate }}</th>
+              <th scope="col" class="p-4">{{ 'ADMIN_PLUGINS._actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white dark:bg-secondary-100">
+            @for (plugin of plugins; track plugin.id) {
+              <tr data-cy="adminPluginRow" class="border-t border-gray-200 dark:border-gray-600">
+                <td class="p-4"><span class="block font-semibold">{{ plugin.name }}</span><span class="block text-xs break-all">{{ plugin.id }}</span></td>
+                <td class="p-4">{{ (plugin.type === 'service' ? 'ADMIN_PLUGINS._service' : 'ADMIN_PLUGINS._resource') | translate }}</td>
+                <td class="p-4">{{ plugin.version }}</td>
+                <td class="p-4">{{ plugin.author }}</td>
+                <td class="p-4 break-all">{{ plugin.categoryId || '—' }}</td>
+                <td class="p-4">
+                  <button type="button" data-cy="adminDeletePlugin" (click)="requestDelete(plugin)" [disabled]="!canModify" [attr.aria-label]="('ADMIN_PLUGINS._delete_label' | translate:{ name: plugin.name })" class="rounded-lg border border-current px-3 py-2 text-status-danger-text font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+                    {{ (deletingId === plugin.id ? 'ADMIN_PLUGINS._deleting' : 'ADMIN_PLUGINS._delete') | translate }}
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              @if (!listError) {
+                <tr><td colspan="6" class="p-8 text-center">{{ 'ADMIN_PLUGINS._empty' | translate }}</td></tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    @if (pendingDeletion; as plugin) {
+      <app-confirm-dialog
+        data-cy="adminDeletePluginModal"
+        [isOpen]="true"
+        [title]="'ADMIN_PLUGINS._delete' | translate"
+        [message]="'ADMIN_PLUGINS._delete_confirm' | translate:{ name: plugin.name, version: plugin.version }"
+        [confirmText]="'ADMIN_PLUGINS._delete' | translate"
+        confirmButtonClass="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+        (confirm)="confirmDelete()"
+        (cancel)="pendingDeletion = null"
+      />
+    }
+  }
+</section>

@@ -193,4 +193,30 @@ describe('HeaderComponent', () => {
     expect(leaveSpy).toHaveBeenCalled();
     expect(listSpy).not.toHaveBeenCalled();
   });
+  for (const kind of ['products', 'services', 'resources']) {
+    it(`returns ${kind} details to the correct inventory section`, () => {
+      const url = kind === 'products' ? '/product-inventory/p1' : `/product-inventory/${kind}/i1`;
+      spyOnProperty(router, 'url', 'get').and.returnValue(url + '?status=active&view=list');
+      const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+
+      expect(component.backLabelKey).toBe('PRODUCT_INVENTORY._back_to_' + kind);
+      component.onWorkspaceBackClick();
+
+      expect(navigate).toHaveBeenCalledOnceWith(['/product-inventory'], {
+        queryParams: { section: kind, view: 'list' }
+      });
+    });
+  }
+
+  it('returns related specification details to their parent product', () => {
+    spyOnProperty(router, 'url', 'get').and.returnValue('/product-inventory/services/spec1?source=specification&productId=p1&status=created&view=list');
+    const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+
+    expect(component.backLabelKey).toBe('PRODUCT_INVENTORY._back_to_product');
+    component.onWorkspaceBackClick();
+
+    expect(navigate).toHaveBeenCalledOnceWith(['/product-inventory', 'p1'], {
+      queryParams: { view: 'list' }
+    });
+  });
 });
